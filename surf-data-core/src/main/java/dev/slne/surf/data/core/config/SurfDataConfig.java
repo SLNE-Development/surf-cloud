@@ -15,6 +15,10 @@ public class SurfDataConfig {
     @Setting("database")
     public DatabaseConfig databaseConfig;
 
+    @Required
+    @Setting("redis")
+    public RedisConfig redisConfig;
+
     public static class DatabaseConfig {
 
       @Required
@@ -24,6 +28,25 @@ public class SurfDataConfig {
       @Required
       @Setting("username")
       public String username = "root";
+
+      @Required
+      @Setting("password")
+      public String password = "";
+    }
+
+    public static class RedisConfig {
+
+      @Required
+      @Setting("host")
+      public String host = "127.0.0.1";
+
+      @Required
+      @Setting("port")
+      public int port = 6379;
+
+      @Required
+      @Setting("username")
+      public String username = "";
 
       @Required
       @Setting("password")

@@ -6,6 +6,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
+import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.core.annotation.AliasFor;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.data.redis.repository.configuration.EnableRedisRepositories;
@@ -21,6 +22,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @EnableAsync
 @EnableRedisRepositories
 @EnableTransactionManagement
+@EnableAspectJAutoProxy
 public @interface SurfDataApplication {
 
   @AliasFor(annotation = SpringBootApplication.class, attribute = "scanBasePackages")

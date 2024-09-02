@@ -9,7 +9,7 @@ plugins {
 }
 
 group = "dev.slne.surf.data"
-version = "1.21-1.0.0-SNAPSHOT"
+version = "1.21.1-1.0.0-SNAPSHOT"
 
 java {
     toolchain {

@@ -10,11 +10,11 @@ public final class SurfDataBukkitInstance extends SurfDataCoreInstance {
 
   @Override
   public Path getDataFolder() {
-    return null;
+    return BukkitMain.getInstance().getDataPath();
   }
 
   @Override
   public ClassLoader getClassLoader() {
-    return null;
+    return BukkitMain.getInstance().getClassLoader0();
   }
 }

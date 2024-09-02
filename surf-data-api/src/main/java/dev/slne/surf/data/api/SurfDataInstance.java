@@ -1,5 +1,6 @@
 package dev.slne.surf.data.api;
 
+import dev.slne.surf.data.api.redis.RedisEvent;
 import javax.annotation.ParametersAreNonnullByDefault;
 import org.jetbrains.annotations.ApiStatus.Internal;
 import org.jetbrains.annotations.ApiStatus.NonExtendable;
@@ -22,6 +23,8 @@ public interface SurfDataInstance {
 
   @Internal
   ClassLoader getClassLoader();
+
+  void callRedisEvent(RedisEvent event);
 
   @Contract(pure = true)
   static SurfDataInstance get() {

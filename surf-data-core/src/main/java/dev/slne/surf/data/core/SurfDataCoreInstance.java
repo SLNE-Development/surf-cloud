@@ -4,20 +4,28 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import dev.slne.surf.data.SurfDataApplication;
 import dev.slne.surf.data.api.SurfDataInstance;
+import dev.slne.surf.data.api.redis.RedisEvent;
 import dev.slne.surf.data.api.util.JoinClassLoader;
 import dev.slne.surf.data.core.spring.SurfSpringBanner;
 import java.nio.file.Path;
 import javax.annotation.OverridingMethodsMustInvokeSuper;
 import javax.annotation.ParametersAreNonnullByDefault;
+import lombok.Getter;
 import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.boot.Banner.Mode;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.io.DefaultResourceLoader;
+import org.springframework.data.redis.core.ReactiveRedisTemplate;
+import reactor.util.Logger;
+import reactor.util.Loggers;
 
+@Getter
 @ParametersAreNonnullByDefault
 public abstract class SurfDataCoreInstance implements SurfDataInstance {
+
+  private static final Logger redisEventLog = Loggers.getLogger("RedisEvent");
 
   private ConfigurableApplicationContext dataContext;
 
@@ -33,7 +41,6 @@ public abstract class SurfDataCoreInstance implements SurfDataInstance {
 
   @OverridingMethodsMustInvokeSuper
   public void onDisable() {
-
   }
 
   @Override
@@ -55,6 +62,16 @@ public abstract class SurfDataCoreInstance implements SurfDataInstance {
         .banner(new SurfSpringBanner())
         .parent(dataContext)
         .run();
+  }
+
+  @Override
+  public void callRedisEvent(RedisEvent event) {
+    checkNotNull(event, "event");
+
+    final ReactiveRedisTemplate<String, Object> template = dataContext.getBean(ReactiveRedisTemplate.class);
+    for (final String channel : event.getChannels()) {
+      template.convertAndSend(channel, event).log(redisEventLog).subscribe();
+    }
   }
 
   public abstract Path getDataFolder();

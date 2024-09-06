@@ -2,10 +2,10 @@ plugins {
 }
 
 dependencies {
-    api("org.springframework.boot:spring-boot-starter-data-jpa")
-    api("org.springframework.boot:spring-boot-starter-data-redis")
-    api("org.springframework.boot:spring-boot-starter-jooq")
-    api("org.springframework.boot:spring-boot-starter-validation")
-    api("org.flywaydb:flyway-core")
-    api("org.flywaydb:flyway-mysql")
+    compileOnlyApi("org.springframework.boot:spring-boot-starter-data-jpa")
+    compileOnlyApi("org.springframework.boot:spring-boot-starter-data-redis")
+    compileOnlyApi("org.springframework.boot:spring-boot-starter-jooq")
+    compileOnlyApi("org.springframework.boot:spring-boot-starter-validation")
+    compileOnlyApi("org.flywaydb:flyway-core")
+    compileOnlyApi("org.flywaydb:flyway-mysql")
 }

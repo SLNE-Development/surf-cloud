@@ -2,14 +2,10 @@ plugins {
     java
     `java-library`
     `maven-publish`
-    id("org.springframework.boot") version "3.3.3"
     id("io.spring.dependency-management") version "1.1.6"
     id("org.hibernate.build.maven-repo-auth") version "3.0.4"
     id("io.github.goooler.shadow") version "8.1.8"
 }
-
-group = "dev.slne.surf.data"
-version = "1.21.1-1.0.0-SNAPSHOT"
 
 java {
     toolchain {
@@ -23,8 +19,10 @@ configurations {
     }
 }
 
-
 allprojects {
+    group = "dev.slne.surf.data"
+    version = "1.21.1-1.0.0-SNAPSHOT"
+
     repositories {
         gradlePluginPortal()
         mavenCentral()
@@ -37,8 +35,10 @@ allprojects {
 subprojects {
     apply(plugin = "java")
     apply(plugin = "org.gradle.java-library")
-    apply(plugin = "org.springframework.boot")
+    apply(plugin = "org.gradle.maven-publish")
     apply(plugin = "io.spring.dependency-management")
+    apply(plugin = "org.hibernate.build.maven-repo-auth")
+    apply(plugin = "io.github.goooler.shadow")
 
     dependencies {
         compileOnly("org.projectlombok:lombok")
@@ -50,23 +50,26 @@ subprojects {
         annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
         annotationProcessor("org.projectlombok:lombok")
     }
-}
 
-dependencies {
+    dependencyManagement {
+        imports {
+            mavenBom("org.springframework.boot:spring-boot-dependencies:3.3.3")
+        }
+    }
+
+    publishing {
+        repositories {
+            maven("https://repo.slne.dev/repository/maven-snapshots/") { name = "maven-snapshots" }
+        }
+
+        publications.create<MavenPublication>("maven") {
+            from(components["java"])
+        }
+    }
 }
 
 tasks.withType<Test> {
     useJUnitPlatform()
-}
-
-publishing {
-    repositories {
-        maven("https://repo.slne.dev/repository/maven-snapshots/") { name = "maven-snapshots" }
-    }
-
-    publications.create<MavenPublication>("maven") {
-        from(components["java"])
-    }
 }
 
 

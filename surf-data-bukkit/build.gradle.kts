@@ -10,12 +10,12 @@ dependencies {
     api(project(":surf-data-core"))
     compileOnly("io.papermc.paper:paper-api:1.21.1-R0.1-SNAPSHOT")
 
-    paperLibrary("org.springframework.boot:spring-boot-starter-data-jpa")
-    paperLibrary("org.springframework.boot:spring-boot-starter-data-redis")
-    paperLibrary("org.springframework.boot:spring-boot-starter-jooq")
-    paperLibrary("org.springframework.boot:spring-boot-starter-validation")
-    paperLibrary("org.flywaydb:flyway-core")
-    paperLibrary("org.flywaydb:flyway-mysql")
+    api("org.springframework.boot:spring-boot-starter-data-jpa")
+    api("org.springframework.boot:spring-boot-starter-data-redis")
+    api("org.springframework.boot:spring-boot-starter-jooq")
+    api("org.springframework.boot:spring-boot-starter-validation")
+    api("org.flywaydb:flyway-core")
+    api("org.flywaydb:flyway-mysql")
 }
 
 tasks {
@@ -26,10 +26,11 @@ tasks {
 
 paper {
     main = "dev.slne.surf.data.bukkit.BukkitMain"
+    loader = "dev.slne.surf.data.bukkit.BukkitLoader"
     apiVersion = "1.21"
     authors = listOf("twisti", "SLNE Development")
 
-    generateLibrariesJson = true
+//    generateLibrariesJson = true
 
     serverDependencies {
         register("surf-bukkit-api") {

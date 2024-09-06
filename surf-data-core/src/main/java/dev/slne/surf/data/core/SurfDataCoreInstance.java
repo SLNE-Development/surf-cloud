@@ -31,7 +31,8 @@ public abstract class SurfDataCoreInstance implements SurfDataInstance {
 
   @OverridingMethodsMustInvokeSuper
   public void onLoad() {
-    dataContext = SpringApplication.run(SurfDataApplication.class);
+
+    dataContext = startSpringApplication(SurfDataApplication.class);
   }
 
   @OverridingMethodsMustInvokeSuper
@@ -56,12 +57,16 @@ public abstract class SurfDataCoreInstance implements SurfDataInstance {
     final JoinClassLoader joinClassLoader = new JoinClassLoader(classLoader,
         ArrayUtils.addFirst(parentClassLoader, getClassLoader()));
 
-    return new SpringApplicationBuilder(applicationClass)
+    final SpringApplicationBuilder builder = new SpringApplicationBuilder(applicationClass)
         .resourceLoader(new DefaultResourceLoader(joinClassLoader))
         .bannerMode(Mode.CONSOLE)
-        .banner(new SurfSpringBanner())
-        .parent(dataContext)
-        .run();
+        .banner(new SurfSpringBanner());
+
+    if (dataContext != null) {
+      builder.parent(dataContext);
+    }
+
+    return builder.run();
   }
 
   @Override

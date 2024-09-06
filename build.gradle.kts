@@ -20,6 +20,7 @@ configurations {
 }
 
 allprojects {
+    apply(plugin = "java")
     group = "dev.slne.surf.data"
     version = "1.21.1-1.0.0-SNAPSHOT"
 
@@ -33,7 +34,6 @@ allprojects {
 }
 
 subprojects {
-    apply(plugin = "java")
     apply(plugin = "org.gradle.java-library")
     apply(plugin = "org.gradle.maven-publish")
     apply(plugin = "io.spring.dependency-management")
@@ -41,14 +41,18 @@ subprojects {
     apply(plugin = "io.github.goooler.shadow")
 
     dependencies {
-        compileOnly("org.projectlombok:lombok")
+
 //        developmentOnly("org.springframework.boot:spring-boot-devtools")
         testImplementation("org.springframework.boot:spring-boot-starter-test")
         testRuntimeOnly("org.junit.platform:junit-platform-launcher")
         compileOnly("dev.slne.surf:surf-api-core-api:1.21+")
 
+        // Annotation processors
         annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
+        compileOnly("org.projectlombok:lombok")
         annotationProcessor("org.projectlombok:lombok")
+        compileOnly("com.google.auto.service:auto-service-annotations:1.1.1")
+        annotationProcessor("com.google.auto.service:auto-service:1.1.1")
     }
 
     dependencyManagement {

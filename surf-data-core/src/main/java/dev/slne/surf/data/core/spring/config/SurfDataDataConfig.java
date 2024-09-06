@@ -5,15 +5,19 @@ import dev.slne.surf.data.core.config.SurfDataConfig;
 import dev.slne.surf.data.core.config.SurfDataConfig.ConnectionConfig.DatabaseConfig;
 import dev.slne.surf.surfapi.core.api.SurfCoreApi;
 import javax.sql.DataSource;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
+import org.springframework.context.annotation.Role;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 
 @Configuration
+@Role(BeanDefinition.ROLE_INFRASTRUCTURE)
 public class SurfDataDataConfig {
 
   @Bean
+  @Role(BeanDefinition.ROLE_INFRASTRUCTURE)
   public SurfDataConfig surfDataConfig() {
     return SurfCoreApi.getCore().createModernYamlConfig(
         SurfDataConfig.class,

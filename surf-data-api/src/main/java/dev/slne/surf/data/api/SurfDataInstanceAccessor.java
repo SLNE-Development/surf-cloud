@@ -8,6 +8,9 @@ final class SurfDataInstanceAccessor {
       .orElseThrow(() -> new Error("SurfDataInstance not available"));
 
   static SurfDataInstance get() {
+//    AbstractPersistable // TODO: Implement this
+//    AbstractAuditable
+
     return INSTANCE;
   }
 }

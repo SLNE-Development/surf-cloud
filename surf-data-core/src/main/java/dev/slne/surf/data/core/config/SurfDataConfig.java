@@ -2,7 +2,6 @@ package dev.slne.surf.data.core.config;
 
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
-import org.spongepowered.configurate.objectmapping.meta.Matches;
 import org.spongepowered.configurate.objectmapping.meta.Setting;
 
 @ConfigSerializable
@@ -27,7 +26,6 @@ public class SurfDataConfig {
     public static class DatabaseConfig {
 
       @Comment("URL for database connection. Should be in the format of jdbc:<db_type>://<host>:<port>/<database>")
-      @Matches("jdbc:[a-zA-Z]+://[a-zA-Z0-9.]+:[0-9]+/[a-zA-Z0-9_]+")
       @Setting("url")
       public String url = "jdbc:mariadb://127.0.0.1/surf_data";
 
@@ -44,12 +42,10 @@ public class SurfDataConfig {
     public static class RedisConfig {
 
       @Comment("Host for redis connection")
-      @Matches("[a-zA-Z0-9.]+")
       @Setting("host")
       public String host = "127.0.0.1";
 
       @Comment("Port for redis connection")
-      @Matches("[0-9]+")
       @Setting("port")
       public int port = 6379;
 

@@ -7,13 +7,13 @@ import dev.slne.surf.data.api.SurfDataInstance;
 import dev.slne.surf.data.api.redis.RedisEvent;
 import dev.slne.surf.data.api.util.JoinClassLoader;
 import dev.slne.surf.data.core.spring.SurfSpringBanner;
+import dev.slne.surf.data.core.util.Util;
 import java.nio.file.Path;
 import javax.annotation.OverridingMethodsMustInvokeSuper;
 import javax.annotation.ParametersAreNonnullByDefault;
 import lombok.Getter;
 import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.boot.Banner.Mode;
-import org.springframework.boot.SpringApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.io.DefaultResourceLoader;
@@ -31,8 +31,9 @@ public abstract class SurfDataCoreInstance implements SurfDataInstance {
 
   @OverridingMethodsMustInvokeSuper
   public void onLoad() {
-
-    dataContext = startSpringApplication(SurfDataApplication.class);
+    Util.tempChangeSystemClassLoader(getClassLoader(), () -> {
+      dataContext = startSpringApplication(SurfDataApplication.class);
+    });
   }
 
   @OverridingMethodsMustInvokeSuper
@@ -73,7 +74,8 @@ public abstract class SurfDataCoreInstance implements SurfDataInstance {
   public void callRedisEvent(RedisEvent event) {
     checkNotNull(event, "event");
 
-    final ReactiveRedisTemplate<String, Object> template = dataContext.getBean(ReactiveRedisTemplate.class);
+    final ReactiveRedisTemplate<String, Object> template = dataContext.getBean(
+        ReactiveRedisTemplate.class);
     for (final String channel : event.getChannels()) {
       template.convertAndSend(channel, event).log(redisEventLog).subscribe();
     }

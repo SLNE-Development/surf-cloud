@@ -14,7 +14,6 @@ import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.stereotype.Component;
 
 @Component
-@Role(BeanDefinition.ROLE_INFRASTRUCTURE)
 public class VelocityListenerProcessor implements BeanPostProcessor {
 
   @Override

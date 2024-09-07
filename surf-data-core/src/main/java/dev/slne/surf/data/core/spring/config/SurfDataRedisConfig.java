@@ -32,11 +32,9 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 @Configuration
 @EnableTransactionManagement
-@Role(BeanDefinition.ROLE_INFRASTRUCTURE)
 public class SurfDataRedisConfig {
 
   @Bean
-  @Role(BeanDefinition.ROLE_INFRASTRUCTURE)
   public LettuceConnectionFactory redisConnectionFactory(SurfDataConfig surfDataConfig) {
     final RedisConfig redisConfig = surfDataConfig.connectionConfig.redisConfig;
     final RedisStandaloneConfiguration standalone = new RedisStandaloneConfiguration();

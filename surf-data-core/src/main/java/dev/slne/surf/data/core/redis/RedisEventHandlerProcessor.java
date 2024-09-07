@@ -2,7 +2,6 @@ package dev.slne.surf.data.core.redis;
 
 import dev.slne.surf.data.api.redis.RedisEvent;
 import dev.slne.surf.data.api.redis.RedisEventHandler;
-import jakarta.validation.constraints.Size;
 import java.lang.invoke.CallSite;
 import java.lang.invoke.LambdaMetafactory;
 import java.lang.invoke.MethodHandle;
@@ -18,10 +17,9 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.aop.framework.AopProxyUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanCreationException;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanPostProcessor;
-import org.springframework.context.annotation.Role;
 import org.springframework.core.MethodIntrospector;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.core.annotation.AnnotationUtils;
@@ -34,24 +32,23 @@ import org.springframework.stereotype.Component;
 import org.springframework.validation.annotation.Validated;
 
 @Component
-@Role(BeanDefinition.ROLE_INFRASTRUCTURE)
 @Validated
 public class RedisEventHandlerProcessor implements BeanPostProcessor {
 
-  private final RedisMessageListenerContainer container;
-  private final ReactiveRedisTemplate<String, Object> redisTemplate;
+  private final ObjectProvider<RedisMessageListenerContainer> container;
+  private final ObjectProvider<ReactiveRedisTemplate<String, Object>> redisTemplate;
 
   @Autowired
   public RedisEventHandlerProcessor(
-      RedisMessageListenerContainer container,
-      ReactiveRedisTemplate<String, Object> redisTemplate
+      ObjectProvider<RedisMessageListenerContainer> container,
+      ObjectProvider<ReactiveRedisTemplate<String, Object>> redisTemplate
   ) {
     this.container = container;
     this.redisTemplate = redisTemplate;
   }
 
   @Override
-  public Object postProcessAfterInitialization(@Size @NotNull Object bean, @NotNull String beanName) throws BeansException {
+  public Object postProcessAfterInitialization(@NotNull Object bean, @NotNull String beanName) throws BeansException {
     final Class<?> targetClass = AopProxyUtils.ultimateTargetClass(bean);
 
     if (!AnnotationUtils.isCandidateClass(targetClass, RedisEventHandler.class)) {
@@ -78,9 +75,9 @@ public class RedisEventHandlerProcessor implements BeanPostProcessor {
       assert eventHandler != null : "This method should only be called for event handlers";
 
       final RedisEventHandlerListenerAdapter adapter = new RedisEventHandlerListenerAdapter(beanName,
-          handlerMethod, redisTemplate);
+          handlerMethod, redisTemplate.getObject());
 
-      container.addMessageListener(adapter, Arrays.stream(eventHandler.channels())
+      container.getObject().addMessageListener(adapter, Arrays.stream(eventHandler.channels())
           .map(ChannelTopic::of)
           .toList());
     }

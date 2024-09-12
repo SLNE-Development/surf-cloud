@@ -1,6 +1,7 @@
 package dev.slne.surf.data.core.spring.config;
 
 import com.fasterxml.jackson.core.JsonParser.Feature;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -24,6 +25,7 @@ import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
+import org.springframework.data.redis.core.ReactiveStringRedisTemplate;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
@@ -39,15 +41,15 @@ public class SurfDataRedisConfig {
     final RedisConfig redisConfig = surfDataConfig.connectionConfig.redisConfig;
     final RedisStandaloneConfiguration standalone = new RedisStandaloneConfiguration();
     final LettuceClientConfiguration clientConfig = LettuceClientConfiguration.builder()
-        .useSsl()
-        .startTls()
-        .and()
+//        .useSsl()
+//        .startTls()
+//        .and()
         .clientName("surf-data-client")
         .build();
 
     standalone.setHostName(redisConfig.host);
     standalone.setPort(redisConfig.port);
-    standalone.setUsername(redisConfig.username);
+    standalone.setUsername(redisConfig.username.isBlank() ? null : redisConfig.username);
     standalone.setPassword(redisConfig.password);
 
     return new LettuceConnectionFactory(standalone, clientConfig);
@@ -62,6 +64,7 @@ public class SurfDataRedisConfig {
         .configure(MapperFeature.PROPAGATE_TRANSIENT_MARKER, true)
         .configure(Feature.USE_FAST_DOUBLE_PARSER, true)
         .configure(Feature.USE_FAST_BIG_NUMBER_PARSER, true)
+        .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
         .addModules(modules.orderedStream().toArray(Module[]::new))
         .defaultTimeZone(TimeZone.getDefault())
         .build();
@@ -81,6 +84,7 @@ public class SurfDataRedisConfig {
         connectionFactory,
         RedisSerializationContext.<String, Object>newSerializationContext(redisSerializer)
             .key(RedisSerializer.string())
+            .value(redisSerializer)
             .build()
     );
   }

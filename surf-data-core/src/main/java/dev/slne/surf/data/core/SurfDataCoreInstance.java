@@ -1,14 +1,18 @@
 package dev.slne.surf.data.core;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkState;
 
-import dev.slne.surf.data.SurfDataApplication;
+import dev.slne.surf.data.SurfDataMainApplication;
 import dev.slne.surf.data.api.SurfDataInstance;
 import dev.slne.surf.data.api.redis.RedisEvent;
 import dev.slne.surf.data.api.util.JoinClassLoader;
 import dev.slne.surf.data.core.spring.SurfSpringBanner;
+import dev.slne.surf.data.core.test.TestEntity;
+import dev.slne.surf.data.core.test.TestPacket;
 import dev.slne.surf.data.core.util.Util;
 import java.nio.file.Path;
+import java.util.UUID;
 import javax.annotation.OverridingMethodsMustInvokeSuper;
 import javax.annotation.ParametersAreNonnullByDefault;
 import lombok.Getter;
@@ -31,9 +35,12 @@ public abstract class SurfDataCoreInstance implements SurfDataInstance {
 
   @OverridingMethodsMustInvokeSuper
   public void onLoad() {
-    Util.tempChangeSystemClassLoader(getClassLoader(), () -> {
-      dataContext = startSpringApplication(SurfDataApplication.class);
-    });
+    dataContext = startSpringApplication(SurfDataMainApplication.class);
+    for (int i = 0; i < 10; i++) {
+      final TestEntity entity = new TestEntity(true, 25, 100.0, UUID.randomUUID(), "Test", false);
+      TestPacket packet = new TestPacket(entity);
+      packet.send();
+    }
   }
 
   @OverridingMethodsMustInvokeSuper
@@ -58,24 +65,27 @@ public abstract class SurfDataCoreInstance implements SurfDataInstance {
     final JoinClassLoader joinClassLoader = new JoinClassLoader(classLoader,
         ArrayUtils.addFirst(parentClassLoader, getClassLoader()));
 
-    final SpringApplicationBuilder builder = new SpringApplicationBuilder(applicationClass)
-        .resourceLoader(new DefaultResourceLoader(joinClassLoader))
-        .bannerMode(Mode.CONSOLE)
-        .banner(new SurfSpringBanner());
+    return Util.tempChangeSystemClassLoader(joinClassLoader, () -> {
+      final SpringApplicationBuilder builder = new SpringApplicationBuilder(applicationClass)
+          .resourceLoader(new DefaultResourceLoader(joinClassLoader))
+          .bannerMode(Mode.CONSOLE)
+          .banner(new SurfSpringBanner());
 
-    if (dataContext != null) {
-      builder.parent(dataContext);
-    }
+      if (dataContext != null) {
+        builder.parent(dataContext);
+      }
 
-    return builder.run();
+      return builder.run();
+    });
   }
 
+  @SuppressWarnings("unchecked")
   @Override
   public void callRedisEvent(RedisEvent event) {
     checkNotNull(event, "event");
+    checkState(dataContext != null, "Event called before onLoad");
 
-    final ReactiveRedisTemplate<String, Object> template = dataContext.getBean(
-        ReactiveRedisTemplate.class);
+    final ReactiveRedisTemplate<String, Object> template = dataContext.getBean("reactiveRedisTemplate", ReactiveRedisTemplate.class);
     for (final String channel : event.getChannels()) {
       template.convertAndSend(channel, event).log(redisEventLog).subscribe();
     }

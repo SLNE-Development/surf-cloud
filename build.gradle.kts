@@ -21,6 +21,8 @@ configurations {
 
 allprojects {
     apply(plugin = "java")
+    apply(plugin = "io.github.goooler.shadow")
+
     group = "dev.slne.surf.data"
     version = "1.21.1-1.0.0-SNAPSHOT"
 
@@ -31,14 +33,18 @@ allprojects {
         maven("https://repo.slne.dev/repository/maven-snapshots/") { name = "maven-snapshots" }
         maven("https://repo.slne.dev/repository/maven-proxy/") { name = "maven-proxy" }
     }
-}
 
+    tasks {
+        shadowJar {
+            mergeServiceFiles()
+        }
+    }
+}
 subprojects {
     apply(plugin = "org.gradle.java-library")
     apply(plugin = "org.gradle.maven-publish")
     apply(plugin = "io.spring.dependency-management")
     apply(plugin = "org.hibernate.build.maven-repo-auth")
-    apply(plugin = "io.github.goooler.shadow")
 
     dependencies {
 

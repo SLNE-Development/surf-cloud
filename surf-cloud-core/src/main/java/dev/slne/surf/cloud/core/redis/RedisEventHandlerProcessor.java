@@ -70,10 +70,6 @@ public class RedisEventHandlerProcessor implements BeanPostProcessor {
       Object bean,
       @NotNull Set<Method> eventHandlerMethods
   ) {
-    System.err.println(
-        "Registering event handlers for bean " + beanName + " with " + eventHandlerMethods.size()
-            + " methods");
-
     for (final Method handlerMethod : eventHandlerMethods) {
       final RedisEventHandler eventHandler = AnnotationUtils.getAnnotation(handlerMethod,
           RedisEventHandler.class);

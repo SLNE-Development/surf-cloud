@@ -1,5 +1,6 @@
 package dev.slne.surf.cloud.core.netty.client;
 
+import dev.slne.surf.cloud.core.netty.NettyBase;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -8,11 +9,14 @@ import org.springframework.stereotype.Component;
 
 @Component
 @Profile("client")
-public class SurfNettyClient {
+public class SurfNettyClient extends NettyBase {
 
   private final Bootstrap bootstrap;
   private final EventRegistry eventRegistry;
 
   private final EventLoopGroup workerGroup = new NioEventLoopGroup();
 
+  public SurfNettyClient() {
+    super(name);
+  }
 }

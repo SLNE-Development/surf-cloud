@@ -1,5 +1,6 @@
 package dev.slne.surf.cloud.standalone.netty.server;
 
+import dev.slne.surf.cloud.core.netty.NettyBase;
 import dev.slne.surf.cloud.core.netty.common.SurfNettyChannelInitializer;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelOption;
@@ -15,7 +16,7 @@ import org.springframework.stereotype.Component;
 
 @Profile("standalone")
 @Component
-public class SurfNettyServer  {
+public class SurfNettyServer extends NettyBase {
 
   private final ServerBootstrap serverBootstrap;
   private final SurfNettyChannelInitializer surfNettyChannelInitializer;
@@ -24,6 +25,8 @@ public class SurfNettyServer  {
   private SocketChannel connectedChannel;
 
   public SurfNettyServer(SurfNettyChannelInitializer surfNettyChannelInitializer) {
+    super(name);
+
     this.serverBootstrap = new ServerBootstrap()
         .option(ChannelOption.AUTO_READ, true)
         .option(ChannelOption.SO_KEEPALIVE, true)

@@ -964,6 +964,34 @@ public class SurfByteBuf extends WrappedByteBuf {
     writeNullable(this, value, encodeFactory);
   }
 
+  public void writeNullable(String value) {
+    writeNullable(this, value, SurfByteBuf::writeString);
+  }
+
+  public void writeNullable(Integer value) {
+    writeNullable(this, value, SurfByteBuf::writeInt);
+  }
+
+  public void writeNullable(Long value) {
+    writeNullable(this, value, SurfByteBuf::writeLong);
+  }
+
+  public void writeNullable(Float value) {
+    writeNullable(this, value, SurfByteBuf::writeFloat);
+  }
+
+  public void writeNullable(Double value) {
+    writeNullable(this, value, SurfByteBuf::writeDouble);
+  }
+
+  public void writeNullable(Boolean value) {
+    writeNullable(this, value, SurfByteBuf::writeBoolean);
+  }
+
+  public void writeNullable(UUID value) {
+    writeNullable(this, value, (buffer, value1) -> buffer.writeUuid(value1));
+  }
+
   /**
    * Write uuid.
    *

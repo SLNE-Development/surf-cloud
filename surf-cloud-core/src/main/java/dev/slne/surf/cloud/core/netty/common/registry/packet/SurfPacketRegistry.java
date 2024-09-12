@@ -1,4 +1,4 @@
-package dev.slne.surf.cloud.core.netty.common;
+package dev.slne.surf.cloud.core.netty.common.registry.packet;
 
 import dev.slne.surf.cloud.api.meta.Registry;
 import dev.slne.surf.cloud.api.netty.exception.SurfNettyRegisterPacketException;

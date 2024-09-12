@@ -1,12 +1,15 @@
-package dev.slne.surf.cloud.core.netty.common.processor;
+package dev.slne.surf.cloud.core.netty.common.registry.listener.processor;
 
 import dev.slne.surf.cloud.api.meta.SurfNettyPacketHandler;
-import dev.slne.surf.cloud.core.netty.common.SurfNettyListenerRegistry;
+import dev.slne.surf.cloud.api.netty.exception.SurfNettyListenerRegistrationException;
+import dev.slne.surf.cloud.core.netty.common.registry.listener.SurfNettyListenerRegistry;
 import java.lang.reflect.Method;
 import java.util.Set;
 import org.springframework.aop.framework.AopInfrastructureBean;
 import org.springframework.aop.framework.AopProxyUtils;
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.BeanCreationException;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.core.MethodIntrospector;
 import org.springframework.core.annotation.AnnotatedElementUtils;
@@ -16,9 +19,9 @@ import org.springframework.stereotype.Component;
 @Component
 public class SurfNettyListenerRegistryProcessor implements BeanPostProcessor {
 
-  private final SurfNettyListenerRegistry surfNettyListenerRegistry;
+  private final ObjectProvider<SurfNettyListenerRegistry> surfNettyListenerRegistry;
 
-  public SurfNettyListenerRegistryProcessor(SurfNettyListenerRegistry surfNettyListenerRegistry) {
+  public SurfNettyListenerRegistryProcessor(ObjectProvider<SurfNettyListenerRegistry> surfNettyListenerRegistry) {
     this.surfNettyListenerRegistry = surfNettyListenerRegistry;
   }
 
@@ -45,6 +48,13 @@ public class SurfNettyListenerRegistryProcessor implements BeanPostProcessor {
   }
 
   private void registerNettyHandlers(String beanName, Object bean, Set<Method> nettyHandlers) {
-
+    try {
+      final SurfNettyListenerRegistry registry = surfNettyListenerRegistry.getObject();
+      for (final Method handler : nettyHandlers) {
+        registry.registerListener(handler, bean);
+      }
+    } catch (SurfNettyListenerRegistrationException e) {
+      throw new BeanCreationException(beanName, e.getMessage(), e);
+    }
   }
 }

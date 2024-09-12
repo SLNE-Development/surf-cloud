@@ -1,6 +1,6 @@
-rootProject.name = "surf-data"
-include("surf-data-api")
-include("surf-data-core")
-include("surf-data-bukkit")
-include("surf-data-velocity")
-include("surf-data-standalone")
+rootProject.name = "surf-cloud"
+include("surf-cloud-api")
+include("surf-cloud-core")
+include("surf-cloud-bukkit")
+include("surf-cloud-velocity")
+include("surf-cloud-standalone")

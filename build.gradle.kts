@@ -23,7 +23,7 @@ allprojects {
     apply(plugin = "java")
     apply(plugin = "io.github.goooler.shadow")
 
-    group = "dev.slne.surf.data"
+    group = "dev.slne.surf.cloud"
     version = "1.21.1-1.0.0-SNAPSHOT"
 
     repositories {
@@ -81,5 +81,3 @@ subprojects {
 tasks.withType<Test> {
     useJUnitPlatform()
 }
-
-

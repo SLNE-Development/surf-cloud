@@ -2,8 +2,8 @@ plugins {
 }
 
 dependencies {
-    compileOnlyApi("org.springframework.boot:spring-boot-starter-data-jpa")
-    compileOnlyApi("org.springframework.boot:spring-boot-starter-data-redis")
+    compileOnlyApi("org.springframework.boot:spring-boot-starter-cloud-jpa")
+    compileOnlyApi("org.springframework.boot:spring-boot-starter-cloud-redis")
     compileOnlyApi("org.springframework.boot:spring-boot-starter-jooq")
     compileOnlyApi("com.fasterxml.jackson.core:jackson-core")
     compileOnlyApi("com.fasterxml.jackson.core:jackson-databind")

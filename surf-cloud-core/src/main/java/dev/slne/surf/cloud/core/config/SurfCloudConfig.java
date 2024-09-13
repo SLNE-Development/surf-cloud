@@ -1,5 +1,6 @@
 package dev.slne.surf.cloud.core.config;
 
+import lombok.Getter;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
 import org.spongepowered.configurate.objectmapping.meta.Setting;
@@ -21,6 +22,10 @@ public class SurfCloudConfig {
     @Comment("Config for redis connection")
     @Setting("redis")
     public RedisConfig redisConfig = new RedisConfig();
+
+    @Comment("Config for netty connection")
+    @Setting("netty")
+    public NettyConfig nettyConfig = new NettyConfig();
 
     @ConfigSerializable
     public static class DatabaseConfig {
@@ -56,6 +61,23 @@ public class SurfCloudConfig {
       @Comment("Password for redis connection")
       @Setting("password")
       public String password = "";
+    }
+
+    @ConfigSerializable
+    @Getter
+    public static class NettyConfig {
+
+        @Comment("Port for netty connection")
+        @Setting("port")
+        public int port = 5555;
+
+        @Comment("Host for netty connection")
+        @Setting("host")
+        public String host = "127.0.0.1";
+
+        @Comment("Reconnect delay for netty connection in seconds")
+        @Setting("reconnect-delay")
+        public int reconnectDelay = 3;
     }
   }
 }

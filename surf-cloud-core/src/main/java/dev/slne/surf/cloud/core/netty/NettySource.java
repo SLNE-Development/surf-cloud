@@ -10,7 +10,7 @@ public class NettySource {
 
   private final NettyBase nettyBase;
 
-  NettySource(NettyBase nettyBase) {
+  public NettySource(NettyBase nettyBase) {
     this.nettyBase = nettyBase;
   }
 

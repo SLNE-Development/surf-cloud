@@ -7,9 +7,9 @@ import io.netty.handler.codec.EncoderException;
 import java.net.InetSocketAddress;
 import org.jetbrains.annotations.Range;
 
-public interface ServerInfo {
+public interface CloudServer {
 
-  Codec<ServerInfo, DecoderException, EncoderException> CODEC = Codec.codec(
+  Codec<CloudServer, DecoderException, EncoderException> CODEC = Codec.codec(
   (buf, value) -> {
     buf.writeLong(value.serverGuid());
     buf.writeNullable(value.host());
@@ -31,8 +31,6 @@ public interface ServerInfo {
     final int maxPlayerCount = buf.readInt();
     final ServerState state = buf.readEnum(ServerState.class);
     final String groupId = buf.readNullable(SurfByteBuf::readString);
-
-
   }
   );
 

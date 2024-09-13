@@ -8,30 +8,30 @@ import lombok.Getter;
 @Getter
 public class ProxiedNettySource extends NettySource {
 
-  private ServerInfo serverInfo;
-  private ServerInfo lastServerInfo;
+  private CloudServer cloudServer;
+  private CloudServer lastCloudServer;
 
   ProxiedNettySource(NettyBase nettyBase) {
     super(nettyBase);
   }
 
-  public void updateServerInfo(ServerInfo other) {
+  public void updateServerInfo(CloudServer other) {
     checkNotNull(other, "other");
 
-    if (this.serverInfo == null) {
-      this.serverInfo = other;
+    if (this.cloudServer == null) {
+      this.cloudServer = other;
       return;
     }
 
-    this.lastServerInfo = this.serverInfo;
-    this.serverInfo = other;
+    this.lastCloudServer = this.cloudServer;
+    this.cloudServer = other;
   }
 
   @SuppressWarnings({"LombokSetterMayBeUsed", "RedundantSuppression"})
-  public void setServerInfo(ServerInfo serverInfo) {
-    this.serverInfo = serverInfo;
-//    if (this.serverInfo != null) {
-//      this.direction = this.serverInfo.getDirection();
+  public void setCloudServer(CloudServer cloudServer) {
+    this.cloudServer = cloudServer;
+//    if (this.cloudServer != null) {
+//      this.direction = this.cloudServer.getDirection();
 //    }
   }
 
@@ -43,10 +43,10 @@ public class ProxiedNettySource extends NettySource {
       //
       // note here that it is a little hacky, but does it job
       ((SourceList<ProxiedSource>) base.container.sourceList()).updateClient(this);
-      updateServerInfo(getServerInfo());
+      updateServerInfo(getCloudServer());
     }
     // sending packet
-    PacketServerInfo info = new PacketServerInfo(new ServerInfoData(serverInfo, action));
+    PacketServerInfo info = new PacketServerInfo(new ServerInfoData(cloudServer, action));
     if (sources.length == 0) {
       base.container.broadcast(info);
     } else {
@@ -57,7 +57,7 @@ public class ProxiedNettySource extends NettySource {
   }
 
   public long getServerGuid() {
-    return serverInfo != null ? serverInfo.serverGuid() : -1;
+    return cloudServer != null ? cloudServer.serverGuid() : -1;
   }
 
   public boolean hasServerGuid() {
@@ -76,15 +76,15 @@ public class ProxiedNettySource extends NettySource {
       return false;
     }
 
-    return Objects.equals(getServerInfo(), that.getServerInfo())
-        && Objects.equals(getLastServerInfo(), that.getLastServerInfo());
+    return Objects.equals(getCloudServer(), that.getCloudServer())
+        && Objects.equals(getLastCloudServer(), that.getLastCloudServer());
   }
 
   @Override
   public int hashCode() {
     int result = super.hashCode();
-    result = 31 * result + Objects.hashCode(getServerInfo());
-    result = 31 * result + Objects.hashCode(getLastServerInfo());
+    result = 31 * result + Objects.hashCode(getCloudServer());
+    result = 31 * result + Objects.hashCode(getLastCloudServer());
     return result;
   }
 }

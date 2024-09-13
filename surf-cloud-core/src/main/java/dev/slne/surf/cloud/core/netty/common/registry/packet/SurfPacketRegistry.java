@@ -44,4 +44,8 @@ public class SurfPacketRegistry {
   public boolean isRegistered(int packetId) {
     return packets.containsKey(packetId);
   }
+
+  public boolean isRegistered(NettyPacket<?> packet) {
+    return packet2Class.containsKey(packet.getClass());
+  }
 }

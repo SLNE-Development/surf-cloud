@@ -11,6 +11,12 @@ import io.netty.handler.codec.DecoderException;
 import io.netty.handler.codec.EncoderException;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Collection;
@@ -27,6 +33,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.intellij.lang.annotations.Subst;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings({"OptionalUsedAsFieldOrParameterType", "unused"})
@@ -92,6 +99,7 @@ public class SurfByteBuf extends WrappedByteBuf {
   public static Component readComponent(ByteBuf buf) {
 //    return BinaryComponentSerializer.deserializeComponent(buf);
     final class Holder {
+
       final static GsonComponentSerializer serializer = GsonComponentSerializer.gson();
     }
 
@@ -214,6 +222,213 @@ public class SurfByteBuf extends WrappedByteBuf {
 
     for (final T element : collection) {
       encodeFactory.encode(buf, element);
+    }
+  }
+
+  public static <T, B extends ByteBuf> T[] readArray(
+      B buf,
+      IntFunction<T[]> arrayFactory,
+      DecodeFactory<? super B, T> decodeFactory
+  ) {
+    final int size = buf.readInt();
+    final T[] array = arrayFactory.apply(size);
+
+    for (int i = 0; i < size; i++) {
+      array[i] = decodeFactory.decode(buf);
+    }
+
+    return array;
+  }
+
+  public static <B extends ByteBuf> int[] readIntArray(B buf) {
+    final int[] array = new int[buf.readInt()];
+
+    for (int i = 0; i < array.length; i++) {
+      array[i] = buf.readInt();
+    }
+
+    return array;
+  }
+
+  public static <B extends ByteBuf> long[] readLongArray(B buf) {
+    final long[] array = new long[buf.readInt()];
+
+    for (int i = 0; i < array.length; i++) {
+      array[i] = buf.readLong();
+    }
+
+    return array;
+  }
+
+  public static <B extends ByteBuf> float[] readFloatArray(B buf) {
+    final float[] array = new float[buf.readInt()];
+
+    for (int i = 0; i < array.length; i++) {
+      array[i] = buf.readFloat();
+    }
+
+    return array;
+  }
+
+  public static <B extends ByteBuf> double[] readDoubleArray(B buf) {
+    final double[] array = new double[buf.readInt()];
+
+    for (int i = 0; i < array.length; i++) {
+      array[i] = buf.readDouble();
+    }
+
+    return array;
+  }
+
+  public static <B extends ByteBuf> boolean[] readBooleanArray(B buf) {
+    final boolean[] array = new boolean[buf.readInt()];
+
+    for (int i = 0; i < array.length; i++) {
+      array[i] = buf.readBoolean();
+    }
+
+    return array;
+  }
+
+  public static <B extends ByteBuf> byte[] readByteArray(B buf) {
+    final byte[] array = new byte[buf.readInt()];
+
+    for (int i = 0; i < array.length; i++) {
+      array[i] = buf.readByte();
+    }
+
+    return array;
+  }
+
+  public static <B extends ByteBuf> short[] readShortArray(B buf) {
+    final short[] array = new short[buf.readInt()];
+
+    for (int i = 0; i < array.length; i++) {
+      array[i] = buf.readShort();
+    }
+
+    return array;
+  }
+
+  public static <B extends ByteBuf> char[] readCharArray(B buf) {
+    final char[] array = new char[buf.readInt()];
+
+    for (int i = 0; i < array.length; i++) {
+      array[i] = buf.readChar();
+    }
+
+    return array;
+  }
+
+  public static <B extends ByteBuf> String[] readStringArray(B buf) {
+    final String[] array = new String[buf.readInt()];
+
+    for (int i = 0; i < array.length; i++) {
+      array[i] = readUtf(buf);
+    }
+
+    return array;
+  }
+
+  public static <B extends ByteBuf> UUID[] readUuidArray(B buf) {
+    final UUID[] array = new UUID[buf.readInt()];
+
+    for (int i = 0; i < array.length; i++) {
+      array[i] = readUuid(buf);
+    }
+
+    return array;
+  }
+
+  public static <T, B extends ByteBuf> void writeArray(
+      B buf,
+      T[] array,
+      EncodeFactory<? super B, T> encodeFactory
+  ) {
+    buf.writeInt(array.length);
+
+    for (final T element : array) {
+      encodeFactory.encode(buf, element);
+    }
+  }
+
+  public static <B extends ByteBuf> void writeIntArray(B buf, int[] array) {
+    buf.writeInt(array.length);
+
+    for (final int intValue : array) {
+      buf.writeInt(intValue);
+    }
+  }
+
+  public static <B extends ByteBuf> void writeLongArray(B buf, long[] array) {
+    buf.writeInt(array.length);
+
+    for (final long longValue : array) {
+      buf.writeLong(longValue);
+    }
+  }
+
+  public static <B extends ByteBuf> void writeFloatArray(B buf, float[] array) {
+    buf.writeInt(array.length);
+
+    for (final float floatValue : array) {
+      buf.writeFloat(floatValue);
+    }
+  }
+
+  public static <B extends ByteBuf> void writeDoubleArray(B buf, double[] array) {
+    buf.writeInt(array.length);
+
+    for (final double doubleValue : array) {
+      buf.writeDouble(doubleValue);
+    }
+  }
+
+  public static <B extends ByteBuf> void writeBooleanArray(B buf, boolean[] array) {
+    buf.writeInt(array.length);
+
+    for (final boolean booleanValue : array) {
+      buf.writeBoolean(booleanValue);
+    }
+  }
+
+  public static <B extends ByteBuf> void writeByteArray(B buf, byte[] array) {
+    buf.writeInt(array.length);
+
+    for (final byte byteValue : array) {
+      buf.writeByte(byteValue);
+    }
+  }
+
+  public static <B extends ByteBuf> void writeShortArray(B buf, short[] array) {
+    buf.writeInt(array.length);
+
+    for (final short shortValue : array) {
+      buf.writeShort(shortValue);
+    }
+  }
+
+  public static <B extends ByteBuf> void writeCharArray(B buf, char[] array) {
+    buf.writeInt(array.length);
+
+    for (final char charValue : array) {
+      buf.writeChar(charValue);
+    }
+  }
+
+  public static <B extends ByteBuf> void writeStringArray(B buf, String[] array) {
+    buf.writeInt(array.length);
+
+    for (final String stringValue : array) {
+      writeUtf(buf, stringValue);
+    }
+  }
+
+  public static <B extends ByteBuf> void writeUuidArray(B buf, UUID[] array) {
+    buf.writeInt(array.length);
+
+    for (final UUID uuidValue : array) {
+      writeUuid(buf, uuidValue);
     }
   }
 
@@ -399,72 +614,6 @@ public class SurfByteBuf extends WrappedByteBuf {
    */
   public static UUID readUuid(ByteBuf buf) {
     return new UUID(buf.readLong(), buf.readLong());
-  }
-
-  /**
-   * Write long array b.
-   *
-   * @param <B>   the type parameter
-   * @param buf   the buf
-   * @param array the array
-   * @return the b
-   */
-  public static <B extends ByteBuf> B writeLongArray(B buf, long[] array) {
-    buf.writeInt(array.length);
-
-    for (final long longValue : array) {
-      buf.writeLong(longValue);
-    }
-
-    return buf;
-  }
-
-  /**
-   * Read long array long [ ].
-   *
-   * @param buf the buf
-   * @return the long [ ]
-   */
-  public static long[] readLongArray(ByteBuf buf) {
-    return readLongArray(buf, null);
-  }
-
-  /**
-   * Read long array long [ ].
-   *
-   * @param buf     the buf
-   * @param toArray the to array
-   * @return the long [ ]
-   */
-  public static long[] readLongArray(ByteBuf buf, long @Nullable [] toArray) {
-    return readLongArray(buf, toArray, buf.readableBytes() / Byte.SIZE);
-  }
-
-  /**
-   * Read long array long [ ].
-   *
-   * @param buf     the buf
-   * @param toArray the to array
-   * @param maxSize the max size
-   * @return the long [ ]
-   */
-  public static long[] readLongArray(ByteBuf buf, long @Nullable [] toArray, int maxSize) {
-    final int size = buf.readInt();
-
-    if (toArray == null || toArray.length != size) {
-      if (size > maxSize) {
-        throw new DecoderException(
-            "LongArray with size " + size + " is bigger than allowed " + maxSize);
-      }
-
-      toArray = new long[size];
-    }
-
-    for (int i = 0; i < toArray.length; ++i) {
-      toArray[i] = buf.readLong();
-    }
-
-    return toArray;
   }
 
   /**
@@ -693,6 +842,36 @@ public class SurfByteBuf extends WrappedByteBuf {
   public static <B extends ByteBuf> OptionalLong readOptionalLong(B buf) {
     return readOptionalLong(buf, ByteBuf::readLong);
   }
+
+  public static <B extends ByteBuf> void writeSerializable(B buf, Serializable serializable) {
+    try (final ByteArrayOutputStream bout = new ByteArrayOutputStream();
+        final ObjectOutputStream out = new ObjectOutputStream(bout)) {
+      out.writeObject(serializable);
+      out.flush();
+
+      final byte[] bytes = bout.toByteArray();
+      buf.writeInt(bytes.length);
+      buf.writeBytes(bytes);
+    } catch (IOException e) {
+      throw new EncoderException("Failed to write serializable", e);
+    }
+  }
+
+  public static <T extends Serializable, B extends ByteBuf> T readSerializable(
+      @NotNull B buf,
+      @NotNull Class<? extends T> clazz
+  ) {
+    try {
+      final byte[] bytes = new byte[buf.readInt()];
+      buf.readBytes(bytes);
+      return clazz.cast(new ObjectInputStream(new ByteArrayInputStream(bytes)).readObject());
+    } catch (IOException | ClassNotFoundException e) {
+      throw new DecoderException("Failed to read serializable", e);
+    } catch (ClassCastException e) {
+      throw new DecoderException("Failed to cast serializable! Expected: " + clazz, e);
+    }
+  }
+
   // endregion
 
   // endregion
@@ -722,6 +901,14 @@ public class SurfByteBuf extends WrappedByteBuf {
   public <T, DX extends Throwable, EX extends Throwable> void writeWithCodec(Codec<T, DX, EX> codec,
       T value) throws EX {
     codec.encode(this, value);
+  }
+
+  public void writeSerializable(Serializable serializable) {
+    writeSerializable(this, serializable);
+  }
+
+  public <T extends Serializable> T readSerializable(Class<? extends T> clazz) {
+    return readSerializable(this, clazz);
   }
 
   /**
@@ -791,6 +978,124 @@ public class SurfByteBuf extends WrappedByteBuf {
       EncodeFactory<? super SurfByteBuf, T> encodeFactory
   ) {
     writeCollection(this, collection, encodeFactory);
+  }
+
+  public <T> T[] readArray(
+      IntFunction<T[]> arrayFactory,
+      DecodeFactory<? super SurfByteBuf, T> decodeFactory
+  ) {
+    return readArray(this, arrayFactory, decodeFactory);
+  }
+
+  public int[] readIntArray() {
+    return readIntArray(this);
+  }
+
+  public long[] readLongArray() {
+    return readLongArray(this);
+  }
+
+  public float[] readFloatArray() {
+    return readFloatArray(this);
+  }
+
+  public double[] readDoubleArray() {
+    return readDoubleArray(this);
+  }
+
+  public boolean[] readBooleanArray() {
+    return readBooleanArray(this);
+  }
+
+  public byte[] readByteArray() {
+    return readByteArray(this);
+  }
+
+  public short[] readShortArray() {
+    return readShortArray(this);
+  }
+
+  public char[] readCharArray() {
+    return readCharArray(this);
+  }
+
+  public String[] readStringArray() {
+    return readStringArray(this);
+  }
+
+  public UUID[] readUuidArray() {
+    return readUuidArray(this);
+  }
+
+  public <T, DX extends Throwable, Ex extends Throwable> T[] readCodecArray(
+      Codec<T, DX, Ex> codec,
+      @NotNull IntFunction<T[]> arrayFactory
+  ) throws DX {
+    final T[] array = arrayFactory.apply(readInt());
+
+    for (int i = 0; i < array.length; i++) {
+      array[i] = readWithCodec(codec);
+    }
+
+    return array;
+  }
+
+  public <T> void writeArray(
+      T[] array,
+      EncodeFactory<? super SurfByteBuf, T> encodeFactory
+  ) {
+    writeArray(this, array, encodeFactory);
+  }
+
+  public void writeIntArray(int[] array) {
+    writeIntArray(this, array);
+  }
+
+  public void writeLongArray(long[] array) {
+    writeLongArray(this, array);
+  }
+
+  public void writeFloatArray(float[] array) {
+    writeFloatArray(this, array);
+  }
+
+  public void writeDoubleArray(double[] array) {
+    writeDoubleArray(this, array);
+  }
+
+  public void writeBooleanArray(boolean[] array) {
+    writeBooleanArray(this, array);
+  }
+
+  public void writeByteArray(byte[] array) {
+    writeByteArray(this, array);
+  }
+
+  public void writeShortArray(short[] array) {
+    writeShortArray(this, array);
+  }
+
+  public void writeCharArray(char[] array) {
+    writeCharArray(this, array);
+  }
+
+  public void writeStringArray(String[] array) {
+    writeStringArray(this, array);
+  }
+
+  public void writeUuidArray(UUID[] array) {
+    writeUuidArray(this, array);
+  }
+
+  public <T, DX extends Throwable, EX extends Throwable> void writeCodecArray(
+      Codec<T, DX, EX> codec,
+      T[] array
+  ) throws EX {
+    writeInt(array.length);
+
+    for (final T element : array) {
+      writeWithCodec(codec, element);
+    }
   }
 
   /**
@@ -952,6 +1257,34 @@ public class SurfByteBuf extends WrappedByteBuf {
     return readNullable(this, decodeFactory);
   }
 
+  public @Nullable String readNullableString() {
+    return readNullable(SurfByteBuf::readString);
+  }
+
+  public @Nullable Integer readNullableInteger() {
+    return readNullable(SurfByteBuf::readInt);
+  }
+
+  public @Nullable Long readNullableLong() {
+    return readNullable(SurfByteBuf::readLong);
+  }
+
+  public @Nullable Float readNullableFloat() {
+    return readNullable(SurfByteBuf::readFloat);
+  }
+
+  public @Nullable Double readNullableDouble() {
+    return readNullable(SurfByteBuf::readDouble);
+  }
+
+  public @Nullable Boolean readNullableBoolean() {
+    return readNullable(SurfByteBuf::readBoolean);
+  }
+
+  public @Nullable UUID readNullableUuid() {
+    return readNullable(buffer -> buffer.readUuid());
+  }
+
   /**
    * Write nullable.
    *
@@ -1008,46 +1341,6 @@ public class SurfByteBuf extends WrappedByteBuf {
    */
   public UUID readUuid() {
     return readUuid(this);
-  }
-
-  /**
-   * Write long array surf byte buf.
-   *
-   * @param array the array
-   * @return the surf byte buf
-   */
-  public SurfByteBuf writeLongArray(long[] array) {
-    return writeLongArray(this, array);
-  }
-
-  /**
-   * Read long array long [ ].
-   *
-   * @return the long [ ]
-   */
-  public long[] readLongArray() {
-    return readLongArray(this);
-  }
-
-  /**
-   * Read long array long [ ].
-   *
-   * @param toArray the to array
-   * @return the long [ ]
-   */
-  public long[] readLongArray(long @Nullable [] toArray) {
-    return readLongArray(this, toArray);
-  }
-
-  /**
-   * Read long array long [ ].
-   *
-   * @param toArray the to array
-   * @param maxSize the max size
-   * @return the long [ ]
-   */
-  public long[] readLongArray(long @Nullable [] toArray, int maxSize) {
-    return readLongArray(this, toArray, maxSize);
   }
 
   /**

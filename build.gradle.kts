@@ -2,7 +2,7 @@ plugins {
     java
     `java-library`
     `maven-publish`
-    id("io.spring.dependency-management") version "1.1.6"
+//    id("io.spring.dependency-management") version "1.1.6"
     id("org.hibernate.build.maven-repo-auth") version "3.0.4"
     id("io.github.goooler.shadow") version "8.1.8"
 }
@@ -21,7 +21,10 @@ configurations {
 
 allprojects {
     apply(plugin = "java")
+    apply(plugin = "org.gradle.java-library")
     apply(plugin = "io.github.goooler.shadow")
+    apply(plugin = "org.gradle.maven-publish")
+//    apply(plugin = "io.spring.dependency-management")
 
     group = "dev.slne.surf.cloud"
     version = "1.21.1-1.0.0-SNAPSHOT"
@@ -39,11 +42,27 @@ allprojects {
             mergeServiceFiles()
         }
     }
+
+    dependencies {
+        // https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-dependencies
+        implementation("org.springframework.boot:spring-boot-dependencies:3.3.3") {
+            because("Spring Boot dependencies")
+        }
+    }
+
+//    the<DependencyManagementExtension>().apply {
+//        imports {
+//            mavenBom("org.springframework.boot:spring-boot-dependencies:3.3.3")
+//            // https://mvnrepository.com/artifact/org.springframework/spring-framework-bom
+//            mavenBom("org.springframework:spring-framework-bom:6.1.13")
+//
+//        }
+//    }
 }
 subprojects {
     apply(plugin = "org.gradle.java-library")
     apply(plugin = "org.gradle.maven-publish")
-    apply(plugin = "io.spring.dependency-management")
+//    apply(plugin = "io.spring.dependency-management")
     apply(plugin = "org.hibernate.build.maven-repo-auth")
 
     dependencies {
@@ -59,12 +78,6 @@ subprojects {
         annotationProcessor("org.projectlombok:lombok")
         compileOnly("com.google.auto.service:auto-service-annotations:1.1.1")
         annotationProcessor("com.google.auto.service:auto-service:1.1.1")
-    }
-
-    dependencyManagement {
-        imports {
-            mavenBom("org.springframework.boot:spring-boot-dependencies:3.3.3")
-        }
     }
 
     publishing {

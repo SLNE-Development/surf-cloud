@@ -11,7 +11,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class JoinClassLoader extends ClassLoader {
 
-  private final ClassLoader[] delegateClassLoaders;
+  private ClassLoader[] delegateClassLoaders;
 
   /**
    * Instantiates a new Join class loader.
@@ -123,5 +123,12 @@ public class JoinClassLoader extends ClassLoader {
 
       return buffer;
     }
+  }
+
+  public final void addDelegateClassLoader(ClassLoader classLoader) {
+    final ClassLoader[] newDelegateClassLoaders = new ClassLoader[delegateClassLoaders.length + 1];
+    System.arraycopy(delegateClassLoaders, 0, newDelegateClassLoaders, 0, delegateClassLoaders.length);
+    newDelegateClassLoaders[delegateClassLoaders.length] = classLoader;
+    delegateClassLoaders = newDelegateClassLoaders;
   }
 }

@@ -7,11 +7,12 @@ import dev.slne.surf.cloud.api.netty.protocol.buffer.ecoder.Encoder;
 import java.util.concurrent.ThreadLocalRandom;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.experimental.Accessors;
 import org.springframework.core.annotation.AnnotationUtils;
 
 @Getter
-public abstract class NettyPacket<SELF extends NettyPacket<SELF>> implements
-    Decoder<SurfByteBuf, SELF>, Encoder<SurfByteBuf> {
+@Accessors(fluent = true)
+public abstract class NettyPacket<SELF extends NettyPacket<SELF>> implements Encoder<SurfByteBuf>, Decoder<SurfByteBuf, SELF> {
 
   @Setter
   private long sessionId = ThreadLocalRandom.current().nextLong();
@@ -19,6 +20,14 @@ public abstract class NettyPacket<SELF extends NettyPacket<SELF>> implements
   private final int id;
 
   public NettyPacket() {
-    this.id = AnnotationUtils.findAnnotation(getClass(), SurfNettyPacket.class).id();
+    final SurfNettyPacket meta = AnnotationUtils.findAnnotation(getClass(), SurfNettyPacket.class);
+
+    if (meta == null) {
+      throw new IllegalArgumentException("NettyPacket class must be annotated with SurfNettyPacket");
+    }
+
+    this.id = meta.id();
   }
+
+  // TODO: 16.09.2024 14:49 - send method
 }

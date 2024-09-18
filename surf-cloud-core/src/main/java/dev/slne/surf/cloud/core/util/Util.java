@@ -2,11 +2,31 @@ package dev.slne.surf.cloud.core.util;
 
 import com.google.common.flogger.FluentLogger;
 import it.unimi.dsi.fastutil.longs.Long2ObjectFunction;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.util.function.Supplier;
 import lombok.experimental.UtilityClass;
+import lombok.extern.flogger.Flogger;
 
 @UtilityClass
+@Flogger
 public class Util {
+
+  private final SecureRandom RANDOM;
+
+  static {
+    SecureRandom temp;
+    try {
+      temp = SecureRandom.getInstanceStrong();
+    } catch (NoSuchAlgorithmException e) {
+      log.atWarning()
+          .withCause(e)
+          .log("Failed to initialize secure random instance, falling back to default");
+
+      temp = new SecureRandom();
+    }
+    RANDOM = temp;
+  }
 
   public void tempChangeSystemClassLoader(ClassLoader classLoader, Runnable runnable) {
     final ClassLoader originalClassLoader = Thread.currentThread().getContextClassLoader();
@@ -30,5 +50,9 @@ public class Util {
     runnable.run();
     final long end = System.currentTimeMillis();
     logger.atInfo().log(messageSupplier.apply(end - start));
+  }
+
+  public SecureRandom getRandom() {
+    return RANDOM;
   }
 }

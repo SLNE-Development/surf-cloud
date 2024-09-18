@@ -13,6 +13,7 @@ import dev.slne.surf.cloud.core.test.TestPacket;
 import dev.slne.surf.cloud.core.util.Util;
 import java.nio.file.Path;
 import java.util.UUID;
+import java.util.function.Supplier;
 import javax.annotation.OverridingMethodsMustInvokeSuper;
 import javax.annotation.ParametersAreNonnullByDefault;
 import lombok.Getter;
@@ -30,7 +31,6 @@ import reactor.util.Loggers;
 public abstract class SurfCloudCoreInstance implements SurfCloudInstance {
 
   private static final Logger redisEventLog = Loggers.getLogger("RedisEvent");
-
   private ConfigurableApplicationContext dataContext;
 
   @OverridingMethodsMustInvokeSuper
@@ -50,6 +50,9 @@ public abstract class SurfCloudCoreInstance implements SurfCloudInstance {
 
   @OverridingMethodsMustInvokeSuper
   public void onDisable() {
+    if (dataContext != null && dataContext.isActive()) {
+      dataContext.close();
+    }
   }
 
   @Override
@@ -65,18 +68,21 @@ public abstract class SurfCloudCoreInstance implements SurfCloudInstance {
     final JoinClassLoader joinClassLoader = new JoinClassLoader(classLoader,
         ArrayUtils.addFirst(parentClassLoader, getClassLoader()));
 
-    return Util.tempChangeSystemClassLoader(joinClassLoader, () -> {
+    final Supplier<ConfigurableApplicationContext> run = () -> {
       final SpringApplicationBuilder builder = new SpringApplicationBuilder(applicationClass)
           .resourceLoader(new DefaultResourceLoader(joinClassLoader))
           .bannerMode(Mode.CONSOLE)
-          .banner(new SurfSpringBanner());
+          .banner(new SurfSpringBanner())
+          .profiles(getSpringProfile());
 
       if (dataContext != null) {
         builder.parent(dataContext);
       }
 
       return builder.run();
-    });
+    };
+
+    return Util.tempChangeSystemClassLoader(joinClassLoader, run);
   }
 
   @SuppressWarnings("unchecked")
@@ -85,13 +91,18 @@ public abstract class SurfCloudCoreInstance implements SurfCloudInstance {
     checkNotNull(event, "event");
     checkState(dataContext != null, "Event called before onLoad");
 
-    final ReactiveRedisTemplate<String, Object> template = dataContext.getBean("reactiveRedisTemplate", ReactiveRedisTemplate.class);
+    final ReactiveRedisTemplate<String, Object> template = dataContext.getBean(
+        "reactiveRedisTemplate", ReactiveRedisTemplate.class);
     for (final String channel : event.getChannels()) {
       template.convertAndSend(channel, event).log(redisEventLog).subscribe();
     }
   }
 
   public abstract Path getDataFolder();
+
+  protected String getSpringProfile() {
+    return "client";
+  }
 
   public static SurfCloudCoreInstance get() {
     return (SurfCloudCoreInstance) SurfCloudInstance.get();

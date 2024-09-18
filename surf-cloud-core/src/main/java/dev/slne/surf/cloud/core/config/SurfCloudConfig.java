@@ -1,6 +1,7 @@
 package dev.slne.surf.cloud.core.config;
 
 import lombok.Getter;
+import lombok.experimental.Accessors;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
 import org.spongepowered.configurate.objectmapping.meta.Setting;
@@ -65,6 +66,7 @@ public class SurfCloudConfig {
 
     @ConfigSerializable
     @Getter
+    @Accessors(fluent = true)
     public static class NettyConfig {
 
         @Comment("Port for netty connection")

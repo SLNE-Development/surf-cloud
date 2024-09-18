@@ -7,6 +7,7 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
+import org.jetbrains.annotations.Nullable;
 
 @Registry
 public class SurfPacketRegistry {
@@ -37,8 +38,14 @@ public class SurfPacketRegistry {
   }
 
   @SuppressWarnings("unchecked")
-  public <T extends NettyPacket<T>> T createPacket(int packetId) {
-    return (T) packets.get(packetId).createPacket();
+  public <T extends NettyPacket<T>> @Nullable T createPacket(int packetId) {
+    final RegisteredPacket packet = packets.get(packetId);
+
+    if (packet == null) {
+      return null;
+    }
+
+    return (T) packet.createPacket();
   }
 
   public boolean isRegistered(int packetId) {

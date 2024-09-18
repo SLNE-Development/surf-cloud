@@ -2,6 +2,7 @@ package dev.slne.surf.cloud.core.netty.common.registry.listener;
 
 import dev.slne.surf.cloud.api.netty.exception.SurfNettyListenerRegistrationException;
 import dev.slne.surf.cloud.api.netty.packet.NettyPacket;
+import dev.slne.surf.cloud.core.netty.NettyPacketInfo;
 import java.lang.reflect.Method;
 import tech.hiddenproject.aide.reflection.LambdaWrapperHolder;
 import tech.hiddenproject.aide.reflection.annotation.Invoker;
@@ -9,27 +10,82 @@ import tech.hiddenproject.aide.reflection.annotation.Invoker;
 public class RegisteredListener {
 
   static {
-    LambdaWrapperHolder.DEFAULT.add(RegisteredListenerInvoker.class);
+    LambdaWrapperHolder.DEFAULT.add(RegisteredListenerInvoker1.class);
+    LambdaWrapperHolder.DEFAULT.add(RegisteredListenerInvoker2.class);
+    LambdaWrapperHolder.DEFAULT.add(RegisteredListenerInvoker2Rev.class);
   }
 
   private final Object bean;
-  private final RegisteredListenerInvoker invoker;
+  private final Object invoker;
+  private final InvokerType invokerType;
 
-  public RegisteredListener(Object bean, Method listenerMethod)
+  public RegisteredListener(Object bean, Method listenerMethod, int packetClassIndex,
+      int packetInfoIndex)
       throws SurfNettyListenerRegistrationException {
     this.bean = bean;
-    this.invoker = LambdaWrapperHolder.DEFAULT.wrap(listenerMethod, RegisteredListenerInvoker.class)
-        .getWrapper();
+
+    final Class<?>[] params = listenerMethod.getParameterTypes();
+
+    if (params.length == 1) { // Only NettyPacket
+      this.invoker = LambdaWrapperHolder.DEFAULT.wrap(listenerMethod,
+          RegisteredListenerInvoker1.class).getWrapper();
+      this.invokerType = InvokerType.ONE_PARAM;
+
+    } else if (params.length == 2) { // NettyPacket and NettyPacketInfo
+
+      if (packetClassIndex == 0
+          && packetInfoIndex == 1) { // Normal order (NettyPacket, NettyPacketInfo)
+        invoker = LambdaWrapperHolder.DEFAULT.wrap(listenerMethod, RegisteredListenerInvoker2.class)
+            .getWrapper();
+        invokerType = InvokerType.TWO_PARAMS;
+
+      } else if (packetInfoIndex == 0
+          && packetClassIndex == 1) { // Reversed order (NettyPacketInfo, NettyPacket)
+        invoker = LambdaWrapperHolder.DEFAULT.wrap(listenerMethod,
+            RegisteredListenerInvoker2Rev.class).getWrapper();
+        invokerType = InvokerType.TWO_PARAMS_REVERSED;
+      } else {
+        throw new SurfNettyListenerRegistrationException("Invalid parameter order");
+      }
+    } else {
+      throw new SurfNettyListenerRegistrationException("Invalid number of parameters");
+    }
   }
 
-  public void handle(NettyPacket<?> packet) {
-    invoker.handle(bean, packet);
+  public void handle(NettyPacket<?> packet, NettyPacketInfo info) {
+    switch (invokerType) {
+      case ONE_PARAM -> ((RegisteredListenerInvoker1) invoker).handle(bean, packet);
+      case TWO_PARAMS -> ((RegisteredListenerInvoker2) invoker).handle(bean, packet, info);
+      case TWO_PARAMS_REVERSED ->
+          ((RegisteredListenerInvoker2Rev) invoker).handle(bean, info, packet);
+      default -> throw new IllegalStateException("Unknown invoker type");
+    }
+  }
+
+  private enum InvokerType {
+    ONE_PARAM,
+    TWO_PARAMS,
+    TWO_PARAMS_REVERSED
   }
 
   @FunctionalInterface
-  private interface RegisteredListenerInvoker {
+  private interface RegisteredListenerInvoker1 {
 
     @Invoker
     void handle(Object caller, NettyPacket<?> packet);
+  }
+
+  @FunctionalInterface
+  private interface RegisteredListenerInvoker2 {
+
+    @Invoker
+    void handle(Object caller, NettyPacket<?> packet, NettyPacketInfo info);
+  }
+
+  @FunctionalInterface
+  private interface RegisteredListenerInvoker2Rev {
+
+    @Invoker
+    void handle(Object caller, NettyPacketInfo info, NettyPacket<?> packet);
   }
 }

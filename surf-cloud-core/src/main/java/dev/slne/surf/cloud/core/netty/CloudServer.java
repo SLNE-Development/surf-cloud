@@ -1,38 +1,13 @@
 package dev.slne.surf.cloud.core.netty;
 
-import dev.slne.surf.cloud.api.netty.protocol.buffer.SurfByteBuf;
-import dev.slne.surf.cloud.api.netty.protocol.buffer.codec.Codec;
-import io.netty.handler.codec.DecoderException;
-import io.netty.handler.codec.EncoderException;
 import java.net.InetSocketAddress;
+import javax.annotation.ParametersAreNonnullByDefault;
+import org.jetbrains.annotations.ApiStatus.NonExtendable;
 import org.jetbrains.annotations.Range;
 
+@NonExtendable
+@ParametersAreNonnullByDefault
 public interface CloudServer {
-
-  Codec<CloudServer, DecoderException, EncoderException> CODEC = Codec.codec(
-  (buf, value) -> {
-    buf.writeLong(value.serverGuid());
-    buf.writeNullable(value.host());
-    buf.writeInt(value.port());
-    buf.writeNullable(value.category());
-    buf.writeInt(value.currentPlayerCount());
-    buf.writeInt(value.maxPlayerCount());
-    buf.writeEnum(value.state());
-    buf.writeNullable(value.groupId());
-
-    // TODO: 12.09.2024 22:07 - User list
-  },
-  buf -> {
-    final long serverGuid = buf.readLong();
-    final String host = buf.readNullable(SurfByteBuf::readString);
-    final int port = buf.readInt();
-    final String category = buf.readNullable(SurfByteBuf::readString);
-    final int currentPlayerCount = buf.readInt();
-    final int maxPlayerCount = buf.readInt();
-    final ServerState state = buf.readEnum(ServerState.class);
-    final String groupId = buf.readNullable(SurfByteBuf::readString);
-  }
-  );
 
   String groupId();
 
@@ -64,7 +39,7 @@ public interface CloudServer {
     return category() + "-" + Long.toHexString(serverGuid());
   }
 
-  UserList userList();
+//  UserList userList();
 
   String category();
 

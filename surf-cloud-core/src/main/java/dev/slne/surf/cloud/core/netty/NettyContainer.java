@@ -5,20 +5,26 @@ import dev.slne.surf.cloud.api.netty.util.ConnectionStateAccessor;
 import dev.slne.surf.cloud.api.util.AdvancedAutoCloseable;
 import dev.slne.surf.cloud.core.netty.common.SourceList;
 import io.netty.channel.Channel;
+import java.util.Optional;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
 import org.jetbrains.annotations.ApiStatus.OverrideOnly;
 
 @RequiredArgsConstructor
 @Getter
-public abstract class NettyContainer<Source extends ProxiedNettySource> implements
-    AdvancedAutoCloseable, ConnectionStateAccessor {
+@Accessors(fluent = true)
+public abstract class NettyContainer<
+    SELF extends NettyContainer<SELF, Source, B>,
+    Source extends ProxiedNettySource,
+    B extends NettyBase<SELF>>
+    implements AdvancedAutoCloseable, ConnectionStateAccessor { // Sorry Simon for the number of generics
 
-  private final NettyBase nettyBase;
+  private final B base;
 
   public abstract SourceList<Source> sourceList();
 
-  public abstract NettySource source(Channel channel);
+  public abstract Optional<? extends NettySource> source(Channel channel);
 
   /**
    * Broadcast the packet on servers <br> On clients only to server
@@ -27,13 +33,11 @@ public abstract class NettyContainer<Source extends ProxiedNettySource> implemen
    */
   public abstract void broadcast(NettyPacket<?> packet);
 
-  public abstract NettyBase base();
-
   @OverrideOnly
   protected abstract void sendPacket0(NettySource source, NettyPacket<?> packet);
 
   public final void sendPacket(NettySource source, NettyPacket<?> packet) {
-    nettyBase.checkPacket(packet);
+    base.checkPacket(packet);
     sendPacket0(source, packet);
   }
 

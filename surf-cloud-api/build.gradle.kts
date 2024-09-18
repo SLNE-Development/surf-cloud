@@ -11,4 +11,5 @@ dependencies {
     api("tech.hiddenproject:aide-reflection:1.3")
     // https://mvnrepository.com/artifact/io.netty/netty-all
     api("io.netty:netty-all:4.1.113.Final")
+    api("com.github.Querz:NBT:6.1")
 }

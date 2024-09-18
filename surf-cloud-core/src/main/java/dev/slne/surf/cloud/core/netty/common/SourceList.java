@@ -14,20 +14,20 @@ import org.jetbrains.annotations.UnmodifiableView;
 
 @Flogger
 @RequiredArgsConstructor
-public final class SourceList<Source extends ProxiedNettySource> {
+public class SourceList<Source extends ProxiedNettySource> {
 
   private final ObjectSet<Source> clients = ObjectSets.synchronize(new ObjectOpenHashSet<>());
   private final NettyBase nettyBase;
 
   public ObjectSet<Source> findByGroupId(String groupId) {
     return clients.stream()
-        .filter(source -> Objects.equals(source.getCloudServer().groupId(), groupId))
+        .filter(source -> Objects.equals(source.cloudServer().groupId(), groupId))
         .collect(ObjectOpenHashSet::new, ObjectSet::add, ObjectSet::addAll);
   }
 
   public Optional<Source> findByServerGuid(long serverGuid) {
     return clients.stream()
-        .filter(source -> source.getCloudServer().serverGuid() == serverGuid)
+        .filter(source -> source.cloudServer().serverGuid() == serverGuid)
         .findFirst();
   }
 
@@ -42,7 +42,7 @@ public final class SourceList<Source extends ProxiedNettySource> {
   }
 
   @UnmodifiableView
-  public ObjectSet<Source> getClients() {
+  public ObjectSet<Source> clients() {
     return ObjectSets.unmodifiable(clients);
   }
 

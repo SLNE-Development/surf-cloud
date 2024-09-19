@@ -13,11 +13,11 @@ import lombok.extern.flogger.Flogger;
 @Flogger
 public class ReconnectHandler implements ChannelFutureListener {
 
-  private final NettyContainer<?> container;
+  private final NettyContainer<?, ?, ?> container;
   private final Duration reconnectDelay;
   private final AtomicBoolean disconnectRequested = new AtomicBoolean(false);
 
-  public ReconnectHandler(NettyContainer<?> container, Duration reconnectDelay) {
+  public ReconnectHandler(NettyContainer<?, ?, ?> container, Duration reconnectDelay) {
     this.container = container;
     this.reconnectDelay = reconnectDelay;
   }

@@ -17,17 +17,19 @@ import org.jetbrains.annotations.UnmodifiableView;
 public class SourceList<Source extends ProxiedNettySource> {
 
   private final ObjectSet<Source> clients = ObjectSets.synchronize(new ObjectOpenHashSet<>());
-  private final NettyBase nettyBase;
+  private final NettyBase<?> nettyBase;
 
   public ObjectSet<Source> findByGroupId(String groupId) {
     return clients.stream()
-        .filter(source -> Objects.equals(source.cloudServer().groupId(), groupId))
+        .filter(source -> source.cloudServer().isPresent())
+        .filter(source -> Objects.equals(source.cloudServer().orElseThrow().groupId(), groupId))
         .collect(ObjectOpenHashSet::new, ObjectSet::add, ObjectSet::addAll);
   }
 
   public Optional<Source> findByServerGuid(long serverGuid) {
     return clients.stream()
-        .filter(source -> source.cloudServer().serverGuid() == serverGuid)
+        .filter(source -> source.cloudServer().isPresent())
+        .filter(source -> source.cloudServer().orElseThrow().serverGuid() == serverGuid)
         .findFirst();
   }
 

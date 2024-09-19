@@ -1,10 +1,13 @@
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+
 plugins {
     java
     `java-library`
     `maven-publish`
 //    id("io.spring.dependency-management") version "1.1.6"
-    id("org.hibernate.build.maven-repo-auth") version "3.0.4"
-    id("io.github.goooler.shadow") version "8.1.8"
+    id("org.hibernate.build.maven-repo-auth") version "3.0.4" apply false
+    id("io.github.goooler.shadow") version "8.1.8" apply false
+    id("io.freefair.lombok") version "8.10" apply false
 }
 
 java {
@@ -13,18 +16,16 @@ java {
     }
 }
 
-configurations {
-    compileOnly {
-        extendsFrom(configurations.annotationProcessor.get())
-    }
-}
+
 
 allprojects {
     apply(plugin = "java")
     apply(plugin = "org.gradle.java-library")
     apply(plugin = "io.github.goooler.shadow")
     apply(plugin = "org.gradle.maven-publish")
-//    apply(plugin = "io.spring.dependency-management")
+    apply(plugin = "org.hibernate.build.maven-repo-auth")
+    apply(plugin = "io.freefair.lombok")
+
 
     group = "dev.slne.surf.cloud"
     version = "1.21.1-1.0.0-SNAPSHOT"
@@ -37,47 +38,36 @@ allprojects {
         maven("https://repo.slne.dev/repository/maven-proxy/") { name = "maven-proxy" }
     }
 
+    dependencies {
+        // https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-dependencies
+        implementation(platform("org.springframework.boot:spring-boot-dependencies:3.3.3")) {
+            because("Spring Boot BOM")
+        }
+
+        // dependencies for all projects
+        //        developmentOnly("org.springframework.boot:spring-boot-devtools")
+        compileOnly("dev.slne.surf:surf-api-core-api:1.21+")
+        compileOnly("com.google.auto.service:auto-service-annotations:1.1.1")
+
+        // Annotation processors
+        annotationProcessor("org.springframework.boot:spring-boot-configuration-processor:3.3.3")
+        annotationProcessor("com.google.auto.service:auto-service:1.1.1")
+
+        // Tests
+        testImplementation("org.springframework.boot:spring-boot-starter-test")
+        testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    }
+
     tasks {
-        shadowJar {
+        withType<ShadowJar> {
             mergeServiceFiles()
         }
     }
 
-    dependencies {
-        // https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-dependencies
-        implementation("org.springframework.boot:spring-boot-dependencies:3.3.3") {
-            because("Spring Boot dependencies")
+    configurations {
+        compileOnly {
+            extendsFrom(configurations.annotationProcessor.get())
         }
-    }
-
-//    the<DependencyManagementExtension>().apply {
-//        imports {
-//            mavenBom("org.springframework.boot:spring-boot-dependencies:3.3.3")
-//            // https://mvnrepository.com/artifact/org.springframework/spring-framework-bom
-//            mavenBom("org.springframework:spring-framework-bom:6.1.13")
-//
-//        }
-//    }
-}
-subprojects {
-    apply(plugin = "org.gradle.java-library")
-    apply(plugin = "org.gradle.maven-publish")
-//    apply(plugin = "io.spring.dependency-management")
-    apply(plugin = "org.hibernate.build.maven-repo-auth")
-
-    dependencies {
-
-//        developmentOnly("org.springframework.boot:spring-boot-devtools")
-        testImplementation("org.springframework.boot:spring-boot-starter-test")
-        testRuntimeOnly("org.junit.platform:junit-platform-launcher")
-        compileOnly("dev.slne.surf:surf-api-core-api:1.21+")
-
-        // Annotation processors
-        annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
-        compileOnly("org.projectlombok:lombok")
-        annotationProcessor("org.projectlombok:lombok")
-        compileOnly("com.google.auto.service:auto-service-annotations:1.1.1")
-        annotationProcessor("com.google.auto.service:auto-service:1.1.1")
     }
 
     publishing {

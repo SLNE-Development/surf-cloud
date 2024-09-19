@@ -10,8 +10,8 @@ dependencies {
     api(project(":surf-cloud-core"))
     compileOnly("io.papermc.paper:paper-api:1.21.1-R0.1-SNAPSHOT")
 
-    api("org.springframework.boot:spring-boot-starter-cloud-jpa")
-    api("org.springframework.boot:spring-boot-starter-cloud-redis")
+    api("org.springframework.boot:spring-boot-starter-data-jpa")
+    api("org.springframework.boot:spring-boot-starter-data-redis")
     api("org.springframework.boot:spring-boot-starter-jooq")
     api("com.fasterxml.jackson.core:jackson-core")
     api("com.fasterxml.jackson.core:jackson-databind")

@@ -2,8 +2,8 @@ package dev.slne.surf.cloud.core.netty;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import dev.slne.surf.cloud.core.netty.common.SourceList;
 import dev.slne.surf.cloud.core.netty.protocol.packets.cloud.info.CloudServerInfoAction;
+import dev.slne.surf.cloud.core.netty.protocol.packets.cloud.info.CloudServerInfoPacket;
 import java.util.Objects;
 import java.util.Optional;
 import org.jetbrains.annotations.NotNull;
@@ -14,7 +14,7 @@ public class ProxiedNettySource extends NettySource {
   private @Nullable CloudServer cloudServer;
   private @Nullable CloudServer lastCloudServer;
 
-  public ProxiedNettySource(NettyBase nettyBase) {
+  public ProxiedNettySource(NettyBase<?> nettyBase) {
     super(nettyBase);
   }
 
@@ -38,23 +38,24 @@ public class ProxiedNettySource extends NettySource {
 //    }
   }
 
-  public void broadcastServerInfo(CloudServerInfoAction action, NettySource... sources) {
-
+  public void broadcastServerInfo(CloudServerInfoAction action, @NotNull NettySource @NotNull... sources) {
     if (action == CloudServerInfoAction.UPDATE_SERVER_INFO) {
       // we are calling the update function,
       // so our instance knows when we changed something for us or another source
       //
       // note here that it is a little hacky, but does it job
-      ((SourceList<ProxiedSource>) base.container.sourceList()).updateClient(this);
-      updateServerInfo(cloudServer());
+
+//      ((SourceList<ProxiedSource>) base.container.sourceList()).updateClient(this); TODO not needed or replace with spring events
+      assert cloudServer != null : "We should have a cloud server here";
+      updateServerInfo(cloudServer);
     }
-    // sending packet
-    PacketServerInfo info = new PacketServerInfo(new ServerInfoData(cloudServer, action));
+    final CloudServerInfoPacket packet = new CloudServerInfoPacket(action, cloudServer);
+
     if (sources.length == 0) {
-      base.container.broadcast(info);
+      nettyBase().container().broadcast(packet);
     } else {
-      for (Source source : sources) {
-        source.send(info);
+      for (final @NotNull NettySource source : sources) {
+        source.sendPacket(packet);
       }
     }
   }
@@ -76,7 +77,7 @@ public class ProxiedNettySource extends NettySource {
   }
 
   @Override
-  public final boolean equals(Object o) {
+  public boolean equals(Object o) {
     if (this == o) {
       return true;
     }
@@ -87,8 +88,8 @@ public class ProxiedNettySource extends NettySource {
       return false;
     }
 
-    return Objects.equals(cloudServer, that.cloudServer)
-        && Objects.equals(lastCloudServer, that.lastCloudServer);
+    return Objects.equals(cloudServer, that.cloudServer) && Objects.equals(
+        lastCloudServer, that.lastCloudServer);
   }
 
   @Override

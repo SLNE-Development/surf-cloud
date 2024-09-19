@@ -28,7 +28,7 @@ public class ProxiedNettyPacket extends NettyPacket<ProxiedNettyPacket> {
   public ProxiedNettyPacket(NettyPacket<?> packet, ProxiedNettySource target, SurfNettyClient client) {
     this.packet = packet;
     this.target = target;
-    this.source = client.getContainer().serverSource();
+    this.source = client.container().serverSource();
     this.client = client;
   }
 
@@ -45,7 +45,7 @@ public class ProxiedNettyPacket extends NettyPacket<ProxiedNettyPacket> {
     final long sourceGuid = buffer.readLong();
     final int packetId = buffer.readInt();
 
-    final SourceList<ProxiedNettySource> sourceList = client.getContainer().sourceList();
+    final SourceList<ProxiedNettySource> sourceList = client.container().sourceList();
     this.target = sourceList.findByServerGuid(targetGuid).orElseThrow();
     this.source = sourceList.findByServerGuid(sourceGuid).orElseThrow();
 

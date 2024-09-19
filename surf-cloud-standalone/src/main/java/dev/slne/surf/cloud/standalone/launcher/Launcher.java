@@ -1,8 +1,7 @@
 package dev.slne.surf.cloud.standalone.launcher;
 
-import dev.slne.surf.cloud.standalone.plugin.StandalonePluginManager;
+import dev.slne.surf.cloud.core.netty.common.SourceList;
 import java.io.File;
-import java.io.InputStream;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
@@ -10,7 +9,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Path;
 import java.util.Objects;
-import java.util.jar.Manifest;
 import java.util.stream.Stream;
 import lombok.SneakyThrows;
 import org.jetbrains.annotations.Contract;
@@ -56,6 +54,7 @@ public class Launcher {
     @Override
     public void run() {
       try {
+        classLoader.loadClass(SourceList.class.getName());
         final Class<?> mainClass = Class.forName(mainClassName, true, classLoader);
         final MethodHandle mainMethod = MethodHandles.lookup()
             .findStatic(mainClass, "main", MethodType.methodType(void.class, String[].class))
@@ -80,7 +79,7 @@ public class Launcher {
   @SuppressWarnings("CallToPrintStackTrace")
   @Contract(pure = true)
   private static URL @NotNull [] getPluginUrls() {
-    final File pluginDir = StandalonePluginManager.PLUGIN_DIRECTORY.toFile();
+    final File pluginDir = PLUGIN_DIRECTORY.toFile();
     if (!pluginDir.exists()) {
       if (!pluginDir.mkdirs()) {
         System.err.println("Failed to create plugin directory");
@@ -110,11 +109,23 @@ public class Launcher {
 
   @SneakyThrows
   private static String findMainClass() {
-    try (final InputStream manifestStream = Launcher.class.getResource("/META-INF/MANIFEST.MF")
-        .openStream()) {
-      final Manifest manifest = new Manifest(manifestStream);
+//    try (final InputStream manifestStream = Launcher.class.getResource("/META-INF/MANIFEST.MF")
+//        .openStream()) {
+//      final Manifest manifest = new Manifest(manifestStream);
+//      System.out.println("manifest: " + manifest);
+//
+//      System.out.println("main attributes: " + manifest.getMainAttributes().entrySet());
+//      String mainClass = manifest.getMainAttributes().getValue("Real-Main-Class");
+//      System.out.println("main class: " + mainClass);
+//
+//      if (mainClass == null) {
+//        throw new IllegalStateException("Main class not found in manifest");
+//      }
+//
+//      return mainClass;
+//    }
 
-      return manifest.getMainAttributes().getValue("Real-Main-Class");
-    }
+    // TODO: 19.09.2024 18:47 - fix
+    return "dev.slne.surf.cloud.standalone.launcher.Launcher";
   }
 }

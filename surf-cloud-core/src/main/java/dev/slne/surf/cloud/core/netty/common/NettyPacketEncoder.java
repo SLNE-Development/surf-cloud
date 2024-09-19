@@ -11,7 +11,7 @@ public class NettyPacketEncoder extends MessageToByteEncoder<NettyPacket<?>> {
   @Override
   protected void encode(ChannelHandlerContext ctx, NettyPacket<?> msg, ByteBuf out) {
     final SurfByteBuf surfByteBuf = new SurfByteBuf(out);
-    surfByteBuf.writeInt(msg.getId());
+    surfByteBuf.writeInt(msg.id());
     msg.encode(surfByteBuf);
   }
 }

@@ -121,8 +121,7 @@ public class NettyClientContainer extends
   // TODO: 14.09.2024 18:35 - https://git.slne.dev/silence/creepcore/-/blob/master/CreepBungee/src/main/java/me/tomicake/capi/bungee/client/ContainerClient.java?ref_type=heads#L129
   public CompletableFuture<ProxiedNettySource> registerServer(CloudServerRegistrationData data) {
     final CompletableFuture<ProxiedNettySource> future = new CompletableFuture<>();
-    final CloudRegisterServerPacket packet = new CloudRegisterServerPacket(data,
-        Type.FETCH_PRELOAD);
+    final CloudRegisterServerPacket packet = new CloudRegisterServerPacket(Type.FETCH_PRELOAD, data);
     this.sendPacket(packet);
 
     future.complete(sourceList().findByServerGuid(data.serverId()).orElseThrow());

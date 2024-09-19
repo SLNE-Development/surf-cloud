@@ -29,8 +29,8 @@ public final class NettyPacketHandler extends ChannelDuplexHandler {
     final ProxiedNettySource proxiedSource;
     final NettyPacket<?> finalPacket;
     if (packet instanceof final ProxiedNettyPacket proxiedNettyPacket) {
-      finalPacket = proxiedNettyPacket.getPacket();
-      proxiedSource = proxiedNettyPacket.getSource();
+      finalPacket = proxiedNettyPacket.packet();
+      proxiedSource = proxiedNettyPacket.source();
     } else {
       finalPacket = packet;
       proxiedSource = null;

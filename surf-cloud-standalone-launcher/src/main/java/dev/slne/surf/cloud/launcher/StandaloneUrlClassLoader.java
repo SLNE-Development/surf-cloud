@@ -1,4 +1,4 @@
-package dev.slne.surf.cloud.standalone.launcher;
+package dev.slne.surf.cloud.launcher;
 
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -6,6 +6,10 @@ import org.jetbrains.annotations.ApiStatus.Internal;
 
 @Internal
 public class StandaloneUrlClassLoader extends URLClassLoader {
+
+  static {
+    ClassLoader.registerAsParallelCapable();
+  }
 
   public StandaloneUrlClassLoader(URL[] urls, ClassLoader parent) {
     super(urls, parent);

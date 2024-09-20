@@ -3,6 +3,7 @@ dependencies {
 
     implementation(platform("org.springframework.shell:spring-shell-dependencies:3.3.2"))
     implementation("org.springframework.shell:spring-shell-starter")
+    implementation("dev.slne.surf:surf-api-standalone:1.21+")
 }
 
 //dependencyManagement {

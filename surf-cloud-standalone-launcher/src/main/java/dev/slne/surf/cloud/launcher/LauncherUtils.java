@@ -1,4 +1,4 @@
-package dev.slne.surf.cloud.standalone.launcher;
+package dev.slne.surf.cloud.launcher;
 
 import lombok.experimental.UtilityClass;
 

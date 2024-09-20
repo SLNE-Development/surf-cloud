@@ -1,20 +1,22 @@
-package dev.slne.surf.cloud.standalone.launcher;
+package dev.slne.surf.cloud.launcher;
 
-import dev.slne.surf.cloud.core.netty.common.SourceList;
 import java.io.File;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.Objects;
 import java.util.stream.Stream;
 import lombok.SneakyThrows;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
-public class Launcher {
+public class Main {
 
   public static final Path PLUGIN_DIRECTORY = Path.of("plugins");
 
@@ -26,7 +28,9 @@ public class Launcher {
     }
 
     final URL[] classpathUrls = setupClasspath();
-    final ClassLoader parentClassLoader = Launcher.class.getClassLoader().getParent();
+    final ClassLoader parentClassLoader = Main.class.getClassLoader().getParent();
+    System.out.println("Parent class loader: " + parentClassLoader);
+    System.out.println("Classpath URLs: " + Arrays.toString(classpathUrls));
     final StandaloneUrlClassLoader classLoader = new StandaloneUrlClassLoader(classpathUrls,
         parentClassLoader);
 
@@ -54,7 +58,6 @@ public class Launcher {
     @Override
     public void run() {
       try {
-        classLoader.loadClass(SourceList.class.getName());
         final Class<?> mainClass = Class.forName(mainClassName, true, classLoader);
         final MethodHandle mainMethod = MethodHandles.lookup()
             .findStatic(mainClass, "main", MethodType.methodType(void.class, String[].class))
@@ -68,12 +71,32 @@ public class Launcher {
 
   private static URL[] setupClasspath() {
     final URL[][] urls = {
+        {getStandaloneUrl()},
         getPluginUrls()
     };
 
     return Stream.of(urls)
+        .filter(Objects::nonNull)
         .flatMap(Stream::of)
+        .filter(Objects::nonNull)
         .toArray(URL[]::new);
+  }
+
+  private static URL getStandaloneUrl() {
+    // get resource 'surf-cloud-standalone.jara'
+    URL resource = Main.class.getResource("/surf-cloud-standalone.jara");
+
+    if (resource == null) {
+      throw LauncherUtils.fail("Failed to find standalone jar", null);
+    }
+
+    // rename 'surf-cloud-standalone.jara' to 'surf-cloud-standalone.jar'
+    String path = resource.toString().replace("jara", "jar");
+    try {
+      return new URI(path).toURL();
+    } catch (MalformedURLException | URISyntaxException e) {
+      throw LauncherUtils.fail("Failed to convert standalone jar URL", e);
+    }
   }
 
   @SuppressWarnings("CallToPrintStackTrace")
@@ -126,6 +149,6 @@ public class Launcher {
 //    }
 
     // TODO: 19.09.2024 18:47 - fix
-    return "dev.slne.surf.cloud.standalone.launcher.Launcher";
+    return "dev.slne.surf.cloud.standalone.Bootstrap";
   }
 }

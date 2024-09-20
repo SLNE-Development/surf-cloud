@@ -1,6 +1,5 @@
 package dev.slne.surf.cloud.standalone.plugin;
 
-import dev.slne.surf.cloud.standalone.launcher.Launcher;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import it.unimi.dsi.fastutil.objects.ObjectSet;
 import it.unimi.dsi.fastutil.objects.ObjectSets;
@@ -13,8 +12,9 @@ import org.springframework.stereotype.Component;
 @Flogger
 public class StandalonePluginManager {
 
-  public static final Path PLUGIN_DIRECTORY = Launcher.PLUGIN_DIRECTORY;
-  private final ObjectSet<StandalonePlugin> plugins = ObjectSets.synchronize(new ObjectOpenHashSet<>());
+  public static final Path PLUGIN_DIRECTORY = Path.of("plugins");
+  private final ObjectSet<StandalonePlugin> plugins = ObjectSets.synchronize(
+      new ObjectOpenHashSet<>());
 
   void addPlugin(StandalonePlugin plugin) {
     plugins.add(plugin);

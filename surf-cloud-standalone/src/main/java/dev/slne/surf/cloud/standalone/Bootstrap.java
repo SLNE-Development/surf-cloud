@@ -1,24 +1,27 @@
 package dev.slne.surf.cloud.standalone;
 
 import dev.slne.surf.cloud.api.exceptions.FatalSurfError;
-import lombok.extern.flogger.Flogger;
+import dev.slne.surf.surfapi.standalone.SurfApiStandaloneBootstrap;
 
-@Flogger
 public class Bootstrap {
 
+  @SuppressWarnings("CallToPrintStackTrace")
   public static void main(String[] args) {
     try {
       System.err.println("Classloader: " + Bootstrap.class.getClassLoader());
 
+      SurfApiStandaloneBootstrap.bootstrap();
       final SurfCloudStandaloneInstance instance = new SurfCloudStandaloneInstance();
       instance.onLoad();
       instance.onEnable();
 
-      Runtime.getRuntime().addShutdownHook(new Thread(instance::onDisable));
+      Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+        instance.onDisable();
+        SurfApiStandaloneBootstrap.shutdown();
+      }));
     } catch (FatalSurfError error) {
-      log.atSevere()
-          .withCause(error)
-          .log(error.buildMessage());
+      System.err.println(error.buildMessage());
+      error.printStackTrace();
       System.exit(error.exitCode());
     }
   }

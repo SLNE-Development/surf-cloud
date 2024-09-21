@@ -31,10 +31,7 @@ public class SurfCloudDataConfig {
     final DatabaseConfig databaseConfig = surfCloudConfig.connectionConfig.databaseConfig;
     final DriverManagerDataSource dataSource = new DriverManagerDataSource();
 
-//    Util.tempChangeSystemClassLoader(getClass().getClassLoader(), () -> {
     dataSource.setDriverClassName("org.mariadb.jdbc.Driver");
-//    });
-
     dataSource.setUsername(databaseConfig.username);
     dataSource.setPassword(databaseConfig.password);
     dataSource.setUrl(databaseConfig.url);

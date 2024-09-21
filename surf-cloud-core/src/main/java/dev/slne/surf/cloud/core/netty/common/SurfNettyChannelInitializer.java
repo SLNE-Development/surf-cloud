@@ -15,12 +15,12 @@ public class SurfNettyChannelInitializer extends ChannelInitializer<SocketChanne
 
   private final SurfPacketRegistry surfPacketRegistry;
   private final ObjectProvider<ChannelInitializerModifier> modifiers;
-  private final NettyBase<?> base;
+  private final ObjectProvider<NettyBase<?>> base;
 
   public SurfNettyChannelInitializer(
       SurfPacketRegistry surfPacketRegistry,
       ObjectProvider<ChannelInitializerModifier> modifiers,
-      NettyBase<?> base
+      ObjectProvider<NettyBase<?>> base
   ) {
     this.surfPacketRegistry = surfPacketRegistry;
     this.modifiers = modifiers;
@@ -34,8 +34,8 @@ public class SurfNettyChannelInitializer extends ChannelInitializer<SocketChanne
         .addLast("frameEncoder", new LengthFieldPrepender(4, false))
         .addLast("decoder", new NettyPacketDecoder(surfPacketRegistry))
         .addLast("encoder", new NettyPacketEncoder())
-        .addLast("commonJoinQuitHandler", new NettyPacketJoinQuitCommonHandler(base.container()))
-        .addLast("packetHandler", new NettyPacketHandler(base));
+        .addLast("commonJoinQuitHandler", new NettyPacketJoinQuitCommonHandler(base.getObject().container()))
+        .addLast("packetHandler", new NettyPacketHandler(base.getObject()));
 
     for (final ChannelInitializerModifier modifier : modifiers.orderedStream().toList()) {
       modifier.modify(ch);

@@ -22,13 +22,11 @@ import org.springframework.data.redis.listener.ChannelTopic;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.stereotype.Component;
-import org.springframework.validation.annotation.Validated;
 import tech.hiddenproject.aide.reflection.LambdaWrapperHolder;
 import tech.hiddenproject.aide.reflection.WrapperHolder;
 import tech.hiddenproject.aide.reflection.annotation.Invoker;
 
 @Component
-@Validated
 public class RedisEventHandlerProcessor implements BeanPostProcessor {
 
   private final ObjectProvider<RedisMessageListenerContainer> container;

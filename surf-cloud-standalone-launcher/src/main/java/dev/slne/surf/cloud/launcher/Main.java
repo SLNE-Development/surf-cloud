@@ -1,15 +1,16 @@
 package dev.slne.surf.cloud.launcher;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Arrays;
+import java.nio.file.StandardCopyOption;
 import java.util.Objects;
 import java.util.stream.Stream;
 import lombok.SneakyThrows;
@@ -28,9 +29,7 @@ public class Main {
     }
 
     final URL[] classpathUrls = setupClasspath();
-    final ClassLoader parentClassLoader = Main.class.getClassLoader().getParent();
-    System.out.println("Parent class loader: " + parentClassLoader);
-    System.out.println("Classpath URLs: " + Arrays.toString(classpathUrls));
+    final ClassLoader parentClassLoader = Main.class.getClassLoader();
     final StandaloneUrlClassLoader classLoader = new StandaloneUrlClassLoader(classpathUrls,
         parentClassLoader);
 
@@ -83,19 +82,21 @@ public class Main {
   }
 
   private static URL getStandaloneUrl() {
-    // get resource 'surf-cloud-standalone.jara'
-    URL resource = Main.class.getResource("/surf-cloud-standalone.jara");
+    final URL resource = Main.class.getResource("/surf-cloud-standalone.jara");
 
     if (resource == null) {
       throw LauncherUtils.fail("Failed to find standalone jar", null);
     }
 
-    // rename 'surf-cloud-standalone.jara' to 'surf-cloud-standalone.jar'
-    String path = resource.toString().replace("jara", "jar");
     try {
-      return new URI(path).toURL();
-    } catch (MalformedURLException | URISyntaxException e) {
-      throw LauncherUtils.fail("Failed to convert standalone jar URL", e);
+      final File tempJar = File.createTempFile("surf-cloud-standalone", ".jar");
+      try (final InputStream inputStream = resource.openStream()) {
+        Files.copy(inputStream, tempJar.toPath(), StandardCopyOption.REPLACE_EXISTING);
+      }
+
+      return tempJar.toURI().toURL();
+    } catch (final IOException e) {
+      throw LauncherUtils.fail("Failed to extract standalone jar", e);
     }
   }
 

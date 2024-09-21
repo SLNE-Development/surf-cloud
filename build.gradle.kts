@@ -1,4 +1,10 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+import com.github.jengelman.gradle.plugins.shadow.transformers.Transformer
+import com.github.jengelman.gradle.plugins.shadow.transformers.TransformerContext
+import org.apache.commons.io.IOUtils
+import org.apache.tools.zip.ZipEntry
+import org.apache.tools.zip.ZipOutputStream
+
 
 plugins {
     java
@@ -60,7 +66,10 @@ allprojects {
 
     tasks {
         withType<ShadowJar> {
-            mergeServiceFiles()
+            mergeServiceFiles {
+                setPath("META-INF")
+                exclude("META-INF/MANIFEST.MF")
+            }
         }
     }
 
@@ -80,6 +89,40 @@ allprojects {
         }
     }
 }
+
+class UniqueLinesTransformer : Transformer {
+    private val filesContentMap: MutableMap<String, MutableSet<String>> = mutableMapOf()
+    override fun getName() = "uniqueLines"
+
+    override fun canTransformResource(element: FileTreeElement): Boolean {
+        // Transformiere nur Dateien im META-INF Ordner
+        val fullName = element.relativePath.toString()
+        return fullName.startsWith("META-INF/")
+    }
+
+    override fun transform(inputStream: TransformerContext) {
+        val relativePath = inputStream.path // Der Pfad der Datei
+        val content = IOUtils.toString(inputStream.`is`, "UTF-8")
+
+        // Füge den Inhalt zur Datei hinzu, indem du duplikatfreie Zeilen speicherst
+        filesContentMap.computeIfAbsent(relativePath) { LinkedHashSet() }
+        filesContentMap[relativePath]!!.addAll(content.lines())
+    }
+
+    override fun hasTransformedResource(): Boolean {
+        return filesContentMap.isNotEmpty()
+    }
+
+    override fun modifyOutputStream(os: ZipOutputStream, preserveFileTimestamps: Boolean) {
+        filesContentMap.forEach { (filePath, uniqueLines) ->
+            val entry = ZipEntry(filePath)
+            os.putNextEntry(entry)
+            os.write(uniqueLines.joinToString("\n").toByteArray())
+            os.closeEntry()
+        }
+    }
+}
+
 
 tasks.withType<Test> {
     useJUnitPlatform()

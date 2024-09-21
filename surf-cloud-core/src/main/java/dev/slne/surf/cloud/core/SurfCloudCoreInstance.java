@@ -66,7 +66,10 @@ public abstract class SurfCloudCoreInstance implements SurfCloudInstance {
     checkNotNull(parentClassLoader, "parentClassLoader");
 
     final JoinClassLoader joinClassLoader = new JoinClassLoader(classLoader,
-        ArrayUtils.addFirst(parentClassLoader, getClassLoader()));
+        ArrayUtils.addFirst(
+            parentClassLoader
+            , getClassLoader())
+    );
 
     final Supplier<ConfigurableApplicationContext> run = () -> {
       final SpringApplicationBuilder builder = new SpringApplicationBuilder(applicationClass)

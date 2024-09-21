@@ -8,6 +8,7 @@ import java.util.Collection;
 import java.util.Enumeration;
 import java.util.Vector;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class JoinClassLoader extends ClassLoader {
 
@@ -37,6 +38,12 @@ public class JoinClassLoader extends ClassLoader {
 
   @Override
   protected Class<?> findClass(@NotNull String name) throws ClassNotFoundException {
+    final Class<?> parentClass = getFromParent(parent -> parent.loadClass(name));
+
+    if (parentClass != null) {
+      return parentClass;
+    }
+
     final String path = name.replace('.', '/') + ".class";
     final URL url = findResource(path);
     final ByteBuffer byteCode;
@@ -56,7 +63,13 @@ public class JoinClassLoader extends ClassLoader {
 
   @Override
   protected URL findResource(String name) {
-    for (ClassLoader delegateClassLoader : delegateClassLoaders) {
+    final URL parentResource = getFromParent(parent -> parent.getResource(name));
+
+    if (parentResource != null) {
+      return parentResource;
+    }
+
+    for (final ClassLoader delegateClassLoader : delegateClassLoaders) {
       final URL resource = delegateClassLoader.getResource(name);
 
       if (resource != null) {
@@ -70,13 +83,14 @@ public class JoinClassLoader extends ClassLoader {
   @Override
   protected Enumeration<URL> findResources(String name) throws IOException {
     final Vector<URL> vector = new Vector<>();
+    final Enumeration<URL> parentResources = getFromParent(parent -> parent.getResources(name));
 
-    for (ClassLoader delegateClassLoader : delegateClassLoaders) {
-      final Enumeration<URL> resources = delegateClassLoader.getResources(name);
+    if (parentResources != null) {
+      parentResources.asIterator().forEachRemaining(vector::add);
+    }
 
-      while (resources.hasMoreElements()) {
-        vector.add(resources.nextElement());
-      }
+    for (final ClassLoader delegateClassLoader : delegateClassLoaders) {
+      delegateClassLoader.getResources(name).asIterator().forEachRemaining(vector::add);
     }
 
     return vector.elements();
@@ -127,8 +141,22 @@ public class JoinClassLoader extends ClassLoader {
 
   public final void addDelegateClassLoader(ClassLoader classLoader) {
     final ClassLoader[] newDelegateClassLoaders = new ClassLoader[delegateClassLoaders.length + 1];
-    System.arraycopy(delegateClassLoaders, 0, newDelegateClassLoaders, 0, delegateClassLoaders.length);
+    System.arraycopy(delegateClassLoaders, 0, newDelegateClassLoaders, 0,
+        delegateClassLoaders.length);
     newDelegateClassLoaders[delegateClassLoaders.length] = classLoader;
     delegateClassLoaders = newDelegateClassLoaders;
+  }
+
+  private <T> @Nullable T getFromParent(Mapper<T> mapper) {
+    final ClassLoader parent = getParent();
+    try {
+      return parent == null ? null : mapper.map(parent);
+    } catch (Exception e) {
+      return null;
+    }
+  }
+
+  private interface Mapper<T> {
+    T map(ClassLoader classLoader) throws Exception;
   }
 }

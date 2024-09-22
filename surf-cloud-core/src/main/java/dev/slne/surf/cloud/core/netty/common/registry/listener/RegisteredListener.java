@@ -69,21 +69,21 @@ public class RegisteredListener {
   }
 
   @FunctionalInterface
-  private interface RegisteredListenerInvoker1 {
+  public interface RegisteredListenerInvoker1 {
 
     @Invoker
     void handle(Object caller, NettyPacket<?> packet);
   }
 
   @FunctionalInterface
-  private interface RegisteredListenerInvoker2 {
+  public interface RegisteredListenerInvoker2 {
 
     @Invoker
     void handle(Object caller, NettyPacket<?> packet, NettyPacketInfo info);
   }
 
   @FunctionalInterface
-  private interface RegisteredListenerInvoker2Rev {
+  public interface RegisteredListenerInvoker2Rev {
 
     @Invoker
     void handle(Object caller, NettyPacketInfo info, NettyPacket<?> packet);

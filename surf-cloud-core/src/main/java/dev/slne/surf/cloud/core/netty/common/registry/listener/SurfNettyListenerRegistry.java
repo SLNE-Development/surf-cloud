@@ -8,6 +8,7 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import it.unimi.dsi.fastutil.objects.ObjectSet;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -57,6 +58,9 @@ public class SurfNettyListenerRegistry {
       throw new SurfNettyListenerRegistrationException("Listener method must have one parameter of type NettyPacket");
     }
 
+    if (!Modifier.isPublic(listenerMethod.getModifiers())) {
+      throw new SurfNettyListenerRegistrationException("Listener method must be public");
+    }
 
     listeners.computeIfAbsent(packetClass, (key) -> new ObjectOpenHashSet<>(1))
         .add(new RegisteredListener(bean, listenerMethod, packetClassIndex, packetInfoIndex));

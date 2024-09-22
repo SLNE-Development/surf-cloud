@@ -5,9 +5,7 @@ import com.intellij.modcommand.ModPsiUpdater
 import com.intellij.modcommand.PsiUpdateModCommandQuickFix
 import com.intellij.openapi.project.Project
 import com.intellij.psi.*
-import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.PsiUtil
-import com.siyeh.ig.fixes.RemoveModifierFix
 import liveplugin.PluginUtil.show
 import liveplugin.registerInspection
 
@@ -71,10 +69,10 @@ class SurfNettyPacketHandlerInspection : AbstractBaseJavaLocalInspectionTool() {
                     )
                 }
 
-                if (method.hasModifierProperty(PsiModifier.PRIVATE)) {
+                if (!method.hasModifierProperty(PsiModifier.PUBLIC)) {
                     holder.registerProblem(
                         method.nameIdentifier!!,
-                        "Listener method must not be private",
+                        "Listener method must be public",
                         ProblemHighlightType.GENERIC_ERROR,
                         object: PsiUpdateModCommandQuickFix() {
                             override fun getFamilyName() = "Make method public"
@@ -83,6 +81,7 @@ class SurfNettyPacketHandlerInspection : AbstractBaseJavaLocalInspectionTool() {
                             override fun applyFix(project: Project, modifierElement: PsiElement, updater: ModPsiUpdater) {
                                 val psiMethod = modifierElement.parent as? PsiMethod ?: return
                                 psiMethod.modifierList.setModifierProperty(PsiModifier.PRIVATE, false)
+                                psiMethod.modifierList.setModifierProperty(PsiModifier.PROTECTED, false)
                                 psiMethod.modifierList.setModifierProperty(PsiModifier.PUBLIC, true)
                             }
 

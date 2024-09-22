@@ -33,7 +33,7 @@ public class SurfCloudConfig {
 
       @Comment("URL for database connection. Should be in the format of jdbc:<db_type>://<host>:<port>/<database>")
       @Setting("url")
-      public String url = "jdbc:mariadb://127.0.0.1/surf_data";
+      public String url = "jdbc:mariadb://127.0.0.1:3306/surf_data";
 
       @Comment("Username for database connection")
       @Setting("username")

@@ -12,6 +12,13 @@ public class SurfCloudStandaloneInstance extends SurfCloudCoreInstance {
   }
 
   @Override
+  public void onEnable() {
+    super.onEnable();
+
+
+  }
+
+  @Override
   public Path getDataFolder() {
     return Path.of("");
   }

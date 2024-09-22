@@ -8,6 +8,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.springframework.core.annotation.AnnotationUtils;
 
 @Getter
@@ -27,6 +28,28 @@ public abstract class NettyPacket<SELF extends NettyPacket<SELF>> implements Enc
     }
 
     this.id = meta.id();
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof NettyPacket<?> that)) {
+      return false;
+    }
+
+    return id == that.id;
+  }
+
+  @Override
+  public int hashCode() {
+    return id;
+  }
+
+  @Override
+  public String toString() {
+    return ToStringBuilder.reflectionToString(this);
   }
 
   // TODO: 16.09.2024 14:49 - send method

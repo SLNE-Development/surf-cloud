@@ -14,7 +14,7 @@ public class Bootstrap {
       System.err.println("Classloader: " + Bootstrap.class.getClassLoader());
 
       SurfApiStandaloneBootstrap.bootstrap();
-      final SurfCloudStandaloneInstance instance = new SurfCloudStandaloneInstance();
+      final SurfCloudStandaloneInstance instance = SurfCloudStandaloneInstance.get();
       instance.onLoad();
       instance.onEnable();
 

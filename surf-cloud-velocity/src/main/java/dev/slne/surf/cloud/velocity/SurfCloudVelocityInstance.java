@@ -8,6 +8,9 @@ import java.nio.file.Path;
 @AutoService(SurfCloudInstance.class)
 public final class SurfCloudVelocityInstance extends SurfCloudCoreInstance {
 
+  public SurfCloudVelocityInstance() throws IllegalAccessException {
+  }
+
   @Override
   public Path getDataFolder() {
     return null;

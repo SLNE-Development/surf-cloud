@@ -8,6 +8,9 @@ import java.nio.file.Path;
 @AutoService(SurfCloudInstance.class)
 public class SurfCloudStandaloneInstance extends SurfCloudCoreInstance {
 
+  public SurfCloudStandaloneInstance() throws IllegalAccessException {
+  }
+
   @Override
   public Path getDataFolder() {
     return Path.of("");
@@ -21,5 +24,9 @@ public class SurfCloudStandaloneInstance extends SurfCloudCoreInstance {
   @Override
   protected String getSpringProfile() {
     return "independent";
+  }
+
+  public static SurfCloudStandaloneInstance get() {
+    return (SurfCloudStandaloneInstance) SurfCloudInstance.get();
   }
 }

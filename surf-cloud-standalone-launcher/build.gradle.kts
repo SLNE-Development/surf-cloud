@@ -14,7 +14,6 @@ tasks {
             .get()
 
         // rename the standalone jar file
-
         val standaloneFile = File("surf-cloud-standalone.jara")
         standalone.renameTo(standaloneFile)
 
@@ -26,9 +25,7 @@ tasks {
             )
         }
 
-        doLast {
-            standaloneFile.delete()
-        }
+        doLast { standaloneFile.delete() }
     }
 
     named<JavaExec>("run") {

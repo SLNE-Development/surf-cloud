@@ -8,6 +8,9 @@ import java.nio.file.Path;
 @AutoService(SurfCloudInstance.class)
 public final class SurfCloudBukkitInstance extends SurfCloudCoreInstance {
 
+  public SurfCloudBukkitInstance() throws IllegalAccessException {
+  }
+
   @Override
   public Path getDataFolder() {
     return BukkitMain.getInstance().getDataPath();

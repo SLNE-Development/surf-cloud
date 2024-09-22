@@ -31,21 +31,27 @@ import reactor.util.Loggers;
 public abstract class SurfCloudCoreInstance implements SurfCloudInstance {
 
   private static final Logger redisEventLog = Loggers.getLogger("RedisEvent");
-  private ConfigurableApplicationContext dataContext;
+  private volatile ConfigurableApplicationContext dataContext;
+
+  public SurfCloudCoreInstance() throws IllegalAccessException {
+    final Class<?> caller = Util.getCallerClass();
+    if (!caller.getName().startsWith("java.util.ServiceLoader")) {
+      throw new IllegalAccessException("Cannot instantiate instance directly");
+    }
+  }
 
   @OverridingMethodsMustInvokeSuper
   public void onLoad() {
     dataContext = startSpringApplication(SurfCloudMainApplication.class);
+  }
+
+  @OverridingMethodsMustInvokeSuper
+  public void onEnable() {
     for (int i = 0; i < 10; i++) {
       final TestEntity entity = new TestEntity(true, 25, 100.0, UUID.randomUUID(), "Test", false);
       TestPacket packet = new TestPacket(entity);
       packet.send();
     }
-  }
-
-  @OverridingMethodsMustInvokeSuper
-  public void onEnable() {
-
   }
 
   @OverridingMethodsMustInvokeSuper
@@ -66,17 +72,15 @@ public abstract class SurfCloudCoreInstance implements SurfCloudInstance {
     checkNotNull(parentClassLoader, "parentClassLoader");
 
     final JoinClassLoader joinClassLoader = new JoinClassLoader(classLoader,
-        ArrayUtils.addFirst(
-            parentClassLoader
-            , getClassLoader())
-    );
+        ArrayUtils.addFirst(parentClassLoader, getClassLoader()));
 
     final Supplier<ConfigurableApplicationContext> run = () -> {
       final SpringApplicationBuilder builder = new SpringApplicationBuilder(applicationClass)
           .resourceLoader(new DefaultResourceLoader(joinClassLoader))
           .bannerMode(Mode.CONSOLE)
           .banner(new SurfSpringBanner())
-          .profiles(getSpringProfile());
+          .profiles(getSpringProfile())
+          .listeners();
 
       if (dataContext != null) {
         builder.parent(dataContext);

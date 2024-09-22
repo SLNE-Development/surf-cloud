@@ -55,4 +55,12 @@ public class Util {
   public SecureRandom getRandom() {
     return RANDOM;
   }
+
+  public static Class<?> getCallerClass() {
+    class StackWalkerHolder {
+      static final StackWalker INSTANCE = StackWalker.getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE);
+    }
+
+    return StackWalkerHolder.INSTANCE.walk(frames -> frames.skip(3).findFirst().map(StackWalker.StackFrame::getDeclaringClass).orElse(null));
+  }
 }

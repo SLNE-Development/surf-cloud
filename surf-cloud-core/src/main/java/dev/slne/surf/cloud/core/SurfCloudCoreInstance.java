@@ -5,6 +5,8 @@ import static com.google.common.base.Preconditions.checkState;
 
 import dev.slne.surf.cloud.SurfCloudMainApplication;
 import dev.slne.surf.cloud.api.SurfCloudInstance;
+import dev.slne.surf.cloud.api.exceptions.FatalSurfError;
+import dev.slne.surf.cloud.api.exceptions.FatalSurfError.ExitCodes;
 import dev.slne.surf.cloud.api.redis.RedisEvent;
 import dev.slne.surf.cloud.api.util.JoinClassLoader;
 import dev.slne.surf.cloud.core.spring.SurfSpringBanner;
@@ -21,6 +23,7 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.boot.Banner.Mode;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.core.NestedRuntimeException;
 import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import reactor.util.Logger;
@@ -42,7 +45,32 @@ public abstract class SurfCloudCoreInstance implements SurfCloudInstance {
 
   @OverridingMethodsMustInvokeSuper
   public void onLoad() {
-    dataContext = startSpringApplication(SurfCloudMainApplication.class);
+    try {
+      dataContext = startSpringApplication(SurfCloudMainApplication.class);
+    } catch (Throwable e) {
+      if (e instanceof FatalSurfError fatal) {
+        // Re-throw FatalSurfError directly
+        throw fatal;
+      } else if (e instanceof NestedRuntimeException nested
+          && nested.getRootCause() instanceof FatalSurfError fatal) {
+        // Re-throw FatalSurfError if it is wrapped inside NestedRuntimeException
+        throw fatal;
+      } else {
+        // Build and throw a new FatalSurfError for any other unexpected errors
+        throw FatalSurfError.builder()
+            .simpleErrorMessage("An unexpected error occurred during the onLoad process.")
+            .detailedErrorMessage("An error occurred while starting the Spring application during the onLoad phase.")
+            .cause(e)
+            .additionalInformation("Error occurred in: " + this.getClass().getName())
+            .additionalInformation("Root cause: " + (e.getCause() != null ? e.getCause().getMessage() : "Unknown"))
+            .additionalInformation("Exception type: " + e.getClass().getName())
+            .possibleSolution("Check the logs for more detailed error information.")
+            .possibleSolution("Ensure that the application configurations are correct.")
+            .possibleSolution("Make sure that all dependencies are correctly initialized before loading.")
+            .exitCode(ExitCodes.UNKNOWN_ERROR)
+            .build();
+      }
+    }
   }
 
   @OverridingMethodsMustInvokeSuper

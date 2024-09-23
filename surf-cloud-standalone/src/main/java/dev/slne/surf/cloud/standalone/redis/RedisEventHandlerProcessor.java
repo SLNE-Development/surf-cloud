@@ -1,4 +1,4 @@
-package dev.slne.surf.cloud.core.redis;
+package dev.slne.surf.cloud.standalone.redis;
 
 import dev.slne.surf.cloud.api.redis.RedisEvent;
 import dev.slne.surf.cloud.api.redis.RedisEventHandler;

@@ -1,4 +1,4 @@
-package dev.slne.surf.cloud.api.redis;
+package dev.slne.surf.cloud.standalone.redis;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import dev.slne.surf.cloud.api.SurfCloudInstance;

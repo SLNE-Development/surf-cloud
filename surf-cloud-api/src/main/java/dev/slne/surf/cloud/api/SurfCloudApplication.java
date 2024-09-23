@@ -32,12 +32,6 @@ public @interface SurfCloudApplication {
   @AliasFor(annotation = SpringBootApplication.class, attribute = "scanBasePackages")
   String[] basePackages() default {};
 
-//  @AliasFor(annotation = EnableJpaRepositories.class, attribute = "basePackageClasses")
-//  Class<?>[] jpaRepositoriesPackages() default {};
-
-//  @AliasFor(annotation = EnableRedisRepositories.class, attribute = "basePackageClasses")
-//  Class<?>[] redisRepositoriesPackages() default {};
-
 //  @AliasFor(annotation = JpaConfig.class, attribute = "basePackages")
   String[] jpaBasePackages() default {};
 

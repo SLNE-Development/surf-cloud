@@ -7,7 +7,11 @@ plugins {
 }
 
 dependencies {
-    api(project(":surf-cloud-core"))
+    api(project(":surf-cloud-core")) {
+        // exclude logback
+        exclude(group = "ch.qos.logback", module = "logback-classic")
+        exclude(group = "ch.qos.logback", module = "logback-core")
+    }
     compileOnly("io.papermc.paper:paper-api:1.21.1-R0.1-SNAPSHOT")
 
     api("org.springframework.boot:spring-boot-starter-data-jpa")

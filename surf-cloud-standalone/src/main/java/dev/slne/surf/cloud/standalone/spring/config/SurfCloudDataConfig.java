@@ -1,11 +1,9 @@
-package dev.slne.surf.cloud.core.spring.config;
+package dev.slne.surf.cloud.standalone.spring.config;
 
 import dev.slne.surf.cloud.api.exceptions.FatalSurfError;
 import dev.slne.surf.cloud.api.exceptions.FatalSurfError.ExitCodes;
-import dev.slne.surf.cloud.core.SurfCloudCoreInstance;
 import dev.slne.surf.cloud.core.config.SurfCloudConfig;
 import dev.slne.surf.cloud.core.config.SurfCloudConfig.ConnectionConfig.DatabaseConfig;
-import dev.slne.surf.surfapi.core.api.SurfCoreApi;
 import java.sql.Connection;
 import java.sql.SQLException;
 import javax.sql.DataSource;
@@ -19,15 +17,6 @@ import org.springframework.jdbc.datasource.DriverManagerDataSource;
 @Flogger
 public class SurfCloudDataConfig {
 
-  @Bean
-  public SurfCloudConfig surfDataConfig() {
-
-    return SurfCoreApi.getCore().createModernYamlConfig(
-        SurfCloudConfig.class,
-        SurfCloudCoreInstance.get().getDataFolder(),
-        "config.yml"
-    );
-  }
 
   @Bean
   @Primary

@@ -1,16 +1,8 @@
-package dev.slne.surf.cloud.core.spring.config;
+package dev.slne.surf.cloud.standalone.spring.config;
 
-import com.fasterxml.jackson.core.JsonParser.Feature;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.MapperFeature;
-import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.databind.json.JsonMapper;
 import dev.slne.surf.cloud.core.config.SurfCloudConfig;
 import dev.slne.surf.cloud.core.config.SurfCloudConfig.ConnectionConfig.RedisConfig;
-import java.util.TimeZone;
-import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.cache.RedisCacheManagerBuilderCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -50,20 +42,6 @@ public class SurfCloudRedisConfig {
     return new LettuceConnectionFactory(standalone, clientConfig);
   }
 
-  @Bean
-  public JsonMapper objectMapper(ObjectProvider<Module> modules) {
-    return JsonMapper.builder()
-        .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false)
-        .configure(SerializationFeature.WRITE_DURATIONS_AS_TIMESTAMPS, false)
-        .configure(SerializationFeature.WRITE_DATES_WITH_ZONE_ID, true)
-        .configure(MapperFeature.PROPAGATE_TRANSIENT_MARKER, true)
-        .configure(Feature.USE_FAST_DOUBLE_PARSER, true)
-        .configure(Feature.USE_FAST_BIG_NUMBER_PARSER, true)
-        .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-        .addModules(modules.orderedStream().toArray(Module[]::new))
-        .defaultTimeZone(TimeZone.getDefault())
-        .build();
-  }
 
   @Bean
   public GenericJackson2JsonRedisSerializer redisSerializer(ObjectMapper mapper) {

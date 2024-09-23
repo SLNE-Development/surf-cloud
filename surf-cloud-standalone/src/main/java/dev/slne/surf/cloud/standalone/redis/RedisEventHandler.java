@@ -1,4 +1,4 @@
-package dev.slne.surf.cloud.api.redis;
+package dev.slne.surf.cloud.standalone.redis;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

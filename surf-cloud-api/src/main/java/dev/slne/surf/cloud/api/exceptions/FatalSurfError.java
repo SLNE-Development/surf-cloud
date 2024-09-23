@@ -104,9 +104,15 @@ public final class FatalSurfError extends Error implements ExitCodeGenerator {
     return exitCode;
   }
 
+  @Override
+  public synchronized @Nullable Throwable getCause() {
+    return cause;
+  }
+
   @UtilityClass
   public static class ExitCodes {
 
+    public final int UNKNOWN_ERROR = 1;
     public final int UNABLE_TO_CONNECT_TO_DATABASE = 10;
   }
 }

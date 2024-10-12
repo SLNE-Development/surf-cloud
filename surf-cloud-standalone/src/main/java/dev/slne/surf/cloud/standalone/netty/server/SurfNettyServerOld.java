@@ -3,7 +3,7 @@ package dev.slne.surf.cloud.standalone.netty.server;
 //@Profile("independent")
 //@Component
 public class SurfNettyServerOld
-//    extends NettyBase
+//    extends AbstractNettyBase
 {
 
 //  private final ServerBootstrap serverBootstrap;
@@ -32,7 +32,7 @@ public class SurfNettyServerOld
 //
 //
 //  @Override
-//  protected NettyContainer<?, ?, ?> createContainer() {
+//  protected AbstractNettyConnection<?, ?, ?> createContainer() {
 //    return null;
 //  }
 //

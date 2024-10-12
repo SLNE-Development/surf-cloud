@@ -1,6 +1,6 @@
 package dev.slne.surf.cloud.core.netty.protocol.packets.cloud.info;
 
-import dev.slne.surf.cloud.core.netty.CloudServer;
+import dev.slne.surf.cloud.api.server.CloudServer;
 
 public enum CloudServerInfoAction {
 

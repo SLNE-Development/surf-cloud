@@ -29,6 +29,6 @@ public class TestNettyPacketSender implements CommandLineRunner {
         .build();
 
     System.err.println("Sending packet: " + packet);
-    surfNettyServer.container().broadcast(packet);
+    surfNettyServer.connection().broadcast(packet);
   }
 }

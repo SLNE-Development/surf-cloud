@@ -14,6 +14,9 @@ plugins {
     id("org.hibernate.build.maven-repo-auth") version "3.0.4" apply false
     id("io.github.goooler.shadow") version "8.1.8" apply false
     id("io.freefair.lombok") version "8.10" apply false
+    kotlin("jvm") version "2.0.21"
+    kotlin("plugin.spring") version "2.0.21"
+    kotlin("plugin.lombok") version "2.0.21"
 }
 
 java {
@@ -31,6 +34,9 @@ allprojects {
     apply(plugin = "org.gradle.maven-publish")
     apply(plugin = "org.hibernate.build.maven-repo-auth")
     apply(plugin = "io.freefair.lombok")
+    apply(plugin = "org.jetbrains.kotlin.jvm")
+    apply(plugin = "org.jetbrains.kotlin.plugin.spring")
+    apply(plugin = "org.jetbrains.kotlin.plugin.lombok")
 
 
     group = "dev.slne.surf.cloud"

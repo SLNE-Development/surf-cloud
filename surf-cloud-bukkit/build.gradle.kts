@@ -7,11 +7,7 @@ plugins {
 }
 
 dependencies {
-    api(project(":surf-cloud-core")) {
-        // exclude logback
-        exclude(group = "ch.qos.logback", module = "logback-classic")
-        exclude(group = "ch.qos.logback", module = "logback-core")
-    }
+    api(project(":surf-cloud-core"))
     compileOnly("io.papermc.paper:paper-api:1.21.1-R0.1-SNAPSHOT")
 
     api("org.springframework.boot:spring-boot-starter-data-jpa")
@@ -19,6 +15,13 @@ dependencies {
     api("org.springframework.boot:spring-boot-starter-jooq")
     api("com.fasterxml.jackson.core:jackson-core")
     api("com.fasterxml.jackson.core:jackson-databind")
+}
+
+configurations {
+    all {
+        exclude(group = "ch.qos.logback", module = "logback-classic")
+//        exclude(group = "ch.qos.logback", module = "logback-core")
+    }
 }
 
 tasks {

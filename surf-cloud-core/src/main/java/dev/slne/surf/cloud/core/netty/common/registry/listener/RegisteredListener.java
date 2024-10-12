@@ -2,12 +2,12 @@ package dev.slne.surf.cloud.core.netty.common.registry.listener;
 
 import dev.slne.surf.cloud.api.netty.exception.SurfNettyListenerRegistrationException;
 import dev.slne.surf.cloud.api.netty.packet.NettyPacket;
-import dev.slne.surf.cloud.core.netty.NettyPacketInfo;
+import dev.slne.surf.cloud.core.netty.protocol.packet.NettyPacketInfo;
 import java.lang.reflect.Method;
 import tech.hiddenproject.aide.reflection.LambdaWrapperHolder;
 import tech.hiddenproject.aide.reflection.annotation.Invoker;
 
-public class RegisteredListener {
+final class RegisteredListener {
 
   static {
     LambdaWrapperHolder.DEFAULT.add(RegisteredListenerInvoker1.class);
@@ -19,9 +19,12 @@ public class RegisteredListener {
   private final Object invoker;
   private final InvokerType invokerType;
 
-  public RegisteredListener(Object bean, Method listenerMethod, int packetClassIndex,
-      int packetInfoIndex)
-      throws SurfNettyListenerRegistrationException {
+  RegisteredListener(
+      Object bean,
+      Method listenerMethod,
+      int packetClassIndex,
+      int packetInfoIndex
+  ) throws SurfNettyListenerRegistrationException {
     this.bean = bean;
 
     final Class<?>[] params = listenerMethod.getParameterTypes();

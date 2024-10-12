@@ -88,6 +88,27 @@ class SurfNettyPacketHandlerInspection : AbstractBaseJavaLocalInspectionTool() {
                         }
                     )
                 }
+
+                //check if class is public
+                if (!method.containingClass!!.hasModifierProperty(PsiModifier.PUBLIC)) {
+                    holder.registerProblem(
+                        method.containingClass!!.nameIdentifier!!,
+                        "Listener class must be public",
+                        ProblemHighlightType.GENERIC_ERROR,
+                        object: PsiUpdateModCommandQuickFix() {
+                            override fun getFamilyName() = "Make class public"
+                            override fun getName() = "Make class public"
+
+                            override fun applyFix(project: Project, modifierElement: PsiElement, updater: ModPsiUpdater) {
+                                val psiClass = modifierElement.parent as? PsiClass ?: return
+                                psiClass.modifierList?.setModifierProperty(PsiModifier.PRIVATE, false)
+                                psiClass.modifierList?.setModifierProperty(PsiModifier.PROTECTED, false)
+                                psiClass.modifierList?.setModifierProperty(PsiModifier.PUBLIC, true)
+                            }
+
+                        }
+                    )
+                }
             }
         }
     }

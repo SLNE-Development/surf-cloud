@@ -8,13 +8,13 @@ import tech.hiddenproject.aide.reflection.LambdaWrapper;
 import tech.hiddenproject.aide.reflection.LambdaWrapperHolder;
 import tech.hiddenproject.aide.reflection.MethodHolder;
 
-public final class RegisteredPacket {
+final class RegisteredPacket {
 
   @Getter
   private final Class<? extends NettyPacket<?>> packetClass;
   private final MethodHolder<LambdaWrapper, Void, ? extends NettyPacket<?>> fastConstructor;
 
-  public RegisteredPacket(Class<? extends NettyPacket<?>> packetClass)
+  RegisteredPacket(Class<? extends NettyPacket<?>> packetClass)
       throws SurfNettyRegisterPacketException {
     this.packetClass = packetClass;
 

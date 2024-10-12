@@ -1,39 +1,32 @@
 package dev.slne.surf.cloud.core;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.base.Preconditions.checkState;
 
 import dev.slne.surf.cloud.SurfCloudMainApplication;
 import dev.slne.surf.cloud.api.SurfCloudInstance;
 import dev.slne.surf.cloud.api.exceptions.FatalSurfError;
 import dev.slne.surf.cloud.api.exceptions.FatalSurfError.ExitCodes;
-import dev.slne.surf.cloud.api.redis.RedisEvent;
 import dev.slne.surf.cloud.api.util.JoinClassLoader;
 import dev.slne.surf.cloud.core.spring.SurfSpringBanner;
-import dev.slne.surf.cloud.core.test.TestEntity;
-import dev.slne.surf.cloud.core.test.TestPacket;
 import dev.slne.surf.cloud.core.util.Util;
 import java.nio.file.Path;
-import java.util.UUID;
 import java.util.function.Supplier;
 import javax.annotation.OverridingMethodsMustInvokeSuper;
 import javax.annotation.ParametersAreNonnullByDefault;
 import lombok.Getter;
+import lombok.extern.flogger.Flogger;
 import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.boot.Banner.Mode;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.NestedRuntimeException;
 import org.springframework.core.io.DefaultResourceLoader;
-import org.springframework.data.redis.core.ReactiveRedisTemplate;
-import reactor.util.Logger;
-import reactor.util.Loggers;
 
 @Getter
 @ParametersAreNonnullByDefault
+@Flogger
 public abstract class SurfCloudCoreInstance implements SurfCloudInstance {
 
-  private static final Logger redisEventLog = Loggers.getLogger("RedisEvent");
   private volatile ConfigurableApplicationContext dataContext;
 
   public SurfCloudCoreInstance() throws IllegalAccessException {
@@ -45,6 +38,20 @@ public abstract class SurfCloudCoreInstance implements SurfCloudInstance {
 
   @OverridingMethodsMustInvokeSuper
   public void onLoad() {
+
+    Thread.setDefaultUncaughtExceptionHandler((t, e) -> {
+      log.atSevere()
+          .withCause(e)
+          .log(
+              """
+              An uncaught exception occurred in thread %s
+              Exception type: %s
+              Exception message: %s
+              """,
+              t.getName(), e.getClass().getName(), e.getMessage()
+          );
+    });
+
     try {
       dataContext = startSpringApplication(SurfCloudMainApplication.class);
     } catch (Throwable e) {
@@ -59,14 +66,17 @@ public abstract class SurfCloudCoreInstance implements SurfCloudInstance {
         // Build and throw a new FatalSurfError for any other unexpected errors
         throw FatalSurfError.builder()
             .simpleErrorMessage("An unexpected error occurred during the onLoad process.")
-            .detailedErrorMessage("An error occurred while starting the Spring application during the onLoad phase.")
+            .detailedErrorMessage(
+                "An error occurred while starting the Spring application during the onLoad phase.")
             .cause(e)
             .additionalInformation("Error occurred in: " + this.getClass().getName())
-            .additionalInformation("Root cause: " + (e.getCause() != null ? e.getCause().getMessage() : "Unknown"))
+            .additionalInformation(
+                "Root cause: " + (e.getCause() != null ? e.getCause().getMessage() : "Unknown"))
             .additionalInformation("Exception type: " + e.getClass().getName())
             .possibleSolution("Check the logs for more detailed error information.")
             .possibleSolution("Ensure that the application configurations are correct.")
-            .possibleSolution("Make sure that all dependencies are correctly initialized before loading.")
+            .possibleSolution(
+                "Make sure that all dependencies are correctly initialized before loading.")
             .exitCode(ExitCodes.UNKNOWN_ERROR)
             .build();
       }
@@ -75,11 +85,6 @@ public abstract class SurfCloudCoreInstance implements SurfCloudInstance {
 
   @OverridingMethodsMustInvokeSuper
   public void onEnable() {
-    for (int i = 0; i < 10; i++) {
-      final TestEntity entity = new TestEntity(true, 25, 100.0, UUID.randomUUID(), "Test", false);
-      TestPacket packet = new TestPacket(entity);
-      packet.send();
-    }
   }
 
   @OverridingMethodsMustInvokeSuper
@@ -100,7 +105,7 @@ public abstract class SurfCloudCoreInstance implements SurfCloudInstance {
     checkNotNull(parentClassLoader, "parentClassLoader");
 
     final JoinClassLoader joinClassLoader = new JoinClassLoader(classLoader,
-        ArrayUtils.addFirst(parentClassLoader, getClassLoader()));
+        ArrayUtils.addFirst(parentClassLoader, classLoader));
 
     final Supplier<ConfigurableApplicationContext> run = () -> {
       final SpringApplicationBuilder builder = new SpringApplicationBuilder(applicationClass)
@@ -118,19 +123,6 @@ public abstract class SurfCloudCoreInstance implements SurfCloudInstance {
     };
 
     return Util.tempChangeSystemClassLoader(joinClassLoader, run);
-  }
-
-  @SuppressWarnings("unchecked")
-  @Override
-  public void callRedisEvent(RedisEvent event) {
-    checkNotNull(event, "event");
-    checkState(dataContext != null, "Event called before onLoad");
-
-    final ReactiveRedisTemplate<String, Object> template = dataContext.getBean(
-        "reactiveRedisTemplate", ReactiveRedisTemplate.class);
-    for (final String channel : event.getChannels()) {
-      template.convertAndSend(channel, event).log(redisEventLog).subscribe();
-    }
   }
 
   public abstract Path getDataFolder();

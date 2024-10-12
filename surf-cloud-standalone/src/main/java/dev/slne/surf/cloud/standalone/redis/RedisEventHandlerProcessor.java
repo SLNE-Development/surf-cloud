@@ -1,7 +1,5 @@
 package dev.slne.surf.cloud.standalone.redis;
 
-import dev.slne.surf.cloud.api.redis.RedisEvent;
-import dev.slne.surf.cloud.api.redis.RedisEventHandler;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Set;

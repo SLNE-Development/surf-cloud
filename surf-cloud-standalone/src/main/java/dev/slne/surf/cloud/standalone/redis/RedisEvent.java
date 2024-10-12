@@ -1,7 +1,7 @@
 package dev.slne.surf.cloud.standalone.redis;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import dev.slne.surf.cloud.api.SurfCloudInstance;
+import dev.slne.surf.cloud.standalone.SurfCloudStandaloneInstance;
 import java.util.UUID;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -26,7 +26,7 @@ public abstract class RedisEvent {
   }
 
   public final void send() {
-    SurfCloudInstance.get().callRedisEvent(this);
+    SurfCloudStandaloneInstance.get().callRedisEvent(this);
   }
 
   @Override

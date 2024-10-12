@@ -17,7 +17,6 @@ import org.springframework.jdbc.datasource.DriverManagerDataSource;
 @Flogger
 public class SurfCloudDataConfig {
 
-
   @Bean
   @Primary
   public DataSource dataSource(SurfCloudConfig surfCloudConfig) {
@@ -40,7 +39,7 @@ public class SurfCloudDataConfig {
           .log("Successfully connected to the database.");
     } catch (SQLException e) {
       throw FatalSurfError.builder()
-          .simpleErrorMessage("Failed to connect to the database.")
+          .simpleErrorMessage("Failed to tryEstablishConnection0 to the database.")
           .detailedErrorMessage("The database connection could not be established using the provided configuration.")
           .cause(e)
           .additionalInformation("Database URL: " + dataSource.getUrl())

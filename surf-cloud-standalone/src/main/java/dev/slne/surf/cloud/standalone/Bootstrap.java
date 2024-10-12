@@ -1,6 +1,7 @@
 package dev.slne.surf.cloud.standalone;
 
 import dev.slne.surf.cloud.api.exceptions.FatalSurfError;
+import dev.slne.surf.cloud.standalone.spring.config.logback.CloudLogbackConfigurator;
 import dev.slne.surf.surfapi.standalone.SurfApiStandaloneBootstrap;
 import org.springframework.boot.SpringApplication;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -8,12 +9,13 @@ import org.springframework.core.NestedRuntimeException;
 
 public class Bootstrap {
 
-  @SuppressWarnings("CallToPrintStackTrace")
   public static void main(String[] args) {
     try {
       System.err.println("Classloader: " + Bootstrap.class.getClassLoader());
 
       SurfApiStandaloneBootstrap.bootstrap();
+      CloudLogbackConfigurator.configure();
+
       final SurfCloudStandaloneInstance instance = SurfCloudStandaloneInstance.get();
       instance.onLoad();
       instance.onEnable();
@@ -42,7 +44,8 @@ public class Bootstrap {
       cause.printStackTrace();
     }
 
-    final ConfigurableApplicationContext context = SurfCloudStandaloneInstance.get().getDataContext();
+    final ConfigurableApplicationContext context = SurfCloudStandaloneInstance.get()
+        .getDataContext();
 
     if (context != null && context.isActive()) {
       SpringApplication.exit(context, error);

@@ -4,7 +4,7 @@ package dev.slne.surf.cloud.api.meta
 @Retention(AnnotationRetention.RUNTIME)
 annotation class SurfNettyPacket(val id: Int)
 
-internal object DefaultIds {
+object DefaultIds {
     const val PROXIED_NETTY_PACKET = 0x00
     const val KEEP_ALIVE_PACKET = 0x01
     const val CLOUD_REGISTER_SERVER_PACKET = 0x02

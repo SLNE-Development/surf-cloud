@@ -148,7 +148,7 @@ public class NettyClientConnectionImpl extends
         data);
     this.sendPacket(packet);
 
-    future.complete(clientTracker().findByServerGuid(data.serverId()).orElseThrow());
+    future.complete(clientTracker().findByServerGuid(data.serverId).orElseThrow());
 
     return future;
 //    sourceTracker().findByServerGuid()
@@ -194,7 +194,7 @@ public class NettyClientConnectionImpl extends
 
     @SurfNettyPacketHandler
     public void onCloudRegisterServer(CloudRegisterServerPacket packet) {
-      final long serverId = packet.getData().serverId();
+      final long serverId = packet.getData().serverId;
     }
   }
 

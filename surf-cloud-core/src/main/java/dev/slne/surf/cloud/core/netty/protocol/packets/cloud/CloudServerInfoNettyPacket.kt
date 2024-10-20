@@ -1,17 +1,14 @@
-package dev.slne.surf.cloud.core.netty.protocol.packets.cloud;
+package dev.slne.surf.cloud.core.netty.protocol.packets.cloud
 
-import dev.slne.surf.cloud.api.netty.packet.NettyPacket;
-import dev.slne.surf.cloud.api.netty.protocol.buffer.SurfByteBuf;
+import dev.slne.surf.cloud.api.netty.packet.NettyPacket
+import dev.slne.surf.cloud.api.netty.protocol.buffer.SurfByteBuf
 
-public class CloudServerInfoNettyPacket extends NettyPacket<CloudServerInfoNettyPacket> {
+class CloudServerInfoNettyPacket : NettyPacket<CloudServerInfoNettyPacket>() {
+    override fun decode(buffer: SurfByteBuf): CloudServerInfoNettyPacket? {
+        TODO("Not yet implemented")
+    }
 
-  @Override
-  public CloudServerInfoNettyPacket decode(SurfByteBuf buffer) {
-    return null;
-  }
-
-  @Override
-  public void encode(SurfByteBuf buffer) {
-
-  }
+    override fun encode(buffer: SurfByteBuf) {
+        TODO("Not yet implemented")
+    }
 }

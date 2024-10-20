@@ -1,31 +1,27 @@
-package dev.slne.surf.cloud.core.netty.protocol.packets.cloud.registration;
+package dev.slne.surf.cloud.core.netty.protocol.packets.cloud.registration
 
-import dev.slne.surf.cloud.api.netty.protocol.buffer.codec.Codec;
-import io.netty.handler.codec.DecoderException;
-import io.netty.handler.codec.EncoderException;
-import lombok.Builder;
-import org.jetbrains.annotations.Nullable;
+import dev.slne.surf.cloud.api.netty.protocol.buffer.codec.Codec
 
-@Builder
-public record CloudServerRegistrationData(
-    long serverId,
-    @Nullable String category,
-    int port,
-    @Nullable String host
+data class CloudServerRegistrationData(
+    val serverId: Long,
+    val category: String?,
+    val port: Int,
+    val host: String?
 ) {
-
-  public static final Codec<CloudServerRegistrationData, DecoderException, EncoderException> CODEC = Codec.codec(
-      (buf, data) -> {
-        buf.writeLong(data.serverId());
-        buf.writeNullable(data.category());
-        buf.writeInt(data.port());
-        buf.writeNullable(data.host());
-      },
-      buf -> new CloudServerRegistrationData(
-          buf.readLong(),
-          buf.readNullableString(),
-          buf.readInt(),
-          buf.readNullableString()
-      )
-  );
+    companion object {
+        @JvmStatic
+        val CODEC = Codec.codec({ buf, data ->
+            buf.writeLong(data.serverId)
+            buf.writeNullable(data.category)
+            buf.writeInt(data.port)
+            buf.writeNullable(data.host)
+        }, { buf ->
+            CloudServerRegistrationData(
+                buf.readLong(),
+                buf.readNullableString(),
+                buf.readInt(),
+                buf.readNullableString()
+            )
+        })
+    }
 }

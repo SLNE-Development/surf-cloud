@@ -1,60 +1,54 @@
-package dev.slne.surf.cloud.core.netty.common.registry.listener.processor;
+package dev.slne.surf.cloud.core.netty.common.registry.listener.processor
 
-import dev.slne.surf.cloud.api.meta.SurfNettyPacketHandler;
-import dev.slne.surf.cloud.api.netty.exception.SurfNettyListenerRegistrationException;
-import dev.slne.surf.cloud.core.netty.common.registry.listener.NettyListenerRegistry;
-import java.lang.reflect.Method;
-import java.util.Set;
-import org.springframework.aop.framework.AopInfrastructureBean;
-import org.springframework.aop.framework.AopProxyUtils;
-import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.BeanCreationException;
-import org.springframework.beans.factory.ObjectProvider;
-import org.springframework.beans.factory.config.BeanPostProcessor;
-import org.springframework.core.MethodIntrospector;
-import org.springframework.core.annotation.AnnotatedElementUtils;
-import org.springframework.core.annotation.AnnotationUtils;
-import org.springframework.stereotype.Component;
+import dev.slne.surf.cloud.api.meta.SurfNettyPacketHandler
+import dev.slne.surf.cloud.api.netty.exception.SurfNettyListenerRegistrationException
+import dev.slne.surf.cloud.core.netty.common.registry.listener.NettyListenerRegistry
+import org.springframework.aop.framework.AopInfrastructureBean
+import org.springframework.aop.framework.AopProxyUtils
+import org.springframework.beans.factory.BeanCreationException
+import org.springframework.beans.factory.config.BeanPostProcessor
+import org.springframework.core.MethodIntrospector
+import org.springframework.core.annotation.AnnotatedElementUtils
+import org.springframework.core.annotation.AnnotationUtils
+import org.springframework.stereotype.Component
+import java.lang.reflect.Method
 
 @Component
-public class NettyListenerRegistryProcessor implements BeanPostProcessor {
+class NettyListenerRegistryProcessor : BeanPostProcessor {
+    override fun postProcessAfterInitialization(bean: Any, beanName: String): Any {
+        if (bean is AopInfrastructureBean) return bean
+        val targetClass = AopProxyUtils.ultimateTargetClass(bean)
 
-  private final ObjectProvider<NettyListenerRegistry> registry;
+        if (!AnnotationUtils.isCandidateClass(
+                targetClass,
+                SurfNettyPacketHandler::class.java
+            )
+        ) return bean
 
-  public NettyListenerRegistryProcessor(ObjectProvider<NettyListenerRegistry> registry) {
-    this.registry = registry;
-  }
 
-  @Override
-  public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
-    if (bean instanceof AopInfrastructureBean) {
-      return bean;
+        val nettyHandlers = MethodIntrospector.selectMethods(
+            targetClass
+        ) { method ->
+            AnnotatedElementUtils.isAnnotated(
+                method,
+                SurfNettyPacketHandler::class.java
+            )
+        }
+
+        if (nettyHandlers.isNotEmpty()) {
+            registerNettyHandlers(beanName, bean, nettyHandlers)
+        }
+
+        return bean
     }
 
-    final Class<?> targetClass = AopProxyUtils.ultimateTargetClass(bean);
-
-    if (!AnnotationUtils.isCandidateClass(targetClass, SurfNettyPacketHandler.class)) {
-      return bean;
+    private fun registerNettyHandlers(beanName: String, bean: Any, nettyHandlers: Set<Method>) {
+        try {
+            for (handler in nettyHandlers) {
+                NettyListenerRegistry.registerListener(handler, bean)
+            }
+        } catch (e: SurfNettyListenerRegistrationException) {
+            throw BeanCreationException(beanName, e.message, e)
+        }
     }
-
-    final Set<Method> nettyHandlers = MethodIntrospector.selectMethods(targetClass,
-        (Method method) -> AnnotatedElementUtils.isAnnotated(method, SurfNettyPacketHandler.class));
-
-    if (!nettyHandlers.isEmpty()) {
-      registerNettyHandlers(beanName, bean, nettyHandlers);
-    }
-
-    return bean;
-  }
-
-  private void registerNettyHandlers(String beanName, Object bean, Set<Method> nettyHandlers) {
-    try {
-      final NettyListenerRegistry registry = this.registry.getObject();
-      for (final Method handler : nettyHandlers) {
-        registry.registerListener(handler, bean);
-      }
-    } catch (SurfNettyListenerRegistrationException e) {
-      throw new BeanCreationException(beanName, e.getMessage(), e);
-    }
-  }
 }

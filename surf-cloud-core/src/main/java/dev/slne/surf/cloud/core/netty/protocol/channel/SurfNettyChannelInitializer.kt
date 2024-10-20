@@ -1,62 +1,52 @@
-package dev.slne.surf.cloud.core.netty.protocol.channel;
+package dev.slne.surf.cloud.core.netty.protocol.channel
 
-import dev.slne.surf.cloud.core.netty.AbstractNettyBase;
-import dev.slne.surf.cloud.core.netty.common.registry.packet.NettyPacketRegistry;
-import dev.slne.surf.cloud.core.netty.protocol.codec.NettyPacketDecoder;
-import dev.slne.surf.cloud.core.netty.protocol.codec.NettyPacketEncoder;
-import dev.slne.surf.cloud.core.netty.protocol.packet.handler.NettyPacketHandler;
-import dev.slne.surf.cloud.core.netty.protocol.packet.handler.NettyPacketJoinQuitCommonHandler;
-import io.netty.channel.ChannelDuplexHandler;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.socket.SocketChannel;
-import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
-import io.netty.handler.codec.LengthFieldPrepender;
-import io.netty.handler.logging.LogLevel;
-import io.netty.handler.logging.LoggingHandler;
-import lombok.extern.flogger.Flogger;
-import org.springframework.beans.factory.ObjectProvider;
-import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.stereotype.Component;
+import dev.slne.surf.cloud.api.util.logger
+import dev.slne.surf.cloud.core.netty.AbstractNettyBase
+import dev.slne.surf.cloud.core.netty.protocol.codec.NettyPacketDecoder
+import dev.slne.surf.cloud.core.netty.protocol.codec.NettyPacketEncoder
+import dev.slne.surf.cloud.core.netty.protocol.packet.handler.NettyPacketHandler
+import dev.slne.surf.cloud.core.netty.protocol.packet.handler.NettyPacketJoinQuitCommonHandler
+import io.netty.channel.ChannelDuplexHandler
+import io.netty.channel.ChannelHandlerContext
+import io.netty.channel.ChannelInitializer
+import io.netty.channel.socket.SocketChannel
+import io.netty.handler.codec.LengthFieldBasedFrameDecoder
+import io.netty.handler.codec.LengthFieldPrepender
+import io.netty.handler.logging.LogLevel
+import io.netty.handler.logging.LoggingHandler
+import org.springframework.beans.factory.ObjectProvider
+import org.springframework.context.ConfigurableApplicationContext
+import org.springframework.stereotype.Component
 
-@Flogger
 @Component
-public class SurfNettyChannelInitializer extends ChannelInitializer<SocketChannel> {
+class SurfNettyChannelInitializer(
+    private val modifiers: ObjectProvider<ChannelInitializerModifier>,
+    private val context: ConfigurableApplicationContext
+) : ChannelInitializer<SocketChannel>() {
+    private val log = logger()
 
-  private final NettyPacketRegistry packetRegistry;
-  private final ObjectProvider<ChannelInitializerModifier> modifiers;
-  private final ConfigurableApplicationContext context;
+    override fun initChannel(channel: SocketChannel) {
+        val base = context.getBean(AbstractNettyBase::class.java)
 
-  public SurfNettyChannelInitializer(
-      NettyPacketRegistry packetRegistry,
-      ObjectProvider<ChannelInitializerModifier> modifiers,
-      ConfigurableApplicationContext context
-  ) {
-    this.packetRegistry = packetRegistry;
-    this.modifiers = modifiers;
-    this.context = context;
-  }
+        with(channel.pipeline()) {
+            addLast("frameDecoder", LengthFieldBasedFrameDecoder(8192, 0, 4, 0, 4))
+            addLast("frameEncoder", LengthFieldPrepender(4, false))
+            addLast("decoder", NettyPacketDecoder())
+            addLast("encoder", NettyPacketEncoder())
+            addLast("commonJoinQuitHandler", NettyPacketJoinQuitCommonHandler(base.connection))
+            addLast("packetHandler", NettyPacketHandler(base))
+            addLast("logger", LoggingHandler(LogLevel.INFO))
+            addLast("exceptionHandler", object : ChannelDuplexHandler() {
+                override fun exceptionCaught(ctx: ChannelHandlerContext, cause: Throwable) {
+                    log.atSevere()
+                        .withCause(cause)
+                        .log("Exception caught in channel %s", ctx.channel())
+                }
+            })
+        }
 
-  @Override
-  protected void initChannel(SocketChannel ch) throws Exception {
-    final AbstractNettyBase<?, ?, ?> base = context.getBean(AbstractNettyBase.class);
-    ch.pipeline()
-        .addLast("frameDecoder", new LengthFieldBasedFrameDecoder(8192, 0, 4, 0, 4))
-        .addLast("frameEncoder", new LengthFieldPrepender(4, false))
-        .addLast("decoder", new NettyPacketDecoder(packetRegistry))
-        .addLast("encoder", new NettyPacketEncoder())
-        .addLast("commonJoinQuitHandler", new NettyPacketJoinQuitCommonHandler(base.connection()))
-        .addLast("packetHandler", new NettyPacketHandler(base))
-        .addLast("logger", new LoggingHandler(LogLevel.INFO))
-        .addLast("exceptionHandler", new ChannelDuplexHandler() {
-          @Override
-          public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-            log.atSevere().withCause(cause).log("Exception caught in channel %s", ctx.channel());
-          }
-        });
-
-    for (final ChannelInitializerModifier modifier : modifiers.orderedStream().toList()) {
-      modifier.modify(ch);
+        for (modifier in modifiers.orderedStream().toList()) {
+            modifier.modify(channel)
+        }
     }
-  }
 }

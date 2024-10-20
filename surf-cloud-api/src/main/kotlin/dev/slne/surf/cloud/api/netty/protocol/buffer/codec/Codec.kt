@@ -77,6 +77,7 @@ interface Codec<T> {
          * @param decoder The [Decoder] to use for decoding values of type [T].
          * @return A [Codec] instance that uses the provided encoder and decoder.
          */
+        @JvmStatic
         fun <T> codec(
             encoder: Encoder<T>,
             decoder: Decoder<T>

@@ -13,7 +13,7 @@ plugins {
 //    id("io.spring.dependency-management") version "1.1.6"
     id("org.hibernate.build.maven-repo-auth") version "3.0.4" apply false
     id("io.github.goooler.shadow") version "8.1.8" apply false
-    id("io.freefair.lombok") version "8.10" apply false
+    id("io.freefair.lombok") version "8.10"
     kotlin("jvm") version "2.0.21"
     kotlin("plugin.spring") version "2.0.21"
     kotlin("plugin.lombok") version "2.0.21"
@@ -25,8 +25,6 @@ java {
     }
 }
 
-
-
 allprojects {
     apply(plugin = "java")
     apply(plugin = "org.gradle.java-library")
@@ -37,7 +35,6 @@ allprojects {
     apply(plugin = "org.jetbrains.kotlin.jvm")
     apply(plugin = "org.jetbrains.kotlin.plugin.spring")
     apply(plugin = "org.jetbrains.kotlin.plugin.lombok")
-
 
     group = "dev.slne.surf.cloud"
     version = "1.21.1-1.0.0-SNAPSHOT"
@@ -52,7 +49,7 @@ allprojects {
 
     dependencies {
         // https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-dependencies
-        implementation(platform("org.springframework.boot:spring-boot-dependencies:3.3.3")) {
+        implementation(platform("org.springframework.boot:spring-boot-dependencies:3.3.4")) {
             because("Spring Boot BOM")
         }
 

@@ -1,21 +1,25 @@
-package dev.slne.surf.cloud.core.netty.protocol.packets.server;
+package dev.slne.surf.cloud.core.netty.protocol.packets.server
 
-import dev.slne.surf.cloud.api.meta.SurfNettyPacket;
-import dev.slne.surf.cloud.api.meta.SurfNettyPacket.DefaultIds;
-import dev.slne.surf.cloud.api.netty.packet.NettyPacket;
-import dev.slne.surf.cloud.api.netty.protocol.buffer.SurfByteBuf;
+import dev.slne.surf.cloud.api.meta.DefaultIds
+import dev.slne.surf.cloud.api.meta.SurfNettyPacket
+import dev.slne.surf.cloud.api.netty.packet.NettyPacket
+import dev.slne.surf.cloud.api.netty.protocol.buffer.SurfByteBuf
+import dev.slne.surf.cloud.core.util.random
 
 @SurfNettyPacket(id = DefaultIds.KEEP_ALIVE_PACKET)
-public class KeepAlivePacket extends NettyPacket<KeepAlivePacket> {
+class KeepAlivePacket : NettyPacket<KeepAlivePacket>() {
+    var keepAliveId: Long
+        private set
 
-  private long id;
+    init {
+        keepAliveId = random.nextLong()
+    }
 
-  @Override
-  public KeepAlivePacket decode(SurfByteBuf buffer) {
-  }
+    override fun decode(buffer: SurfByteBuf): KeepAlivePacket {
+        return this
+    }
 
-  @Override
-  public void encode(SurfByteBuf buffer) {
-
-  }
+    override fun encode(buffer: SurfByteBuf) {
+        buffer.writeLong(keepAliveId)
+    }
 }

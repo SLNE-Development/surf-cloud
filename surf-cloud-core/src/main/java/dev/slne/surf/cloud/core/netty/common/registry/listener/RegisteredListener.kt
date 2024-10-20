@@ -1,94 +1,131 @@
-package dev.slne.surf.cloud.core.netty.common.registry.listener;
+package dev.slne.surf.cloud.core.netty.common.registry.listener
 
-import dev.slne.surf.cloud.api.netty.exception.SurfNettyListenerRegistrationException;
-import dev.slne.surf.cloud.api.netty.packet.NettyPacket;
-import dev.slne.surf.cloud.core.netty.protocol.packet.NettyPacketInfo;
-import java.lang.reflect.Method;
-import tech.hiddenproject.aide.reflection.LambdaWrapperHolder;
-import tech.hiddenproject.aide.reflection.annotation.Invoker;
+import dev.slne.surf.cloud.api.netty.exception.SurfNettyListenerRegistrationException
+import dev.slne.surf.cloud.api.netty.packet.NettyPacket
+import dev.slne.surf.cloud.core.netty.protocol.packet.NettyPacketInfo
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import tech.hiddenproject.aide.reflection.LambdaWrapperHolder
+import tech.hiddenproject.aide.reflection.annotation.Invoker
+import java.lang.reflect.Method
 
-final class RegisteredListener {
+internal class RegisteredListener(
+    private val bean: Any,
+    listenerMethod: Method,
+    packetClassIndex: Int,
+    packetInfoIndex: Int,
+    private val suspending: Boolean
+) {
+    private var invoker: Any
+    private val invokerType: InvokerType
 
-  static {
-    LambdaWrapperHolder.DEFAULT.add(RegisteredListenerInvoker1.class);
-    LambdaWrapperHolder.DEFAULT.add(RegisteredListenerInvoker2.class);
-    LambdaWrapperHolder.DEFAULT.add(RegisteredListenerInvoker2Rev.class);
-  }
+    init {
+        val params = listenerMethod.parameterTypes
 
-  private final Object bean;
-  private final Object invoker;
-  private final InvokerType invokerType;
+        if (params.size == 1 || (params.size == 2 && suspending)) { // Only NettyPacket
+            val clazz =
+                if (suspending) RegisteredListenerSuspendInvoker1::class else RegisteredListenerInvoker1::class
 
-  RegisteredListener(
-      Object bean,
-      Method listenerMethod,
-      int packetClassIndex,
-      int packetInfoIndex
-  ) throws SurfNettyListenerRegistrationException {
-    this.bean = bean;
+            this.invoker = LambdaWrapperHolder.DEFAULT.wrap(listenerMethod, clazz.java).wrapper
+            this.invokerType = InvokerType.ONE_PARAM
+        } else if (params.size == 2 || (params.size == 3 && suspending)) { // NettyPacket and NettyPacketInfo
+            if (packetClassIndex == 0 && packetInfoIndex == 1) { // Normal order (NettyPacket, NettyPacketInfo)
+                val clazz =
+                    if (suspending) RegisteredListenerSuspendInvoker2::class else RegisteredListenerInvoker2::class
 
-    final Class<?>[] params = listenerMethod.getParameterTypes();
+                this.invoker = LambdaWrapperHolder.DEFAULT.wrap(listenerMethod, clazz.java).wrapper
+                this.invokerType = InvokerType.TWO_PARAMS
+            } else if (packetInfoIndex == 0 && packetClassIndex == 1) { // Reversed order (NettyPacketInfo, NettyPacket)
+                val clazz =
+                    if (suspending) RegisteredListenerSuspendInvoker2Rev::class else RegisteredListenerInvoker2Rev::class
 
-    if (params.length == 1) { // Only NettyPacket
-      this.invoker = LambdaWrapperHolder.DEFAULT.wrap(listenerMethod,
-          RegisteredListenerInvoker1.class).getWrapper();
-      this.invokerType = InvokerType.ONE_PARAM;
-
-    } else if (params.length == 2) { // NettyPacket and NettyPacketInfo
-
-      if (packetClassIndex == 0
-          && packetInfoIndex == 1) { // Normal order (NettyPacket, NettyPacketInfo)
-        invoker = LambdaWrapperHolder.DEFAULT.wrap(listenerMethod, RegisteredListenerInvoker2.class)
-            .getWrapper();
-        invokerType = InvokerType.TWO_PARAMS;
-
-      } else if (packetInfoIndex == 0
-          && packetClassIndex == 1) { // Reversed order (NettyPacketInfo, NettyPacket)
-        invoker = LambdaWrapperHolder.DEFAULT.wrap(listenerMethod,
-            RegisteredListenerInvoker2Rev.class).getWrapper();
-        invokerType = InvokerType.TWO_PARAMS_REVERSED;
-      } else {
-        throw new SurfNettyListenerRegistrationException("Invalid parameter order");
-      }
-    } else {
-      throw new SurfNettyListenerRegistrationException("Invalid number of parameters");
+                this.invoker = LambdaWrapperHolder.DEFAULT.wrap(listenerMethod, clazz.java).wrapper
+                this.invokerType = InvokerType.TWO_PARAMS_REVERSED
+            } else {
+                throw SurfNettyListenerRegistrationException("Invalid parameter order")
+            }
+        } else {
+            throw SurfNettyListenerRegistrationException("Invalid number of parameters")
+        }
     }
-  }
 
-  public void handle(NettyPacket<?> packet, NettyPacketInfo info) {
-    switch (invokerType) {
-      case ONE_PARAM -> ((RegisteredListenerInvoker1) invoker).handle(bean, packet);
-      case TWO_PARAMS -> ((RegisteredListenerInvoker2) invoker).handle(bean, packet, info);
-      case TWO_PARAMS_REVERSED ->
-          ((RegisteredListenerInvoker2Rev) invoker).handle(bean, info, packet);
-      default -> throw new IllegalStateException("Unknown invoker type");
+    suspend fun handle(packet: NettyPacket<*>, info: NettyPacketInfo) =
+        withContext(Dispatchers.IO) {
+            when (invokerType) {
+                InvokerType.ONE_PARAM -> {
+                    if (suspending) {
+                        (invoker as RegisteredListenerSuspendInvoker1).handle(bean, packet)
+                    } else {
+                        (invoker as RegisteredListenerInvoker1).handle(bean, packet)
+                    }
+                }
+
+                InvokerType.TWO_PARAMS -> {
+                    if (suspending) {
+                        (invoker as RegisteredListenerSuspendInvoker2).handle(bean, packet, info)
+                    } else {
+                        (invoker as RegisteredListenerInvoker2).handle(bean, packet, info)
+                    }
+                }
+
+                InvokerType.TWO_PARAMS_REVERSED -> {
+                    if (suspending) {
+                        (invoker as RegisteredListenerSuspendInvoker2Rev).handle(bean, info, packet)
+                    } else {
+                        (invoker as RegisteredListenerInvoker2Rev).handle(bean, info, packet)
+                    }
+                }
+            }
+        }
+
+    private enum class InvokerType {
+        ONE_PARAM,
+        TWO_PARAMS,
+        TWO_PARAMS_REVERSED
     }
-  }
 
-  private enum InvokerType {
-    ONE_PARAM,
-    TWO_PARAMS,
-    TWO_PARAMS_REVERSED
-  }
+    // region Standard Invokers
+    fun interface RegisteredListenerInvoker1 {
+        @Invoker
+        fun handle(caller: Any, packet: NettyPacket<*>)
+    }
 
-  @FunctionalInterface
-  public interface RegisteredListenerInvoker1 {
+    fun interface RegisteredListenerInvoker2 {
+        @Invoker
+        fun handle(caller: Any, packet: NettyPacket<*>, info: NettyPacketInfo)
+    }
 
-    @Invoker
-    void handle(Object caller, NettyPacket<?> packet);
-  }
+    fun interface RegisteredListenerInvoker2Rev {
+        @Invoker
+        fun handle(caller: Any, info: NettyPacketInfo, packet: NettyPacket<*>)
+    }
+    // endregion
 
-  @FunctionalInterface
-  public interface RegisteredListenerInvoker2 {
+    // region Suspend Invokers for Kotlin coroutines
+    fun interface RegisteredListenerSuspendInvoker1 {
+        @Invoker
+        suspend fun handle(caller: Any, packet: NettyPacket<*>)
+    }
 
-    @Invoker
-    void handle(Object caller, NettyPacket<?> packet, NettyPacketInfo info);
-  }
+    fun interface RegisteredListenerSuspendInvoker2 {
+        @Invoker
+        suspend fun handle(caller: Any, packet: NettyPacket<*>, info: NettyPacketInfo)
+    }
 
-  @FunctionalInterface
-  public interface RegisteredListenerInvoker2Rev {
+    fun interface RegisteredListenerSuspendInvoker2Rev {
+        @Invoker
+        suspend fun handle(caller: Any, info: NettyPacketInfo, packet: NettyPacket<*>)
+    }
+    // endregion
 
-    @Invoker
-    void handle(Object caller, NettyPacketInfo info, NettyPacket<?> packet);
-  }
+    companion object {
+        init {
+            LambdaWrapperHolder.DEFAULT.add(RegisteredListenerInvoker1::class.java)
+            LambdaWrapperHolder.DEFAULT.add(RegisteredListenerInvoker2::class.java)
+            LambdaWrapperHolder.DEFAULT.add(RegisteredListenerInvoker2Rev::class.java)
+            LambdaWrapperHolder.DEFAULT.add(RegisteredListenerSuspendInvoker1::class.java)
+            LambdaWrapperHolder.DEFAULT.add(RegisteredListenerSuspendInvoker2::class.java)
+            LambdaWrapperHolder.DEFAULT.add(RegisteredListenerSuspendInvoker2Rev::class.java)
+        }
+    }
 }

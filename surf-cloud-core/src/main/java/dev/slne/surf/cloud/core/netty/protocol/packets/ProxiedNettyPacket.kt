@@ -1,57 +1,53 @@
-package dev.slne.surf.cloud.core.netty.protocol.packets;
+package dev.slne.surf.cloud.core.netty.protocol.packets
 
-import dev.slne.surf.cloud.api.meta.SurfNettyPacket;
-import dev.slne.surf.cloud.api.meta.SurfNettyPacket.DefaultIds;
-import dev.slne.surf.cloud.api.netty.packet.NettyPacket;
-import dev.slne.surf.cloud.api.netty.protocol.buffer.SurfByteBuf;
-import dev.slne.surf.cloud.api.netty.source.NettyServerSource;
-import dev.slne.surf.cloud.api.netty.source.tracker.NettyClientTracker;
-import dev.slne.surf.cloud.core.SurfCloudCoreInstance;
-import dev.slne.surf.cloud.core.netty.client.SurfNettyClient;
-import lombok.Getter;
-import lombok.experimental.Accessors;
+import dev.slne.surf.cloud.api.meta.DefaultIds
+import dev.slne.surf.cloud.api.meta.SurfNettyPacket
+import dev.slne.surf.cloud.api.netty.packet.NettyPacket
+import dev.slne.surf.cloud.api.netty.protocol.buffer.SurfByteBuf
+import dev.slne.surf.cloud.api.netty.source.NettyServerSource
+import dev.slne.surf.cloud.core.coreCloudInstance
+import dev.slne.surf.cloud.core.netty.client.SurfNettyClient
 
-@Getter
 @SurfNettyPacket(id = DefaultIds.PROXIED_NETTY_PACKET)
-@Accessors(fluent = true)
-public class ProxiedNettyPacket extends NettyPacket<ProxiedNettyPacket> {
+class ProxiedNettyPacket : NettyPacket<ProxiedNettyPacket> {
+    private val client: SurfNettyClient
+    lateinit var packet: NettyPacket<*>
+        private set
+    lateinit var source: NettyServerSource
+        private set
+    lateinit var target: NettyServerSource
+        private set
 
-  private final SurfNettyClient client;
-  private NettyPacket<?> packet;
-  private NettyServerSource source;
-  private NettyServerSource target;
+    internal constructor() {
+        this.client = coreCloudInstance.dataContext.getBean(SurfNettyClient::class.java)
+    }
 
-  public ProxiedNettyPacket() {
-    this.client = SurfCloudCoreInstance.get().getDataContext().getBean(SurfNettyClient.class);
-  }
+    constructor(packet: NettyPacket<*>, target: NettyServerSource, client: SurfNettyClient) {
+        this.packet = packet
+        this.target = target
+        this.source = client.connection.serverSource()
+        this.client = client
+    }
 
-  public ProxiedNettyPacket(NettyPacket<?> packet, NettyServerSource target, SurfNettyClient client) {
-    this.packet = packet;
-    this.target = target;
-    this.source = client.connection().serverSource();
-    this.client = client;
-  }
+    override fun encode(buffer: SurfByteBuf) {
+        buffer.writeLong(target.serverGuid)
+        buffer.writeLong(source.serverGuid)
+        packet.encode(buffer)
+    }
 
-  @Override
-  public void encode(SurfByteBuf buffer) {
-    buffer.writeLong(target.serverGuid());
-    buffer.writeLong(source.serverGuid());
-    packet.encode(buffer);
-  }
+    override fun decode(buffer: SurfByteBuf): ProxiedNettyPacket {
+        val targetGuid = buffer.readLong()
+        val sourceGuid = buffer.readLong()
+        val packetId = buffer.readInt()
 
-  @Override
-  public ProxiedNettyPacket decode(SurfByteBuf buffer) {
-    final long targetGuid = buffer.readLong();
-    final long sourceGuid = buffer.readLong();
-    final int packetId = buffer.readInt();
+        val sourceTracker = client.connection.clientTracker()
+        this.target = sourceTracker.findByServerGuid(targetGuid) ?: error("Target not found")
+        this.source = sourceTracker.findByServerGuid(sourceGuid) ?: error("Source not found")
 
-    final NettyClientTracker<NettyServerSource> sourceTracker = client.connection().clientTracker();
-    this.target = sourceTracker.findByServerGuid(targetGuid).orElseThrow();
-    this.source = sourceTracker.findByServerGuid(sourceGuid).orElseThrow();
+        val createdPacket = client.createPacket(packetId)
+        this.packet = createdPacket ?: error("Packet not found. PacketId: $packetId")
 
-    this.packet = client.createPacket(packetId);
-    packet.decode(buffer);
-
-    return this;
-  }
+        packet.decode(buffer)
+        return this
+    }
 }

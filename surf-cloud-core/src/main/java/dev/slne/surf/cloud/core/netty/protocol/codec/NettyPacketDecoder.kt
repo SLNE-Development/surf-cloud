@@ -1,47 +1,36 @@
-package dev.slne.surf.cloud.core.netty.protocol.codec;
+package dev.slne.surf.cloud.core.netty.protocol.codec
 
-import com.google.common.flogger.StackSize;
-import dev.slne.surf.cloud.api.netty.packet.NettyPacket;
-import dev.slne.surf.cloud.api.netty.protocol.buffer.SurfByteBuf;
-import dev.slne.surf.cloud.core.netty.common.registry.packet.NettyPacketRegistry;
-import io.netty.buffer.ByteBuf;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.handler.codec.MessageToMessageDecoder;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
-import lombok.extern.flogger.Flogger;
+import com.google.common.flogger.StackSize
+import dev.slne.surf.cloud.api.netty.protocol.buffer.wrap
+import dev.slne.surf.cloud.api.util.logger
+import dev.slne.surf.cloud.core.netty.common.registry.packet.NettyPacketRegistry
+import io.netty.buffer.ByteBuf
+import io.netty.channel.ChannelHandlerContext
+import io.netty.handler.codec.MessageToMessageDecoder
+import java.util.concurrent.TimeUnit
 
-@Flogger
-public class NettyPacketDecoder extends MessageToMessageDecoder<ByteBuf> {
+class NettyPacketDecoder : MessageToMessageDecoder<ByteBuf>() {
+    private val log = logger()
 
-  private final NettyPacketRegistry packetRegistry;
+    override fun decode(ctx: ChannelHandlerContext, msg: ByteBuf, out: MutableList<Any>) {
+        if (!msg.isReadable(4)) return
 
-  public NettyPacketDecoder(NettyPacketRegistry packetRegistry) {
-    this.packetRegistry = packetRegistry;
-  }
+        val packetId = msg.readInt()
+        val packet = NettyPacketRegistry.createPacket(packetId)
 
-  @Override
-  protected void decode(ChannelHandlerContext ctx, ByteBuf msg, List<Object> out) {
-    if (!msg.isReadable(4)) {
-      return;
+        if (packet == null) {
+            log.atWarning()
+                .withStackTrace(StackSize.MEDIUM)
+                .atMostEvery(5, TimeUnit.SECONDS)
+                .log("Received unknown packet with id %d", packetId)
+            return
+        }
+
+        val surfByteBuf = msg.wrap()
+        val decoded = packet.decode(surfByteBuf)
+
+        if (decoded != null) {
+            out.add(decoded)
+        }
     }
-
-    final int packetId = msg.readInt();
-    final NettyPacket<?> packet = packetRegistry.createPacket(packetId);
-
-    if (packet == null) {
-      log.atWarning()
-          .withStackTrace(StackSize.MEDIUM)
-          .atMostEvery(5, TimeUnit.SECONDS)
-          .log("Received unknown packet with id %d", packetId);
-      return;
-    }
-
-    final SurfByteBuf surfByteBuf = new SurfByteBuf(msg);
-    final NettyPacket<?> decoded = packet.decode(surfByteBuf);
-
-    if (decoded != null) {
-      out.add(decoded);
-    }
-  }
 }

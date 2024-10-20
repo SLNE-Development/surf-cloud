@@ -1,67 +1,54 @@
-package dev.slne.surf.cloud.core.netty.common.connection;
+package dev.slne.surf.cloud.core.netty.common.connection
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import dev.slne.surf.cloud.api.netty.connection.NettyConnection
+import dev.slne.surf.cloud.api.netty.packet.NettyPacket
+import dev.slne.surf.cloud.api.netty.source.NettySource
+import dev.slne.surf.cloud.api.netty.source.ProxiedNettySource
+import dev.slne.surf.cloud.api.util.logger
+import dev.slne.surf.cloud.core.netty.AbstractNettyBase
+import dev.slne.surf.cloud.core.netty.common.source.AbstractNettySource
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import org.jetbrains.annotations.ApiStatus
 
-import dev.slne.surf.cloud.api.netty.connection.NettyConnection;
-import dev.slne.surf.cloud.api.netty.packet.NettyPacket;
-import dev.slne.surf.cloud.api.netty.source.NettySource;
-import dev.slne.surf.cloud.api.netty.source.ProxiedNettySource;
-import dev.slne.surf.cloud.core.netty.AbstractNettyBase;
-import dev.slne.surf.cloud.core.netty.common.source.AbstractNettySource;
-import javax.annotation.ParametersAreNonnullByDefault;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.experimental.Accessors;
-import lombok.extern.flogger.Flogger;
-import org.jetbrains.annotations.ApiStatus.OverrideOnly;
-import org.jetbrains.annotations.Blocking;
+private val log = logger()
 
-@ParametersAreNonnullByDefault
-@RequiredArgsConstructor
-@Getter
-@Accessors(fluent = true)
-@Flogger
-public abstract class AbstractNettyConnection<
-    SELF extends AbstractNettyConnection<SELF, Client, B>,
-    Client extends ProxiedNettySource<Client>,
-    B extends AbstractNettyBase<B, SELF, Client>
-    > implements NettyConnection<Client>, AutoCloseable { // Sorry Simon for the number of generics
+abstract class AbstractNettyConnection<SELF : AbstractNettyConnection<SELF, Client, B>, Client : ProxiedNettySource<Client>, B : AbstractNettyBase<B, SELF, Client>>(
+    override val base: B
+) : NettyConnection<Client> { // Sorry Simon for the number of generics
 
-  private final B base;
+    /**
+     * Broadcast the packet on servers <br></br> On clients only to server
+     *
+     * @param packet the packet to broadcast
+     */
+    abstract fun broadcast(packet: NettyPacket<*>?) // TODO: 12.10.2024 15:41 - when on client send a wrapped packet to server wich then broadcasts it to all clients
+    abstract suspend fun close()
 
-  /**
-   * Broadcast the packet on servers <br> On clients only to server
-   *
-   * @param packet the packet to broadcast
-   */
-  public abstract void broadcast(NettyPacket<?> packet);
+    @ApiStatus.OverrideOnly
+    protected abstract fun sendPacket0(
+        source: AbstractNettySource<Client>,
+        packet: NettyPacket<*>?
+    )
 
-  @OverrideOnly
-  protected abstract void sendPacket0(AbstractNettySource<Client> source, NettyPacket<?> packet);
+    @Suppress("UNCHECKED_CAST")
+    fun sendPacket(source: NettySource<*>, packet: NettyPacket<*>) {
+        require(source is AbstractNettySource<*>) { "source must be an instance of AbstractNettySource" }
 
-  public final void sendPacket(NettySource<?> source, NettyPacket<?> packet) {
-    checkNotNull(source, "source");
-    checkNotNull(packet, "packet");
-
-    if (!(source instanceof AbstractNettySource<?> sourceImpl)) {
-      throw new IllegalArgumentException("source must be an instance of AbstractNettySource");
+        base.checkPacket(packet)
+        sendPacket0(source as AbstractNettySource<Client>, packet)
     }
 
-    base.checkPacket(packet);
-
-    //noinspection unchecked
-    sendPacket0((AbstractNettySource<Client>) sourceImpl, packet);
-  }
-
-  @Blocking
-  public final void tryEstablishConnection() throws Exception {
-    try {
-      tryEstablishConnection0();
-    } catch (Exception e) {
-      log.atSevere().withCause(e).log("Connection attempt failed: %s", e.getMessage());
-      throw new Exception("Connection attempt failed", e);
+    suspend fun tryEstablishConnection() {
+        try {
+            withContext(Dispatchers.IO) { tryEstablishConnection0() }
+        } catch (e: Exception) {
+            log.atSevere()
+                .withCause(e)
+                .log("Connection attempt failed: %s", e.message)
+            throw Exception("Connection attempt failed", e)
+        }
     }
-  }
 
-  protected abstract void tryEstablishConnection0() throws Exception;
+    abstract suspend fun tryEstablishConnection0()
 }

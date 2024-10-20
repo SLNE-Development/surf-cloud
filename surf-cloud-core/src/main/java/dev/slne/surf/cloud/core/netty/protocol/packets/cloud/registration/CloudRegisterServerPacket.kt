@@ -1,47 +1,44 @@
-package dev.slne.surf.cloud.core.netty.protocol.packets.cloud.registration;
+package dev.slne.surf.cloud.core.netty.protocol.packets.cloud.registration
 
-import dev.slne.surf.cloud.api.meta.SurfNettyPacket;
-import dev.slne.surf.cloud.api.meta.SurfNettyPacket.DefaultIds;
-import dev.slne.surf.cloud.api.netty.packet.NettyPacket;
-import dev.slne.surf.cloud.api.netty.protocol.buffer.SurfByteBuf;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import dev.slne.surf.cloud.api.meta.DefaultIds
+import dev.slne.surf.cloud.api.meta.SurfNettyPacket
+import dev.slne.surf.cloud.api.netty.packet.NettyPacket
+import dev.slne.surf.cloud.api.netty.protocol.buffer.SurfByteBuf
 
-@NoArgsConstructor
-@AllArgsConstructor
-@Getter
 @SurfNettyPacket(id = DefaultIds.CLOUD_REGISTER_SERVER_PACKET)
-@Builder
-public class CloudRegisterServerPacket extends NettyPacket<CloudRegisterServerPacket> {
+class CloudRegisterServerPacket : NettyPacket<CloudRegisterServerPacket> {
+    lateinit var type: Type
+        private set
+    lateinit var data: CloudServerRegistrationData
+        private set
 
-  private Type type;
-  private CloudServerRegistrationData data;
+    internal constructor()
 
-  @Override
-  public void encode(SurfByteBuf buffer) {
-    buffer.writeEnum(type);
-    buffer.writeWithCodec(CloudServerRegistrationData.CODEC, data);
-  }
+    constructor(type: Type, data: CloudServerRegistrationData) {
+        this.type = type
+        this.data = data
+    }
 
-  @Override
-  public CloudRegisterServerPacket decode(SurfByteBuf buffer) {
-    type = buffer.readEnum(Type.class);
-    data = buffer.readWithCodec(CloudServerRegistrationData.CODEC);
-    return this;
-  }
+    override fun encode(buffer: SurfByteBuf) {
+        buffer.writeEnum(type)
+        buffer.writeWithCodec(CloudServerRegistrationData.CODEC, data)
+    }
 
+    override fun decode(buffer: SurfByteBuf): CloudRegisterServerPacket? {
+        type = buffer.readEnum(Type::class)
+        data = buffer.readWithCodec(CloudServerRegistrationData.CODEC)
+        return this
+    }
 
-  public enum Type {
-    /**
-     * Requests preload
-     */
-    FETCH_PRELOAD,
+    enum class Type {
+        /**
+         * Requests preload
+         */
+        FETCH_PRELOAD,
 
-    /**
-     * Contains all information
-     */
-    PRELOAD
-  }
+        /**
+         * Contains all information
+         */
+        PRELOAD
+    }
 }

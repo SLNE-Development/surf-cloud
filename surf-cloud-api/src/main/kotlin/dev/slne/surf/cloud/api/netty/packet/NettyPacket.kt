@@ -14,7 +14,7 @@ abstract class NettyPacket<SELF : NettyPacket<SELF>> : Encoder<SurfByteBuf>,
     internal var sessionId = ThreadLocalRandom.current().nextLong()
         private set
 
-    private val id: Int
+    val id: Int
 
     init {
         val meta = this::class.findAnnotation<SurfNettyPacket>()

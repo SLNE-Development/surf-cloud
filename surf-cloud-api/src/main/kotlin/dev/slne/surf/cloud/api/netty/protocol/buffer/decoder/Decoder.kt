@@ -17,5 +17,5 @@ fun interface Decoder<B : ByteBuf, T> {
      * @param buffer The buffer from which to decode the value.
      * @return The decoded value of type [T].
      */
-    fun decode(buffer: B): T
+    fun decode(buffer: B): T?
 }

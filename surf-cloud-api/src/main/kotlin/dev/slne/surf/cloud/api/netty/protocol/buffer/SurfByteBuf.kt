@@ -567,7 +567,9 @@ class SurfByteBuf(source: ByteBuf) : WrappedByteBuf(source) {
     fun writeNumber(number: Number) = writeNumber(this, number)
     fun readNumber() = readNumber(this)
     fun <T, C : MutableCollection<T>> readCollection(collectionFactory: (Int) -> C, decodeFactory: DecodeFactory<SurfByteBuf, T>) = readCollection(this, collectionFactory, decodeFactory)
+    fun <T, C : MutableCollection<T>> readCollectionWithCodec(codec: Codec<T>, collectionFactory: (Int) -> C) = readCollection(collectionFactory) { it.readWithCodec(codec) }
     fun <T> writeCollection(collection: Collection<T>, encodeFactory: EncodeFactory<in SurfByteBuf, T>) = writeCollection(this, collection, encodeFactory)
+    fun <T> writeCollectionWithCodec(codec: Codec<T>, collection: Collection<T>) = writeCollection(collection) { buf, element -> buf.writeWithCodec(codec, element) }
     inline fun <reified T> readArray(decodeFactory: DecodeFactory<in SurfByteBuf, T>) = readArray(this, decodeFactory)
     fun <T> readArray(arrayFactory: (Int) -> Array<T>, decodeFactory: DecodeFactory<in SurfByteBuf, T>) = readArray(this, arrayFactory, decodeFactory)
     fun readIntArray() = readIntArray(this)
@@ -621,6 +623,7 @@ class SurfByteBuf(source: ByteBuf) : WrappedByteBuf(source) {
     }
 
     fun <T> readList(decodeFactory: DecodeFactory<SurfByteBuf, T>) = readList(this, decodeFactory)
+    fun <T> readListWithCodec(codec: Codec<T>) = readList { it.readWithCodec(codec) }
     fun <K, V> readMap(keyDecodeFactory: DecodeFactory<in SurfByteBuf, K>, valueDecodeFactory: DecodeFactory<in SurfByteBuf, V>) = readMap(this, keyDecodeFactory, valueDecodeFactory)
     fun <K, V, M : MutableMap<K, V>> readMap(mapFactory: (Int) -> M, keyDecodeFactory: DecodeFactory<in SurfByteBuf, K>, valueDecodeFactory: DecodeFactory<in SurfByteBuf, V>) = readMap(this, mapFactory, keyDecodeFactory, valueDecodeFactory)
     fun <K, V> writeMap(map: Map<K, V>, keyEncodeFactory: EncodeFactory<in SurfByteBuf, K>, valueEncodeFactory: EncodeFactory<in SurfByteBuf, V>) = writeMap(this, map, keyEncodeFactory, valueEncodeFactory)
@@ -629,6 +632,7 @@ class SurfByteBuf(source: ByteBuf) : WrappedByteBuf(source) {
     fun <E : Enum<E>> writeEnumSet(enumSet: EnumSet<E>, enumClass: Class<E>) = writeEnumSet(this, enumSet, enumClass)
     fun <E : Enum<E>> writeEnumSet(enumSet: EnumSet<E>, enumClass: KClass<E>) = writeEnumSet(this, enumSet, enumClass)
     fun <E : Enum<E>> readEnum(enumClass: Class<E>) = readEnum(this, enumClass)
+    fun <E: Enum<E>> readEnum(enumClass: KClass<E>) = readEnum(enumClass.java)
     fun <E : Enum<E>> writeEnum(value: E) = writeEnum(this, value)
     fun writeUuid(uuid: UUID) = writeUuid(this, uuid)
     fun readUuid() = readUuid(this)
@@ -650,16 +654,16 @@ class SurfByteBuf(source: ByteBuf) : WrappedByteBuf(source) {
     fun readNullableString() = readNullable(this) { readUtf(it) }
     fun readNullableUuid() = readNullable(this) { readUuid(it) }
     fun <T> writeNullable(value: T?, encodeFactory: EncodeFactory<in SurfByteBuf, T>) = writeNullable(this, value, encodeFactory)
-    fun writeNullableBoolean(value: Boolean?) = writeNullable(this, value) { buf, bool -> buf.writeBoolean(bool) }
-    fun writeNullableByte(value: Byte?) = writeNullable(this, value) { buf, byte -> buf.writeByte(byte.toInt()) }
-    fun writeNullableShort(value: Short?) = writeNullable(this, value) { buf, short -> buf.writeShort(short.toInt()) }
-    fun writeNullableInt(value: Int?) = writeNullable(this, value) { buf, int -> buf.writeVarInt(int) }
-    fun writeNullableLong(value: Long?) = writeNullable(this, value) { buf, long -> buf.writeLong(long) }
-    fun writeNullableFloat(value: Float?) = writeNullable(this, value) { buf, float -> buf.writeFloat(float) }
-    fun writeNullableDouble(value: Double?) = writeNullable(this, value) { buf, double -> buf.writeDouble(double) }
-    fun writeNullableChar(value: Char?) = writeNullable(this, value) { buf, char -> buf.writeChar(char.code) }
-    fun writeNullableString(value: String?) = writeNullable(this, value) { buf, string -> writeUtf(buf, string) }
-    fun writeNullableUuid(value: UUID?) = writeNullable(this, value) {buf, uuid ->  writeUuid(buf, uuid) }
+    fun writeNullable(value: Boolean?) = writeNullable(this, value) { buf, bool -> buf.writeBoolean(bool) }
+    fun writeNullable(value: Byte?) = writeNullable(this, value) { buf, byte -> buf.writeByte(byte.toInt()) }
+    fun writeNullable(value: Short?) = writeNullable(this, value) { buf, short -> buf.writeShort(short.toInt()) }
+    fun writeNullable(value: Int?) = writeNullable(this, value) { buf, int -> buf.writeVarInt(int) }
+    fun writeNullable(value: Long?) = writeNullable(this, value) { buf, long -> buf.writeLong(long) }
+    fun writeNullable(value: Float?) = writeNullable(this, value) { buf, float -> buf.writeFloat(float) }
+    fun writeNullable(value: Double?) = writeNullable(this, value) { buf, double -> buf.writeDouble(double) }
+    fun writeNullable(value: Char?) = writeNullable(this, value) { buf, char -> buf.writeChar(char.code) }
+    fun writeNullable(value: String?) = writeNullable(this, value) { buf, string -> writeUtf(buf, string) }
+    fun writeNullable(value: UUID?) = writeNullable(this, value) {buf, uuid ->  writeUuid(buf, uuid) }
     fun <T> writeOptional(optional: Optional<T>, encodeFactory: EncodeFactory<in SurfByteBuf, T>) = writeOptional(this, optional, encodeFactory)
     fun <T : Any> readOptional(decodeFactory: DecodeFactory<in SurfByteBuf, T>) = readOptional(this, decodeFactory)
     fun writeOptionalLong(optional: OptionalLong) = writeOptionalLong(this, optional)
@@ -868,4 +872,6 @@ fun <B : ByteBuf> B.writeWithCount(count: Int, writer: Consumer<B>) =
 
 fun <B : ByteBuf> B.readWithCount(reader: (B) -> Unit) = SurfByteBuf.readWithCount(this, reader)
 fun <B : ByteBuf> B.readWithCount(reader: Consumer<B>) = Companion.readWithCount(this, reader)
+
+fun ByteBuf.wrap() = SurfByteBuf(this)
 // endregion

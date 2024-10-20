@@ -1,33 +1,28 @@
-package dev.slne.surf.cloud.core.netty.common.registry.packet;
+package dev.slne.surf.cloud.core.netty.common.registry.packet
 
-import dev.slne.surf.cloud.api.netty.exception.SurfNettyRegisterPacketException;
-import dev.slne.surf.cloud.api.netty.packet.NettyPacket;
-import java.lang.reflect.Constructor;
-import lombok.Getter;
-import tech.hiddenproject.aide.reflection.LambdaWrapper;
-import tech.hiddenproject.aide.reflection.LambdaWrapperHolder;
-import tech.hiddenproject.aide.reflection.MethodHolder;
+import dev.slne.surf.cloud.api.netty.exception.SurfNettyRegisterPacketException
+import dev.slne.surf.cloud.api.netty.packet.NettyPacket
+import tech.hiddenproject.aide.reflection.LambdaWrapper
+import tech.hiddenproject.aide.reflection.LambdaWrapperHolder
+import tech.hiddenproject.aide.reflection.MethodHolder
+import kotlin.reflect.KClass
+import kotlin.reflect.full.primaryConstructor
+import kotlin.reflect.jvm.javaConstructor
 
-final class RegisteredPacket {
+internal class RegisteredPacket(packetClass: KClass<out NettyPacket<*>>) {
+    private val fastConstructor: MethodHolder<LambdaWrapper, Void, out NettyPacket<*>>
 
-  @Getter
-  private final Class<? extends NettyPacket<?>> packetClass;
-  private final MethodHolder<LambdaWrapper, Void, ? extends NettyPacket<?>> fastConstructor;
-
-  RegisteredPacket(Class<? extends NettyPacket<?>> packetClass)
-      throws SurfNettyRegisterPacketException {
-    this.packetClass = packetClass;
-
-    try {
-      final Constructor<? extends NettyPacket<?>> constructor = packetClass.getConstructor();
-      this.fastConstructor = LambdaWrapperHolder.DEFAULT.wrapSafe(constructor);
-    } catch (NoSuchMethodException e) {
-      throw new SurfNettyRegisterPacketException(
-          "Packet class must have a public no-args constructor", e);
+    init {
+        val constructor = packetClass.primaryConstructor?.javaConstructor
+            ?: throw SurfNettyRegisterPacketException("Packet class must have a public no-args constructor")
+        this.fastConstructor = LambdaWrapperHolder.DEFAULT.wrapSafe(constructor)
     }
-  }
 
-  public NettyPacket<?> createPacket() {
-    return fastConstructor.invokeStatic();
-  }
+    fun createPacket(): NettyPacket<*> = fastConstructor.invokeStatic()
+    inline fun <reified T> createPacket(): T {
+        val packet = createPacket()
+        require(packet is T) { "Packet is not of type ${T::class.simpleName}" }
+
+        return packet
+    }
 }

@@ -21,7 +21,7 @@ public class SurfCloudCommonConfig {
   public SurfCloudConfig surfDataConfig() {
     return SurfCoreApi.getCore().createModernYamlConfig(
         SurfCloudConfig.class,
-        SurfCloudCoreInstance.get().getDataFolder(),
+        SurfCloudCoreInstance.get().dataFolder,
         "config.yml"
     );
   }

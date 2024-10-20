@@ -47,17 +47,17 @@ public class SurfNettyServerPacketHandler {
     final CloudServerRegistrationData data = packet.getData();
     final long serverId;
 
-    if (data.serverId() == CloudPersistentData.SERVER_ID_NOT_SET) {
+    if (data.serverId == CloudPersistentData.SERVER_ID_NOT_SET) {
       serverId = Util.getRandom().nextLong(0xffffff);
     } else {
-      serverId = data.serverId();
+      serverId = data.serverId;
     }
 
     final CloudServerImpl server = CloudServerImpl.builder()
         .serverGuid(serverId)
-        .category(data.category())
-        .host(data.host())
-        .port(data.port())
+        .category(data.category)
+        .host(data.host)
+        .port(data.port)
         .state(ServerState.RESTARTING)
         .build();
 
@@ -113,11 +113,11 @@ public class SurfNettyServerPacketHandler {
     switch (server.size()) {
       case 0 -> {
       }
-      case 1 -> info.source().sendPacket(new CloudServerInfoPacket(
+      case 1 -> info.source.sendPacket(new CloudServerInfoPacket(
           CloudServerInfoAction.ADD_SERVER_INFO,
           server.iterator().next()
       ));
-      default -> info.source().sendPacket(new CloudServerInfoBatchPacket(
+      default -> info.source.sendPacket(new CloudServerInfoBatchPacket(
           CloudServerInfoAction.ADD_SERVER_INFO,
           server
       ));

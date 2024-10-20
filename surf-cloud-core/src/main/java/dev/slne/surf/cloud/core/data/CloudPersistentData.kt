@@ -1,19 +1,10 @@
-package dev.slne.surf.cloud.core.data;
+package dev.slne.surf.cloud.core.data
 
-import lombok.experimental.UtilityClass;
-import net.querz.nbt.tag.LongTag;
-import net.querz.nbt.tag.NumberTag;
+import net.querz.nbt.tag.LongTag
 
-@UtilityClass
-public class CloudPersistentData {
 
-  public final long SERVER_ID_NOT_SET = -1L;
+object CloudPersistentData {
+    const val SERVER_ID_NOT_SET = -1L
 
-  public final PersistentData<Long> SERVER_ID = PersistentData.data(
-      "server_id",
-      LongTag.class,
-      NumberTag::asLong,
-      LongTag::new,
-      SERVER_ID_NOT_SET
-  );
+    val SERVER_ID = persistentData("server_id", { LongTag(it) }, { asLong() }, SERVER_ID_NOT_SET)
 }

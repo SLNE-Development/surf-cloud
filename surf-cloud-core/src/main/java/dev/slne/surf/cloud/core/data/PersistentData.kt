@@ -1,22 +1,48 @@
-package dev.slne.surf.cloud.core.data;
+package dev.slne.surf.cloud.core.data
 
-import java.util.function.Function;
-import net.querz.nbt.tag.Tag;
-import org.jetbrains.annotations.Nullable;
+import net.querz.nbt.tag.Tag
+import kotlin.reflect.KClass
 
-public interface PersistentData<T> {
+interface PersistentData<T> {
+    fun value(): T?
 
-  T value();
+    fun setValue(value: T?)
 
-  void setValue(T value);
+    operator fun contains(key: String): Boolean
 
-  static <T extends Tag<D>, D> PersistentData<D> data(String key, Class<T> type,
-      Function<T, D> toValue, Function<D, T> toTag) {
-    return data(key, type, toValue, toTag, null);
-  }
+    companion object {
+        @JvmStatic
+        fun <T : Tag<D>, D> data(
+            key: String,
+            type: Class<T>,
+            toValue: (T) -> D,
+            toTag: (D) -> T
+        ): PersistentData<D> = data(key, type, toValue, toTag, null)
 
-  static <T extends Tag<D>, D> PersistentData<D> data(String key, Class<T> type,
-      Function<T, D> toValue, Function<D, T> toTag, @Nullable D defaultValue) {
-    return PersistentDataImpl.data(key, type, toValue, toTag, defaultValue);
-  }
+        @JvmStatic
+        fun <T : Tag<D>, D> data(
+            key: String,
+            type: Class<T>,
+            toValue: (T) -> D,
+            toTag: (D) -> T,
+            defaultValue: D?
+        ): PersistentData<D> = PersistentDataImpl.data(key, type, toValue, toTag, defaultValue)
+
+    }
 }
+
+fun <T : Tag<D>, D> persistentData(
+    key: String,
+    type: KClass<T>,
+    toValue: T.() -> D,
+    toTag: (D) -> T,
+    defaultValue: D? = null
+): PersistentData<D> = PersistentDataImpl.data(key, type.java, toValue, toTag, defaultValue)
+
+
+inline fun <reified T : Tag<D>, D> persistentData(
+    key: String,
+    noinline toTag: (D) -> T,
+    noinline toValue: T.() -> D,
+    defaultValue: D? = null
+) = persistentData(key, T::class, toValue, toTag, defaultValue)

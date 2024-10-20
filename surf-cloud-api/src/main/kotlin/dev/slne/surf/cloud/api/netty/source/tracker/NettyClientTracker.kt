@@ -14,5 +14,5 @@ interface NettyClientTracker<Client : ProxiedNettySource<Client>> {
 
     fun findByServerGuid(serverGuid: Long): Client?
 
-    val clients: @UnmodifiableView ObjectSet<Client>?
+    val clients: @UnmodifiableView ObjectSet<Client>
 }

@@ -1,34 +1,25 @@
-package dev.slne.surf.cloud.core.netty.protocol.packet.handler;
+package dev.slne.surf.cloud.core.netty.protocol.packet.handler
 
-import dev.slne.surf.cloud.core.netty.common.connection.AbstractNettyConnection;
-import dev.slne.surf.cloud.core.netty.protocol.packets.server.ClientJoinNettyPacket;
-import dev.slne.surf.cloud.core.netty.protocol.packets.server.ClientQuitPacket;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundHandlerAdapter;
+import dev.slne.surf.cloud.core.netty.common.connection.AbstractNettyConnection
+import dev.slne.surf.cloud.core.netty.protocol.packets.server.ClientJoinNettyPacket
+import dev.slne.surf.cloud.core.netty.protocol.packets.server.ClientQuitPacket
+import io.netty.channel.ChannelHandlerContext
+import io.netty.channel.ChannelInboundHandlerAdapter
 
-public class NettyPacketJoinQuitCommonHandler extends ChannelInboundHandlerAdapter {
+class NettyPacketJoinQuitCommonHandler(private val container: AbstractNettyConnection<*, *, *>) :
+    ChannelInboundHandlerAdapter() {
 
-  private final AbstractNettyConnection<?, ?, ?> container;
+    override fun handlerAdded(ctx: ChannelHandlerContext) = with(container) {
+        val source = source(ctx.channel()) ?: return
+        base.onPacketReceived(ClientJoinNettyPacket(), source, null)
+    }
 
-  public NettyPacketJoinQuitCommonHandler(AbstractNettyConnection<?, ?, ?> container) {
-    this.container = container;
-  }
+    override fun handlerRemoved(ctx: ChannelHandlerContext) = with(container) {
+        val source = source(ctx.channel()) ?: return
+        base.onPacketReceived(ClientQuitPacket(), source, null)
+    }
 
-  @Override
-  public void handlerAdded(ChannelHandlerContext ctx) throws Exception {
-    container.source(ctx.channel()).ifPresent(
-        source -> container.base().onPacketReceived(new ClientJoinNettyPacket(), source, null));
-  }
-
-  @Override
-  public void handlerRemoved(ChannelHandlerContext ctx) throws Exception {
-    container.source(ctx.channel()).ifPresent(
-        source -> container.base().onPacketReceived(new ClientQuitPacket(), source, null));
-  }
-
-  @Override
-  public void channelUnregistered(ChannelHandlerContext ctx) throws Exception {
-    super.channelUnregistered(ctx);
-  }
-
+    override fun channelUnregistered(ctx: ChannelHandlerContext) {
+        super.channelUnregistered(ctx)
+    }
 }

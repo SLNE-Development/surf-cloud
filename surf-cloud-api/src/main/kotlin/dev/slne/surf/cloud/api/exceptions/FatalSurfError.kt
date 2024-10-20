@@ -141,7 +141,7 @@ class FatalSurfError private constructor(
 }
 
 @OptIn(ExperimentalContracts::class)
-fun FatalSurfError(builder: (FatalSurfError.Builder) -> Unit): FatalSurfError {
+fun FatalSurfError(builder: FatalSurfError.Builder.() -> Unit): FatalSurfError {
     contract { callsInPlace(builder, kotlin.contracts.InvocationKind.EXACTLY_ONCE) }
     return FatalSurfError.Builder().apply(builder).build()
 }

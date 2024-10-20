@@ -1,19 +1,18 @@
-package dev.slne.surf.cloud.core.netty.protocol.packets.cloud.info;
+package dev.slne.surf.cloud.core.netty.protocol.packets.cloud.info
 
-import dev.slne.surf.cloud.api.server.CloudServer;
+enum class CloudServerInfoAction {
+    /**
+     * Updates properties of a [dev.slne.surf.cloud.api.server.CloudServer]
+     */
+    UPDATE_SERVER_INFO,
 
-public enum CloudServerInfoAction {
+    /**
+     * Removes a [dev.slne.surf.cloud.api.server.CloudServer]
+     */
+    REMOVE_SERVER_INFO,
 
-  /**
-   * Updates properties of a {@link CloudServer}
-   */
-  UPDATE_SERVER_INFO,
-  /**
-   * Removes a {@link CloudServer}
-   */
-  REMOVE_SERVER_INFO,
-  /**
-   * Adds a {@link CloudServer}
-   */
-  ADD_SERVER_INFO
+    /**
+     * Adds a [dev.slne.surf.cloud.api.server.CloudServer]
+     */
+    ADD_SERVER_INFO
 }

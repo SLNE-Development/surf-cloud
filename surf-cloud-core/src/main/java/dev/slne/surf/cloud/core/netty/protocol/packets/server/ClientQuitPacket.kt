@@ -1,20 +1,19 @@
-package dev.slne.surf.cloud.core.netty.protocol.packets.server;
+package dev.slne.surf.cloud.core.netty.protocol.packets.server
 
-import dev.slne.surf.cloud.api.meta.SurfNettyPacket;
-import dev.slne.surf.cloud.api.meta.SurfNettyPacket.DefaultIds;
-import dev.slne.surf.cloud.api.netty.packet.NettyPacket;
-import dev.slne.surf.cloud.api.netty.protocol.buffer.SurfByteBuf;
+import dev.slne.surf.cloud.api.meta.DefaultIds
+import dev.slne.surf.cloud.api.meta.SurfNettyPacket
+import dev.slne.surf.cloud.api.netty.packet.NettyPacket
+import dev.slne.surf.cloud.api.netty.protocol.buffer.SurfByteBuf
 
 @SurfNettyPacket(id = DefaultIds.CLIENT_QUIT)
-public class ClientQuitPacket extends NettyPacket<ClientQuitPacket> {
+class ClientQuitPacket : NettyPacket<ClientQuitPacket> {
+    internal constructor()
 
-  @Override
-  public ClientQuitPacket decode(SurfByteBuf buffer) {
-    return this;
-  }
+    override fun decode(buffer: SurfByteBuf): ClientQuitPacket? {
+        TODO("Not yet implemented")
+    }
 
-  @Override
-  public void encode(SurfByteBuf buffer) {
-
-  }
+    override fun encode(buffer: SurfByteBuf) {
+        TODO("Not yet implemented")
+    }
 }

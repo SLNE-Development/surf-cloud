@@ -1,85 +1,78 @@
-package dev.slne.surf.cloud.core.config;
+@file:Internal
+package dev.slne.surf.cloud.core.config
 
-import lombok.Getter;
-import lombok.experimental.Accessors;
-import org.spongepowered.configurate.objectmapping.ConfigSerializable;
-import org.spongepowered.configurate.objectmapping.meta.Comment;
-import org.spongepowered.configurate.objectmapping.meta.Setting;
+import org.jetbrains.annotations.ApiStatus.Internal
+import org.spongepowered.configurate.objectmapping.ConfigSerializable
+import org.spongepowered.configurate.objectmapping.meta.Comment
+import org.spongepowered.configurate.objectmapping.meta.Setting
 
 @ConfigSerializable
-public class SurfCloudConfig {
+data class SurfCloudConfig(
+    @Comment("Config for various connections")
+    @Setting("connection")
+    val connectionConfig: ConnectionConfig = ConnectionConfig()
+)
 
-  @Comment("Config for various connections")
-  @Setting("connection")
-  public ConnectionConfig connectionConfig = new ConnectionConfig();
-
-  @ConfigSerializable
-  public static class ConnectionConfig {
-
+@ConfigSerializable
+data class ConnectionConfig(
     @Comment("Config for database connection")
     @Setting("database")
-    public DatabaseConfig databaseConfig = new DatabaseConfig();
+    val databaseConfig: DatabaseConfig = DatabaseConfig(),
 
     @Comment("Config for redis connection")
     @Setting("redis")
-    public RedisConfig redisConfig = new RedisConfig();
+    val redisConfig: RedisConfig = RedisConfig(),
 
     @Comment("Config for netty connection")
     @Setting("netty")
-    public NettyConfig nettyConfig = new NettyConfig();
+    val nettyConfig: NettyConfig = NettyConfig()
+)
 
-    @ConfigSerializable
-    public static class DatabaseConfig {
+@ConfigSerializable
+data class DatabaseConfig(
+    @Comment("URL for database connection. Should be in the format of jdbc:<db_type>://<host>:<port>/<database>")
+    @Setting("url")
+    val url: String = "jdbc:mariadb://127.0.0.1:3306/surf_data",
 
-      @Comment("URL for database connection. Should be in the format of jdbc:<db_type>://<host>:<port>/<database>")
-      @Setting("url")
-      public String url = "jdbc:mariadb://127.0.0.1:3306/surf_data";
+    @Comment("Username for database connection")
+    @Setting("username")
+    val username: String = "root",
 
-      @Comment("Username for database connection")
-      @Setting("username")
-      public String username = "root";
+    @Comment("Password for database connection")
+    @Setting("password")
+    val password: String = ""
+)
 
-      @Comment("Password for database connection")
-      @Setting("password")
-      public String password = "";
-    }
+@ConfigSerializable
+data class RedisConfig(
+    @Comment("Host for redis connection")
+    @Setting("host")
+    val host: String = "127.0.0.1",
 
-    @ConfigSerializable
-    public static class RedisConfig {
+    @Comment("Port for redis connection")
+    @Setting("port")
+    val port: Int = 6379,
 
-      @Comment("Host for redis connection")
-      @Setting("host")
-      public String host = "127.0.0.1";
+    @Comment("Username for redis connection")
+    @Setting("username")
+    val username: String = "",
 
-      @Comment("Port for redis connection")
-      @Setting("port")
-      public int port = 6379;
+    @Comment("Password for redis connection")
+    @Setting("password")
+    val password: String = ""
+)
 
-      @Comment("Username for redis connection")
-      @Setting("username")
-      public String username = "";
+@ConfigSerializable
+data class NettyConfig(
+    @Comment("Port for netty connection")
+    @Setting("port")
+    val port: Int = 5555,
 
-      @Comment("Password for redis connection")
-      @Setting("password")
-      public String password = "";
-    }
+    @Comment("Host for netty connection")
+    @Setting("host")
+    val host: String = "127.0.0.1",
 
-    @ConfigSerializable
-    @Getter
-    @Accessors(fluent = true)
-    public static class NettyConfig {
-
-        @Comment("Port for netty connection")
-        @Setting("port")
-        public int port = 5555;
-
-        @Comment("Host for netty connection")
-        @Setting("host")
-        public String host = "127.0.0.1";
-
-        @Comment("Reconnect delay for netty connection in seconds")
-        @Setting("reconnect-delay")
-        public int reconnectDelay = 3;
-    }
-  }
-}
+    @Comment("Reconnect delay for netty connection in seconds")
+    @Setting("reconnect-delay")
+    val reconnectDelay: Int = 3
+)

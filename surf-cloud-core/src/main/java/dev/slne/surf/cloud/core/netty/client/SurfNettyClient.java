@@ -32,7 +32,7 @@ public class SurfNettyClient extends
   }
 
   @Override
-  protected NettyClientConnectionImpl createContainer() {
+  protected NettyClientConnectionImpl createConnectionInstance() {
     return new NettyClientConnectionImpl(this);
   }
 }

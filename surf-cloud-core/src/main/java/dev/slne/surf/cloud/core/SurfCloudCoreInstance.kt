@@ -1,90 +1,79 @@
 package dev.slne.surf.cloud.core
 
-import com.google.common.base.Preconditions
 import dev.slne.surf.cloud.SurfCloudMainApplication
 import dev.slne.surf.cloud.api.SurfCloudInstance
 import dev.slne.surf.cloud.api.cloudInstance
+import dev.slne.surf.cloud.api.exceptions.ExitCodes
 import dev.slne.surf.cloud.api.exceptions.FatalSurfError
-import dev.slne.surf.cloud.api.exceptions.FatalSurfError.ExitCodes
 import dev.slne.surf.cloud.api.util.JoinClassLoader
+import dev.slne.surf.cloud.api.util.logger
 import dev.slne.surf.cloud.core.spring.SurfSpringBanner
-import dev.slne.surf.cloud.core.util.Util
-import lombok.Getter
-import lombok.extern.flogger.Flogger
-import org.apache.commons.lang3.ArrayUtils
+import dev.slne.surf.cloud.core.util.getCallerClass
+import dev.slne.surf.cloud.core.util.tempChangeSystemClassLoader
 import org.springframework.boot.Banner
 import org.springframework.boot.builder.SpringApplicationBuilder
 import org.springframework.context.ConfigurableApplicationContext
 import org.springframework.core.NestedRuntimeException
 import org.springframework.core.io.DefaultResourceLoader
 import java.nio.file.Path
-import java.util.function.Supplier
 import javax.annotation.OverridingMethodsMustInvokeSuper
-import javax.annotation.ParametersAreNonnullByDefault
 import kotlin.concurrent.Volatile
 
-@Getter
-@ParametersAreNonnullByDefault
-@Flogger
 abstract class SurfCloudCoreInstance : SurfCloudInstance {
+    protected val log = logger()
+
     @Volatile
-    lateinit var dataContext: ConfigurableApplicationContext
-        private set
+    private var _dataContext: ConfigurableApplicationContext? = null
+    val dataContext: ConfigurableApplicationContext
+        get() = _dataContext ?: throw IllegalStateException("Data context is not initialized yet.")
+
+    abstract val dataFolder: Path
+    protected open val springProfile = "client"
 
     init {
-        val caller = Util.getCallerClass()
-        if (!caller.name.startsWith("java.util.ServiceLoader")) {
-            throw IllegalAccessException("Cannot instantiate instance directly")
-        }
+        check(getCallerClass()?.name?.startsWith("java.util.ServiceLoader") == false) { "Cannot instantiate instance directly" }
     }
 
     @OverridingMethodsMustInvokeSuper
-    fun onLoad() {
-        Thread.setDefaultUncaughtExceptionHandler { t: Thread, e: Throwable ->
-            SurfCloudCoreInstance.log.atSevere()
+    open fun onLoad() {
+        Thread.setDefaultUncaughtExceptionHandler { thread, e ->
+            log.atSevere()
                 .withCause(e)
                 .log(
                     """
-              An uncaught exception occurred in thread %s
-              Exception type: %s
-              Exception message: %s
-              
-              """.trimIndent(),
-                    t.name, e.javaClass.name, e.message
+                    An uncaught exception occurred in thread %s
+                    Exception type: %s
+                    Exception message: %s
+                    """.trimIndent(),
+                    thread.name, e.javaClass.name, e.message
                 )
         }
 
         try {
-            dataContext = startSpringApplication(SurfCloudMainApplication::class.java)
+            _dataContext = startSpringApplication(SurfCloudMainApplication::class.java)
         } catch (e: Throwable) {
             if (e is FatalSurfError) {
-                // Re-throw FatalSurfError directly
+                // Re-throw FatalSurfError immediately
                 throw e
-            } else if (e is NestedRuntimeException
-                && e.getRootCause() is FatalSurfError
-            ) {
+            } else if (e is NestedRuntimeException && e.rootCause is FatalSurfError) {
                 // Re-throw FatalSurfError if it is wrapped inside NestedRuntimeException
-                throw fatal
+                throw e.rootCause as FatalSurfError
             } else {
                 // Build and throw a new FatalSurfError for any other unexpected errors
-                throw FatalSurfError.builder()
-                    .simpleErrorMessage("An unexpected error occurred during the onLoad process.")
-                    .detailedErrorMessage(
-                        "An error occurred while starting the Spring application during the onLoad phase."
-                    )
-                    .cause(e)
-                    .additionalInformation("Error occurred in: " + javaClass.name)
-                    .additionalInformation(
-                        "Root cause: " + (if (e.cause != null) e.cause!!.message else "Unknown")
-                    )
-                    .additionalInformation("Exception type: " + e.javaClass.name)
-                    .possibleSolution("Check the logs for more detailed error information.")
-                    .possibleSolution("Ensure that the application configurations are correct.")
-                    .possibleSolution(
+                throw FatalSurfError {
+                    simpleErrorMessage("An unexpected error occurred during the onLoad process.")
+                    detailedErrorMessage("An error occurred while starting the Spring application during the onLoad phase.")
+                    cause(e)
+                    additionalInformation("Error occurred in: " + javaClass.name)
+                    additionalInformation("Root cause: ${e.cause?.message ?: "Unknown"}")
+                    additionalInformation("Exception type: " + e.javaClass.name)
+                    possibleSolution("Check the logs for more detailed error information.")
+                    possibleSolution("Ensure that the application configurations are correct.")
+                    possibleSolution(
                         "Make sure that all dependencies are correctly initialized before loading."
                     )
-                    .exitCode(ExitCodes.UNKNOWN_ERROR)
-                    .build()
+                    exitCode(ExitCodes.UNKNOWN_ERROR)
+                }
             }
         }
     }
@@ -94,53 +83,35 @@ abstract class SurfCloudCoreInstance : SurfCloudInstance {
     }
 
     @OverridingMethodsMustInvokeSuper
-    fun onDisable() {
-        if (dataContext != null && dataContext.isActive()) {
-            dataContext.close()
-        }
+    open fun onDisable() {
+        if (_dataContext?.isActive == true) _dataContext?.close()
     }
 
     override fun startSpringApplication(
-        applicationClass: Class<*>?,
-        classLoader: ClassLoader?,
+        applicationClass: Class<*>,
+        classLoader: ClassLoader,
         vararg parentClassLoader: ClassLoader
     ): ConfigurableApplicationContext {
-        Preconditions.checkNotNull(applicationClass, "applicationClass")
-        Preconditions.checkNotNull(classLoader, "classLoader")
-        Preconditions.checkNotNull<Array<ClassLoader>>(parentClassLoader, "parentClassLoader")
+        val joinClassLoader = JoinClassLoader(classLoader, parentClassLoader)
+        return tempChangeSystemClassLoader(joinClassLoader) {
+            val builder = SpringApplicationBuilder(applicationClass)
+                .resourceLoader(DefaultResourceLoader(joinClassLoader))
+                .bannerMode(Banner.Mode.CONSOLE)
+                .banner(SurfSpringBanner())
+                .profiles(springProfile)
+                .listeners()
 
-        val joinClassLoader: JoinClassLoader = JoinClassLoader(
-            classLoader,
-            ArrayUtils.addFirst<ClassLoader?>(parentClassLoader, classLoader)
-        )
-
-        val run: Supplier<ConfigurableApplicationContext> =
-            Supplier<ConfigurableApplicationContext> {
-                val builder: SpringApplicationBuilder = SpringApplicationBuilder(applicationClass)
-                    .resourceLoader(DefaultResourceLoader(joinClassLoader))
-                    .bannerMode(Banner.Mode.CONSOLE)
-                    .banner(SurfSpringBanner())
-                    .profiles(springProfile)
-                    .listeners()
-                if (dataContext != null) {
-                    builder.parent(dataContext)
-                }
-                builder.run()
+            if (_dataContext != null) {
+                builder.parent(_dataContext)
             }
 
-        return Util.tempChangeSystemClassLoader(joinClassLoader, run)
+            builder.run()
+        }
     }
-
-    abstract val dataFolder: Path
-
-    protected open val springProfile: String?
-        get() = "client"
 
     companion object {
         @JvmStatic
-        fun get(): SurfCloudCoreInstance {
-            return SurfCloudInstance.get()
-        }
+        fun get() = SurfCloudInstance.get() as SurfCloudCoreInstance
     }
 }
 

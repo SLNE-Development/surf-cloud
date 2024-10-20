@@ -11,9 +11,9 @@ interface SurfCloudInstance {
         startSpringApplication(applicationClass, applicationClass.classLoader)
 
     fun startSpringApplication(
-        applicationClass: Class<*>?,
-        classLoader: ClassLoader?,
-        vararg parentClassLoader: ClassLoader?
+        applicationClass: Class<*>,
+        classLoader: ClassLoader,
+        vararg parentClassLoader: ClassLoader
     ): ConfigurableApplicationContext
 
     @get:ApiStatus.Internal

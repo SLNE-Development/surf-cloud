@@ -9,7 +9,7 @@ import kotlin.math.min
 
 class JoinClassLoader(
     parent: ClassLoader?,
-    private var delegateClassLoaders: Array<ClassLoader>
+    private var delegateClassLoaders: Array<out ClassLoader>
 ) : ClassLoader(parent) {
 
     constructor(parent: ClassLoader?, delegateClassLoaders: Collection<ClassLoader>) : this(

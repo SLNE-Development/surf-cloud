@@ -18,7 +18,6 @@ import dev.slne.surf.cloud.core.netty.protocol.packets.cloud.registration.CloudS
 import dev.slne.surf.cloud.core.netty.protocol.packets.server.ClientJoinNettyPacket;
 import dev.slne.surf.cloud.core.netty.protocol.packets.server.ClientQuitPacket;
 import dev.slne.surf.cloud.core.server.CloudServerImpl;
-import dev.slne.surf.cloud.core.util.Util;
 import dev.slne.surf.cloud.standalone.netty.server.SurfNettyServer;
 import dev.slne.surf.cloud.standalone.netty.server.source.tracker.ServerNettyClientTrackerImpl;
 import java.util.Objects;

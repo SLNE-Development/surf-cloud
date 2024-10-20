@@ -1,10 +1,21 @@
 @file:Internal
+
 package dev.slne.surf.cloud.core.config
 
+import dev.slne.surf.cloud.core.coreCloudInstance
+import dev.slne.surf.surfapi.core.api.SurfCoreApi
 import org.jetbrains.annotations.ApiStatus.Internal
 import org.spongepowered.configurate.objectmapping.ConfigSerializable
 import org.spongepowered.configurate.objectmapping.meta.Comment
 import org.spongepowered.configurate.objectmapping.meta.Setting
+
+val cloudConfig: SurfCloudConfig by lazy {
+    SurfCoreApi.getCore().createModernYamlConfig(
+        SurfCloudConfig::class.java,
+        coreCloudInstance.dataFolder,
+        "config.yml"
+    )
+}
 
 @ConfigSerializable
 data class SurfCloudConfig(

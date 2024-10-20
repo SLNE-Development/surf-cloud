@@ -1,35 +1,26 @@
-package dev.slne.surf.cloud.core.processors;
+package dev.slne.surf.cloud.core.processors
 
-import dev.slne.surf.cloud.api.lifecycle.SurfLifecycle;
-import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
-import lombok.extern.flogger.Flogger;
-import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.config.BeanPostProcessor;
-import org.springframework.util.CollectionUtils;
-import org.springframework.util.MultiValueMap;
+import dev.slne.surf.cloud.api.lifecycle.SurfLifecycle
+import dev.slne.surf.cloud.api.util.add
+import dev.slne.surf.cloud.api.util.mutableObject2MultiObjectsMapOf
+import org.springframework.beans.BeansException
+import org.springframework.beans.factory.config.BeanPostProcessor
+import kotlin.reflect.KClass
 
-@Flogger
-public abstract class AbstractLifecycleProcessor implements BeanPostProcessor {
+abstract class AbstractLifecycleProcessor : BeanPostProcessor {
+    private val lifecycleMap = mutableObject2MultiObjectsMapOf<KClass<*>, SurfLifecycle>()
 
-  private final MultiValueMap<Class<?>, SurfLifecycle> lifecycleMap = CollectionUtils.toMultiValueMap(
-      new ConcurrentHashMap<>());
+    @Throws(BeansException::class)
+    override fun postProcessAfterInitialization(bean: Any, beanName: String): Any {
+        if (bean !is SurfLifecycle) return bean
 
-  @Override
-  public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
-    if (!(bean instanceof SurfLifecycle lifecycle)) {
-      return bean;
+        val providingClass = getProvidingClass(bean)
+        lifecycleMap.add(providingClass, bean)
+
+        return bean
     }
 
-    final Class<?> providingClass = getProvidingClass(lifecycle);
-    lifecycleMap.add(providingClass, lifecycle);
+    protected abstract fun getProvidingClass(lifecycle: SurfLifecycle): KClass<*>
 
-    return bean;
-  }
-
-  protected abstract Class<?> getProvidingClass(SurfLifecycle lifecycle);
-
-  public final List<SurfLifecycle> getLifecycles(Class<?> providingClass) {
-    return lifecycleMap.get(providingClass);
-  }
+    fun getLifecycles(providingClass: KClass<*>) = lifecycleMap[providingClass]
 }

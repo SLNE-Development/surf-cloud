@@ -1,23 +1,19 @@
-package dev.slne.surf.cloud.velocity;
+package dev.slne.surf.cloud.velocity
 
-import com.google.auto.service.AutoService;
-import dev.slne.surf.cloud.api.SurfCloudInstance;
-import dev.slne.surf.cloud.core.SurfCloudCoreInstance;
-import java.nio.file.Path;
+import com.google.auto.service.AutoService
+import dev.slne.surf.cloud.api.SurfCloudInstance
+import dev.slne.surf.cloud.core.SurfCloudCoreInstance
+import dev.slne.surf.cloud.core.coreCloudInstance
+import java.nio.file.Path
 
-@AutoService(SurfCloudInstance.class)
-public final class SurfCloudVelocityInstance extends SurfCloudCoreInstance {
+@AutoService(SurfCloudInstance::class)
+class SurfCloudVelocityInstance : SurfCloudCoreInstance() {
+    override val dataFolder: Path
+        get() = TODO("Not yet implemented")
 
-  public SurfCloudVelocityInstance() throws IllegalAccessException {
-  }
-
-  @Override
-  public Path getDataFolder() {
-    return null;
-  }
-
-  @Override
-  public ClassLoader getClassLoader() {
-    return null;
-  }
+    override val classLoader: ClassLoader
+        get() = TODO("Not yet implemented")
 }
+
+val velocityCloudInstance
+    get() = coreCloudInstance as SurfCloudVelocityInstance

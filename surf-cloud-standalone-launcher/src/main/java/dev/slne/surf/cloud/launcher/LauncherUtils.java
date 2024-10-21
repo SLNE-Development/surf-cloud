@@ -1,12 +1,9 @@
 package dev.slne.surf.cloud.launcher;
 
-import lombok.experimental.UtilityClass;
-
-@UtilityClass
-class LauncherUtils {
+final class LauncherUtils {
 
   @SuppressWarnings("CallToPrintStackTrace")
-  public RuntimeException fail(final String message, final Throwable err) {
+  public static RuntimeException fail(final String message, final Throwable err) {
     System.err.println(message);
     if (err != null) {
       err.printStackTrace();

@@ -21,8 +21,7 @@ object NettyListenerRegistry {
         val isSuspending = listenerMethod.isSuspending()
         val expectedParamSize = if (isSuspending) 3 else 2
 
-
-        if (params.size in 1..expectedParamSize) {
+        if (params.size !in 1..expectedParamSize) {
             throw SurfNettyListenerRegistrationException(
                 "Listener method must have one or two parameters of type NettyPacket and optional NettyPacketInfo"
             )

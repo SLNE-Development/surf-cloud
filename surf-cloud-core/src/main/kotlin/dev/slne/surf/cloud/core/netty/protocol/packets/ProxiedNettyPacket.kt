@@ -25,7 +25,7 @@ class ProxiedNettyPacket : NettyPacket<ProxiedNettyPacket> {
     constructor(packet: NettyPacket<*>, target: NettyServerSource, client: SurfNettyClient) {
         this.packet = packet
         this.target = target
-        this.source = client.connection.serverSource()
+        this.source = client.connection.source
         this.client = client
     }
 
@@ -40,7 +40,7 @@ class ProxiedNettyPacket : NettyPacket<ProxiedNettyPacket> {
         val sourceGuid = buffer.readLong()
         val packetId = buffer.readInt()
 
-        val sourceTracker = client.connection.clientTracker()
+        val sourceTracker = client.connection.clientTracker
         this.target = sourceTracker.findByServerGuid(targetGuid) ?: error("Target not found")
         this.source = sourceTracker.findByServerGuid(sourceGuid) ?: error("Source not found")
 

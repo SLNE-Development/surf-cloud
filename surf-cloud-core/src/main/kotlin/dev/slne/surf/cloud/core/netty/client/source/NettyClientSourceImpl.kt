@@ -1,43 +1,33 @@
-package dev.slne.surf.cloud.core.netty.client.source;
+package dev.slne.surf.cloud.core.netty.client.source
 
-import dev.slne.surf.cloud.api.netty.source.NettyClientSource;
-import dev.slne.surf.cloud.core.netty.AbstractNettyBase;
-import dev.slne.surf.cloud.core.netty.common.source.AbstractProxiedNettySource;
-import io.netty.channel.Channel;
-import java.util.Objects;
-import lombok.Getter;
-import lombok.experimental.Accessors;
+import dev.slne.surf.cloud.api.netty.source.NettyClientSource
+import dev.slne.surf.cloud.core.netty.AbstractNettyBase
+import dev.slne.surf.cloud.core.netty.common.source.AbstractProxiedNettySource
+import io.netty.channel.Channel
+import lombok.experimental.Accessors
 
-@Getter
 @Accessors(fluent = true)
-public class NettyClientSourceImpl extends AbstractProxiedNettySource<NettyClientSource> implements NettyClientSource {
+class NettyClientSourceImpl(
+    base: AbstractNettyBase<*, *, NettyClientSource>,
+    override val channel: Channel
+) : AbstractProxiedNettySource<NettyClientSource>(base), NettyClientSource {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is NettyClientSourceImpl) return false
+        if (!super.equals(other)) return false
 
-  private final Channel channel;
+        if (channel != other.channel) return false
 
-  public NettyClientSourceImpl(AbstractNettyBase<?, ?, NettyClientSource> base, Channel channel) {
-    super(base);
-    this.channel = channel;
-  }
-
-  @Override
-  public final boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (!(o instanceof NettyClientSourceImpl that)) {
-      return false;
-    }
-    if (!super.equals(o)) {
-      return false;
+        return true
     }
 
-    return Objects.equals(channel, that.channel);
-  }
+    override fun hashCode(): Int {
+        var result = super.hashCode()
+        result = 31 * result + channel.hashCode()
+        return result
+    }
 
-  @Override
-  public int hashCode() {
-    int result = super.hashCode();
-    result = 31 * result + Objects.hashCode(channel);
-    return result;
-  }
+    override fun toString(): String {
+        return "NettyClientSourceImpl(channel=$channel) ${super.toString()}"
+    }
 }

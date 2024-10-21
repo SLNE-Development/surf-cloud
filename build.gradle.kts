@@ -17,6 +17,7 @@ plugins {
     kotlin("jvm") version "2.0.21"
     kotlin("plugin.spring") version "2.0.21"
     kotlin("plugin.lombok") version "2.0.21"
+    kotlin("kapt") version "2.0.21"
 }
 
 java {
@@ -35,6 +36,7 @@ allprojects {
     apply(plugin = "org.jetbrains.kotlin.jvm")
     apply(plugin = "org.jetbrains.kotlin.plugin.spring")
     apply(plugin = "org.jetbrains.kotlin.plugin.lombok")
+    apply(plugin = "org.jetbrains.kotlin.kapt")
 
     group = "dev.slne.surf.cloud"
     version = "1.21.1-1.0.0-SNAPSHOT"
@@ -57,10 +59,15 @@ allprojects {
         //        developmentOnly("org.springframework.boot:spring-boot-devtools")
         compileOnly("dev.slne.surf:surf-api-core-api:1.21+")
         compileOnly("com.google.auto.service:auto-service-annotations:1.1.1")
+        api(kotlin("reflect"))
+        // https://mvnrepository.com/artifact/org.jetbrains.kotlinx/kotlinx-coroutines-reactive
+        api("org.jetbrains.kotlinx:kotlinx-coroutines-reactor:1.9.0")
 
         // Annotation processors
-        annotationProcessor("org.springframework.boot:spring-boot-configuration-processor:3.3.3")
-        annotationProcessor("com.google.auto.service:auto-service:1.1.1")
+        implementation("org.springframework.boot:spring-boot-configuration-processor:3.3.3")
+        kapt("org.springframework.boot:spring-boot-configuration-processor:3.3.3")
+        implementation("com.google.auto.service:auto-service:1.1.1")
+        kapt("com.google.auto.service:auto-service:1.1.1")
 
         // Tests
         testImplementation("org.springframework.boot:spring-boot-starter-test")

@@ -5,9 +5,9 @@ import io.netty.channel.ChannelFuture
 import io.netty.channel.ChannelFutureListener
 import io.netty.channel.EventLoop
 import kotlinx.coroutines.runBlocking
-import java.time.Duration
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
+import kotlin.time.Duration
 
 private val log = logger();
 
@@ -15,7 +15,7 @@ class NettyConnectionRecoveryHandler(
     private val nettyConnection: AbstractNettyConnection<*, *, *>,
     reconnectInterval: Duration
 ) : ChannelFutureListener {
-    private val reconnectInterval = reconnectInterval.toMillis()
+    private val reconnectInterval = reconnectInterval.inWholeMilliseconds
     private val shouldDisconnect = AtomicBoolean(false)
 
     fun stopReconnection() {

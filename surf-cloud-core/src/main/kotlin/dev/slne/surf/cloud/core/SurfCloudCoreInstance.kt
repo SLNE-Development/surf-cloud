@@ -8,6 +8,7 @@ import dev.slne.surf.cloud.api.exceptions.FatalSurfError
 import dev.slne.surf.cloud.api.util.JoinClassLoader
 import dev.slne.surf.cloud.api.util.logger
 import dev.slne.surf.cloud.core.spring.SurfSpringBanner
+import dev.slne.surf.cloud.core.spring.event.RootSpringContextInitialized
 import dev.slne.surf.cloud.core.util.getCallerClass
 import dev.slne.surf.cloud.core.util.tempChangeSystemClassLoader
 import org.jetbrains.annotations.MustBeInvokedByOverriders
@@ -32,7 +33,7 @@ abstract class SurfCloudCoreInstance : SurfCloudInstance {
     protected open val springProfile = "client"
 
     init {
-        check(getCallerClass()?.name?.startsWith("java.util.ServiceLoader") == false) { "Cannot instantiate instance directly" }
+        check(getCallerClass()?.name?.startsWith("java.util.ServiceLoader") == true) { "Cannot instantiate instance directly" }
     }
 
     @MustBeInvokedByOverriders
@@ -77,6 +78,8 @@ abstract class SurfCloudCoreInstance : SurfCloudInstance {
                 }
             }
         }
+
+        _dataContext?.publishEvent(RootSpringContextInitialized(this))
     }
 
     @OverridingMethodsMustInvokeSuper
@@ -100,7 +103,6 @@ abstract class SurfCloudCoreInstance : SurfCloudInstance {
                 .bannerMode(Banner.Mode.CONSOLE)
                 .banner(SurfSpringBanner())
                 .profiles(springProfile)
-                .listeners()
 
             if (_dataContext != null) {
                 builder.parent(_dataContext)

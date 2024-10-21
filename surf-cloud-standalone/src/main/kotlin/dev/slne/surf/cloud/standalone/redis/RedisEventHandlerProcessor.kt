@@ -50,7 +50,7 @@ class RedisEventHandlerProcessor @Autowired constructor(
                 RedisEventHandlerListenerAdapter(beanName, bean, handlerMethod, redisSerializer)
             val eventHandler = handlerMethod.getAnnotation(RedisEventHandler::class.java)
 
-            container.addMessageListener(adapter, eventHandler.channels.map { ChannelTopic.of(it) })
+            container.addMessageListener(adapter, eventHandler.value.map { ChannelTopic.of(it) })
         }
     }
 

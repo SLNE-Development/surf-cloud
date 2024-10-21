@@ -85,7 +85,7 @@ class NettyServerConnectionImpl(server: SurfNettyServer) :
             return
         }
 
-        source.channel().writeAndFlush(packet)
+        source.channel.writeAndFlush(packet)
     }
 
     @Component

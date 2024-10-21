@@ -14,10 +14,10 @@ import dev.slne.surf.cloud.core.netty.common.connection.AbstractNettyConnection
 import dev.slne.surf.cloud.core.netty.common.registry.listener.NettyListenerRegistry
 import dev.slne.surf.cloud.core.netty.common.registry.packet.NettyPacketRegistry
 import dev.slne.surf.cloud.core.netty.protocol.packet.NettyPacketInfo
+import dev.slne.surf.cloud.core.spring.event.RootSpringContextInitialized
 import jakarta.annotation.PreDestroy
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import org.springframework.context.event.ContextRefreshedEvent
 import org.springframework.context.event.EventListener
 import java.util.concurrent.TimeUnit
 
@@ -34,7 +34,7 @@ abstract class AbstractNettyBase<SELF : AbstractNettyBase<SELF, Connection, Clie
     protected abstract fun createConnectionInstance(): Connection
 
     @EventListener
-    suspend fun handleContextRefreshedEvent(ignored: ContextRefreshedEvent?) {
+    suspend fun handleContextRefreshedEvent(ignored: RootSpringContextInitialized?) {
         try {
             connection.tryEstablishConnection()
         } catch (e: Exception) {

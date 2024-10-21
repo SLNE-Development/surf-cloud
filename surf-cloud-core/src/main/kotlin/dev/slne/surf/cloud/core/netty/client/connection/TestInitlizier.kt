@@ -1,17 +1,16 @@
-package dev.slne.surf.cloud.core.netty.client.connection;
+package dev.slne.surf.cloud.core.netty.client.connection
 
-import dev.slne.surf.cloud.core.netty.protocol.channel.ChannelInitializerModifier;
-import io.netty.channel.socket.SocketChannel;
-import io.netty.handler.timeout.ReadTimeoutHandler;
-import lombok.extern.flogger.Flogger;
+import dev.slne.surf.cloud.api.util.logger
+import dev.slne.surf.cloud.core.netty.protocol.channel.ChannelInitializerModifier
+import io.netty.channel.socket.SocketChannel
+import io.netty.handler.timeout.ReadTimeoutHandler
 
-@Flogger
 //@Component
-public class TestInitlizier implements ChannelInitializerModifier {
+class TestInitlizier : ChannelInitializerModifier {
+    private val log = logger()
 
-  @Override
-  public void modify(SocketChannel ch) throws Exception {
-    log.atInfo().log("Modifying channel");
-    ch.pipeline().addLast(new ReadTimeoutHandler(5));
-  }
+    override fun modify(ch: SocketChannel) {
+        log.atInfo().log("Modifying channel")
+        ch.pipeline().addLast(ReadTimeoutHandler(5))
+    }
 }

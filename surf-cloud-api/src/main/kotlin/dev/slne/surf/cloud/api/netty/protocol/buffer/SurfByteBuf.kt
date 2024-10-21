@@ -640,8 +640,12 @@ class SurfByteBuf(source: ByteBuf) : WrappedByteBuf(source) {
     fun writeBitSet(bitSet: BitSet) = writeBitSet(this, bitSet)
     fun readFixedBitSet(size: Int) = readFixedBitSet(this, size)
     fun writeFixedBitSet(bitSet: BitSet, size: Int) = writeFixedBitSet(this, bitSet, size)
+    @JvmOverloads
     fun readUtf(maxLength: Int = Int.MAX_VALUE) = readUtf(this, maxLength)
+    @JvmOverloads
     fun writeUtf(string: String, maxLength: Int = Int.MAX_VALUE) = writeUtf(this, string, maxLength)
+    fun readVarInt() = readVarInt(this)
+    fun writeVarInt(value: Int) = writeVarInt(this, value)
     fun <T> readNullable(decodeFactory: DecodeFactory<in SurfByteBuf, T>) = readNullable(this, decodeFactory)
     fun readNullableBoolean() = readNullable(this) { it.readBoolean() }
     fun readNullableByte() = readNullable(this) { it.readByte() }

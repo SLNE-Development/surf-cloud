@@ -84,6 +84,7 @@ class FatalSurfError private constructor(
         @Serial
         private val serialVersionUID = -5282893569683975781L
 
+        @JvmStatic
         fun builder() = Builder()
     }
 
@@ -147,12 +148,7 @@ fun FatalSurfError(builder: FatalSurfError.Builder.() -> Unit): FatalSurfError {
 }
 
 object ExitCodes {
-    @JvmStatic
-    val UNKNOWN_ERROR = 1
-
-    @JvmStatic
-    val UNABLE_TO_CONNECT_TO_DATABASE = 10
-
-    @JvmStatic
-    val CONNECTION_FAILURE = 11
+    const val UNKNOWN_ERROR = 1
+    const val UNABLE_TO_CONNECT_TO_DATABASE = 10
+    const val CONNECTION_FAILURE = 11
 }

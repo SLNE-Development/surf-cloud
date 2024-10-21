@@ -13,6 +13,7 @@ abstract class SurfEntity : Persistable<Long?> {
     @Nullable
     var id: Long? = null
         private set
+    override fun getId() = id
 
     @Transient
     override fun isNew(): Boolean = null == id

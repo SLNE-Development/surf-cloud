@@ -31,7 +31,6 @@ fun <K, V> mutableObject2MultiObjectsMapOf() = Object2ObjectOpenHashMap<K, Objec
 fun <K, V> object2MultiObjectsMapOf(vararg pairs: Pair<K, ObjectSet<V>>) = mutableObject2MultiObjectsMapOf(*pairs).freeze()
 fun <K, V> object2MultiObjectsMapOf() = emptyObject2MultiObjectsMap<K, V>()
 fun <K, V> emptyObject2MultiObjectsMap(): @Unmodifiable Object2MultiObjectsMap<K, V> = Object2ObjectMaps.emptyMap()
-fun <K, V> Object2ObjectOpenHashMap<K, ObjectSet<V>>.synchronize(): Object2MultiObjectsMap<K, V> = Object2ObjectMaps.synchronize(this)
 typealias Object2MultiObjectsMap<K, V> = Object2ObjectMap<K, ObjectSet<V>>
 fun <K, V> Object2MultiObjectsMap<K, V>.add(key: K, value: V) {
     val set = get(key) ?: mutableObjectSetOf<V>().also { put(key, it) }

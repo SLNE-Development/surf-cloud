@@ -38,6 +38,13 @@ paper {
 
 //    generateLibrariesJson = true
 
+    bootstrapDependencies {
+        register("surf-bukkit-api") {
+            load = PaperPluginDescription.RelativeLoadOrder.BEFORE
+            required = true
+        }
+    }
+
     serverDependencies {
         register("surf-bukkit-api") {
             load = PaperPluginDescription.RelativeLoadOrder.BEFORE

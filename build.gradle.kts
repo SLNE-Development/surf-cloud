@@ -74,6 +74,10 @@ allprojects {
                 exclude("META-INF/MANIFEST.MF")
             }
         }
+
+        jar {
+            duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+        }
     }
 
     configurations {

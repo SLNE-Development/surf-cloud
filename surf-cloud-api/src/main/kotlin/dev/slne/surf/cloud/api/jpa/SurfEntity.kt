@@ -11,8 +11,8 @@ abstract class SurfEntity : Persistable<Long?> {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Nullable
+    @JvmField
     var id: Long? = null
-        private set
     override fun getId() = id
 
     @Transient

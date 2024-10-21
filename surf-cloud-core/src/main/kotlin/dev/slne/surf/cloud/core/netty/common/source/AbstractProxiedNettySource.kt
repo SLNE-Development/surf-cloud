@@ -32,6 +32,9 @@ abstract class AbstractProxiedNettySource<Client : ProxiedNettySource<Client>>(n
         action: CloudServerInfoAction,
         vararg sources: AbstractNettySource<*>
     ) {
+        val cloudServer = cloudServer
+        checkNotNull(cloudServer) { "We should have a cloud server here" }
+
         if (action == CloudServerInfoAction.UPDATE_SERVER_INFO) {
             // we are calling the update function,
             // so our instance knows when we changed something for us or another source
@@ -39,9 +42,6 @@ abstract class AbstractProxiedNettySource<Client : ProxiedNettySource<Client>>(n
             // note here that it is a little hacky, but does it job
 
 //      ((NettyClientTrackerImpl<ProxiedSource>) base.container.sourceTracker()).updateClient(this); TODO not needed or replace with spring events
-
-            val cloudServer = cloudServer
-            checkNotNull(cloudServer) { "We should have a cloud server here" }
             updateServerInfo(cloudServer)
         }
         val packet = CloudServerInfoPacket(action, cloudServer)

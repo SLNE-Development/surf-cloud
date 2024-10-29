@@ -3,12 +3,17 @@ package dev.slne.surf.cloud.standalone
 import com.google.auto.service.AutoService
 import dev.slne.surf.cloud.api.SurfCloudInstance
 import dev.slne.surf.cloud.core.SurfCloudCoreInstance
+import dev.slne.surf.cloud.core.util.random
 import dev.slne.surf.cloud.standalone.plugin.StandalonePluginManager
 import dev.slne.surf.cloud.standalone.redis.RedisEvent
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.runBlocking
 import org.springframework.boot.SpringApplication
 import org.springframework.data.redis.core.ReactiveRedisTemplate
 import reactor.util.Loggers
 import java.nio.file.Path
+import kotlin.concurrent.thread
+import kotlin.time.Duration.Companion.seconds
 
 @AutoService(SurfCloudInstance::class)
 class SurfCloudStandaloneInstance : SurfCloudCoreInstance() {
@@ -29,12 +34,13 @@ class SurfCloudStandaloneInstance : SurfCloudCoreInstance() {
     }
 
     override fun onLoad() {
-        super.onLoad()
         SpringApplication.getShutdownHandlers().add(StandalonePluginManager)
+        thread(name = "KeepAlive") { while (true) runBlocking { delay(5.seconds) } }
+        super.onLoad()
+        random
     }
 
     override fun onEnable() {
-        super.onEnable()
         println("ready")
     }
 

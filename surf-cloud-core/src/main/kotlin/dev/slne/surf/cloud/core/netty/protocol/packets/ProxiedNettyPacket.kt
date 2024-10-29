@@ -9,7 +9,7 @@ import dev.slne.surf.cloud.core.coreCloudInstance
 import dev.slne.surf.cloud.core.netty.client.SurfNettyClient
 
 @SurfNettyPacket(id = DefaultIds.PROXIED_NETTY_PACKET)
-class ProxiedNettyPacket : NettyPacket<ProxiedNettyPacket> {
+class ProxiedNettyPacket : NettyPacket {
     private val client: SurfNettyClient
     lateinit var packet: NettyPacket<*>
         private set

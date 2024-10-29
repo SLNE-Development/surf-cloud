@@ -9,7 +9,7 @@ import tech.hiddenproject.aide.reflection.LambdaWrapperHolder
 import tech.hiddenproject.aide.reflection.annotation.Invoker
 import java.lang.reflect.Method
 
-internal class RegisteredListener(
+class RegisteredListener(
     private val bean: Any,
     listenerMethod: Method,
     packetClassIndex: Int,
@@ -49,7 +49,7 @@ internal class RegisteredListener(
         }
     }
 
-    suspend fun handle(packet: NettyPacket<*>, info: NettyPacketInfo) =
+    suspend fun handle(packet: NettyPacket, info: NettyPacketInfo) =
         withContext(Dispatchers.IO) {
             when (invokerType) {
                 InvokerType.ONE_PARAM -> {

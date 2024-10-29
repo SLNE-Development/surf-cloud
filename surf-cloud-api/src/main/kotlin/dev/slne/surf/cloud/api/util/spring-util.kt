@@ -2,6 +2,8 @@ package dev.slne.surf.cloud.api.util
 
 import org.springframework.aop.framework.AopProxyUtils
 import org.springframework.beans.factory.ObjectFactory
+import org.springframework.beans.factory.getBean
+import org.springframework.context.ApplicationContext
 import org.springframework.core.MethodIntrospector
 import org.springframework.core.annotation.AnnotatedElementUtils
 import org.springframework.core.annotation.AnnotationUtils

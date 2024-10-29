@@ -13,9 +13,6 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.Objects;
 import java.util.stream.Stream;
-import lombok.SneakyThrows;
-import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
 
 public class Main {
 
@@ -52,6 +49,8 @@ public class Main {
       this.classLoader = classLoader;
       this.mainClassName = mainClassName;
       this.args = args;
+
+      setDaemon(false);
     }
 
     @Override
@@ -101,8 +100,7 @@ public class Main {
   }
 
   @SuppressWarnings("CallToPrintStackTrace")
-  @Contract(pure = true)
-  private static URL @NotNull [] getPluginUrls() {
+  private static URL[] getPluginUrls() {
     final File pluginDir = PLUGIN_DIRECTORY.toFile();
     if (!pluginDir.exists()) {
       if (!pluginDir.mkdirs()) {
@@ -131,7 +129,6 @@ public class Main {
         .toArray(URL[]::new);
   }
 
-  @SneakyThrows
   private static String findMainClass() {
 //    try (final InputStream manifestStream = Launcher.class.getResource("/META-INF/MANIFEST.MF")
 //        .openStream()) {

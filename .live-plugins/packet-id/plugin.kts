@@ -1,15 +1,14 @@
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.KeyboardShortcut
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.ui.Messages
-import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.search.GlobalSearchScope
+import org.jetbrains.kotlin.idea.search.allScope
+import org.jetbrains.kotlin.idea.stubindex.KotlinFullClassNameIndex
+import org.jetbrains.kotlin.psi.*
 import liveplugin.registerAction
-import java.lang.String.format
 
-
-// depends-on-plugin com.intellij.java
+// depends-on-plugin org.jetbrains.kotlin
 
 registerAction(
     id = "InsertPacketAction",
@@ -51,37 +50,29 @@ class InsertPacketAction : AnAction() {
             return
         }
 
-        val psiFacade = JavaPsiFacade.getInstance(project)
-        val surfNettyPacketClass = psiFacade.findClass(
-            "dev.slne.surf.cloud.api.meta.SurfNettyPacket",
-            GlobalSearchScope.allScope(project)
-        ) ?: run {
-            Messages.showErrorDialog(project, "Cannot find SurfNettyPacket class.", "Error")
+        // Find the 'DefaultIds' object using the fully qualified name
+        val fqName = "dev.slne.surf.cloud.api.meta.DefaultIds"
+        val defaultIdsObject = KotlinFullClassNameIndex[fqName, project, GlobalSearchScope.allScope(project)]
+            .firstOrNull() as? KtObjectDeclaration ?: run {
+            Messages.showErrorDialog(project, "Cannot find DefaultIds object.", "Error")
             return
         }
 
-        val defaultIdsClass =
-            surfNettyPacketClass.findInnerClassByName("DefaultIds", false) ?: run {
-                Messages.showErrorDialog(project, "Cannot find DefaultIds class.", "Error")
-                return
-            }
-
-        // Begin a write action to modify the PSI tree
         WriteCommandAction.runWriteCommandAction(project) {
-            val fields = defaultIdsClass.fields
-            val elementFactory = JavaPsiFacade.getElementFactory(project)
+            val properties = defaultIdsObject.declarations.filterIsInstance<KtProperty>()
+            val ktPsiFactory = KtPsiFactory(project)
 
-            // Create the new field
-            val newFieldText = format("int %s = 0x%02X;", packetName, packetId)
-            val newField = elementFactory.createFieldFromText(newFieldText, null)
+            // Create the new property
+            val newPropertyText = "const val $packetName = 0x${String.format("%02X", packetId)}"
+            val newProperty = ktPsiFactory.createProperty(newPropertyText)
 
             // Initialize variables for insertion logic
             var idConflict = false
-            var insertIndex = fields.size
+            var insertIndex = properties.size
 
-            for ((i, field) in fields.withIndex()) {
-                val text = field.initializer?.text ?: continue
-                val existingId = text.radixStringToIntOrNull() ?: continue
+            for ((i, property) in properties.withIndex()) {
+                val initializer = property.initializer ?: continue
+                val existingId = initializer.text.radixStringToIntOrNull() ?: continue
 
                 if (existingId == packetId) {
                     idConflict = true
@@ -93,26 +84,25 @@ class InsertPacketAction : AnAction() {
                 }
             }
 
-            // Shift IDs of subsequent fields if there's a conflict
+            // Shift IDs of subsequent properties if there's a conflict
             if (idConflict) {
-                for (i in fields.size - 1 downTo insertIndex) {
-                    val field = fields[i]
-                    val text = field.initializer?.text ?: continue
+                for (i in properties.size - 1 downTo insertIndex) {
+                    val property = properties[i]
+                    val initializer = property.initializer ?: continue
 
-                    val existingId = text.radixStringToIntOrNull() ?: continue
+                    val existingId = initializer.text.radixStringToIntOrNull() ?: continue
                     val newId = existingId + 1
-                    val newInitializerText = String.format("0x%02X", newId)
-                    val newInitializer =
-                        elementFactory.createExpressionFromText(newInitializerText, null)
-                    field.initializer = newInitializer
+                    val newInitializerText = "0x${String.format("%02X", newId)}"
+                    val newInitializer = ktPsiFactory.createExpression(newInitializerText)
+                    property.initializer = newInitializer
                 }
             }
 
-            // Insert the new field at the correct position
-            if (insertIndex < fields.size) {
-                defaultIdsClass.addBefore(newField, fields[insertIndex]);
+            // Insert the new property at the correct position
+            if (insertIndex < properties.size) {
+                defaultIdsObject.addBefore(newProperty, properties[insertIndex])
             } else {
-                defaultIdsClass.add(newField);
+                defaultIdsObject.add(newProperty)
             }
         }
     }

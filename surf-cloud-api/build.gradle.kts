@@ -14,4 +14,5 @@ dependencies {
 //    api("org.springframework:spring-jdbc")
     // https://mvnrepository.com/artifact/org.springframework.data/spring-data-jpa
     api("org.springframework.data:spring-data-jpa")
+    api("com.mojang:datafixerupper:8.0.16")
 }

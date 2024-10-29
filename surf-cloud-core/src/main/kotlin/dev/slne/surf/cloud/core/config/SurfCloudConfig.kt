@@ -21,7 +21,11 @@ val cloudConfig: SurfCloudConfig by lazy {
 data class SurfCloudConfig(
     @Comment("Config for various connections")
     @Setting("connection")
-    val connectionConfig: ConnectionConfig = ConnectionConfig()
+    val connectionConfig: ConnectionConfig = ConnectionConfig(),
+
+    @Comment("Config for logging")
+    @Setting("logging")
+    val logging: LoggingConfig = LoggingConfig()
 )
 
 @ConfigSerializable
@@ -86,4 +90,11 @@ data class NettyConfig(
     @Comment("Reconnect delay for netty connection in seconds")
     @Setting("reconnect-delay")
     val reconnectDelay: Int = 3
+)
+
+@ConfigSerializable
+data class LoggingConfig(
+    @Comment("Whether to log IPs from clients")
+    @Setting("log-ips")
+    val logIps: Boolean = true
 )

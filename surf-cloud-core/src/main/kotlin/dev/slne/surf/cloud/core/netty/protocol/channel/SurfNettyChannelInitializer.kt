@@ -5,11 +5,9 @@ import dev.slne.surf.cloud.core.netty.AbstractNettyBase
 import dev.slne.surf.cloud.core.netty.protocol.codec.NettyPacketDecoder
 import dev.slne.surf.cloud.core.netty.protocol.codec.NettyPacketEncoder
 import dev.slne.surf.cloud.core.netty.protocol.packet.handler.NettyPacketHandler
-import dev.slne.surf.cloud.core.netty.protocol.packet.handler.NettyPacketJoinQuitCommonHandler
+import io.netty.channel.Channel
 import io.netty.channel.ChannelDuplexHandler
 import io.netty.channel.ChannelHandlerContext
-import io.netty.channel.ChannelInitializer
-import io.netty.channel.socket.SocketChannel
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder
 import io.netty.handler.codec.LengthFieldPrepender
 import io.netty.handler.logging.LogLevel
@@ -22,10 +20,10 @@ import org.springframework.stereotype.Component
 class SurfNettyChannelInitializer(
     private val modifiers: ObjectProvider<ChannelInitializerModifier>,
     private val context: ConfigurableApplicationContext
-) : ChannelInitializer<SocketChannel>() {
+) {
     private val log = logger()
 
-    override fun initChannel(channel: SocketChannel) {
+    fun initChannel(channel: Channel) {
         val base = context.getBean(AbstractNettyBase::class.java)
 
         with(channel.pipeline()) {

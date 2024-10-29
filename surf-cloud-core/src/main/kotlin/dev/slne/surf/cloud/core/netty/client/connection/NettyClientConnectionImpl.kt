@@ -10,8 +10,6 @@ import dev.slne.surf.cloud.api.util.suspend
 import dev.slne.surf.cloud.core.coreCloudInstance
 import dev.slne.surf.cloud.core.data.CloudPersistentData
 import dev.slne.surf.cloud.core.netty.client.SurfNettyClient
-import dev.slne.surf.cloud.core.netty.common.connection.AbstractNettyConnection
-import dev.slne.surf.cloud.core.netty.common.connection.NettyConnectionRecoveryHandler
 import dev.slne.surf.cloud.core.netty.common.source.AbstractNettySource
 import dev.slne.surf.cloud.core.netty.common.source.NettyServerSourceImpl
 import dev.slne.surf.cloud.core.netty.common.source.tracker.NettyClientTrackerImpl
@@ -20,10 +18,11 @@ import dev.slne.surf.cloud.core.netty.protocol.channel.SurfNettyChannelInitializ
 import dev.slne.surf.cloud.core.netty.protocol.packets.ProxiedNettyPacket
 import dev.slne.surf.cloud.core.netty.protocol.packets.cloud.registration.CloudRegisterServerPacket
 import dev.slne.surf.cloud.core.netty.protocol.packets.cloud.registration.CloudServerRegistrationData
+import dev.slne.surf.cloud.core.netty.temp.AbstractNettyConnection
+import dev.slne.surf.cloud.core.netty.temp.NettyConnectionRecoveryHandler
 import io.netty.bootstrap.Bootstrap
 import io.netty.channel.*
 import io.netty.channel.nio.NioEventLoopGroup
-import io.netty.channel.socket.SocketChannel
 import io.netty.channel.socket.nio.NioSocketChannel
 import io.netty.handler.timeout.IdleState
 import io.netty.handler.timeout.IdleStateEvent
@@ -167,7 +166,7 @@ class NettyClientConnectionImpl(client: SurfNettyClient) :
     @Component
     @Profile("client")
     class NettyCLientChannelInitializerModifier : ChannelInitializerModifier {
-        override fun modify(channel: SocketChannel) {
+        override fun modify(channel: Channel) {
             System.err.println("MODIFYING CHANNEL")
             channel.pipeline().addFirst("idleStateHandler", IdleStateHandler(15, 15, 0))
                 .addLast("keepAliveHandler", NettyKeepAliveHandler())

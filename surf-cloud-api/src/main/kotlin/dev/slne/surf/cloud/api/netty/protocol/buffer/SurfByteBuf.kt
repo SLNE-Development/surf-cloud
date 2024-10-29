@@ -19,6 +19,7 @@ import net.kyori.adventure.key.Key
 import net.kyori.adventure.sound.Sound
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer
+import okhttp3.internal.and
 import org.intellij.lang.annotations.Subst
 import java.io.*
 import java.util.*
@@ -43,8 +44,6 @@ class SurfByteBuf(source: ByteBuf) : WrappedByteBuf(source) {
          * @param buf the buf
          * @return the key
          */
-        // region [Static methods]
-        // region [Kyori Adventure]
         fun readKey(buf: ByteBuf): Key {
             @Subst("key:value") val keyString = readUtf(buf)
             return Key.key(keyString)
@@ -123,6 +122,43 @@ class SurfByteBuf(source: ByteBuf) : WrappedByteBuf(source) {
             NUMBER_DOUBLE -> buf.readDouble()
             else -> throw DecoderException("Unknown number type")
         }
+
+        fun writeUnsigned(buf: ByteBuf, value: Byte) {
+            checkEncoded(value >= 0) { "Value must be positive" }
+            buf.writeByte(value and 0xFF)
+        }
+
+        fun writeUnsigned(buf: ByteBuf, value: Short) {
+            checkEncoded(value >= 0) { "Value must be positive" }
+            buf.writeShort(value and 0xFFFF)
+        }
+
+        fun writeUnsigned(buf: ByteBuf, value: Int) {
+            checkEncoded(value >= 0) { "Value must be positive" }
+            buf.writeInt(value and 0xFFFFFFFF.toInt())
+        }
+
+        fun writeUnsigned(buf: ByteBuf, value: Long) {
+            checkEncoded(value >= 0) { "Value must be positive" }
+            buf.writeLong(value)
+        }
+
+        fun writeUnsigned(buf: ByteBuf, value: Float) {
+            checkEncoded(value >= 0) { "Value must be positive" }
+            buf.writeFloat(value)
+        }
+
+        fun writeUnsigned(buf: ByteBuf, value: Double) {
+            checkEncoded(value >= 0) { "Value must be positive" }
+            buf.writeDouble(value)
+        }
+
+        fun readUnsignedByte(buf: ByteBuf) = buf.readUnsignedByte()
+        fun readUnsignedShort(buf: ByteBuf) = buf.readUnsignedShort()
+        fun readUnsignedInt(buf: ByteBuf) = buf.readUnsignedInt()
+        fun readUnsignedLong(buf: ByteBuf) = buf.readLong()
+        fun readUnsignedFloat(buf: ByteBuf) = buf.readFloat()
+        fun readUnsignedDouble(buf: ByteBuf) = buf.readDouble()
 
         fun <T, C : MutableCollection<T>, B : ByteBuf> readCollection(
             buf: B,
@@ -566,6 +602,15 @@ class SurfByteBuf(source: ByteBuf) : WrappedByteBuf(source) {
     fun writeComponent(component: Component) = writeComponent(this, component)
     fun writeNumber(number: Number) = writeNumber(this, number)
     fun readNumber() = readNumber(this)
+    fun writeUnsigned(value: Byte) = writeUnsigned(this, value)
+    fun writeUnsigned(value: Short) = writeUnsigned(this, value)
+    fun writeUnsigned(value: Int) = writeUnsigned(this, value)
+    fun writeUnsigned(value: Long) = writeUnsigned(this, value)
+    fun writeUnsigned(value: Float) = writeUnsigned(this, value)
+    fun writeUnsigned(value: Double) = writeUnsigned(this, value)
+    fun readUnsignedLong() = readUnsignedLong(this)
+    fun readUnsignedFloat() = readUnsignedFloat(this)
+    fun readUnsignedDouble() = readUnsignedDouble(this)
     fun <T, C : MutableCollection<T>> readCollection(collectionFactory: (Int) -> C, decodeFactory: DecodeFactory<SurfByteBuf, T>) = readCollection(this, collectionFactory, decodeFactory)
     fun <T, C : MutableCollection<T>> readCollectionWithCodec(codec: Codec<T>, collectionFactory: (Int) -> C) = readCollection(collectionFactory) { it.readWithCodec(codec) }
     fun <T> writeCollection(collection: Collection<T>, encodeFactory: EncodeFactory<in SurfByteBuf, T>) = writeCollection(this, collection, encodeFactory)
@@ -712,6 +757,15 @@ fun ByteBuf.readComponent() = SurfByteBuf.readComponent(this)
 fun ByteBuf.writeComponent(component: Component) = SurfByteBuf.writeComponent(this, component)
 fun ByteBuf.writeNumber(number: Number) = SurfByteBuf.writeNumber(this, number)
 fun ByteBuf.readNumber() = SurfByteBuf.readNumber(this)
+fun ByteBuf.writeUnsigned(value: Byte) = SurfByteBuf.writeUnsigned(this, value)
+fun ByteBuf.writeUnsigned(value: Short) = SurfByteBuf.writeUnsigned(this, value)
+fun ByteBuf.writeUnsigned(value: Int) = SurfByteBuf.writeUnsigned(this, value)
+fun ByteBuf.writeUnsigned(value: Long) = SurfByteBuf.writeUnsigned(this, value)
+fun ByteBuf.writeUnsigned(value: Float) = SurfByteBuf.writeUnsigned(this, value)
+fun ByteBuf.writeUnsigned(value: Double) = SurfByteBuf.writeUnsigned(this, value)
+fun ByteBuf.readUnsignedLong() = SurfByteBuf.readUnsignedLong(this)
+fun ByteBuf.readUnsignedFloat() = SurfByteBuf.readUnsignedFloat(this)
+fun ByteBuf.readUnsignedDouble() = SurfByteBuf.readUnsignedDouble(this)
 fun <B : ByteBuf, T, C : MutableCollection<T>> B.readCollection(
     collectionFactory: (Int) -> C,
     decodeFactory: DecodeFactory<B, T>

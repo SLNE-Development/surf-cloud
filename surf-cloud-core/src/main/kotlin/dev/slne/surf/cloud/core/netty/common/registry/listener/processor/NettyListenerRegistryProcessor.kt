@@ -48,7 +48,7 @@ class NettyListenerRegistryProcessor : BeanPostProcessor {
                 NettyListenerRegistry.registerListener(handler, bean)
             }
         } catch (e: SurfNettyListenerRegistrationException) {
-            throw BeanCreationException(beanName, e?.message, e)
+            throw BeanCreationException(beanName, e.message ?: "<null>", e)
         }
     }
 }

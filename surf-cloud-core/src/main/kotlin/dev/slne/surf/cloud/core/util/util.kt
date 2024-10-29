@@ -3,6 +3,7 @@
 package dev.slne.surf.cloud.core.util
 
 import dev.slne.surf.cloud.api.util.logger
+import dev.slne.surf.cloud.core.coreCloudInstance
 import java.security.SecureRandom
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
@@ -45,3 +46,5 @@ private val STACK_WALK_INSTANCE: StackWalker =
 
 fun getCallerClass() =
     STACK_WALK_INSTANCE.walk { it.asSequence().drop(3).firstOrNull()?.declaringClass }
+
+inline fun <reified T : Any> bean() = coreCloudInstance.dataContext.getBean(T::class.java)

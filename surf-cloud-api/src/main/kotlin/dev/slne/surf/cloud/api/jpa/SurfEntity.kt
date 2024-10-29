@@ -8,15 +8,20 @@ import org.springframework.lang.Nullable
 
 @MappedSuperclass
 abstract class SurfEntity : Persistable<Long?> {
+    @Suppress("PropertyName")
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Nullable
-    @JvmField
-    var id: Long? = null
-    override fun getId() = id
+    protected var _id: Long? = null
+
+    override fun getId() = _id
+
+    fun setId(id: Long?) {
+        _id = id
+    }
 
     @Transient
-    override fun isNew(): Boolean = null == id
+    override fun isNew(): Boolean = null == _id
 
     override fun toString(): String {
         return String.format(

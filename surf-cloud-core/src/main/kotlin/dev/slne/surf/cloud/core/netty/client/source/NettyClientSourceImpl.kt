@@ -3,14 +3,17 @@ package dev.slne.surf.cloud.core.netty.client.source
 import dev.slne.surf.cloud.api.netty.source.NettyClientSource
 import dev.slne.surf.cloud.core.netty.AbstractNettyBase
 import dev.slne.surf.cloud.core.netty.common.source.AbstractProxiedNettySource
+import dev.slne.surf.cloud.core.netty.protocol.packet.handler.ServerRunningPacketListener
 import io.netty.channel.Channel
-import lombok.experimental.Accessors
 
-@Accessors(fluent = true)
+
 class NettyClientSourceImpl(
     base: AbstractNettyBase<*, *, NettyClientSource>,
     override val channel: Channel
 ) : AbstractProxiedNettySource<NettyClientSource>(base), NettyClientSource {
+    private var _connection: ServerRunningPacketListener? = null
+    val connection get() = _connection ?: error("Connection not set")
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is NettyClientSourceImpl) return false

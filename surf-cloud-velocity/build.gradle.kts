@@ -1,7 +1,7 @@
 dependencies {
     api(project(":surf-cloud-core"))
     compileOnly("com.velocitypowered:velocity-api:3.3.0-SNAPSHOT")
-    kapt("com.velocitypowered:velocity-api:3.3.0-SNAPSHOT")
+//    kapt("com.velocitypowered:velocity-api:3.3.0-SNAPSHOT")
 
     api("org.springframework.boot:spring-boot-starter-data-jpa")
     api("org.springframework.boot:spring-boot-starter-data-redis")

@@ -114,8 +114,8 @@ object NettyListenerRegistry {
 //            .add(RegisteredListener(bean, listenerMethod, packetClassIndex, packetInfoIndex))
     }
 
-    fun hasListeners(packetClass: Class<out NettyPacket<*>?>) = listeners.containsKey(packetClass)
-    internal fun getListeners(packetClass: Class<out NettyPacket<*>>) = listeners[packetClass]
+    fun hasListeners(packetClass: Class<out NettyPacket>) = listeners.containsKey(packetClass)
+    fun getListeners(packetClass: Class<out NettyPacket>) = listeners[packetClass]
 
     private fun Method.isSuspending() = kotlinFunction?.isSuspend == true
 }

@@ -1,22 +1,17 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
-import com.github.jengelman.gradle.plugins.shadow.transformers.Transformer
-import com.github.jengelman.gradle.plugins.shadow.transformers.TransformerContext
-import org.apache.commons.io.IOUtils
-import org.apache.tools.zip.ZipEntry
-import org.apache.tools.zip.ZipOutputStream
 
 
 plugins {
-    java
     `java-library`
     `maven-publish`
-//    id("io.spring.dependency-management") version "1.1.6"
-    id("org.hibernate.build.maven-repo-auth") version "3.0.4" apply false
-    id("io.github.goooler.shadow") version "8.1.8" apply false
-    id("io.freefair.lombok") version "8.10"
+
+    id("org.hibernate.build.maven-repo-auth") version "3.0.4"
+    id("com.gradleup.shadow") version "8.3.3"
+
     kotlin("jvm") version "2.0.21"
     kotlin("plugin.spring") version "2.0.21"
     kotlin("plugin.lombok") version "2.0.21"
+    kotlin("plugin.jpa") version "2.0.21"
     kotlin("kapt") version "2.0.21"
 }
 
@@ -27,15 +22,15 @@ java {
 }
 
 allprojects {
-    apply(plugin = "java")
     apply(plugin = "org.gradle.java-library")
-    apply(plugin = "io.github.goooler.shadow")
+    apply(plugin = "com.gradleup.shadow")
+
     apply(plugin = "org.gradle.maven-publish")
     apply(plugin = "org.hibernate.build.maven-repo-auth")
-    apply(plugin = "io.freefair.lombok")
     apply(plugin = "org.jetbrains.kotlin.jvm")
     apply(plugin = "org.jetbrains.kotlin.plugin.spring")
     apply(plugin = "org.jetbrains.kotlin.plugin.lombok")
+    apply(plugin = "org.jetbrains.kotlin.plugin.jpa")
     apply(plugin = "org.jetbrains.kotlin.kapt")
 
     group = "dev.slne.surf.cloud"
@@ -47,13 +42,17 @@ allprojects {
         maven("https://repo.slne.dev/repository/maven-public/") { name = "maven-public" }
         maven("https://repo.slne.dev/repository/maven-snapshots/") { name = "maven-snapshots" }
         maven("https://repo.slne.dev/repository/maven-proxy/") { name = "maven-proxy" }
+        maven("https://repo.glaremasters.me/repository/public/")
     }
 
     dependencies {
-        // https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-dependencies
-        implementation(platform("org.springframework.boot:spring-boot-dependencies:3.3.4")) {
+        implementation(platform("org.springframework.boot:spring-boot-dependencies:3.3.5")) {
             because("Spring Boot BOM")
         }
+        // dsl
+        val autoDslVersion = "2.4.0"
+        implementation("com.faendir.kotlin.autodsl:annotations:$autoDslVersion")
+        kapt("com.faendir.kotlin.autodsl:processor:$autoDslVersion")
 
         // dependencies for all projects
         //        developmentOnly("org.springframework.boot:spring-boot-devtools")
@@ -63,16 +62,12 @@ allprojects {
         // https://mvnrepository.com/artifact/org.jetbrains.kotlinx/kotlinx-coroutines-reactive
         api("org.jetbrains.kotlinx:kotlinx-coroutines-reactor:1.9.0")
 
-        // Annotation processors
-        implementation("org.springframework.boot:spring-boot-configuration-processor:3.3.3")
+//    implementation("org.springframework.boot:spring-boot-configuration-processor:3.3.3")
         kapt("org.springframework.boot:spring-boot-configuration-processor:3.3.3")
-        implementation("com.google.auto.service:auto-service:1.1.1")
+//    implementation("com.google.auto.service:auto-service:1.1.1")
         kapt("com.google.auto.service:auto-service:1.1.1")
-
-        // Tests
-        testImplementation("org.springframework.boot:spring-boot-starter-test")
-        testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     }
+
 
     tasks {
         withType<ShadowJar> {
@@ -104,40 +99,18 @@ allprojects {
     }
 }
 
-class UniqueLinesTransformer : Transformer {
-    private val filesContentMap: MutableMap<String, MutableSet<String>> = mutableMapOf()
-    override fun getName() = "uniqueLines"
-
-    override fun canTransformResource(element: FileTreeElement): Boolean {
-        // Transformiere nur Dateien im META-INF Ordner
-        val fullName = element.relativePath.toString()
-        return fullName.startsWith("META-INF/")
-    }
-
-    override fun transform(inputStream: TransformerContext) {
-        val relativePath = inputStream.path // Der Pfad der Datei
-        val content = IOUtils.toString(inputStream.`is`, "UTF-8")
-
-        // Füge den Inhalt zur Datei hinzu, indem du duplikatfreie Zeilen speicherst
-        filesContentMap.computeIfAbsent(relativePath) { LinkedHashSet() }
-        filesContentMap[relativePath]!!.addAll(content.lines())
-    }
-
-    override fun hasTransformedResource(): Boolean {
-        return filesContentMap.isNotEmpty()
-    }
-
-    override fun modifyOutputStream(os: ZipOutputStream, preserveFileTimestamps: Boolean) {
-        filesContentMap.forEach { (filePath, uniqueLines) ->
-            val entry = ZipEntry(filePath)
-            os.putNextEntry(entry)
-            os.write(uniqueLines.joinToString("\n").toByteArray())
-            os.closeEntry()
-        }
-    }
-}
-
 
 tasks.withType<Test> {
     useJUnitPlatform()
+}
+
+kotlin {
+    compilerOptions {
+        freeCompilerArgs.addAll("-Xjsr305=strict")
+    }
+}
+allOpen {
+    annotation("jakarta.persistence.Entity")
+    annotation("jakarta.persistence.MappedSuperclass")
+    annotation("jakarta.persistence.Embeddable")
 }

@@ -10,10 +10,10 @@ import dev.slne.surf.cloud.api.netty.source.ProxiedNettySource
 import dev.slne.surf.cloud.api.util.logger
 import dev.slne.surf.cloud.core.config.cloudConfig
 import dev.slne.surf.cloud.core.coroutines.NettyListenerScope
-import dev.slne.surf.cloud.core.netty.common.connection.AbstractNettyConnection
 import dev.slne.surf.cloud.core.netty.common.registry.listener.NettyListenerRegistry
 import dev.slne.surf.cloud.core.netty.common.registry.packet.NettyPacketRegistry
 import dev.slne.surf.cloud.core.netty.protocol.packet.NettyPacketInfo
+import dev.slne.surf.cloud.core.netty.temp.AbstractNettyConnection
 import dev.slne.surf.cloud.core.spring.event.RootSpringContextInitialized
 import jakarta.annotation.PreDestroy
 import kotlinx.coroutines.launch
@@ -36,7 +36,9 @@ abstract class AbstractNettyBase<SELF : AbstractNettyBase<SELF, Connection, Clie
     @EventListener
     suspend fun handleContextRefreshedEvent(ignored: RootSpringContextInitialized?) {
         try {
-            connection.tryEstablishConnection()
+            runBlocking {
+                connection.tryEstablishConnection()
+            }
         } catch (e: Exception) {
             throw FatalSurfError {
                 simpleErrorMessage("Failed to establish connection to the server.")

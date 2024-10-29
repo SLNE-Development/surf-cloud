@@ -7,7 +7,7 @@ import dev.slne.surf.cloud.api.netty.source.ProxiedNettySource
 import org.jetbrains.annotations.Contract
 
 data class NettyPacketInfo(
-    val source: NettySource<*>,
+    val connection: Any, // TODO
     val proxiedSource: ProxiedNettySource<*>?
 ) {
     constructor(source: NettySource<*>) : this(source, null)

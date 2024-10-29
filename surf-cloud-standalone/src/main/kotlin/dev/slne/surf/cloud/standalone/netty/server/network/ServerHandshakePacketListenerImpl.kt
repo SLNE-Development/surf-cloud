@@ -1,0 +1,62 @@
+package dev.slne.surf.cloud.standalone.netty.server.network
+
+import dev.slne.surf.cloud.core.netty.network.Connection
+import dev.slne.surf.cloud.core.netty.network.protocol.handshake.ServerHandshakePacketListener
+import dev.slne.surf.cloud.core.netty.network.protocol.login.LoginProtocols
+import dev.slne.surf.cloud.core.netty.protocol.packets.cloud.phase.handshake.serverbound.PROTOCOL_VERSION
+import dev.slne.surf.cloud.core.netty.protocol.packets.cloud.phase.handshake.serverbound.ServerboundHandshakePacket
+import dev.slne.surf.cloud.core.netty.protocol.packets.cloud.phase.login.clientbound.ClientboundLoginDisconnectPacket
+import java.net.InetSocketAddress
+
+class ServerHandshakePacketListenerImpl(val connection: Connection) :
+    ServerHandshakePacketListener {
+    override suspend fun handleHandshake(packet: ServerboundHandshakePacket) {
+        connection.hostname = "${packet.hostName}:${packet.port}"
+
+        when (packet.intention) {
+            ServerboundHandshakePacket.ClientIntent.INITIALIZE -> TODO("Not yet implemented")
+            ServerboundHandshakePacket.ClientIntent.LOGIN -> beginLogin(packet)
+            ServerboundHandshakePacket.ClientIntent.STATUS -> TODO("Not yet implemented")
+        }
+
+        connection.virtualHost = prepareVirtualHost(packet.hostName, packet.port)
+    }
+
+    private suspend fun beginLogin(packet: ServerboundHandshakePacket) {
+        connection.setupOutboundProtocol(LoginProtocols.CLIENTBOUND)
+
+        if (packet.protocolVersion != PROTOCOL_VERSION) {
+            val reason =
+                if (packet.protocolVersion > PROTOCOL_VERSION) "Outdated server" else "Outdated client"
+            connection.send(ClientboundLoginDisconnectPacket(reason))
+            connection.disconnect(reason)
+
+            return
+        }
+
+        connection.setupInboundProtocol(
+            LoginProtocols.SERVERBOUND,
+            ServerLoginPacketListenerImpl(connection)
+        )
+    }
+
+    override fun onDisconnect(reason: String) {
+    }
+
+    private fun prepareVirtualHost(host: String, port: Int): InetSocketAddress {
+        var len = host.length
+
+        // FML appends a marker to the host to recognize FML clients (\0FML\0)
+        val pos = host.indexOf('\u0000')
+        if (pos >= 0) {
+            len = pos
+        }
+
+        // When clients connect with a SRV record, their host contains a trailing '.'
+        if (len > 0 && host[len - 1] == '.') {
+            len--
+        }
+
+        return InetSocketAddress.createUnresolved(host.substring(0, len), port)
+    }
+}

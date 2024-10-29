@@ -5,6 +5,7 @@ import dev.slne.surf.cloud.api.SurfCloudInstance
 import dev.slne.surf.cloud.api.cloudInstance
 import dev.slne.surf.cloud.api.exceptions.ExitCodes
 import dev.slne.surf.cloud.api.exceptions.FatalSurfError
+import dev.slne.surf.cloud.api.startSpringApplication
 import dev.slne.surf.cloud.api.util.JoinClassLoader
 import dev.slne.surf.cloud.api.util.logger
 import dev.slne.surf.cloud.core.spring.SurfSpringBanner
@@ -17,17 +18,15 @@ import org.springframework.boot.builder.SpringApplicationBuilder
 import org.springframework.context.ConfigurableApplicationContext
 import org.springframework.core.NestedRuntimeException
 import org.springframework.core.io.DefaultResourceLoader
+import org.springframework.stereotype.Component
 import java.nio.file.Path
 import javax.annotation.OverridingMethodsMustInvokeSuper
-import kotlin.concurrent.Volatile
 
 abstract class SurfCloudCoreInstance : SurfCloudInstance {
     protected val log = logger()
 
-    @Volatile
-    private var _dataContext: ConfigurableApplicationContext? = null
     val dataContext: ConfigurableApplicationContext
-        get() = _dataContext ?: throw IllegalStateException("Data context is not initialized yet.")
+        get() = internalContext ?: throw IllegalStateException("Data context is not initialized yet.")
 
     abstract val dataFolder: Path
     protected open val springProfile = "client"
@@ -38,6 +37,7 @@ abstract class SurfCloudCoreInstance : SurfCloudInstance {
 
     @MustBeInvokedByOverriders
     open fun onLoad() {
+        println("Loading SurfCloudCoreInstance...")
         Thread.setDefaultUncaughtExceptionHandler { thread, e ->
             log.atSevere()
                 .withCause(e)
@@ -51,8 +51,9 @@ abstract class SurfCloudCoreInstance : SurfCloudInstance {
                 )
         }
 
+        println("Starting Spring application...")
         try {
-            _dataContext = startSpringApplication(SurfCloudMainApplication::class.java)
+            internalContext = startSpringApplication(SurfCloudMainApplication::class)
         } catch (e: Throwable) {
             if (e is FatalSurfError) {
                 // Re-throw FatalSurfError immediately
@@ -79,7 +80,8 @@ abstract class SurfCloudCoreInstance : SurfCloudInstance {
             }
         }
 
-        _dataContext?.publishEvent(RootSpringContextInitialized(this))
+        println("SurfCloudCoreInstance loaded.")
+        internalContext?.publishEvent(RootSpringContextInitialized(this))
     }
 
     @OverridingMethodsMustInvokeSuper
@@ -88,7 +90,7 @@ abstract class SurfCloudCoreInstance : SurfCloudInstance {
 
     @OverridingMethodsMustInvokeSuper
     open fun onDisable() {
-        if (_dataContext?.isActive == true) _dataContext?.close()
+        if (internalContext?.isActive == true) internalContext?.close()
     }
 
     override fun startSpringApplication(
@@ -97,25 +99,30 @@ abstract class SurfCloudCoreInstance : SurfCloudInstance {
         vararg parentClassLoader: ClassLoader
     ): ConfigurableApplicationContext {
         val joinClassLoader = JoinClassLoader(classLoader, parentClassLoader)
-        return tempChangeSystemClassLoader(joinClassLoader) {
+//        return tempChangeSystemClassLoader(joinClassLoader) {
             val builder = SpringApplicationBuilder(applicationClass)
                 .resourceLoader(DefaultResourceLoader(joinClassLoader))
                 .bannerMode(Banner.Mode.CONSOLE)
                 .banner(SurfSpringBanner())
                 .profiles(springProfile)
 
-            if (_dataContext != null) {
-                builder.parent(_dataContext)
+            if (internalContext != null) {
+                builder.parent(internalContext)
             }
 
-            builder.run()
-        }
+            println("Starting Spring application...")
+            return builder.run()
+//        }
     }
 
     companion object {
+        @Volatile
+        var internalContext: ConfigurableApplicationContext? = null
+
         @JvmStatic
         fun get() = SurfCloudInstance.get() as SurfCloudCoreInstance
     }
+
 }
 
 val coreCloudInstance: SurfCloudCoreInstance

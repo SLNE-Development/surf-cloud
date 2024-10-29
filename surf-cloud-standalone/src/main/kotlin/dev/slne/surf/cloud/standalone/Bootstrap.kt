@@ -1,7 +1,6 @@
 package dev.slne.surf.cloud.standalone
 
 import dev.slne.surf.cloud.api.exceptions.FatalSurfError
-import dev.slne.surf.cloud.standalone.SurfCloudStandaloneInstance.Companion.get
 import dev.slne.surf.cloud.standalone.spring.config.logback.CloudLogbackConfigurator
 import dev.slne.surf.surfapi.standalone.SurfApiStandaloneBootstrap
 import org.springframework.boot.SpringApplication
@@ -18,12 +17,11 @@ object Bootstrap {
             SurfApiStandaloneBootstrap.bootstrap()
             CloudLogbackConfigurator.configure()
 
-            val instance = get()
-            instance.onLoad()
-            instance.onEnable()
+            independentCloudInstance.onLoad()
+            independentCloudInstance.onEnable()
 
             Runtime.getRuntime().addShutdownHook(thread(start = false) {
-                instance.onDisable()
+                independentCloudInstance.onDisable()
                 SurfApiStandaloneBootstrap.shutdown()
             })
         } catch (e: NestedRuntimeException) {

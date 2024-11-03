@@ -7,13 +7,19 @@ import dev.slne.surf.cloud.core.config.cloudConfig
 import dev.slne.surf.cloud.standalone.netty.server.connection.ServerConnectionListener
 import io.netty.channel.epoll.Epoll
 import io.netty.channel.unix.DomainSocketAddress
+import jakarta.annotation.PreDestroy
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import org.springframework.context.annotation.Profile
+import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 import java.net.InetAddress
 import java.net.InetSocketAddress
 import java.net.SocketAddress
+import java.util.concurrent.TimeUnit
 
 @Component
 @Profile("independent")
@@ -24,7 +30,8 @@ class NettyServerImpl {
     private var port = -1
 
     val connection by lazy { ServerConnectionListener(this) }
-
+    private val clients = mutableObjectListOf<ServerClientImpl>().synchronize()
+    private val clientsLock = Mutex()
     private val schedules = mutableObjectListOf<() -> Unit>().synchronize()
 
     suspend fun initServer(): Boolean = withContext(Dispatchers.IO) {
@@ -71,12 +78,19 @@ class NettyServerImpl {
         connection.acceptConnections()
     }
 
+    @PreDestroy
+    protected fun stop() {
+        runBlocking { stopServer() }
+    }
+
     suspend fun stopServer() {
         connection.stop()
     }
 
+
+    @Scheduled(fixedRate = 1, timeUnit = TimeUnit.SECONDS)
     suspend fun tick() {
-        connection.connections.forEach {  }
+        connection.connections.forEach { it.tick() }
         connection.tick()
         schedules.removeAll { function ->
             function()
@@ -86,5 +100,23 @@ class NettyServerImpl {
 
     fun schedule(function: () -> Unit) {
         schedules.add(function)
+    }
+
+    suspend fun registerClient(client: ServerClientImpl) {
+        clientsLock.withLock {
+            clients.add(client)
+        }
+    }
+
+    suspend fun forEachClient(action: suspend (ServerClientImpl) -> Unit) {
+        clientsLock.withLock {
+            clients.forEach { action(it) }
+        }
+    }
+
+    suspend fun clientsSnapshot(): List<ServerClientImpl> {
+        return clientsLock.withLock {
+            clients.toList()
+        }
     }
 }

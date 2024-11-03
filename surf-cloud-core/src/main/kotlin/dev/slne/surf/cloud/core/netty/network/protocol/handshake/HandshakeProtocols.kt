@@ -3,7 +3,6 @@ package dev.slne.surf.cloud.core.netty.network.protocol.handshake
 import dev.slne.surf.cloud.api.netty.network.ConnectionProtocol
 import dev.slne.surf.cloud.api.netty.protocol.buffer.SurfByteBuf
 import dev.slne.surf.cloud.core.netty.network.protocol.ProtocolInfoBuilder
-import dev.slne.surf.cloud.core.netty.protocol.packets.cloud.phase.handshake.serverbound.ServerboundHandshakePacket
 
 object HandshakeProtocols {
     val SERVERBOUND_TEMPLATE =

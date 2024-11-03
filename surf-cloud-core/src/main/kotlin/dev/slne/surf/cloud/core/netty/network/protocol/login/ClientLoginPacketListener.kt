@@ -6,4 +6,6 @@ import dev.slne.surf.cloud.core.netty.network.ClientboundPacketListener
 interface ClientLoginPacketListener: ClientboundPacketListener {
     override val protocol: ConnectionProtocol
         get() = ConnectionProtocol.LOGIN
+
+    suspend fun handleLoginFinished(packet: ClientboundLoginFinishedPacket)
 }

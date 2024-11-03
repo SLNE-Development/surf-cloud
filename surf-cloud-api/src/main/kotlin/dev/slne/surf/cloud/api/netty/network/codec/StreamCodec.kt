@@ -251,6 +251,7 @@ fun <B, V> streamCodecMember(
 ) = StreamCodec.ofMember(encoder, decoder)
 
 fun <B, V> streamCodecUnit(value: V) = StreamCodec.unit<B, V>(value)
+fun <V> streamCodecUnitSimple(value: V) = StreamCodec.unit<ByteBuf, V>(value)
 
 fun <B, C, T1> streamCodecComposite(
     codec: StreamCodec<B, T1>,

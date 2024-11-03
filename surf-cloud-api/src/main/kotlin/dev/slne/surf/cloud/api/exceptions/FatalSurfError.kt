@@ -1,6 +1,5 @@
 package dev.slne.surf.cloud.api.exceptions
 
-import lombok.Builder
 import org.apache.commons.lang3.StringUtils
 import org.apache.commons.text.WordUtils
 import org.springframework.boot.ExitCodeGenerator
@@ -10,7 +9,6 @@ import kotlin.contracts.contract
 
 private const val LINE_WIDTH = 80
 
-@Builder
 class FatalSurfError private constructor(
     private val simpleErrorMessage: String?,
     private val detailedErrorMessage: String?,
@@ -152,4 +150,7 @@ object ExitCodes {
     const val UNKNOWN_ERROR = 1
     const val UNABLE_TO_CONNECT_TO_DATABASE = 10
     const val CONNECTION_FAILURE = 11
+
+    const val CLIENT_COULD_NOT_CONNECT_TO_SERVER = 20
+    const val CLIENT_COULD_NOT_FETCH_SERVER_ID = 21
 }

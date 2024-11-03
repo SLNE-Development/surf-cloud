@@ -2,13 +2,10 @@ package dev.slne.surf.cloud.standalone.redis
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import dev.slne.surf.cloud.standalone.independentCloudInstance
-import lombok.AccessLevel
-import lombok.NoArgsConstructor
 import org.apache.commons.lang3.ArrayUtils
 import org.apache.commons.lang3.builder.ToStringBuilder
 import java.util.*
 
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
 abstract class RedisEvent {
 
     @get:JsonIgnore

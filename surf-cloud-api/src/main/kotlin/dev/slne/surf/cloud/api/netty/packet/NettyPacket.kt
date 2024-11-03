@@ -1,23 +1,39 @@
 package dev.slne.surf.cloud.api.netty.packet
 
+import dev.slne.surf.cloud.api.meta.PacketCodec
 import dev.slne.surf.cloud.api.meta.SurfNettyPacket
 import dev.slne.surf.cloud.api.netty.network.codec.StreamCodec
 import dev.slne.surf.cloud.api.netty.network.codec.StreamDecoder
 import dev.slne.surf.cloud.api.netty.network.codec.StreamMemberEncoder
-import dev.slne.surf.cloud.api.netty.network.protocol.PacketFlow
+import dev.slne.surf.cloud.api.util.isStaticFinal
+import dev.slne.surf.cloud.api.util.object2ObjectMapOf
 import io.netty.buffer.ByteBuf
+import io.netty.channel.Channel
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.withTimeoutOrNull
 import org.jetbrains.annotations.ApiStatus.Internal
+import java.util.*
 import java.util.concurrent.ThreadLocalRandom
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
 import kotlin.reflect.KClass
+import kotlin.reflect.full.companionObject
+import kotlin.reflect.full.companionObjectInstance
+import kotlin.reflect.full.declaredMemberProperties
 import kotlin.reflect.full.findAnnotation
+import kotlin.reflect.jvm.isAccessible
+import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.channels.Channel as CoroutineChannel
 
 
 abstract class NettyPacket {
 
     internal var sessionId = ThreadLocalRandom.current().nextLong()
         private set
-    val id: Int
-    val flow: PacketFlow
+    private val meta = this::class.getPacketMeta()
+
+    val id = meta.id
+    val flow = meta.flow
 
     /**
      * Whether the packet is skippable or not.
@@ -32,12 +48,6 @@ abstract class NettyPacket {
 
     @Internal
     open val terminal: Boolean = false
-
-    init {
-        val meta = this::class.getPacketMeta()
-        this.id = meta.id
-        this.flow = meta.flow
-    }
 
     /**
      * Custom logic to handle when the packet is too large.
@@ -84,6 +94,43 @@ abstract class NettyPacket {
 
 
     // TODO: 16.09.2024 14:49 - send method
+
+    val channel: Channel
+        get() = TODO()
+
+    fun fireAndForget() {
+    }
+
+    suspend fun fire() = suspendCancellableCoroutine {
+        channel.writeAndFlush(this)
+            .also { future -> it.invokeOnCancellation { future.cancel(true) } }
+            .addListener { future ->
+                if (future.isSuccess) {
+                    it.resume(Unit)
+                } else {
+                    it.resumeWithException(future.cause())
+                }
+            }
+    }
+}
+
+abstract class RespondingNettyPacket<P : NettyPacket> : NettyPacket() {
+    val requestId = UUID.randomUUID()
+
+    suspend fun fireAndAwait(): P? = withTimeoutOrNull(15.seconds) {
+        val responseChannel = CoroutineChannel<P>()
+
+        // registerResponseChannel(requestId, responseChannel)
+
+        try {
+            fireAndForget()
+            responseChannel.receive()
+        } finally {
+            // unregisterResponseChannel(requestId)
+            responseChannel.close()
+        }
+    }
+
 }
 
 fun KClass<out NettyPacket>.getPacketMeta() = findAnnotation<SurfNettyPacket>()
@@ -91,7 +138,39 @@ fun KClass<out NettyPacket>.getPacketMeta() = findAnnotation<SurfNettyPacket>()
 
 fun Class<out NettyPacket>.getPacketMeta() = kotlin.getPacketMeta()
 
-fun <B: ByteBuf, T: NettyPacket> packetCodec(
+fun <B : ByteBuf, T : NettyPacket> packetCodec(
     encoder: StreamMemberEncoder<B, T>,
     decoder: StreamDecoder<B, T>
 ): StreamCodec<B, T> = NettyPacket.codec(encoder, decoder)
+
+private val codecCache = object2ObjectMapOf<KClass<out NettyPacket>, StreamCodec<*, *>>()
+fun <B, V> KClass<out NettyPacket>.findPacketCodec(): StreamCodec<B, V>? {
+    if (this in codecCache) {
+        @Suppress("UNCHECKED_CAST")
+        return codecCache[this] as StreamCodec<B, V>
+    }
+
+    val properties =
+        declaredMemberProperties + (companionObject?.declaredMemberProperties ?: emptyList())
+
+    val annotatedProperty = properties.find { it.findAnnotation<PacketCodec>() != null }
+    if (annotatedProperty != null) {
+        annotatedProperty.isAccessible = true
+        val codec = annotatedProperty.call(companionObjectInstance ?: this) as? StreamCodec<B, V>
+        codecCache[this] = codec
+        return codec
+    }
+
+    val codec = properties.find { property ->
+        property.name == "STREAM_CODEC" &&
+                property.returnType.classifier == StreamCodec::class &&
+                property.isStaticFinal()
+    }?.apply { isAccessible = true }
+        ?.call(companionObjectInstance ?: this) as? StreamCodec<B, V>
+
+    if (codec != null) {
+        codecCache[this] = codec
+    }
+
+    return codec
+}

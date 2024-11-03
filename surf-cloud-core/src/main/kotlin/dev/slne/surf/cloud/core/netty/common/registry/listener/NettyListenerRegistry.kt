@@ -14,7 +14,7 @@ import kotlin.reflect.jvm.kotlinFunction
 
 object NettyListenerRegistry {
     private val listeners =
-        Object2ObjectOpenHashMap<Class<out NettyPacket<*>>, ObjectSet<RegisteredListener>>()
+        Object2ObjectOpenHashMap<Class<out NettyPacket>, ObjectSet<RegisteredListener>>()
 
     fun registerListener(listenerMethod: Method, bean: Any) {
         val params = listenerMethod.parameterTypes
@@ -27,7 +27,7 @@ object NettyListenerRegistry {
             )
         }
 
-        var packetClass: Class<out NettyPacket<*>>? = null
+        var packetClass: Class<out NettyPacket>? = null
         var packetClassIndex = -1
         var packetInfoIndex = -1
 
@@ -37,7 +37,7 @@ object NettyListenerRegistry {
                     if (packetClass != null) {
                         throw SurfNettyListenerRegistrationException("Listener method must have only one parameter of type NettyPacket")
                     }
-                    packetClass = param as Class<out NettyPacket<*>>
+                    packetClass = param as Class<out NettyPacket>
                     packetClassIndex = index
                 }
 

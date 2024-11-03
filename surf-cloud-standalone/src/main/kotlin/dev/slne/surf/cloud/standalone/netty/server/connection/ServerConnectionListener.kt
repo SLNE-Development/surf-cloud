@@ -1,10 +1,13 @@
 package dev.slne.surf.cloud.standalone.netty.server.connection
 
-import com.google.common.util.concurrent.ThreadFactoryBuilder
 import dev.slne.surf.cloud.api.netty.network.protocol.PacketFlow
 import dev.slne.surf.cloud.api.util.*
 import dev.slne.surf.cloud.core.config.cloudConfig
+import dev.slne.surf.cloud.core.coroutines.NettyConnectionScope
 import dev.slne.surf.cloud.core.netty.network.Connection
+import dev.slne.surf.cloud.core.netty.network.DisconnectionDetails
+import dev.slne.surf.cloud.core.netty.network.HandlerNames
+import dev.slne.surf.cloud.core.netty.network.protocol.running.ClientboundDisconnectPacket
 import dev.slne.surf.cloud.standalone.netty.server.NettyServerImpl
 import dev.slne.surf.cloud.standalone.netty.server.network.ServerHandshakePacketListenerImpl
 import io.netty.bootstrap.ServerBootstrap
@@ -19,6 +22,9 @@ import io.netty.channel.unix.DomainSocketAddress
 import io.netty.handler.flush.FlushConsolidationHandler
 import io.netty.handler.timeout.ReadTimeoutHandler
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import java.net.InetAddress
 import java.net.InetSocketAddress
@@ -35,6 +41,7 @@ class ServerConnectionListener(val server: NettyServerImpl) {
         private set
 
     private val channels = mutableObjectListOf<ChannelFuture>().synchronize()
+    private val channelsMutex = Mutex()
     val connections = mutableObjectListOf<Connection>().synchronize()
     private val pending = ConcurrentLinkedQueue<Connection>()
 
@@ -62,39 +69,40 @@ class ServerConnectionListener(val server: NettyServerImpl) {
             log.atInfo().log("Using default channel type")
         }
 
-        channels.add(
-            ServerBootstrap()
-                .channel(channelClass)
-                .group(eventloopgroup)
-                .localAddress(address)
-                .option(ChannelOption.AUTO_READ, false)
-                .childHandler(object : ChannelInitializer<Channel>() {
-                    override fun initChannel(channel: Channel) {
-                        runCatching {
-                            channel.config().setOption(ChannelOption.TCP_NODELAY, true)
-                        }
-
-                        val pipeline = channel.pipeline().addFirst(FlushConsolidationHandler())
-                            .addLast("timeout", ReadTimeoutHandler(30))
-
-                        Connection.configureSerialization(
-                            pipeline,
-                            PacketFlow.SERVERBOUND,
-                            false
-                        )
-
-                        val connection = Connection(PacketFlow.SERVERBOUND) // TODO: rate limit
-
-                        pending.add(connection)
-                        connection.configurePacketHandler(pipeline)
-                        connection.setListenerForServerboundHandshake(
-                            ServerHandshakePacketListenerImpl(connection)
-                        )
+        val channel = ServerBootstrap()
+            .channel(channelClass)
+            .group(eventloopgroup)
+            .localAddress(address)
+            .option(ChannelOption.AUTO_READ, false)
+            .childHandler(object : ChannelInitializer<Channel>() {
+                override fun initChannel(channel: Channel) {
+                    runCatching {
+                        channel.config().setOption(ChannelOption.TCP_NODELAY, true)
                     }
-                })
-                .bind()
-                .suspend()
-        )
+
+                    val pipeline = channel.pipeline()
+                        .addFirst(FlushConsolidationHandler())
+                        .addLast(HandlerNames.TIMEOUT, ReadTimeoutHandler(30))
+
+                    Connection.configureSerialization(
+                        pipeline,
+                        PacketFlow.SERVERBOUND,
+                        false
+                    )
+
+                    val connection = Connection(PacketFlow.SERVERBOUND) // TODO: rate limit
+
+                    pending.add(connection)
+                    connection.configurePacketHandler(pipeline)
+                    connection.setListenerForServerboundHandshake(
+                        ServerHandshakePacketListenerImpl(server, connection)
+                    )
+                }
+            })
+            .bind()
+            .suspend()
+
+        channelsMutex.withLock { channels.add(channel) }
     }
 
     fun acceptConnections() {
@@ -140,7 +148,13 @@ class ServerConnectionListener(val server: NettyServerImpl) {
                     log.atWarning()
                         .withCause(e)
                         .log("Failed to handle packet for ${connection.getLoggableAddress(logIps)}")
-                    connection.disconnect("Internal server error")
+
+                    NettyConnectionScope.launch {
+                        val details = DisconnectionDetails("Internal server error")
+                        connection.sendWithIndication(ClientboundDisconnectPacket(details))
+                        connection.disconnect(details)
+                    }
+
                     connection.setReadOnly()
                 }
             } else {
@@ -157,21 +171,21 @@ class ServerConnectionListener(val server: NettyServerImpl) {
 
         val SERVER_EVENT_GROUP by lazy {
             NioEventLoopGroup(
-                ThreadFactoryBuilder()
-                    .setNameFormat("Netty Server IO #%d")
-                    .setDaemon(true)
-                    .setUncaughtExceptionHandler(DefaultUncaughtExceptionHandlerWithName(log))
-                    .build()
+                threadFactory {
+                    nameFormat("Netty Server IO #%d")
+                    daemon(true)
+                    uncaughtExceptionHandler(DefaultUncaughtExceptionHandlerWithName(log))
+                }
             )
         }
 
         val SERVER_EPOLL_EVENT_GROUP by lazy {
             EpollEventLoopGroup(
-                ThreadFactoryBuilder()
-                    .setNameFormat("Netty Epoll Server IO #%d")
-                    .setDaemon(true)
-                    .setUncaughtExceptionHandler(DefaultUncaughtExceptionHandlerWithName(log))
-                    .build()
+                threadFactory {
+                    nameFormat("Netty Epoll Server IO #%d")
+                    daemon(true)
+                    uncaughtExceptionHandler(DefaultUncaughtExceptionHandlerWithName(log))
+                }
             )
         }
     }

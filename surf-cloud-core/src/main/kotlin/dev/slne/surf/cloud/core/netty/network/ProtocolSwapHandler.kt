@@ -1,7 +1,6 @@
 package dev.slne.surf.cloud.core.netty.network
 
 import dev.slne.surf.cloud.api.netty.packet.NettyPacket
-import dev.slne.surf.cloud.core.netty.protocol.packet.handler.UnconfiguredPipelineHandler
 import io.netty.channel.ChannelHandlerContext
 
 object ProtocolSwapHandler {

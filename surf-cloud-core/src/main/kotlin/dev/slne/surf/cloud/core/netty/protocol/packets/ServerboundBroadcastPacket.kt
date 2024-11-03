@@ -1,29 +1,31 @@
 package dev.slne.surf.cloud.core.netty.protocol.packets
 
+import dev.slne.surf.cloud.api.meta.DefaultIds
+import dev.slne.surf.cloud.api.meta.SurfNettyPacket
+import dev.slne.surf.cloud.api.netty.network.protocol.PacketFlow
 import dev.slne.surf.cloud.api.netty.packet.NettyPacket
+import dev.slne.surf.cloud.api.netty.packet.packetCodec
 import dev.slne.surf.cloud.api.netty.protocol.buffer.SurfByteBuf
-import dev.slne.surf.cloud.core.netty.common.registry.packet.NettyPacketRegistry
+import dev.slne.surf.cloud.core.netty.network.protocol.running.RunningProtocols
 
+@SurfNettyPacket(DefaultIds.SERVERBOUND_BROADCAST_PACKET, PacketFlow.SERVERBOUND)
 class ServerboundBroadcastPacket : NettyPacket {
-    lateinit var packet: NettyPacket
+    companion object {
+        val STREAM_CODEC =
+            packetCodec(ServerboundBroadcastPacket::write, ::ServerboundBroadcastPacket)
+    }
 
-    internal constructor()
+    val packet: NettyPacket
 
     constructor(packet: NettyPacket) {
         this.packet = packet
     }
 
-    override fun encode(buffer: SurfByteBuf) {
-        buffer.writeVarInt(packet.id)
-        packet.encode(buffer)
+    private constructor(buffer: SurfByteBuf) {
+        packet = RunningProtocols.SERVERBOUND_LAZY.codec.decode(buffer)
     }
 
-    override fun decode(buffer: SurfByteBuf): ServerboundBroadcastPacket {
-        val packetId = buffer.readVarInt()
-        val createdPacket = NettyPacketRegistry.createPacket(packetId)
-        this.packet = createdPacket ?: error("Packet not found. PacketId: $packetId")
-        packet.decode(buffer)
-
-        return this
+    private fun write(buffer: SurfByteBuf) {
+        RunningProtocols.SERVERBOUND_LAZY.codec.encode(buffer, packet)
     }
 }

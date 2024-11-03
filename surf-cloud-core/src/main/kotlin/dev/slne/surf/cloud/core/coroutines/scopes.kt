@@ -21,3 +21,17 @@ object NettyListenerScope : CoroutineScope {
 
     override val coroutineContext = executor + CoroutineName("netty-listener") + SupervisorJob()
 }
+
+object NettyConnectionScope : CoroutineScope {
+    private val executor = Executors.newCachedThreadPool(object : ThreadFactory {
+        val factory = BasicThreadFactory.Builder()
+            .namingPattern("netty-connection-thread-%d")
+            .daemon(false)
+            .build()
+
+        override fun newThread(r: Runnable): Thread = factory.newThread(r)
+
+    }).asCoroutineDispatcher()
+
+    override val coroutineContext = executor + CoroutineName("netty-connection") + SupervisorJob()
+}

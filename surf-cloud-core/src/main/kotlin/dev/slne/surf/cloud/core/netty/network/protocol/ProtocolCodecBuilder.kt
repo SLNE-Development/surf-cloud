@@ -15,10 +15,10 @@ import kotlin.experimental.ExperimentalTypeInference
 
 class ProtocolCodecBuilder<B : ByteBuf>(side: PacketFlow) {
     private val dispatchBuilder =
-        IdDispatchCodec.builder<B, NettyPacket<*>, Class<out NettyPacket<*>>> { it.javaClass }
+        IdDispatchCodec.builder<B, NettyPacket, Class<out NettyPacket>> { it.javaClass }
     private val flow = side
 
-    fun <T : NettyPacket<*>> add(
+    fun <T : NettyPacket> add(
         id: Class<out T>,
         codec: StreamCodec<in B, out T>
     ) = apply {
@@ -27,13 +27,13 @@ class ProtocolCodecBuilder<B : ByteBuf>(side: PacketFlow) {
         dispatchBuilder.add(id, codec)
     }
 
-    fun build(): StreamCodec<B, NettyPacket<*>> = dispatchBuilder.build()
+    fun build(): StreamCodec<B, NettyPacket> = dispatchBuilder.build()
 }
 
 fun <B : ByteBuf> buildProtocolCodec(
     side: PacketFlow,
     @BuilderInference block: ProtocolCodecBuilder<B>.() -> Unit
-): StreamCodec<B, NettyPacket<*>> {
+): StreamCodec<B, NettyPacket> {
     contract {
         callsInPlace(block, InvocationKind.EXACTLY_ONCE)
     }

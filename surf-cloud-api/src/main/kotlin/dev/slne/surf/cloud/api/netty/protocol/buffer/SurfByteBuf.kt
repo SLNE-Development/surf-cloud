@@ -2,14 +2,18 @@
 
 package dev.slne.surf.cloud.api.netty.protocol.buffer
 
+import com.google.gson.Gson
+import com.google.gson.JsonElement
+import com.mojang.serialization.Codec
+import com.mojang.serialization.JsonOps
 import dev.slne.surf.cloud.api.netty.protocol.buffer.SurfByteBuf.Companion
-import dev.slne.surf.cloud.api.netty.protocol.buffer.codec.Codec
 import dev.slne.surf.cloud.api.netty.protocol.buffer.decoder.DecodeFactory
 import dev.slne.surf.cloud.api.netty.protocol.buffer.decoder.DecodeFactory.DecodeLongFactory
 import dev.slne.surf.cloud.api.netty.protocol.buffer.ecoder.EncodeFactory
 import dev.slne.surf.cloud.api.netty.protocol.buffer.ecoder.EncodeFactory.EncodeLongFactory
 import dev.slne.surf.cloud.api.netty.protocol.buffer.types.Utf8String
 import dev.slne.surf.cloud.api.netty.protocol.buffer.types.VarInt
+import dev.slne.surf.cloud.api.util.fromJson
 import io.netty.buffer.ByteBuf
 import io.netty.handler.codec.DecoderException
 import io.netty.handler.codec.EncoderException
@@ -37,6 +41,7 @@ private const val NUMBER_DOUBLE: Byte = 5
 
 class SurfByteBuf(source: ByteBuf) : WrappedByteBuf(source) {
     companion object {
+        private val GSON = Gson()
 
         /**
          * Read key key.
@@ -581,10 +586,25 @@ class SurfByteBuf(source: ByteBuf) : WrappedByteBuf(source) {
 
     // region [Instance methods]
     // @formatter:off
+
     @Throws(DecoderException::class)
-    fun <T> readWithCodec(codec: Codec<T>) = codec.decode(this)
+    fun <T> readJsonWithCodec(codec: Codec<T>) :T {
+        val jsonElement = fromJson<JsonElement>(GSON, readUtf())
+        val result = codec.parse(JsonOps.INSTANCE, jsonElement)
+
+        return result.getOrThrow { DecoderException("Failed to decode json: $it") }
+    }
+
+
+    @JvmOverloads
     @Throws(EncoderException::class)
-    fun <T> writeWithCodec(codec: Codec<T>, value: T) = codec.encode(this, value)
+    fun <T>writeJsonWithCodec(codec: Codec<T>, value: T, maxLength: Int = Int.MAX_VALUE) {
+        val result = codec.encodeStart(JsonOps.INSTANCE, value)
+
+        this.writeUtf(GSON.toJson(result.getOrThrow{EncoderException("Failed to encode: $it ${value.toString()}")}), maxLength)
+    }
+
+
     @Suppress("DEPRECATION")
     @Deprecated("Use codec instead")
     fun writeSerializable(serializable: Serializable) = writeSerializable(this, serializable)
@@ -612,9 +632,9 @@ class SurfByteBuf(source: ByteBuf) : WrappedByteBuf(source) {
     fun readUnsignedFloat() = readUnsignedFloat(this)
     fun readUnsignedDouble() = readUnsignedDouble(this)
     fun <T, C : MutableCollection<T>> readCollection(collectionFactory: (Int) -> C, decodeFactory: DecodeFactory<SurfByteBuf, T>) = readCollection(this, collectionFactory, decodeFactory)
-    fun <T, C : MutableCollection<T>> readCollectionWithCodec(codec: Codec<T>, collectionFactory: (Int) -> C) = readCollection(collectionFactory) { it.readWithCodec(codec) }
+    fun <T, C : MutableCollection<T>> readCollectionJsonWithCodec(codec: Codec<T>, collectionFactory: (Int) -> C) = readCollection(collectionFactory) { it.readJsonWithCodec(codec) }
     fun <T> writeCollection(collection: Collection<T>, encodeFactory: EncodeFactory<in SurfByteBuf, T>) = writeCollection(this, collection, encodeFactory)
-    fun <T> writeCollectionWithCodec(codec: Codec<T>, collection: Collection<T>) = writeCollection(collection) { buf, element -> buf.writeWithCodec(codec, element) }
+    fun <T> writeCollectionJsonWithCodec(codec: Codec<T>, collection: Collection<T>) = writeCollection(collection) { buf, element -> buf.writeJsonWithCodec(codec, element) }
     inline fun <reified T> readArray(decodeFactory: DecodeFactory<in SurfByteBuf, T>) = readArray(this, decodeFactory)
     fun <T> readArray(arrayFactory: (Int) -> Array<T>, decodeFactory: DecodeFactory<in SurfByteBuf, T>) = readArray(this, arrayFactory, decodeFactory)
     fun readIntArray() = readIntArray(this)
@@ -629,20 +649,20 @@ class SurfByteBuf(source: ByteBuf) : WrappedByteBuf(source) {
     fun readUuidArray() = readUuidArray(this)
 
     @Throws(DecoderException::class)
-    fun <T> readCodecArray(
+    fun <T> readCodecJsonArray(
         codec: Codec<T>,
         arrayFactory: (Int) -> Array<T>
     ): Array<T> {
         val array = arrayFactory(readVarInt())
 
         for (i in array.indices) {
-            array[i] = readWithCodec(codec)
+            array[i] = readJsonWithCodec(codec)
         }
 
         return array
     }
 
-    inline fun <reified T> readCodecArray(codec: Codec<T>) = Array(readVarInt()) { readWithCodec(codec) }
+    inline fun <reified T> readCodecJsonArray(codec: Codec<T>) = Array(readVarInt()) { readJsonWithCodec(codec) }
     fun <T> writeArray(array: Array<T>, encodeFactory: EncodeFactory<in SurfByteBuf, T>) = writeArray(this, array, encodeFactory)
     fun writeIntArray(array: IntArray) = writeIntArray(this, array)
     fun writeLongArray(array: LongArray) = writeLongArray(this, array)
@@ -656,19 +676,19 @@ class SurfByteBuf(source: ByteBuf) : WrappedByteBuf(source) {
     fun writeUuidArray(array: Array<UUID>) = writeUuidArray(this, array)
 
     @Throws(EncoderException::class)
-    fun <T> writeCodecArray(
+    fun <T> writeCodecJsonArray(
         codec: Codec<T>,
         array: Array<T>
     ) {
         writeVarInt(array.size)
 
         for (element in array) {
-            writeWithCodec(codec, element)
+            writeJsonWithCodec(codec, element)
         }
     }
 
     fun <T> readList(decodeFactory: DecodeFactory<SurfByteBuf, T>) = readList(this, decodeFactory)
-    fun <T> readListWithCodec(codec: Codec<T>) = readList { it.readWithCodec(codec) }
+    fun <T> readListJsonWithCodec(codec: Codec<T>) = readList { it.readJsonWithCodec(codec) }
     fun <K, V> readMap(keyDecodeFactory: DecodeFactory<in SurfByteBuf, K>, valueDecodeFactory: DecodeFactory<in SurfByteBuf, V>) = readMap(this, keyDecodeFactory, valueDecodeFactory)
     fun <K, V, M : MutableMap<K, V>> readMap(mapFactory: (Int) -> M, keyDecodeFactory: DecodeFactory<in SurfByteBuf, K>, valueDecodeFactory: DecodeFactory<in SurfByteBuf, V>) = readMap(this, mapFactory, keyDecodeFactory, valueDecodeFactory)
     fun <K, V> writeMap(map: Map<K, V>, keyEncodeFactory: EncodeFactory<in SurfByteBuf, K>, valueEncodeFactory: EncodeFactory<in SurfByteBuf, V>) = writeMap(this, map, keyEncodeFactory, valueEncodeFactory)
@@ -722,7 +742,7 @@ class SurfByteBuf(source: ByteBuf) : WrappedByteBuf(source) {
     fun readWithCount(reader: (SurfByteBuf) -> Unit) = readWithCount(this, reader)
     fun readWithCount(reader: Consumer<SurfByteBuf>) = readWithCount(this, reader)
     // @formatter:on
-    // endregion
+// endregion
 
 }
 

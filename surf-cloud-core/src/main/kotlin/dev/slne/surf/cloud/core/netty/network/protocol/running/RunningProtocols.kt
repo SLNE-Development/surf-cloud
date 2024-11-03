@@ -9,6 +9,10 @@ object RunningProtocols {
         ProtocolInfoBuilder.mutableClientboundProtocol<RunningClientPacketListener, SurfByteBuf>(
             ConnectionProtocol.RUNNING
         ) { builder ->
+            builder.addPacket(ClientboundDisconnectPacket.STREAM_CODEC)
+                .addPacket(ClientboundKeepAlivePacket.STREAM_CODEC)
+                .addPacket(ClientboundPingPacket.STREAM_CODEC)
+                .addPacket(ClientboundPongResponsePacket.STREAM_CODEC)
         }
 
 
@@ -16,5 +20,10 @@ object RunningProtocols {
         ProtocolInfoBuilder.mutableServerboundProtocol<RunningServerPacketListener, SurfByteBuf>(
             ConnectionProtocol.RUNNING
         ) { builder ->
+            builder.addPacket(ServerboundKeepAlivePacket.STREAM_CODEC)
+                .addPacket(ServerboundPingRequestPacket.STREAM_CODEC)
+                .addPacket(ServerboundPongPacket.STREAM_CODEC)
         }
+
+    val SERVERBOUND_LAZY by lazy { SERVERBOUND_TEMPLATE.bind(::SurfByteBuf) }
 }

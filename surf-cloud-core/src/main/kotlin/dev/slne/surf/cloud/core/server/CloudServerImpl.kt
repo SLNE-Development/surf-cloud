@@ -1,6 +1,7 @@
 package dev.slne.surf.cloud.core.server
 
-import dev.slne.surf.cloud.api.netty.protocol.buffer.codec.Codec
+import dev.slne.surf.cloud.api.netty.network.codec.streamCodec
+import dev.slne.surf.cloud.api.netty.protocol.buffer.SurfByteBuf
 import dev.slne.surf.cloud.api.server.CloudServer
 import dev.slne.surf.cloud.api.server.state.ServerState
 import org.jetbrains.annotations.Range
@@ -17,9 +18,9 @@ class CloudServerImpl @JvmOverloads constructor(
 ) : CloudServer {
 
     companion object {
-        val CODEC = Codec.codec<CloudServer>({ buf, value ->
+        val CODEC = streamCodec<SurfByteBuf, CloudServerImpl>({ buf, value ->
             buf.writeLong(value.serverGuid)
-            buf.writeNullable(value.host) // TODO: 15.09.2024 10:29 - why nullable?
+            buf.writeNullable(value.host)
             buf.writeInt(value.port)
             buf.writeNullable(value.category)
             buf.writeVarInt(value.currentPlayerCount)

@@ -14,7 +14,7 @@ const val MAX_FINAL_PACKET_SIZE = (1 shl 21) - 1
 // Max size for the encoder (before compression)
 const val MAX_PACKET_SIZE = 0x800000
 
-class PacketEncoder<T: PacketListener>(val protocolInfo: ProtocolInfo<T>) : MessageToByteEncoder<NettyPacket>() {
+class PacketEncoder<T: PacketListener>(private val protocolInfo: ProtocolInfo<T>) : MessageToByteEncoder<NettyPacket>() {
     private val log = logger()
 
     override fun encode(ctx: ChannelHandlerContext, msg: NettyPacket, out: ByteBuf) {

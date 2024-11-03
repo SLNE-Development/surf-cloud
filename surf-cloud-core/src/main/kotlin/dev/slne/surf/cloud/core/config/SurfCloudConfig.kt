@@ -89,7 +89,11 @@ data class NettyConfig(
 
     @Comment("Reconnect delay for netty connection in seconds")
     @Setting("reconnect-delay")
-    val reconnectDelay: Int = 3
+    val reconnectDelay: Int = 3,
+
+    @Comment("Whether to use epoll for netty connection")
+    @Setting("use-epoll")
+    val useEpoll: Boolean = true
 )
 
 @ConfigSerializable

@@ -1,12 +1,11 @@
 package dev.slne.surf.cloud.standalone.test
 
 import dev.slne.surf.cloud.standalone.redis.RedisEvent
-import lombok.Getter
 
 
 class TestPacket : RedisEvent {
-    @Getter
-    private var entity: TestEntity? = null
+    var entity: TestEntity? = null
+        private set
 
     constructor()
 

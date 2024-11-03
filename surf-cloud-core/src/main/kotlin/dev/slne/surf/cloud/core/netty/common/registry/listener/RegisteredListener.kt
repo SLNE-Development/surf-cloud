@@ -87,34 +87,34 @@ class RegisteredListener(
     // region Standard Invokers
     fun interface RegisteredListenerInvoker1 {
         @Invoker
-        fun handle(caller: Any, packet: NettyPacket<*>)
+        fun handle(caller: Any, packet: NettyPacket)
     }
 
     fun interface RegisteredListenerInvoker2 {
         @Invoker
-        fun handle(caller: Any, packet: NettyPacket<*>, info: NettyPacketInfo)
+        fun handle(caller: Any, packet: NettyPacket, info: NettyPacketInfo)
     }
 
     fun interface RegisteredListenerInvoker2Rev {
         @Invoker
-        fun handle(caller: Any, info: NettyPacketInfo, packet: NettyPacket<*>)
+        fun handle(caller: Any, info: NettyPacketInfo, packet: NettyPacket)
     }
     // endregion
 
     // region Suspend Invokers for Kotlin coroutines
     fun interface RegisteredListenerSuspendInvoker1 {
         @Invoker
-        suspend fun handle(caller: Any, packet: NettyPacket<*>)
+        suspend fun handle(caller: Any, packet: NettyPacket)
     }
 
     fun interface RegisteredListenerSuspendInvoker2 {
         @Invoker
-        suspend fun handle(caller: Any, packet: NettyPacket<*>, info: NettyPacketInfo)
+        suspend fun handle(caller: Any, packet: NettyPacket, info: NettyPacketInfo)
     }
 
     fun interface RegisteredListenerSuspendInvoker2Rev {
         @Invoker
-        suspend fun handle(caller: Any, info: NettyPacketInfo, packet: NettyPacket<*>)
+        suspend fun handle(caller: Any, info: NettyPacketInfo, packet: NettyPacket)
     }
     // endregion
 

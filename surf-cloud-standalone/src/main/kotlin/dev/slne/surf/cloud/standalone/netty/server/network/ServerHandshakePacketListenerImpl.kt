@@ -1,22 +1,25 @@
 package dev.slne.surf.cloud.standalone.netty.server.network
 
 import dev.slne.surf.cloud.core.netty.network.Connection
+import dev.slne.surf.cloud.core.netty.network.DisconnectionDetails
+import dev.slne.surf.cloud.core.netty.network.protocol.handshake.ClientIntent
+import dev.slne.surf.cloud.core.netty.network.protocol.handshake.PROTOCOL_VERSION
 import dev.slne.surf.cloud.core.netty.network.protocol.handshake.ServerHandshakePacketListener
+import dev.slne.surf.cloud.core.netty.network.protocol.handshake.ServerboundHandshakePacket
+import dev.slne.surf.cloud.core.netty.network.protocol.login.ClientboundLoginDisconnectPacket
 import dev.slne.surf.cloud.core.netty.network.protocol.login.LoginProtocols
-import dev.slne.surf.cloud.core.netty.protocol.packets.cloud.phase.handshake.serverbound.PROTOCOL_VERSION
-import dev.slne.surf.cloud.core.netty.protocol.packets.cloud.phase.handshake.serverbound.ServerboundHandshakePacket
-import dev.slne.surf.cloud.core.netty.protocol.packets.cloud.phase.login.clientbound.ClientboundLoginDisconnectPacket
+import dev.slne.surf.cloud.standalone.netty.server.NettyServerImpl
 import java.net.InetSocketAddress
 
-class ServerHandshakePacketListenerImpl(val connection: Connection) :
+class ServerHandshakePacketListenerImpl(val server: NettyServerImpl, val connection: Connection) :
     ServerHandshakePacketListener {
     override suspend fun handleHandshake(packet: ServerboundHandshakePacket) {
         connection.hostname = "${packet.hostName}:${packet.port}"
 
         when (packet.intention) {
-            ServerboundHandshakePacket.ClientIntent.INITIALIZE -> TODO("Not yet implemented")
-            ServerboundHandshakePacket.ClientIntent.LOGIN -> beginLogin(packet)
-            ServerboundHandshakePacket.ClientIntent.STATUS -> TODO("Not yet implemented")
+            ClientIntent.INITIALIZE -> TODO("Not yet implemented")
+            ClientIntent.LOGIN -> beginLogin(packet)
+            ClientIntent.STATUS -> TODO("Not yet implemented")
         }
 
         connection.virtualHost = prepareVirtualHost(packet.hostName, packet.port)
@@ -36,12 +39,11 @@ class ServerHandshakePacketListenerImpl(val connection: Connection) :
 
         connection.setupInboundProtocol(
             LoginProtocols.SERVERBOUND,
-            ServerLoginPacketListenerImpl(connection)
+            ServerLoginPacketListenerImpl(server, connection)
         )
     }
 
-    override fun onDisconnect(reason: String) {
-    }
+    override fun onDisconnect(details: DisconnectionDetails) = Unit
 
     private fun prepareVirtualHost(host: String, port: Int): InetSocketAddress {
         var len = host.length

@@ -13,8 +13,18 @@ object VarInt {
     private const val CONTINUATION_BIT_MASK = 0x80
     private const val DATA_BITS_PER_BYTE = 7
 
-    private val varIntByteLengths = IntArray(33) {
-        if (it == 32) 1 else ceil((32.0 - (it - 1)) / DATA_BITS_PER_BYTE).toInt()
+//    private val varIntByteLengths = IntArray(33) {
+//        if (it == 32) 1 else ceil((32.0 - (it - 1)) / DATA_BITS_PER_BYTE).toInt()
+//    }
+
+    private val varIntByteLengths: IntArray = IntArray(33)
+
+    init {
+        for (i in 0..32) {
+            varIntByteLengths[i] = ceil((31.0 - (i - 1)) / DATA_BITS_PER_BYTE.toDouble()).toInt()
+        }
+
+        varIntByteLengths[32] = 1
     }
 
     /**
@@ -31,7 +41,8 @@ object VarInt {
      * @param byte The byte to check.
      * @return True if the continuation bit is set, otherwise false.
      */
-    fun hasContinuationBit(byte: Byte): Boolean = (byte.toInt() and CONTINUATION_BIT_MASK) == CONTINUATION_BIT_MASK
+    fun hasContinuationBit(byte: Byte): Boolean =
+        (byte.toInt() and CONTINUATION_BIT_MASK) == CONTINUATION_BIT_MASK
 
     /**
      * Reads a VarInt value from the given [ByteBuf].
@@ -44,18 +55,17 @@ object VarInt {
         var result = 0
         var shift = 0
 
-        while (true) {
-            val currentByte = buf.readByte()
-            result = result or ((currentByte.toInt() and DATA_BITS_MASK) shl shift)
-            if (!hasContinuationBit(currentByte)) {
-                break
-            }
-            shift += DATA_BITS_PER_BYTE
+        var currentByte: Byte
+        do {
+            currentByte = buf.readByte()
+            result =
+                result or ((currentByte.toInt() and DATA_BITS_MASK) shl shift++ * DATA_BITS_PER_BYTE)
 
-            if (shift > MAX_VARINT_SIZE * DATA_BITS_PER_BYTE) {
-                throw IllegalArgumentException("VarInt is too large")
+            if (shift > MAX_VARINT_SIZE) {
+                throw RuntimeException("VarInt too big")
             }
-        }
+
+        } while (hasContinuationBit(currentByte))
 
         return result
     }
@@ -66,16 +76,19 @@ object VarInt {
      * @param buffer The [ByteBuf] to which the value will be written.
      * @param value The integer value to encode.
      */
-    fun writeVarInt(buffer: ByteBuf, value: Int) {
+    fun writeVarInt(buffer: ByteBuf, value: Int): ByteBuf {
         // Handle one and two byte cases explicitly for improved performance in common cases.
-        if ((value and (-1 shl DATA_BITS_PER_BYTE)) == 0) {
+        if ((value and (-0x1 shl DATA_BITS_PER_BYTE)) == 0) {
             buffer.writeByte(value)
-        } else if ((value and (-1 shl 14)) == 0) {
-            val combinedValue = ((value and DATA_BITS_MASK) or CONTINUATION_BIT_MASK) shl 8 or (value ushr DATA_BITS_PER_BYTE)
+        } else if ((value and (-0x1 shl 14)) == 0) {
+            val combinedValue =
+                (value and DATA_BITS_MASK or CONTINUATION_BIT_MASK) shl 8 or (value ushr DATA_BITS_PER_BYTE)
             buffer.writeShort(combinedValue)
         } else {
             writeComplexVarInt(buffer, value)
         }
+
+        return buffer
     }
 
     /**
@@ -85,13 +98,14 @@ object VarInt {
      * @param buffer The [ByteBuf] to write the value to.
      * @param value The integer value to encode.
      */
-    private fun writeComplexVarInt(buffer: ByteBuf, value: Int) {
+    private fun writeComplexVarInt(buffer: ByteBuf, value: Int): ByteBuf {
         var mutableValue = value
         while ((mutableValue and CONTINUATION_BIT_MASK.inv()) != 0) {
-            buffer.writeByte((mutableValue and DATA_BITS_MASK) or CONTINUATION_BIT_MASK)
+            buffer.writeByte(mutableValue and DATA_BITS_MASK or CONTINUATION_BIT_MASK)
             mutableValue = mutableValue ushr DATA_BITS_PER_BYTE
         }
 
         buffer.writeByte(mutableValue)
+        return buffer
     }
 }

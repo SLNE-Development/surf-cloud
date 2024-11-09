@@ -5,12 +5,12 @@ import dev.slne.surf.cloud.api.meta.SurfNettyPacket
 import dev.slne.surf.cloud.api.netty.network.codec.StreamCodec
 import dev.slne.surf.cloud.api.netty.network.codec.StreamDecoder
 import dev.slne.surf.cloud.api.netty.network.codec.StreamMemberEncoder
-import dev.slne.surf.cloud.api.util.isStaticFinal
-import dev.slne.surf.cloud.api.util.object2ObjectMapOf
+import dev.slne.surf.cloud.api.util.mutableObject2ObjectMapOf
 import io.netty.buffer.ByteBuf
 import io.netty.channel.Channel
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withTimeoutOrNull
+import org.apache.commons.lang3.builder.ToStringBuilder
 import org.jetbrains.annotations.ApiStatus.Internal
 import java.util.*
 import java.util.concurrent.ThreadLocalRandom
@@ -80,9 +80,12 @@ abstract class NettyPacket {
         return result
     }
 
-    override fun toString(): String {
-        return "NettyPacket(extraPackets=$extraPackets, sessionId=$sessionId, id=$id, flow=$flow, skippable=$skippable, terminal=$terminal)"
+    override fun toString(): String = try {
+        ToStringBuilder.reflectionToString(this).toString()
+    } catch (e: Throwable) {
+        "NettyPacket(id=$id, flow=$flow, skippable=$skippable, extraPackets=$extraPackets, terminal=$terminal)"
     }
+
 
     companion object {
         @JvmStatic
@@ -133,44 +136,41 @@ abstract class RespondingNettyPacket<P : NettyPacket> : NettyPacket() {
 
 }
 
-fun KClass<out NettyPacket>.getPacketMeta() = findAnnotation<SurfNettyPacket>()
-    ?: error("NettyPacket class must be annotated with SurfNettyPacket")
-
-fun Class<out NettyPacket>.getPacketMeta() = kotlin.getPacketMeta()
-
 fun <B : ByteBuf, T : NettyPacket> packetCodec(
     encoder: StreamMemberEncoder<B, T>,
     decoder: StreamDecoder<B, T>
 ): StreamCodec<B, T> = NettyPacket.codec(encoder, decoder)
 
-private val codecCache = object2ObjectMapOf<KClass<out NettyPacket>, StreamCodec<*, *>>()
-fun <B, V> KClass<out NettyPacket>.findPacketCodec(): StreamCodec<B, V>? {
-    if (this in codecCache) {
-        @Suppress("UNCHECKED_CAST")
-        return codecCache[this] as StreamCodec<B, V>
-    }
+fun KClass<out NettyPacket>.getPacketMetaOrNull() = findAnnotation<SurfNettyPacket>()
+fun KClass<out NettyPacket>.getPacketMeta() = getPacketMetaOrNull()
+    ?: error("NettyPacket class must be annotated with SurfNettyPacket")
+
+fun Class<out NettyPacket>.getPacketMeta() = kotlin.getPacketMeta()
+
+const val DEFAULT_STREAM_CODEC_NAME = "STREAM_CODEC"
+private val codecCache = mutableObject2ObjectMapOf<KClass<out NettyPacket>, StreamCodec<*, *>>()
+
+@Suppress("UNCHECKED_CAST")
+fun <B : Any, V : Any> KClass<out NettyPacket>.findPacketCodec(): StreamCodec<in B, out V>? {
+    codecCache[this]?.let { return it as? StreamCodec<in B, out V> }
 
     val properties =
         declaredMemberProperties + (companionObject?.declaredMemberProperties ?: emptyList())
 
-    val annotatedProperty = properties.find { it.findAnnotation<PacketCodec>() != null }
-    if (annotatedProperty != null) {
-        annotatedProperty.isAccessible = true
-        val codec = annotatedProperty.call(companionObjectInstance ?: this) as? StreamCodec<B, V>
-        codecCache[this] = codec
-        return codec
-    }
-
-    val codec = properties.find { property ->
-        property.name == "STREAM_CODEC" &&
-                property.returnType.classifier == StreamCodec::class &&
-                property.isStaticFinal()
+    val codecProperty = properties.find {
+        it.findAnnotation<PacketCodec>() != null ||
+                (it.name == DEFAULT_STREAM_CODEC_NAME && it.returnType.classifier == StreamCodec::class)
     }?.apply { isAccessible = true }
-        ?.call(companionObjectInstance ?: this) as? StreamCodec<B, V>
 
-    if (codec != null) {
-        codecCache[this] = codec
+    val codec = codecProperty?.let { prop ->
+        when {
+            objectInstance != null -> prop.call(objectInstance)
+            companionObjectInstance != null -> prop.call(companionObjectInstance)
+            else -> prop.call(null)
+        } as? StreamCodec<in B, out V>
     }
+
+    codec?.let { codecCache[this] = it }
 
     return codec
 }

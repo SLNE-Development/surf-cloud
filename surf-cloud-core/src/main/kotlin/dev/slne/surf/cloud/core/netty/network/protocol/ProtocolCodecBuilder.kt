@@ -27,7 +27,7 @@ class ProtocolCodecBuilder<B : ByteBuf>(side: PacketFlow) {
         dispatchBuilder.add(id, codec)
     }
 
-    fun build(): StreamCodec<B, NettyPacket> = dispatchBuilder.build()
+    fun build(): StreamCodec<B, NettyPacket> = dispatchBuilder.build { it.getPacketMeta().id }
 }
 
 fun <B : ByteBuf> buildProtocolCodec(

@@ -17,19 +17,6 @@ class Varint21FrameDecoder : ByteToMessageDecoder() {
         helperBuf.release()
     }
 
-    private fun copyVarint(source: ByteBuf, sizeBuf: ByteBuf): Boolean {
-        for (i in 0..2) {
-            if (!source.isReadable) return false
-
-            val byte = source.readByte()
-            sizeBuf.writeByte(byte.toInt())
-
-            if (!VarInt.hasContinuationBit(byte)) return true
-        }
-
-        throw CorruptedFrameException("length wider than 21-bit")
-    }
-
     override fun decode(ctx: ChannelHandlerContext, byteBuf: ByteBuf, out: MutableList<Any>) {
         // if channel is not active just discard the packet
         if (!ctx.channel().isActive) {
@@ -51,4 +38,17 @@ class Varint21FrameDecoder : ByteToMessageDecoder() {
             }
         }
     }
+}
+
+private fun copyVarint(source: ByteBuf, sizeBuf: ByteBuf): Boolean {
+    for (i in 0..2) {
+        if (!source.isReadable) return false
+
+        val byte = source.readByte()
+        sizeBuf.writeByte(byte.toInt())
+
+        if (!VarInt.hasContinuationBit(byte)) return true
+    }
+
+    throw CorruptedFrameException("length wider than 21-bit")
 }

@@ -13,6 +13,7 @@ internal object PersistentDataImpl {
             if (!exists()) {
                 parentFile?.mkdirs()
                 createNewFile()
+                NBTUtil.write(CompoundTag(), this, true)
             }
         }
     }
@@ -47,6 +48,7 @@ internal object PersistentDataImpl {
             } else {
                 tag.put(key, toTag(value))
             }
+            saveTag()
         }
 
        override operator fun contains(key: String): Boolean = tag.containsKey(key)

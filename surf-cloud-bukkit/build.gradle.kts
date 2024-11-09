@@ -9,6 +9,7 @@ plugins {
 dependencies {
     api(project(":surf-cloud-core"))
     compileOnly("io.papermc.paper:paper-api:1.21.1-R0.1-SNAPSHOT")
+    compileOnly("dev.slne.surf:surf-api-bukkit-api:1.21+")
 
     api("org.springframework.boot:spring-boot-starter-data-jpa")
     api("org.springframework.boot:spring-boot-starter-data-redis")

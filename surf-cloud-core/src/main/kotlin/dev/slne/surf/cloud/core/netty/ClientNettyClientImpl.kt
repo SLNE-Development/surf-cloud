@@ -1,10 +1,12 @@
 package dev.slne.surf.cloud.core.netty
 
+import dev.slne.surf.cloud.api.config.properties.CloudProperties
 import dev.slne.surf.cloud.api.exceptions.ExitCodes
 import dev.slne.surf.cloud.api.exceptions.FatalSurfError
 import dev.slne.surf.cloud.api.netty.network.protocol.PacketFlow
 import dev.slne.surf.cloud.api.util.logger
 import dev.slne.surf.cloud.core.config.cloudConfig
+import dev.slne.surf.cloud.core.coroutines.NettyConnectionScope
 import dev.slne.surf.cloud.core.data.CloudPersistentData
 import dev.slne.surf.cloud.core.netty.client.network.ClientHandshakePacketListenerImpl
 import dev.slne.surf.cloud.core.netty.client.network.ClientRunningPacketListenerImpl
@@ -18,17 +20,15 @@ import dev.slne.surf.cloud.core.netty.network.protocol.login.LoginProtocols
 import dev.slne.surf.cloud.core.netty.network.protocol.login.ServerboundLoginStartPacket
 import dev.slne.surf.cloud.core.util.ServerAddress
 import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.net.InetSocketAddress
 import kotlin.time.Duration.Companion.seconds
 
-class ClientNettyClientImpl(
-    serverId: Long = CloudPersistentData.SERVER_ID_NOT_SET,
-    serverCategory: String
-) :
-    CommonNettyClientImpl(serverId, serverCategory) {
+class ClientNettyClientImpl : CommonNettyClientImpl(
+    CloudPersistentData.SERVER_ID.value() ?: CloudPersistentData.SERVER_ID_NOT_SET,
+    CloudProperties.SERVER_CATEGORY.value() ?: CloudProperties.SERVER_CATEGORY_NOT_SET
+) {
     private val log = logger()
 
     private var _listener: ClientRunningPacketListenerImpl? = null
@@ -44,6 +44,15 @@ class ClientNettyClientImpl(
 
     private val statusUpdate: StatusUpdate = {
         log.atInfo().log(it)
+    }
+
+    suspend fun start() {
+        val config = cloudConfig.connectionConfig.nettyConfig
+        connectToServer(ServerAddress(config.host, config.port))
+    }
+
+    fun stop() {
+        connection.disconnect(DisconnectionDetails("Client stopped"))
     }
 
     suspend fun connectToServer(serverAddress: ServerAddress) {
@@ -105,15 +114,13 @@ class ClientNettyClientImpl(
                 }
             }
 
-            coroutineScope {
-                launch {
-                    while (connection.connected) {
-                        connection.tick()
-                        delay(1.seconds)
-                    }
-
-                    connection.handleDisconnection()
+            NettyConnectionScope.launch {
+                while (connection.connected) {
+                    connection.tick()
+                    delay(1.seconds)
                 }
+
+                connection.handleDisconnection()
             }
 
             try {
@@ -122,8 +129,9 @@ class ClientNettyClientImpl(
                     address.port,
                     listener
                 )
-                connection.send(ServerboundInitializeRequestIdPacket)
+                connection.sendWithIndication(ServerboundInitializeRequestIdPacket)
                 internalServerId = responseId.await()
+                CloudPersistentData.SERVER_ID.setValue(internalServerId)
             } catch (e: Throwable) {
                 throw FatalSurfError {
                     simpleErrorMessage("Couldn't fetch server ID")

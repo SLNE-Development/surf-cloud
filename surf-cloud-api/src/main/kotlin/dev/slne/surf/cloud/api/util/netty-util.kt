@@ -25,7 +25,7 @@ suspend fun <V : ChannelFuture> V.suspend(): V = suspendCancellableCoroutine {
     addListener { future ->
         if (it.isActive) {
             if (future.isSuccess) {
-                it.resume(future.now as V)
+                it.resume(this)
             } else {
                 it.resumeWithException(future.cause())
             }

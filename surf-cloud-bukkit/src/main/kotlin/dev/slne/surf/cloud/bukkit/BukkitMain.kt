@@ -20,6 +20,14 @@ class BukkitMain : JavaPlugin() {
         } catch (t: Throwable) {
             handleThrowable(t)
         }
+
+        server.scheduler.runTaskLater(this, Runnable {
+            try {
+                bukkitCloudInstance.afterStart()
+            } catch (t: Throwable) {
+                handleThrowable(t)
+            }
+        }, 1L)
     }
 
     override fun onDisable() {

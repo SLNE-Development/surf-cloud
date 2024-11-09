@@ -13,6 +13,5 @@ import dev.slne.surf.cloud.api.netty.packet.NettyPacket
     ConnectionProtocol.INITIALIZE
 )
 object ServerboundInitializeRequestIdPacket : NettyPacket() {
-    @JvmStatic
     val STREAM_CODEC = streamCodecUnitSimple(ServerboundInitializeRequestIdPacket)
 }

@@ -10,23 +10,23 @@ import io.netty.handler.codec.EncoderException
 import io.netty.util.ReferenceCountUtil
 
 object UnconfiguredPipelineHandler {
-    fun <T : PacketListener> setupInboundProtocol(newState: ProtocolInfo<T>) {
+    fun <T : PacketListener> setupInboundProtocol(newState: ProtocolInfo<T>) =
         setupInboundHandler(PacketDecoder(newState))
-    }
+
 
     private fun setupInboundHandler(newDecoder: ChannelInboundHandler) =
         InboundConfigurationTask { context ->
-            context.pipeline().replace(context.name(), "decoder", newDecoder)
+            context.pipeline().replace(context.name(), HandlerNames.DECODER, newDecoder)
             context.channel().config().setAutoRead(true)
         }
 
 
-    fun <T : PacketListener> setupOutboundProtocol(newState: ProtocolInfo<T>): OutboundConfigurationTask {
-        return setupOutboundHandler(PacketEncoder(newState))
-    }
+    fun <T : PacketListener> setupOutboundProtocol(newState: ProtocolInfo<T>) =
+        setupOutboundHandler(PacketEncoder(newState))
+
 
     private fun setupOutboundHandler(newEncoder: ChannelOutboundHandler) =
-        OutboundConfigurationTask { it.pipeline().replace(it.name(), "encoder", newEncoder) }
+        OutboundConfigurationTask { it.pipeline().replace(it.name(), HandlerNames.ENCODER, newEncoder) }
 
     class Inbound : ChannelDuplexHandler() {
         override fun channelRead(ctx: ChannelHandlerContext, msg: Any) {

@@ -585,10 +585,8 @@ class SurfByteBuf(source: ByteBuf) : WrappedByteBuf(source) {
 
 
     // region [Instance methods]
-    // @formatter:off
-
     @Throws(DecoderException::class)
-    fun <T> readJsonWithCodec(codec: Codec<T>) :T {
+    fun <T> readJsonWithCodec(codec: Codec<T>): T {
         val jsonElement = fromJson<JsonElement>(GSON, readUtf())
         val result = codec.parse(JsonOps.INSTANCE, jsonElement)
 
@@ -598,13 +596,16 @@ class SurfByteBuf(source: ByteBuf) : WrappedByteBuf(source) {
 
     @JvmOverloads
     @Throws(EncoderException::class)
-    fun <T>writeJsonWithCodec(codec: Codec<T>, value: T, maxLength: Int = Int.MAX_VALUE) {
+    fun <T> writeJsonWithCodec(codec: Codec<T>, value: T, maxLength: Int = Int.MAX_VALUE) {
         val result = codec.encodeStart(JsonOps.INSTANCE, value)
 
-        this.writeUtf(GSON.toJson(result.getOrThrow{EncoderException("Failed to encode: $it ${value.toString()}")}), maxLength)
+        this.writeUtf(
+            GSON.toJson(result.getOrThrow { EncoderException("Failed to encode: $it ${value.toString()}") }),
+            maxLength
+        )
     }
 
-
+    // @formatter:off
     @Suppress("DEPRECATION")
     @Deprecated("Use codec instead")
     fun writeSerializable(serializable: Serializable) = writeSerializable(this, serializable)

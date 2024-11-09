@@ -2,11 +2,10 @@ package dev.slne.surf.cloud.api.util
 
 import org.springframework.aop.framework.AopProxyUtils
 import org.springframework.beans.factory.ObjectFactory
-import org.springframework.beans.factory.getBean
-import org.springframework.context.ApplicationContext
 import org.springframework.core.MethodIntrospector
 import org.springframework.core.annotation.AnnotatedElementUtils
 import org.springframework.core.annotation.AnnotationUtils
+import org.springframework.core.type.AnnotationMetadata
 import java.lang.reflect.Method
 import kotlin.reflect.KClass
 
@@ -25,3 +24,16 @@ inline fun <reified A : Annotation> Method.isAnnotated() =
 
 inline fun <reified A : Annotation> KClass<*>.findAnnotation(): A? =
     AnnotationUtils.findAnnotation(this.java, A::class.java)
+
+fun AnnotationMetadata.getFieldValue(fieldName: String, expectedType: KClass<*>, classLoader: ClassLoader): Any? {
+    return try {
+        val clazz = classLoader.loadClass(className)
+        val field = clazz.getDeclaredField(fieldName)
+        if (expectedType.java.isAssignableFrom(field.type)) {
+            field.isAccessible = true
+            field.get(null)
+        } else null
+    } catch (e: Exception) {
+        null
+    }
+}

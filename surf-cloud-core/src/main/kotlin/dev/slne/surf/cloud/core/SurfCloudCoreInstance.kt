@@ -8,25 +8,28 @@ import dev.slne.surf.cloud.api.exceptions.FatalSurfError
 import dev.slne.surf.cloud.api.startSpringApplication
 import dev.slne.surf.cloud.api.util.JoinClassLoader
 import dev.slne.surf.cloud.api.util.logger
+import dev.slne.surf.cloud.core.netty.NettyManager
+import dev.slne.surf.cloud.core.processors.NettyPacketProcessor
 import dev.slne.surf.cloud.core.spring.SurfSpringBanner
 import dev.slne.surf.cloud.core.spring.event.RootSpringContextInitialized
 import dev.slne.surf.cloud.core.util.getCallerClass
 import dev.slne.surf.cloud.core.util.tempChangeSystemClassLoader
+import kotlinx.coroutines.runBlocking
 import org.jetbrains.annotations.MustBeInvokedByOverriders
 import org.springframework.boot.Banner
 import org.springframework.boot.builder.SpringApplicationBuilder
 import org.springframework.context.ConfigurableApplicationContext
 import org.springframework.core.NestedRuntimeException
 import org.springframework.core.io.DefaultResourceLoader
-import org.springframework.stereotype.Component
 import java.nio.file.Path
 import javax.annotation.OverridingMethodsMustInvokeSuper
 
-abstract class SurfCloudCoreInstance : SurfCloudInstance {
+abstract class SurfCloudCoreInstance(private val nettyManager: NettyManager) : SurfCloudInstance {
     protected val log = logger()
 
     val dataContext: ConfigurableApplicationContext
-        get() = internalContext ?: throw IllegalStateException("Data context is not initialized yet.")
+        get() = internalContext
+            ?: throw IllegalStateException("Data context is not initialized yet.")
 
     abstract val dataFolder: Path
     protected open val springProfile = "client"
@@ -86,11 +89,18 @@ abstract class SurfCloudCoreInstance : SurfCloudInstance {
 
     @OverridingMethodsMustInvokeSuper
     open fun onEnable() {
+        nettyManager.blockPlayerConnections()
     }
 
     @OverridingMethodsMustInvokeSuper
     open fun onDisable() {
+        nettyManager.stop()
         if (internalContext?.isActive == true) internalContext?.close()
+    }
+
+    open fun afterStart() = runBlocking {
+        nettyManager.afterStart()
+        nettyManager.unblockPlayerConnections()
     }
 
     override fun startSpringApplication(
@@ -99,20 +109,21 @@ abstract class SurfCloudCoreInstance : SurfCloudInstance {
         vararg parentClassLoader: ClassLoader
     ): ConfigurableApplicationContext {
         val joinClassLoader = JoinClassLoader(classLoader, parentClassLoader)
-//        return tempChangeSystemClassLoader(joinClassLoader) {
+        return tempChangeSystemClassLoader(joinClassLoader) {
             val builder = SpringApplicationBuilder(applicationClass)
                 .resourceLoader(DefaultResourceLoader(joinClassLoader))
                 .bannerMode(Banner.Mode.CONSOLE)
                 .banner(SurfSpringBanner())
                 .profiles(springProfile)
+                .initializers(NettyPacketProcessor)
 
             if (internalContext != null) {
                 builder.parent(internalContext)
             }
 
             println("Starting Spring application...")
-            return builder.run()
-//        }
+            builder.run()
+        }
     }
 
     companion object {

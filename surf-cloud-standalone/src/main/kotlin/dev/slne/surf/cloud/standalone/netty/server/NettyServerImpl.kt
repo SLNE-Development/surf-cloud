@@ -7,6 +7,7 @@ import dev.slne.surf.cloud.core.config.cloudConfig
 import dev.slne.surf.cloud.standalone.netty.server.connection.ServerConnectionListener
 import io.netty.channel.epoll.Epoll
 import io.netty.channel.unix.DomainSocketAddress
+import jakarta.annotation.PostConstruct
 import jakarta.annotation.PreDestroy
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
@@ -33,6 +34,14 @@ class NettyServerImpl {
     private val clients = mutableObjectListOf<ServerClientImpl>().synchronize()
     private val clientsLock = Mutex()
     private val schedules = mutableObjectListOf<() -> Unit>().synchronize()
+
+    @PostConstruct
+    protected fun init() {
+        runBlocking {
+            initServer()
+            finalizeServer()
+        }
+    }
 
     suspend fun initServer(): Boolean = withContext(Dispatchers.IO) {
         val config = cloudConfig.connectionConfig.nettyConfig
@@ -74,7 +83,7 @@ class NettyServerImpl {
         }
     }
 
-    fun finalizeServer() {
+    suspend fun finalizeServer() {
         connection.acceptConnections()
     }
 

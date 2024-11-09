@@ -4,6 +4,7 @@ import com.google.auto.service.AutoService
 import dev.slne.surf.cloud.api.SurfCloudInstance
 import dev.slne.surf.cloud.core.SurfCloudCoreInstance
 import dev.slne.surf.cloud.core.util.random
+import dev.slne.surf.cloud.standalone.netty.server.StandaloneNettyManager
 import dev.slne.surf.cloud.standalone.plugin.StandalonePluginManager
 import dev.slne.surf.cloud.standalone.redis.RedisEvent
 import kotlinx.coroutines.delay
@@ -16,7 +17,7 @@ import kotlin.concurrent.thread
 import kotlin.time.Duration.Companion.seconds
 
 @AutoService(SurfCloudInstance::class)
-class SurfCloudStandaloneInstance : SurfCloudCoreInstance() {
+class SurfCloudStandaloneInstance : SurfCloudCoreInstance(StandaloneNettyManager) {
     private val redisEventLog = Loggers.getLogger("RedisEvent")
 
     override val dataFolder: Path = Path.of("")
@@ -40,7 +41,10 @@ class SurfCloudStandaloneInstance : SurfCloudCoreInstance() {
         random
     }
 
-    override fun onEnable() {
+    override fun onEnable() = runBlocking {
+        super.onEnable()
+
+        afterStart()
         println("ready")
     }
 

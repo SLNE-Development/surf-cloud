@@ -1,6 +1,5 @@
 package dev.slne.surf.cloud.standalone.netty.server.network
 
-import dev.slne.surf.cloud.api.netty.protocol.buffer.SurfByteBuf
 import dev.slne.surf.cloud.api.util.logger
 import dev.slne.surf.cloud.core.netty.network.CommonTickablePacketListener
 import dev.slne.surf.cloud.core.netty.network.Connection
@@ -62,10 +61,10 @@ class ServerLoginPacketListenerImpl(val server: NettyServerImpl, val connection:
         check(state == State.PROTOCOL_SWITCHING) { "Unexpected login acknowledgement packet" }
         val client = client ?: error("Client not yet set")
 
-        connection.setupOutboundProtocol(RunningProtocols.CLIENTBOUND_TEMPLATE.bind(::SurfByteBuf))
+        connection.setupOutboundProtocol(RunningProtocols.CLIENTBOUND)
         val listener = ServerRunningPacketListenerImpl(server, client, connection)
         connection.setupInboundProtocol(
-            RunningProtocols.SERVERBOUND_TEMPLATE.bind(::SurfByteBuf),
+            RunningProtocols.SERVERBOUND,
             listener
         )
         client.initListener(listener)

@@ -6,6 +6,7 @@ import dev.slne.surf.cloud.core.netty.network.protocol.handshake.ClientIntent
 import dev.slne.surf.cloud.core.netty.network.protocol.handshake.PROTOCOL_VERSION
 import dev.slne.surf.cloud.core.netty.network.protocol.handshake.ServerHandshakePacketListener
 import dev.slne.surf.cloud.core.netty.network.protocol.handshake.ServerboundHandshakePacket
+import dev.slne.surf.cloud.core.netty.network.protocol.initialize.InitializeProtocols
 import dev.slne.surf.cloud.core.netty.network.protocol.login.ClientboundLoginDisconnectPacket
 import dev.slne.surf.cloud.core.netty.network.protocol.login.LoginProtocols
 import dev.slne.surf.cloud.standalone.netty.server.NettyServerImpl
@@ -16,8 +17,10 @@ class ServerHandshakePacketListenerImpl(val server: NettyServerImpl, val connect
     override suspend fun handleHandshake(packet: ServerboundHandshakePacket) {
         connection.hostname = "${packet.hostName}:${packet.port}"
 
+        println("Handling handshake packet: $packet")
+
         when (packet.intention) {
-            ClientIntent.INITIALIZE -> TODO("Not yet implemented")
+            ClientIntent.INITIALIZE -> initialize(packet)
             ClientIntent.LOGIN -> beginLogin(packet)
             ClientIntent.STATUS -> TODO("Not yet implemented")
         }
@@ -40,6 +43,14 @@ class ServerHandshakePacketListenerImpl(val server: NettyServerImpl, val connect
         connection.setupInboundProtocol(
             LoginProtocols.SERVERBOUND,
             ServerLoginPacketListenerImpl(server, connection)
+        )
+    }
+
+    private suspend fun initialize(packet: ServerboundHandshakePacket) {
+        connection.setupOutboundProtocol(InitializeProtocols.CLIENTBOUND)
+        connection.setupInboundProtocol(
+            InitializeProtocols.SERVERBOUND,
+            ServerInitializePacketListenerImpl(connection)
         )
     }
 

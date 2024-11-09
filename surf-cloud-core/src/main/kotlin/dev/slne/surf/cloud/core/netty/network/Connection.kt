@@ -11,13 +11,9 @@ import dev.slne.surf.cloud.core.netty.network.protocol.handshake.ClientIntent
 import dev.slne.surf.cloud.core.netty.network.protocol.handshake.HandshakeProtocols
 import dev.slne.surf.cloud.core.netty.network.protocol.handshake.ServerHandshakePacketListener
 import dev.slne.surf.cloud.core.netty.network.protocol.handshake.ServerboundHandshakePacket
-import dev.slne.surf.cloud.core.netty.network.protocol.initialize.ClientInitializePacketListener
-import dev.slne.surf.cloud.core.netty.network.protocol.initialize.InitializeProtocols
+import dev.slne.surf.cloud.core.netty.network.protocol.initialize.*
 import dev.slne.surf.cloud.core.netty.network.protocol.login.*
-import dev.slne.surf.cloud.core.netty.network.protocol.running.ClientboundDisconnectPacket
-import dev.slne.surf.cloud.core.netty.network.protocol.running.ClientboundKeepAlivePacket
-import dev.slne.surf.cloud.core.netty.network.protocol.running.RunningServerPacketListener
-import dev.slne.surf.cloud.core.netty.network.protocol.running.ServerboundKeepAlivePacket
+import dev.slne.surf.cloud.core.netty.network.protocol.running.*
 import dev.slne.surf.cloud.core.netty.protocol.packets.ServerboundBroadcastPacket
 import io.netty.bootstrap.Bootstrap
 import io.netty.channel.*
@@ -96,7 +92,7 @@ class Connection(val receiving: PacketFlow) : SimpleChannelInboundHandler<NettyP
     @Volatile
     private var delayedDisconnect: DisconnectionDetails? = null
 
-    val connected get() = _channel?.isOpen ?: false
+    val connected get() = _channel != null && _channel!!.isOpen
     val connecting get() = _channel == null
 
 
@@ -106,18 +102,15 @@ class Connection(val receiving: PacketFlow) : SimpleChannelInboundHandler<NettyP
         _address = channel.remoteAddress()
         preparing = false
 
-        if (delayedDisconnect != null) {
-            disconnect(delayedDisconnect!!)
-        }
-        // delayed disconnect?
+        delayedDisconnect?.let { disconnect(it) }
     }
 
     override fun channelInactive(ctx: ChannelHandlerContext) {
-        super.channelInactive(ctx)
         disconnect("End of stream")
     }
 
     override fun exceptionCaught(ctx: ChannelHandlerContext, e: Throwable?) {
+        log.atInfo().withCause(e).log("Exception caught") // TODO: remove this debug line
         var throwable = e
 
         if (throwable is EncoderException) {
@@ -158,7 +151,7 @@ class Connection(val receiving: PacketFlow) : SimpleChannelInboundHandler<NettyP
                         log.atFine().withCause(throwable).log("Failed to sent packet")
 
                         val doesDisconnectExist =
-                            _packetListener?.protocol != ConnectionProtocol.STATUS && _packetListener?.protocol != ConnectionProtocol.HANDSHAKING
+                            _packetListener?.protocol != ConnectionProtocol.INITIALIZE && _packetListener?.protocol != ConnectionProtocol.HANDSHAKING
 
                         if (sending == PacketFlow.CLIENTBOUND && doesDisconnectExist) {
                             val packet = if (sendLoginDisconnect) ClientboundLoginDisconnectPacket(
@@ -200,6 +193,17 @@ class Connection(val receiving: PacketFlow) : SimpleChannelInboundHandler<NettyP
                         is ServerHandshakePacketListener -> {
                             when (msg) {
                                 is ServerboundHandshakePacket -> packetListener.handleHandshake(msg)
+                                else -> error("Unexpected packet $msg")
+                            }
+                        }
+
+                        is ServerInitializePacketListener -> {
+                            when (msg) {
+                                is ServerboundInitializeRequestIdPacket -> packetListener.handleIdRequest(
+                                    msg
+                                )
+
+                                else -> error("Unexpected packet $msg")
                             }
                         }
 
@@ -212,6 +216,8 @@ class Connection(val receiving: PacketFlow) : SimpleChannelInboundHandler<NettyP
                                 is ServerboundLoginAcknowledgedPacket -> packetListener.handleLoginAcknowledgement(
                                     msg
                                 )
+
+                                else -> error("Unexpected packet $msg")
                             }
                         }
 
@@ -228,7 +234,39 @@ class Connection(val receiving: PacketFlow) : SimpleChannelInboundHandler<NettyP
                 }
 
                 is ClientboundPacketListener -> {
+                    when (packetListener) {
+                        is ClientInitializePacketListener -> {
+                            when (msg) {
+                                is ClientboundInitializeIdResponsePacket -> packetListener.handleIdResponse(
+                                    msg
+                                )
 
+                                else -> error("Unexpected packet $msg")
+                            }
+                        }
+
+                        is ClientLoginPacketListener -> {
+                            when (msg) {
+                                is ClientboundLoginFinishedPacket -> packetListener.handleLoginFinished(
+                                    msg
+                                )
+
+                                else -> error("Unexpected packet $msg")
+                            }
+                        }
+
+                        is RunningClientPacketListener -> {
+                            when (msg) {
+                                is ClientboundKeepAlivePacket -> packetListener.handleKeepAlive(msg)
+                                is ClientboundPingPacket -> packetListener.handlePing(msg)
+                                is ClientboundDisconnectPacket -> packetListener.handleDisconnect(
+                                    msg
+                                )
+
+                                else -> packetListener.handlePacket(msg)
+                            }
+                        }
+                    }
                 }
 
                 else -> error("Invalid packet listener")
@@ -268,7 +306,7 @@ class Connection(val receiving: PacketFlow) : SimpleChannelInboundHandler<NettyP
         this._packetListener = packetListener
     }
 
-    fun initiateServerboundInitializeConnection(
+    suspend fun initiateServerboundInitializeConnection(
         hostname: String,
         port: Int,
         listener: ClientInitializePacketListener
@@ -283,7 +321,7 @@ class Connection(val receiving: PacketFlow) : SimpleChannelInboundHandler<NettyP
         )
     }
 
-    fun initiateServerboundRunningConnection(
+    suspend fun initiateServerboundRunningConnection(
         hostname: String,
         port: Int,
         listener: ClientLoginPacketListener
@@ -298,7 +336,7 @@ class Connection(val receiving: PacketFlow) : SimpleChannelInboundHandler<NettyP
         )
     }
 
-    fun <S : ServerboundPacketListener, C : ClientboundPacketListener> initiateServerboundRunningConnection(
+    suspend fun <S : ServerboundPacketListener, C : ClientboundPacketListener> initiateServerboundRunningConnection(
         hostname: String,
         port: Int,
         serverboundProtocolInfo: ProtocolInfo<S>,
@@ -316,7 +354,7 @@ class Connection(val receiving: PacketFlow) : SimpleChannelInboundHandler<NettyP
         )
     }
 
-    private fun <S : ServerboundPacketListener, C : ClientboundPacketListener> initiateServerboundConnection(
+    private suspend fun <S : ServerboundPacketListener, C : ClientboundPacketListener> initiateServerboundConnection(
         hostname: String,
         port: Int,
         serverboundProtocolInfo: ProtocolInfo<S>,
@@ -325,12 +363,10 @@ class Connection(val receiving: PacketFlow) : SimpleChannelInboundHandler<NettyP
         intention: ClientIntent
     ) {
         check(serverboundProtocolInfo.id == clientboundProtocolInfo.id) { "Mismatched initial protocols" }
-        runOnceConnected {
-            NettyConnectionScope.launch {
-                setupInboundProtocol(clientboundProtocolInfo, clientboundListener)
-                sendPacket(ServerboundHandshakePacket(hostname, port, intention), flush = true)
-                setupOutboundProtocol(serverboundProtocolInfo)
-            }
+        runOnceConnectedSuspend {
+            setupInboundProtocol(clientboundProtocolInfo, clientboundListener)
+            sendSuspendPacket(ServerboundHandshakePacket(hostname, port, intention), flush = true)
+            setupOutboundProtocol(serverboundProtocolInfo)
         }
     }
 
@@ -406,6 +442,15 @@ class Connection(val receiving: PacketFlow) : SimpleChannelInboundHandler<NettyP
         }
     }
 
+    private suspend fun sendSuspendPacket(
+        packet: NettyPacket,
+        flush: Boolean,
+    ): Boolean {
+        val deferred = CompletableDeferred<Boolean>()
+        sendPacket(packet, flush, deferred)
+        return deferred.await()
+    }
+
     private fun sendPacket(
         packet: NettyPacket,
         flush: Boolean,
@@ -447,7 +492,7 @@ class Connection(val receiving: PacketFlow) : SimpleChannelInboundHandler<NettyP
 
             channelFuture.addListener(ChannelFutureListener.FIRE_EXCEPTION_ON_FAILURE)
         } catch (e: Exception) {
-            log.atSevere().withCause(e).log("NetworkException:")
+            log.atSevere().withCause(e).log("NetworkException: ")
             deferred?.completeExceptionally(e)
             disconnect("Internal Exception: ${e.message}")
         }
@@ -462,10 +507,24 @@ class Connection(val receiving: PacketFlow) : SimpleChannelInboundHandler<NettyP
         }
     }
 
+    suspend fun runOnceConnectedSuspend(block: suspend Connection.() -> Unit) {
+        if (connected) {
+            flushQueue()
+            block(this)
+        } else {
+            val deferred = CompletableDeferred<Unit>()
+            pendingActions.add(WrappedConsumer {
+                NettyConnectionScope.launch {
+                    deferred.complete(block(it))
+                }
+            })
+            deferred.await()
+        }
+    }
+
     fun flushChannel() = runOnceConnected {
         flush()
     }
-
 
     private fun flush() {
         val channel = _channel ?: return
@@ -557,7 +616,17 @@ class Connection(val receiving: PacketFlow) : SimpleChannelInboundHandler<NettyP
     }
 
     fun configurePacketHandler(pipeline: ChannelPipeline) {
-        pipeline.addLast(HandlerNames.PACKET_HANDLER, this)
+        pipeline
+            .addLast("hackfix", object : ChannelOutboundHandlerAdapter() {
+                override fun write(
+                    ctx: ChannelHandlerContext?,
+                    msg: Any?,
+                    promise: ChannelPromise?
+                ) {
+                    super.write(ctx, msg, promise)
+                }
+            })
+            .addLast(HandlerNames.PACKET_HANDLER, this)
     }
 
     fun setReadOnly() {
@@ -574,8 +643,9 @@ class Connection(val receiving: PacketFlow) : SimpleChannelInboundHandler<NettyP
         if (disconnectionHandled) return
 
         disconnectionHandled = true
-        clearPacketQueue()
         _packetListener?.onDisconnect(disconnectionDetails ?: DisconnectionDetails("Disconnected"))
+
+        clearPacketQueue()
     }
 
     fun getLoggableAddress(logIps: Boolean) =
@@ -663,9 +733,11 @@ class Connection(val receiving: PacketFlow) : SimpleChannelInboundHandler<NettyP
             if (Epoll.isAvailable() && useEpoll) {
                 channelClass = EpollSocketChannel::class.java
                 eventLoopGroup = NETWORK_EPOLL_WORKER_GROUP
+                log.atInfo().log("Using Epoll")
             } else {
                 channelClass = NioSocketChannel::class.java
                 eventLoopGroup = NETWORK_WORKER_GROUP
+                log.atInfo().log("Using NIO")
             }
 
             Bootstrap()
@@ -677,11 +749,11 @@ class Connection(val receiving: PacketFlow) : SimpleChannelInboundHandler<NettyP
                             channel.config().setOption(ChannelOption.TCP_NODELAY, true)
                         }
 
-                        val pipeline = channel.pipeline().addLast(HandlerNames.TIMEOUT, ReadTimeoutHandler(30))
+                        val pipeline = channel.pipeline()
+                            .addLast(HandlerNames.TIMEOUT, ReadTimeoutHandler(30))
 
                         configureSerialization(pipeline, PacketFlow.CLIENTBOUND, local = false)
                         connection.configurePacketHandler(pipeline)
-//                        bean<SurfNettyChannelInitializer>().initChannel(channel)
                     }
                 })
                 .connect(address.address, address.port)
@@ -710,8 +782,7 @@ class Connection(val receiving: PacketFlow) : SimpleChannelInboundHandler<NettyP
             if (local) NoOpFrameEncoder() else Varint21LengthFieldPrepender()
 
         private fun createFrameDecoder(local: Boolean) =
-            if (!local) Varint21FrameDecoder() else NoOpFrameDecoder()
-
+            if (local)  NoOpFrameDecoder() else Varint21FrameDecoder()
 
         private fun outboundHandlerName(sendingSide: Boolean) =
             if (sendingSide) HandlerNames.ENCODER else HandlerNames.OUTBOUND_CONFIG

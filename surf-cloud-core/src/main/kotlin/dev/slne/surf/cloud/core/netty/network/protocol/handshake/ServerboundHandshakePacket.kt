@@ -30,6 +30,8 @@ class ServerboundHandshakePacket : NettyPacket {
     val port: Int
     val intention: ClientIntent
 
+    override val terminal = true
+
     constructor(hostName: String, port: Int, intention: ClientIntent) {
         this.protocolVersion = PROTOCOL_VERSION // Currently not used
         this.hostName = hostName
@@ -37,16 +39,16 @@ class ServerboundHandshakePacket : NettyPacket {
         this.intention = intention
     }
 
-    private constructor(buf: SurfByteBuf) {
+    constructor(buf: SurfByteBuf) {
         protocolVersion = PROTOCOL_VERSION // Currently not used
         hostName = buf.readUtf()
-        port = buf.readUnsignedShort()
+        port = buf.readVarInt()
         intention = buf.readEnum(ClientIntent::class)
     }
 
-    private fun write(buffer: SurfByteBuf) {
+    fun write(buffer: SurfByteBuf) {
         buffer.writeUtf(hostName)
-        buffer.writeUnsigned(port)
+        buffer.writeVarInt(port)
         buffer.writeEnum(intention)
     }
 }

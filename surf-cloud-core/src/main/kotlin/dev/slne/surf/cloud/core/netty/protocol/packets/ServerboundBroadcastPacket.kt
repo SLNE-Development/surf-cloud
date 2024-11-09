@@ -22,10 +22,10 @@ class ServerboundBroadcastPacket : NettyPacket {
     }
 
     private constructor(buffer: SurfByteBuf) {
-        packet = RunningProtocols.SERVERBOUND_LAZY.codec.decode(buffer)
+        packet = RunningProtocols.SERVERBOUND.codec.decode(buffer)
     }
 
     private fun write(buffer: SurfByteBuf) {
-        RunningProtocols.SERVERBOUND_LAZY.codec.encode(buffer, packet)
+        RunningProtocols.SERVERBOUND.codec.encode(buffer, packet)
     }
 }

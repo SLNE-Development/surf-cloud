@@ -9,6 +9,7 @@ interface PersistentData<T> {
     fun setValue(value: T?)
 
     operator fun contains(key: String): Boolean
+    fun nonNull(): NonNullPersistentData<T> = NonNullPersistentData.of(this)
 
     companion object {
         @JvmStatic
@@ -30,6 +31,27 @@ interface PersistentData<T> {
 
     }
 }
+
+interface NonNullPersistentData<T> {
+    fun value(): T
+
+    fun setValue(value: T)
+
+    operator fun contains(key: String): Boolean
+
+    companion object {
+        fun <T> of(data: PersistentData<T>) = object : NonNullPersistentData<T> {
+            override fun value(): T = data.value()!!
+
+            override fun setValue(value: T) {
+                data.setValue(value)
+            }
+
+            override fun contains(key: String): Boolean = key in data
+        }
+    }
+}
+
 
 fun <T : Tag<D>, D> persistentData(
     key: String,

@@ -4,7 +4,6 @@ import dev.slne.surf.cloud.api.netty.network.ConnectionProtocol
 import dev.slne.surf.cloud.api.netty.network.codec.StreamCodec
 import dev.slne.surf.cloud.api.netty.network.protocol.PacketFlow
 import dev.slne.surf.cloud.api.netty.packet.NettyPacket
-import dev.slne.surf.cloud.core.netty.network.protocol.ProtocolInfoBuilder.CodecEntry
 import io.netty.buffer.ByteBuf
 import java.util.function.Function
 
@@ -20,11 +19,12 @@ interface ProtocolInfo<T: PacketListener> {
         fun bind(registryBinder: Function<ByteBuf, B>): ProtocolInfo<T>
 
         interface Mutable<T: PacketListener, B : ByteBuf>: Unbound<T, B> {
-
             fun <P : NettyPacket> addPacket(
                 id: Class<P>,
                 codec: StreamCodec<in B, P>
             ): Mutable<T, B>
+
+            fun freeze(): Unbound<T, B>
         }
     }
 }

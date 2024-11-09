@@ -8,7 +8,11 @@ object ProtocolSwapHandler {
         if (packet.terminal) {
             context.channel().config().setAutoRead(false)
             context.pipeline()
-                .addBefore(context.name(), "inbound_config", UnconfiguredPipelineHandler.Inbound())
+                .addBefore(
+                    context.name(),
+                    HandlerNames.INBOUND_CONFIG,
+                    UnconfiguredPipelineHandler.Inbound()
+                )
             context.pipeline().remove(context.name())
         }
     }
@@ -16,7 +20,11 @@ object ProtocolSwapHandler {
     fun handleOutboundTerminalPacket(context: ChannelHandlerContext, packet: NettyPacket) {
         if (packet.terminal) {
             context.pipeline()
-                .addAfter(context.name(), "outbound_config", UnconfiguredPipelineHandler.Outbound())
+                .addAfter(
+                    context.name(),
+                    HandlerNames.OUTBOUND_CONFIG,
+                    UnconfiguredPipelineHandler.Outbound()
+                )
             context.pipeline().remove(context.name())
         }
     }

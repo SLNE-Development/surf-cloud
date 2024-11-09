@@ -7,7 +7,7 @@ import dev.slne.surf.cloud.core.coreCloudInstance
 import java.nio.file.Path
 
 @AutoService(SurfCloudInstance::class)
-class SurfCloudVelocityInstance : SurfCloudCoreInstance() {
+class SurfCloudVelocityInstance : SurfCloudCoreInstance(TODO()) {
     override val dataFolder: Path
         get() = TODO("Not yet implemented")
 

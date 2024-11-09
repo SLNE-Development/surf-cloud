@@ -15,6 +15,7 @@ object RunningProtocols {
                 .addPacket(ClientboundPongResponsePacket.STREAM_CODEC)
         }
 
+    val CLIENTBOUND by lazy { CLIENTBOUND_TEMPLATE.freeze().bind(::SurfByteBuf) }
 
     val SERVERBOUND_TEMPLATE =
         ProtocolInfoBuilder.mutableServerboundProtocol<RunningServerPacketListener, SurfByteBuf>(
@@ -25,5 +26,5 @@ object RunningProtocols {
                 .addPacket(ServerboundPongPacket.STREAM_CODEC)
         }
 
-    val SERVERBOUND_LAZY by lazy { SERVERBOUND_TEMPLATE.bind(::SurfByteBuf) }
+    val SERVERBOUND by lazy { SERVERBOUND_TEMPLATE.freeze().bind(::SurfByteBuf) }
 }

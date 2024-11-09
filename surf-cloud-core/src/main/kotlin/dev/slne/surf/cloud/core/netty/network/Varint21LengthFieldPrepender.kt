@@ -18,7 +18,7 @@ class Varint21LengthFieldPrepender: MessageToByteEncoder<ByteBuf>() {
         }
 
         out.ensureWritable(size + readableBytes)
-        VarInt.writeVarInt(out, size)
+        VarInt.writeVarInt(out, readableBytes)
         out.writeBytes(msg, msg.readerIndex(), readableBytes)
     }
 }

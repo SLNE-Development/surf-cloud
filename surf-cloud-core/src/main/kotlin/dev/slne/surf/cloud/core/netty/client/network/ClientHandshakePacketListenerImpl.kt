@@ -1,6 +1,5 @@
 package dev.slne.surf.cloud.core.netty.client.network
 
-import dev.slne.surf.cloud.api.netty.protocol.buffer.SurfByteBuf
 import dev.slne.surf.cloud.core.netty.ClientNettyClientImpl
 import dev.slne.surf.cloud.core.netty.network.Connection
 import dev.slne.surf.cloud.core.netty.network.DisconnectionDetails
@@ -23,11 +22,11 @@ class ClientHandshakePacketListenerImpl(
         switchState(State.JOINING)
         val listener = ClientRunningPacketListenerImpl(connection)
         connection.setupInboundProtocol(
-            RunningProtocols.CLIENTBOUND_TEMPLATE.bind(::SurfByteBuf),
+            RunningProtocols.CLIENTBOUND,
             listener
         )
         connection.send(ServerboundLoginAcknowledgedPacket)
-        connection.setupOutboundProtocol(RunningProtocols.SERVERBOUND_TEMPLATE.bind(::SurfByteBuf))
+        connection.setupOutboundProtocol(RunningProtocols.SERVERBOUND)
         client.initListener(listener)
     }
 

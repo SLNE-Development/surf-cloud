@@ -6,7 +6,7 @@ import dev.slne.surf.cloud.api.netty.network.ConnectionProtocol
 import dev.slne.surf.cloud.api.netty.network.codec.StreamCodec
 import dev.slne.surf.cloud.api.netty.network.protocol.PacketFlow
 import dev.slne.surf.cloud.api.netty.packet.NettyPacket
-import dev.slne.surf.cloud.api.util.mutableObjectListOf
+import dev.slne.surf.cloud.api.util.mutableObjectSetOf
 import dev.slne.surf.cloud.core.netty.network.ClientboundPacketListener
 import dev.slne.surf.cloud.core.netty.network.PacketListener
 import dev.slne.surf.cloud.core.netty.network.ProtocolInfo
@@ -23,7 +23,7 @@ class ProtocolInfoBuilder<T : PacketListener, B : ByteBuf>(
     val protocol: ConnectionProtocol,
     val flow: PacketFlow
 ) {
-    private val codecs = mutableObjectListOf<CodecEntry<*, B>>()
+    private val codecs = mutableObjectSetOf<CodecEntry<*, B>>()
 
     fun <P : NettyPacket> addPacket(
         id: Class<P>,
@@ -35,7 +35,7 @@ class ProtocolInfoBuilder<T : PacketListener, B : ByteBuf>(
 
     fun buildPacketCodec(
         bufUpgrader: Function<ByteBuf, B>,
-        packetTypes: List<CodecEntry<*, B>>
+        packetTypes: Iterable<CodecEntry<*, B>>
     ) = buildProtocolCodec(this.flow) {
         for (codecEntry in packetTypes) {
             codecEntry.addToBuilder(this, bufUpgrader)
@@ -53,6 +53,13 @@ class ProtocolInfoBuilder<T : PacketListener, B : ByteBuf>(
     }
 
     fun buildUnboundMutable() = object : ProtocolInfo.Unbound.Mutable<T, B> {
+        private var frozen = false
+
+        override fun freeze(): ProtocolInfo.Unbound<T, B> {
+            frozen = true
+            return buildUnbound()
+        }
+
         override val id = protocol
         override val flow = this@ProtocolInfoBuilder.flow
         override fun bind(registryBinder: Function<ByteBuf, B>): ProtocolInfo<T> =
@@ -61,7 +68,10 @@ class ProtocolInfoBuilder<T : PacketListener, B : ByteBuf>(
         override fun <P : NettyPacket> addPacket(
             id: Class<P>,
             codec: StreamCodec<in B, P>
-        ) = apply { this@ProtocolInfoBuilder.addPacket(id, codec) }
+        ) = apply {
+            check(!frozen) { "Cannot add packets after freezing" }
+            this@ProtocolInfoBuilder.addPacket(id, codec)
+        }
     }
 
     companion object {

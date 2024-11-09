@@ -1,6 +1,7 @@
 package dev.slne.surf.cloud.core.netty.network.protocol.running
 
 import dev.slne.surf.cloud.api.netty.network.ConnectionProtocol
+import dev.slne.surf.cloud.api.netty.packet.NettyPacket
 import dev.slne.surf.cloud.core.netty.network.ClientboundPacketListener
 import dev.slne.surf.cloud.core.netty.network.TickablePacketListener
 
@@ -12,4 +13,6 @@ interface RunningClientPacketListener: ClientboundPacketListener, TickablePacket
     fun handlePing(packet: ClientboundPingPacket)
 
     fun handleDisconnect(packet: ClientboundDisconnectPacket)
+
+    fun handlePacket(packet: NettyPacket)
 }

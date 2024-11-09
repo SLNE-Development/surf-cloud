@@ -14,7 +14,7 @@ class ServerClientImpl(serverId: Long, serverCategory: String) :
             }
         }
     val listener get() = _listener ?: error("listener not yet set")
-    override val latency get() = _listener?.latency ?: -1
+
 
     val displayName get() = "${serverCategory}/${serverId} (${host})"
 

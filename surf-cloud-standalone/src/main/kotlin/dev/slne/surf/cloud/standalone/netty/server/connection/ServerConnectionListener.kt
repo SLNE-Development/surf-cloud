@@ -42,7 +42,10 @@ class ServerConnectionListener(val server: NettyServerImpl) {
 
     private val channels = mutableObjectListOf<ChannelFuture>().synchronize()
     private val channelsMutex = Mutex()
+
     val connections = mutableObjectListOf<Connection>().synchronize()
+    val connectionsMutex = Mutex()
+
     private val pending = ConcurrentLinkedQueue<Connection>()
 
     init {
@@ -55,58 +58,67 @@ class ServerConnectionListener(val server: NettyServerImpl) {
     }
 
     suspend fun bind(address: SocketAddress) = withContext(Dispatchers.IO) {
-        val channelClass: Class<out ServerChannel>
-        val eventloopgroup: EventLoopGroup
+        channelsMutex.withLock {
+            val channelClass: Class<out ServerChannel>
+            val eventloopgroup: EventLoopGroup
 
-        if (Epoll.isAvailable()) {
-            channelClass =
-                if (address is DomainSocketAddress) EpollServerDomainSocketChannel::class.java else EpollServerSocketChannel::class.java
-            eventloopgroup = SERVER_EPOLL_EVENT_GROUP
-            log.atInfo().log("Using epoll channel type")
-        } else {
-            channelClass = NioServerSocketChannel::class.java
-            eventloopgroup = SERVER_EVENT_GROUP
-            log.atInfo().log("Using default channel type")
+            if (Epoll.isAvailable() && cloudConfig.connectionConfig.nettyConfig.useEpoll) {
+                channelClass =
+                    if (address is DomainSocketAddress) EpollServerDomainSocketChannel::class.java else EpollServerSocketChannel::class.java
+                eventloopgroup = SERVER_EPOLL_EVENT_GROUP
+                log.atInfo().log("Using epoll channel type")
+            } else {
+                channelClass = NioServerSocketChannel::class.java
+                eventloopgroup = SERVER_EVENT_GROUP
+                log.atInfo().log("Using default channel type")
+            }
+
+            channels.add(
+                ServerBootstrap()
+                    .channel(channelClass)
+                    .group(eventloopgroup)
+                    .localAddress(address)
+                    .option(ChannelOption.AUTO_READ, false)
+                    .childHandler(object : ChannelInitializer<Channel>() {
+                        override fun initChannel(channel: Channel) {
+                            runCatching {
+                                channel.config().setOption(ChannelOption.TCP_NODELAY, true)
+                            }
+
+                            val pipeline = channel.pipeline()
+                                .addFirst(FlushConsolidationHandler())
+                                .addLast(HandlerNames.TIMEOUT, ReadTimeoutHandler(30))
+
+                            Connection.configureSerialization(
+                                pipeline,
+                                PacketFlow.SERVERBOUND,
+                                false
+                            )
+
+                            val connection = Connection(PacketFlow.SERVERBOUND) // TODO: rate limit
+
+                            pending.add(connection)
+                            connection.configurePacketHandler(pipeline)
+                            println(
+                                "Configured packet handler for ${
+                                    connection.getLoggableAddress(
+                                        logIps
+                                    )
+                                }"
+                            )
+                            connection.setListenerForServerboundHandshake(
+                                ServerHandshakePacketListenerImpl(server, connection)
+                            )
+                        }
+                    })
+                    .bind()
+                    .suspend()
+            )
         }
-
-        val channel = ServerBootstrap()
-            .channel(channelClass)
-            .group(eventloopgroup)
-            .localAddress(address)
-            .option(ChannelOption.AUTO_READ, false)
-            .childHandler(object : ChannelInitializer<Channel>() {
-                override fun initChannel(channel: Channel) {
-                    runCatching {
-                        channel.config().setOption(ChannelOption.TCP_NODELAY, true)
-                    }
-
-                    val pipeline = channel.pipeline()
-                        .addFirst(FlushConsolidationHandler())
-                        .addLast(HandlerNames.TIMEOUT, ReadTimeoutHandler(30))
-
-                    Connection.configureSerialization(
-                        pipeline,
-                        PacketFlow.SERVERBOUND,
-                        false
-                    )
-
-                    val connection = Connection(PacketFlow.SERVERBOUND) // TODO: rate limit
-
-                    pending.add(connection)
-                    connection.configurePacketHandler(pipeline)
-                    connection.setListenerForServerboundHandshake(
-                        ServerHandshakePacketListenerImpl(server, connection)
-                    )
-                }
-            })
-            .bind()
-            .suspend()
-
-        channelsMutex.withLock { channels.add(channel) }
     }
 
-    fun acceptConnections() {
-        synchronized(channels) {
+    suspend fun acceptConnections() {
+        channelsMutex.withLock {
             for (future in channels) {
                 future.channel().config().setAutoRead(true)
             }
@@ -116,52 +128,61 @@ class ServerConnectionListener(val server: NettyServerImpl) {
     suspend fun stop() {
         this.running = false
 
-        for (future in channels) {
-            try {
-                future.channel().close().suspend()
-            } catch (e: InterruptedException) {
-                log.atSevere().withCause(e).log("Interrupted whilst closing channel")
+        channelsMutex.withLock {
+            for (future in channels) {
+                try {
+                    future.channel().close().suspend()
+                } catch (e: InterruptedException) {
+                    log.atSevere().withCause(e).log("Interrupted whilst closing channel")
+                }
             }
         }
     }
 
-    private fun addPending() {
+    private suspend fun addPending() {
         var connection: Connection
         while ((pending.poll().also { connection = it }) != null) {
-            connections.add(connection)
-            connection.isPending = false
+            connectionsMutex.withLock {
+                connections.add(connection)
+                connection.isPending = false
+            }
         }
     }
 
     suspend fun tick() {
         addPending()
 
-        val iterator = connections.iterator()
+        connectionsMutex.withLock {
+            val iterator = connections.iterator()
+            for (connection in iterator) {
+                if (connection.connecting) {
+                    continue
+                }
 
-        for (connection in iterator) {
-            if (connection.connecting) continue
+                if (connection.connected) {
+                    try {
+                        connection.tick()
+                    } catch (e: Exception) {
+                        log.atWarning()
+                            .withCause(e)
+                            .log("Failed to handle packet for ${connection.getLoggableAddress(logIps)}")
 
-            if (connection.connected) {
-                try {
-                    connection.tick()
-                } catch (e: Exception) {
-                    log.atWarning()
-                        .withCause(e)
-                        .log("Failed to handle packet for ${connection.getLoggableAddress(logIps)}")
+                        NettyConnectionScope.launch {
+                            val details = DisconnectionDetails("Internal server error")
+                            connection.sendWithIndication(ClientboundDisconnectPacket(details))
+                            connection.disconnect(details)
+                        }
 
-                    NettyConnectionScope.launch {
-                        val details = DisconnectionDetails("Internal server error")
-                        connection.sendWithIndication(ClientboundDisconnectPacket(details))
-                        connection.disconnect(details)
+                        connection.setReadOnly()
+                    }
+                } else {
+                    if (connection.preparing) {
+                        continue
                     }
 
-                    connection.setReadOnly()
+                    iterator.remove()
+                    connection.handleDisconnection()
                 }
-            } else {
-                if (connection.preparing) continue
-
-                iterator.remove()
-                connection.handleDisconnection()
             }
         }
     }

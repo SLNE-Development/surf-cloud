@@ -5,13 +5,14 @@ package dev.slne.surf.cloud.api.netty.network.codec
 import dev.slne.surf.cloud.api.netty.protocol.buffer.readVarInt
 import dev.slne.surf.cloud.api.netty.protocol.buffer.writeVarInt
 import dev.slne.surf.cloud.api.util.freeze
+import dev.slne.surf.cloud.api.util.mutableInt2ObjectMapOf
+import dev.slne.surf.cloud.api.util.mutableObject2IntMapOf
 import dev.slne.surf.cloud.api.util.mutableObjectListOf
-import dev.slne.surf.cloud.api.util.object2IntMapOf
 import io.netty.buffer.ByteBuf
 import io.netty.handler.codec.DecoderException
 import io.netty.handler.codec.EncoderException
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap
 import it.unimi.dsi.fastutil.objects.Object2IntMap
-import it.unimi.dsi.fastutil.objects.ObjectList
 import java.util.function.Function
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
@@ -22,7 +23,7 @@ private const val UNKNOWN_TYPE = -1
 
 class IdDispatchCodec<B : ByteBuf, V, T> private constructor(
     private val typeGetter: Function<V, out T>,
-    private val byId: ObjectList<Entry<B, V, T>>,
+    private val byId: Int2ObjectMap<Entry<B, V, T>>,
     private val toId: Object2IntMap<T>
 ) : StreamCodec<B, V> {
     init {
@@ -31,10 +32,9 @@ class IdDispatchCodec<B : ByteBuf, V, T> private constructor(
 
     override fun decode(buf: B): V {
         val id = buf.readVarInt()
+        val entry = byId.get(id)
 
-        if (id >= 0 && id < byId.size) {
-            val entry = byId[id]
-
+        if (id >= 0 && entry != null) {
             try {
                 return entry.serializer.decode(buf)
             } catch (e: Exception) {
@@ -53,7 +53,7 @@ class IdDispatchCodec<B : ByteBuf, V, T> private constructor(
             throw EncoderException("Sending unknown packet '$type'")
         } else {
             buf.writeVarInt(id)
-            val entry = byId[id]
+            val entry = byId.get(id)
 
             try {
                 val streamCodec = entry.serializer as StreamCodec<in B, V>
@@ -71,19 +71,25 @@ class IdDispatchCodec<B : ByteBuf, V, T> private constructor(
             entries.add(Entry(codec, id))
         }
 
-        fun build(): IdDispatchCodec<B, V, T> {
-            val typeToIdMap = object2IntMapOf<T>()
+        fun build(typeToIdMapper: ((T) -> Int)? = null): IdDispatchCodec<B, V, T> {
+            val typeToIdMap = mutableObject2IntMapOf<T>()
+            val idToTypeMap = mutableInt2ObjectMapOf<Entry<B, V, T>>()
+            val finalTypeToIdMapper = typeToIdMapper ?: { typeToIdMap.size }
+
             typeToIdMap.defaultReturnValue(-2)
 
-            for ((_, type) in this.entries) {
-                val currentSize = typeToIdMap.size
-                val previousValue = typeToIdMap.putIfAbsent(type, currentSize)
+            for (entry in this.entries) {
+                val type = entry.type
+                val id = finalTypeToIdMapper(type)
+
+                val previousValue = typeToIdMap.putIfAbsent(type, id)
                 check(previousValue == -2) { "Duplicate registration for type $type" }
+                idToTypeMap.put(id, entry)
             }
 
             return IdDispatchCodec(
                 this.typeGetter,
-                this.entries.freeze(),
+                idToTypeMap.freeze(),
                 typeToIdMap
             )
         }
@@ -103,11 +109,12 @@ class IdDispatchCodec<B : ByteBuf, V, T> private constructor(
 
 fun <B : ByteBuf, V, T> buildIdDispatchCodec(
     packetIdGetter: (V) -> T,
+    typeToIdMapper: ((T) -> Int)? = null,
     @BuilderInference block: IdDispatchCodec.Builder<B, V, T>.() -> Unit
 ): IdDispatchCodec<B, V, T> {
     contract {
         callsInPlace(block, InvocationKind.EXACTLY_ONCE)
     }
 
-    return IdDispatchCodec.builder<B, V, T> { packetIdGetter(it) }.apply(block).build()
+    return IdDispatchCodec.builder<B, V, T> { packetIdGetter(it) }.apply(block).build(typeToIdMapper)
 }

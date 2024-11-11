@@ -1,9 +1,9 @@
 package dev.slne.surf.cloud.standalone.spring.config
 
-import dev.slne.surf.cloud.api.exceptions.ExitCodes
-import dev.slne.surf.cloud.api.exceptions.FatalSurfError
-import dev.slne.surf.cloud.api.util.logger
-import dev.slne.surf.cloud.core.config.cloudConfig
+import dev.slne.surf.cloud.api.common.exceptions.ExitCodes
+import dev.slne.surf.cloud.api.common.exceptions.FatalSurfError
+import dev.slne.surf.cloud.api.common.util.logger
+import dev.slne.surf.cloud.core.common.config.cloudConfig
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Primary

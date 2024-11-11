@@ -1,7 +1,7 @@
 package dev.slne.surf.cloud.standalone.spring.config
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import dev.slne.surf.cloud.core.config.cloudConfig
+import dev.slne.surf.cloud.core.common.config.cloudConfig
 import org.springframework.boot.autoconfigure.cache.RedisCacheManagerBuilderCustomizer
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration

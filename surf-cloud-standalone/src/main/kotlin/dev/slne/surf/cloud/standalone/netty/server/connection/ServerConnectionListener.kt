@@ -1,13 +1,15 @@
 package dev.slne.surf.cloud.standalone.netty.server.connection
 
-import dev.slne.surf.cloud.api.netty.network.protocol.PacketFlow
-import dev.slne.surf.cloud.api.util.*
-import dev.slne.surf.cloud.core.config.cloudConfig
-import dev.slne.surf.cloud.core.coroutines.NettyConnectionScope
-import dev.slne.surf.cloud.core.netty.network.Connection
-import dev.slne.surf.cloud.core.netty.network.DisconnectionDetails
-import dev.slne.surf.cloud.core.netty.network.HandlerNames
-import dev.slne.surf.cloud.core.netty.network.protocol.running.ClientboundDisconnectPacket
+import dev.slne.surf.cloud.api.common.netty.network.protocol.PacketFlow
+import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
+import dev.slne.surf.cloud.api.common.util.*
+import dev.slne.surf.cloud.core.common.config.cloudConfig
+import dev.slne.surf.cloud.core.common.coroutines.NettyConnectionScope
+import dev.slne.surf.cloud.core.common.netty.network.ConnectionImpl
+import dev.slne.surf.cloud.core.common.netty.network.DisconnectionDetails
+import dev.slne.surf.cloud.core.common.netty.network.HandlerNames
+import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ClientboundBundlePacket
+import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ClientboundDisconnectPacket
 import dev.slne.surf.cloud.standalone.netty.server.NettyServerImpl
 import dev.slne.surf.cloud.standalone.netty.server.network.ServerHandshakePacketListenerImpl
 import io.netty.bootstrap.ServerBootstrap
@@ -43,10 +45,10 @@ class ServerConnectionListener(val server: NettyServerImpl) {
     private val channels = mutableObjectListOf<ChannelFuture>().synchronize()
     private val channelsMutex = Mutex()
 
-    val connections = mutableObjectListOf<Connection>().synchronize()
+    val connections = mutableObjectListOf<ConnectionImpl>().synchronize()
     val connectionsMutex = Mutex()
 
-    private val pending = ConcurrentLinkedQueue<Connection>()
+    private val pending = ConcurrentLinkedQueue<ConnectionImpl>()
 
     init {
         running = true
@@ -89,13 +91,13 @@ class ServerConnectionListener(val server: NettyServerImpl) {
                                 .addFirst(FlushConsolidationHandler())
                                 .addLast(HandlerNames.TIMEOUT, ReadTimeoutHandler(30))
 
-                            Connection.configureSerialization(
+                            ConnectionImpl.configureSerialization(
                                 pipeline,
                                 PacketFlow.SERVERBOUND,
                                 false
                             )
 
-                            val connection = Connection(PacketFlow.SERVERBOUND) // TODO: rate limit
+                            val connection = ConnectionImpl(PacketFlow.SERVERBOUND) // TODO: rate limit
 
                             pending.add(connection)
                             connection.configurePacketHandler(pipeline)
@@ -140,7 +142,7 @@ class ServerConnectionListener(val server: NettyServerImpl) {
     }
 
     private suspend fun addPending() {
-        var connection: Connection
+        var connection: ConnectionImpl
         while ((pending.poll().also { connection = it }) != null) {
             connectionsMutex.withLock {
                 connections.add(connection)
@@ -184,6 +186,15 @@ class ServerConnectionListener(val server: NettyServerImpl) {
                     connection.handleDisconnection()
                 }
             }
+        }
+    }
+
+    fun broadcast(packets: List<NettyPacket>) {
+        if (packets.isEmpty()) return
+        val packet = if (packets.size == 1) packets.first() else ClientboundBundlePacket(packets)
+
+        for (connection in connections) {
+            connection.send(packet)
         }
     }
 

@@ -1,7 +1,7 @@
 package dev.slne.surf.cloud.standalone
 
-import dev.slne.surf.cloud.api.meta.SurfJpaRepository
-import dev.slne.surf.cloud.api.meta.SurfRedisRepository
+import dev.slne.surf.cloud.api.common.meta.SurfJpaRepository
+import dev.slne.surf.cloud.api.common.meta.SurfRedisRepository
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.FilterType

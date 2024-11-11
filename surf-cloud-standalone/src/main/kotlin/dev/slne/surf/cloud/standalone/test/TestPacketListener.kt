@@ -1,6 +1,6 @@
 package dev.slne.surf.cloud.standalone.test
 
-import dev.slne.surf.cloud.api.util.logger
+import dev.slne.surf.cloud.api.common.util.logger
 import dev.slne.surf.cloud.standalone.redis.RedisEventHandler
 import org.springframework.stereotype.Component
 

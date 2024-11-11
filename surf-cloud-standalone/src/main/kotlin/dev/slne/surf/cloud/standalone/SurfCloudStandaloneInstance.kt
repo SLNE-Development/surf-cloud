@@ -1,9 +1,9 @@
 package dev.slne.surf.cloud.standalone
 
 import com.google.auto.service.AutoService
-import dev.slne.surf.cloud.api.SurfCloudInstance
-import dev.slne.surf.cloud.core.SurfCloudCoreInstance
-import dev.slne.surf.cloud.core.util.random
+import dev.slne.surf.cloud.api.common.SurfCloudInstance
+import dev.slne.surf.cloud.core.common.SurfCloudCoreInstance
+import dev.slne.surf.cloud.core.common.util.random
 import dev.slne.surf.cloud.standalone.netty.server.StandaloneNettyManager
 import dev.slne.surf.cloud.standalone.plugin.StandalonePluginManager
 import dev.slne.surf.cloud.standalone.redis.RedisEvent

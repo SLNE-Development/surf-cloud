@@ -3,7 +3,9 @@ plugins {
 }
 
 dependencies {
-    api(project(":surf-cloud-core"))
+    api(project(":surf-cloud-core:surf-cloud-core-common"))
+    api(project(":surf-cloud-api:surf-cloud-api-server"))
+
     implementation(platform("org.springframework.shell:spring-shell-dependencies:3.3.3"))
 
     runtimeOnly("org.mariadb.jdbc:mariadb-java-client")

@@ -1,6 +1,6 @@
 package dev.slne.surf.cloud.bukkit.netty.listener
 
-import dev.slne.surf.cloud.core.messages.MessageManager
+import dev.slne.surf.cloud.core.common.messages.MessageManager
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.player.AsyncPlayerPreLoginEvent

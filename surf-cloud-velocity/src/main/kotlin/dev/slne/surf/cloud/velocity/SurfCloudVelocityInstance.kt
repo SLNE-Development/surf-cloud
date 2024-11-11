@@ -1,9 +1,9 @@
 package dev.slne.surf.cloud.velocity
 
 import com.google.auto.service.AutoService
-import dev.slne.surf.cloud.api.SurfCloudInstance
-import dev.slne.surf.cloud.core.SurfCloudCoreInstance
-import dev.slne.surf.cloud.core.coreCloudInstance
+import dev.slne.surf.cloud.api.common.SurfCloudInstance
+import dev.slne.surf.cloud.core.common.SurfCloudCoreInstance
+import dev.slne.surf.cloud.core.common.coreCloudInstance
 import java.nio.file.Path
 
 @AutoService(SurfCloudInstance::class)

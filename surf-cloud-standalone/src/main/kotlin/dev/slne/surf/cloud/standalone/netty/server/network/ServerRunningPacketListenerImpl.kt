@@ -1,17 +1,16 @@
 package dev.slne.surf.cloud.standalone.netty.server.network
 
-import dev.slne.surf.cloud.api.netty.packet.NettyPacket
-import dev.slne.surf.cloud.api.util.logger
-import dev.slne.surf.cloud.core.coroutines.NettyConnectionScope
-import dev.slne.surf.cloud.core.coroutines.NettyListenerScope
-import dev.slne.surf.cloud.core.netty.common.registry.listener.NettyListenerRegistry
-import dev.slne.surf.cloud.core.netty.network.CommonTickablePacketListener
-import dev.slne.surf.cloud.core.netty.network.Connection
-import dev.slne.surf.cloud.core.netty.network.DisconnectionDetails
+import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
+import dev.slne.surf.cloud.api.common.util.logger
+import dev.slne.surf.cloud.core.common.coroutines.NettyConnectionScope
+import dev.slne.surf.cloud.core.common.coroutines.NettyListenerScope
+import dev.slne.surf.cloud.core.common.netty.network.CommonTickablePacketListener
+import dev.slne.surf.cloud.core.common.netty.network.ConnectionImpl
+import dev.slne.surf.cloud.core.common.netty.network.DisconnectionDetails
+import dev.slne.surf.cloud.core.common.netty.network.protocol.running.*
+import dev.slne.surf.cloud.core.common.netty.protocol.packet.NettyPacketInfo
+import dev.slne.surf.cloud.core.common.netty.registry.listener.NettyListenerRegistry
 import dev.slne.surf.cloud.core.netty.network.protocol.running.*
-import dev.slne.surf.cloud.core.netty.protocol.packet.NettyPacketInfo
-import dev.slne.surf.cloud.core.netty.protocol.packets.ProxiedNettyPacket
-import dev.slne.surf.cloud.core.netty.protocol.packets.ServerboundBroadcastPacket
 import dev.slne.surf.cloud.standalone.netty.server.NettyServerImpl
 import dev.slne.surf.cloud.standalone.netty.server.ServerClientImpl
 import kotlinx.coroutines.launch
@@ -26,7 +25,7 @@ private val KEEP_ALIVE_TIMEOUT = KeepAliveTime(30.seconds)
 class ServerRunningPacketListenerImpl(
     val server: NettyServerImpl,
     val client: ServerClientImpl,
-    val connection: Connection
+    val connection: ConnectionImpl
 ) :
     CommonTickablePacketListener(), RunningServerPacketListener {
     private val log = logger()
@@ -44,9 +43,27 @@ class ServerRunningPacketListenerImpl(
 
     private var closed = false
 
-    override fun handleBroadcastPacket(packet: ServerboundBroadcastPacket) {
-        for (receiver in server.connection.connections) {
-            receiver.send(packet.packet)
+    override fun handleBundlePacket(packet: ServerboundBundlePacket) {
+        val broadcastIdentifier = packet.subPackets.firstOrNull() as? ServerboundBroadcastPacket
+
+        if (broadcastIdentifier != null) {
+            handleBroadcastPacket(packet.subPackets.drop(1))
+            return
+        }
+
+        NettyConnectionScope.launch {
+            for (subPacket in packet.subPackets) {
+                connection.handlePacket(subPacket)
+            }
+        }
+    }
+
+    private fun handleBroadcastPacket(packets: List<NettyPacket>) {
+        if (packets.isEmpty()) return
+        val packet = if (packets.size == 1) packets.first() else ClientboundBundlePacket(packets)
+
+        for (connection in server.connection.connections) {
+            connection.send(packet)
         }
     }
 

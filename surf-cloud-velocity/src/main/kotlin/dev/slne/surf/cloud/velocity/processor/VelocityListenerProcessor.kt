@@ -1,8 +1,8 @@
 package dev.slne.surf.cloud.velocity.processor
 
 import com.velocitypowered.api.event.Subscribe
-import dev.slne.surf.cloud.api.util.isCandidateFor
-import dev.slne.surf.cloud.api.util.ultimateTargetClass
+import dev.slne.surf.cloud.api.common.util.isCandidateFor
+import dev.slne.surf.cloud.api.common.util.ultimateTargetClass
 import dev.slne.surf.cloud.velocity.VelocityMain
 import org.springframework.aop.framework.AopInfrastructureBean
 import org.springframework.beans.BeansException

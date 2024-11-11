@@ -1,6 +1,6 @@
 package dev.slne.surf.cloud.standalone
 
-import dev.slne.surf.cloud.api.exceptions.FatalSurfError
+import dev.slne.surf.cloud.api.common.exceptions.FatalSurfError
 import dev.slne.surf.cloud.standalone.spring.config.logback.CloudLogbackConfigurator
 import dev.slne.surf.surfapi.standalone.SurfApiStandaloneBootstrap
 import org.springframework.boot.SpringApplication

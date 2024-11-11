@@ -1,9 +1,9 @@
 package dev.slne.surf.cloud.bukkit.processor
 
-import dev.slne.surf.cloud.api.util.isAnnotated
-import dev.slne.surf.cloud.api.util.isCandidateFor
-import dev.slne.surf.cloud.api.util.selectFunctions
-import dev.slne.surf.cloud.api.util.ultimateTargetClass
+import dev.slne.surf.cloud.api.common.util.isAnnotated
+import dev.slne.surf.cloud.api.common.util.isCandidateFor
+import dev.slne.surf.cloud.api.common.util.selectFunctions
+import dev.slne.surf.cloud.api.common.util.ultimateTargetClass
 import org.bukkit.Bukkit
 import org.bukkit.event.Event
 import org.bukkit.event.EventException

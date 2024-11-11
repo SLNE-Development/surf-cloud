@@ -1,8 +1,8 @@
 package dev.slne.surf.cloud.standalone.plugin
 
-import dev.slne.surf.cloud.api.util.logger
-import dev.slne.surf.cloud.api.util.mutableObjectSetOf
-import dev.slne.surf.cloud.api.util.synchronize
+import dev.slne.surf.cloud.api.common.util.logger
+import dev.slne.surf.cloud.api.common.util.mutableObjectSetOf
+import dev.slne.surf.cloud.api.common.util.synchronize
 import java.nio.file.Path
 
 

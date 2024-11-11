@@ -1,6 +1,6 @@
 package dev.slne.surf.cloud.standalone.redis
 
-import dev.slne.surf.cloud.api.util.*
+import dev.slne.surf.cloud.api.common.util.*
 import org.springframework.beans.factory.ObjectProvider
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.config.BeanPostProcessor

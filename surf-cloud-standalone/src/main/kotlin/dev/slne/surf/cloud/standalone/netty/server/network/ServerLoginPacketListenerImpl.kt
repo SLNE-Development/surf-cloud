@@ -1,17 +1,17 @@
 package dev.slne.surf.cloud.standalone.netty.server.network
 
-import dev.slne.surf.cloud.api.util.logger
-import dev.slne.surf.cloud.core.netty.network.CommonTickablePacketListener
-import dev.slne.surf.cloud.core.netty.network.Connection
-import dev.slne.surf.cloud.core.netty.network.DisconnectionDetails
-import dev.slne.surf.cloud.core.netty.network.protocol.login.*
-import dev.slne.surf.cloud.core.netty.network.protocol.running.RunningProtocols
+import dev.slne.surf.cloud.api.common.util.logger
+import dev.slne.surf.cloud.core.common.netty.network.CommonTickablePacketListener
+import dev.slne.surf.cloud.core.common.netty.network.ConnectionImpl
+import dev.slne.surf.cloud.core.common.netty.network.DisconnectionDetails
+import dev.slne.surf.cloud.core.common.netty.network.protocol.login.*
+import dev.slne.surf.cloud.core.common.netty.network.protocol.running.RunningProtocols
 import dev.slne.surf.cloud.standalone.netty.server.NettyServerImpl
 import dev.slne.surf.cloud.standalone.netty.server.ServerClientImpl
 
 private const val MAX_LOGIN_TIME = 30
 
-class ServerLoginPacketListenerImpl(val server: NettyServerImpl, val connection: Connection) :
+class ServerLoginPacketListenerImpl(val server: NettyServerImpl, val connection: ConnectionImpl) :
     CommonTickablePacketListener(), ServerLoginPacketListener {
 
     private val log = logger()
@@ -37,7 +37,7 @@ class ServerLoginPacketListenerImpl(val server: NettyServerImpl, val connection:
 
     override fun handleLoginStart(packet: ServerboundLoginStartPacket) {
         check(state == State.HELLO) { "Unexpected login start packet" }
-        this.client = ServerClientImpl(packet.serverId, packet.serverCategory)
+        this.client = ServerClientImpl(server, packet.serverId, packet.serverCategory)
         startClientVerification()
     }
 

@@ -1,6 +1,6 @@
 package dev.slne.surf.cloud.standalone.persistent
 
-import dev.slne.surf.cloud.core.data.persistentData
+import dev.slne.surf.cloud.core.common.data.persistentData
 import net.querz.nbt.tag.LongTag
 
 object StandalonePersistentData {

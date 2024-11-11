@@ -1,6 +1,6 @@
 package dev.slne.surf.cloud.standalone.test
 
-import dev.slne.surf.cloud.api.jpa.SurfEntity
+import dev.slne.surf.cloud.api.common.jpa.SurfEntity
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.Table

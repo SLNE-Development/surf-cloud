@@ -1,8 +1,8 @@
 package dev.slne.surf.cloud.standalone.plugin
 
-import dev.slne.surf.cloud.api.util.findAnnotation
-import dev.slne.surf.cloud.api.util.getValue
-import dev.slne.surf.cloud.api.util.ultimateTargetClass
+import dev.slne.surf.cloud.api.common.util.findAnnotation
+import dev.slne.surf.cloud.api.common.util.getValue
+import dev.slne.surf.cloud.api.common.util.ultimateTargetClass
 
 abstract class StandalonePlugin protected constructor() {
 

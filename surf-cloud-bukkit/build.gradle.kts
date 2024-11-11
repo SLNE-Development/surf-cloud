@@ -7,7 +7,7 @@ plugins {
 }
 
 dependencies {
-    api(project(":surf-cloud-core"))
+    api(project(":surf-cloud-core:surf-cloud-core-client"))
     compileOnly("io.papermc.paper:paper-api:1.21.1-R0.1-SNAPSHOT")
     compileOnly("dev.slne.surf:surf-api-bukkit-api:1.21+")
 
@@ -21,7 +21,6 @@ dependencies {
 configurations {
     all {
         exclude(group = "ch.qos.logback", module = "logback-classic")
-//        exclude(group = "ch.qos.logback", module = "logback-core")
     }
 }
 

@@ -1,0 +1,9 @@
+package dev.slne.surf.cloud.api.common.meta
+
+import org.springframework.core.annotation.AliasFor
+import org.springframework.stereotype.Repository
+
+@Target(AnnotationTarget.CLASS)
+@Retention(AnnotationRetention.RUNTIME)
+@Repository
+annotation class SurfRedisRepository(@get:AliasFor(annotation = Repository::class) val value: String = "")

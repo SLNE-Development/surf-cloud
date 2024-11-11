@@ -1,9 +1,10 @@
 package dev.slne.surf.cloud.standalone.netty.server
 
-import dev.slne.surf.cloud.core.netty.CommonNettyClientImpl
+import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
+import dev.slne.surf.cloud.core.common.netty.CommonNettyClientImpl
 import dev.slne.surf.cloud.standalone.netty.server.network.ServerRunningPacketListenerImpl
 
-class ServerClientImpl(serverId: Long, serverCategory: String) :
+class ServerClientImpl(val server: NettyServerImpl, serverId: Long, serverCategory: String) :
     CommonNettyClientImpl(serverId, serverCategory) {
 
     private var _listener: ServerRunningPacketListenerImpl? = null
@@ -15,10 +16,13 @@ class ServerClientImpl(serverId: Long, serverCategory: String) :
         }
     val listener get() = _listener ?: error("listener not yet set")
 
-
     val displayName get() = "${serverCategory}/${serverId} (${host})"
 
     fun initListener(listener: ServerRunningPacketListenerImpl) {
         _listener = listener
+    }
+
+    override fun broadcast(packets: List<NettyPacket>) {
+        server.connection.broadcast(packets)
     }
 }

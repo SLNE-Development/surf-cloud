@@ -1,8 +1,8 @@
 package dev.slne.surf.cloud.standalone.plugin
 
-import dev.slne.surf.cloud.api.util.findAnnotation
-import dev.slne.surf.cloud.api.util.logger
-import dev.slne.surf.cloud.api.util.ultimateTargetClass
+import dev.slne.surf.cloud.api.common.util.findAnnotation
+import dev.slne.surf.cloud.api.common.util.logger
+import dev.slne.surf.cloud.api.common.util.ultimateTargetClass
 import org.springframework.aop.framework.AopInfrastructureBean
 import org.springframework.beans.factory.BeanCreationException
 import org.springframework.beans.factory.config.BeanPostProcessor

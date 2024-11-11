@@ -1,6 +1,6 @@
 package dev.slne.surf.cloud.bukkit
 
-import dev.slne.surf.cloud.api.exceptions.FatalSurfError
+import dev.slne.surf.cloud.api.common.exceptions.FatalSurfError
 import org.bukkit.Bukkit
 import org.bukkit.plugin.java.JavaPlugin
 import org.springframework.core.NestedRuntimeException

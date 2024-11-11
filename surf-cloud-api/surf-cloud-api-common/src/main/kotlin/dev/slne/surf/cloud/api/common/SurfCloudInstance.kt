@@ -1,6 +1,6 @@
 package dev.slne.surf.cloud.api.common
 
-import net.kyori.adventure.util.Services
+import dev.slne.surf.cloud.api.common.util.requiredService
 import org.jetbrains.annotations.ApiStatus
 import org.springframework.context.ConfigurableApplicationContext
 import kotlin.reflect.KClass
@@ -20,8 +20,7 @@ interface SurfCloudInstance {
     val classLoader: ClassLoader
 
     companion object {
-        private val INSTANCE = Services.service(SurfCloudInstance::class.java)
-            .orElseThrow { Error("SurfCloudInstance not available") }
+        private val INSTANCE = requiredService<SurfCloudInstance>()
 
         @JvmStatic
         fun get(): SurfCloudInstance = INSTANCE

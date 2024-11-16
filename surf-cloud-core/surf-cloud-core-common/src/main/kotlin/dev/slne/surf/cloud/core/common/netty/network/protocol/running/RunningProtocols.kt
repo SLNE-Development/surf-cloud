@@ -14,6 +14,21 @@ object RunningProtocols {
                 .addPacket(ClientboundKeepAlivePacket.STREAM_CODEC)
                 .addPacket(ClientboundPingPacket.STREAM_CODEC)
                 .addPacket(ClientboundPongResponsePacket.STREAM_CODEC)
+                .addPacket(ClientboundSendMessagePacket.STREAM_CODEC)
+                .addPacket(ClientboundSendActionBarPacket.STREAM_CODEC)
+                .addPacket(ClientboundSendPlayerListHeaderAndFooterPacket.STREAM_CODEC)
+                .addPacket(ClientboundShowTitlePacket.STREAM_CODEC)
+                .addPacket(ClientboundSendTitlePartPacket.STREAM_CODEC)
+                .addPacket(ClientboundClearTitlePacket.STREAM_CODEC)
+                .addPacket(ClientboundResetTitlePacket.STREAM_CODEC)
+                .addPacket(ClientboundShowBossBarPacket.STREAM_CODEC)
+                .addPacket(ClientboundHideBossBarPacket.STREAM_CODEC)
+                .addPacket(ClientboundPlaySoundPacket.STREAM_CODEC)
+                .addPacket(ClientboundStopSoundPacket.STREAM_CODEC)
+                .addPacket(ClientboundOpenBookPacket.STREAM_CODEC)
+                .addPacket(ClientboundSendResourcePacksPacket.STREAM_CODEC)
+                .addPacket(ClientboundRemoveResourcePacksPacket.STREAM_CODEC)
+                .addPacket(ClientboundClearResourcePacks.STREAM_CODEC)
         }
 
     val CLIENTBOUND by lazy { CLIENTBOUND_TEMPLATE.freeze().bind(::SurfByteBuf) }

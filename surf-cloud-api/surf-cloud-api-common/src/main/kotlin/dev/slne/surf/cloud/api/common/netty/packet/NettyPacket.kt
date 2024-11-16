@@ -101,21 +101,6 @@ abstract class NettyPacket {
 
     val channel: Channel
         get() = TODO()
-
-    fun fireAndForget() {
-    }
-
-    suspend fun fire() = suspendCancellableCoroutine {
-        channel.writeAndFlush(this)
-            .also { future -> it.invokeOnCancellation { future.cancel(true) } }
-            .addListener { future ->
-                if (future.isSuccess) {
-                    it.resume(Unit)
-                } else {
-                    it.resumeWithException(future.cause())
-                }
-            }
-    }
 }
 
 abstract class RespondingNettyPacket<P : NettyPacket> : NettyPacket() {
@@ -127,7 +112,7 @@ abstract class RespondingNettyPacket<P : NettyPacket> : NettyPacket() {
         // registerResponseChannel(requestId, responseChannel)
 
         try {
-            fireAndForget()
+//            fireAndForget()
             responseChannel.receive()
         } finally {
             // unregisterResponseChannel(requestId)

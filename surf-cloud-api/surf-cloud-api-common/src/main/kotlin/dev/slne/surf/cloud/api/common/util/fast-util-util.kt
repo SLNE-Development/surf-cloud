@@ -12,6 +12,7 @@ import org.jetbrains.annotations.UnmodifiableView
 fun <T> mutableObjectSetOf(vararg elements: T) = ObjectOpenHashSet(elements)
 fun <T> mutableObjectSetOf() = ObjectOpenHashSet<T>()
 fun <T> objectSetOf(vararg elements: T) = mutableObjectSetOf(elements).freeze()
+fun <T> objectSetOf(collection: Collection<T>) = mutableObjectSetOf<T>().apply { addAll(collection) }.freeze()
 fun <T> objectSetOf() = emptyObjectSet<T>()
 fun <T> emptyObjectSet(): @Unmodifiable ObjectSet<T> = ObjectSets.emptySet()
 fun <T> ObjectSet<T>.synchronize(): ObjectSet<T> = ObjectSets.synchronize(this)
@@ -22,6 +23,7 @@ fun <T> Sequence<T>.toObjectSet() = toMutableObjectSet().freeze()
 // region ObjectList
 fun <T> mutableObjectListOf(vararg elements: T) = ObjectArrayList<T>().apply { addAll(elements) }
 fun <T> mutableObjectListOf() = ObjectArrayList<T>()
+fun <T> mutableObjectListOf(capacity: Int) = ObjectArrayList<T>(capacity)
 fun <T> objectListOf(vararg elements: T) = mutableObjectListOf(*elements).freeze()
 fun <T> objectListOf() = emptyObjectList<T>()
 fun <T> emptyObjectList(): @Unmodifiable ObjectList<T> = ObjectLists.emptyList()

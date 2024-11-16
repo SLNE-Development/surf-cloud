@@ -6,6 +6,7 @@ import net.kyori.adventure.identity.Identity
 import net.kyori.adventure.inventory.Book
 import net.kyori.adventure.resource.ResourcePackRequest
 import net.kyori.adventure.sound.Sound
+import net.kyori.adventure.sound.Sound.Emitter
 import net.kyori.adventure.sound.SoundStop
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.title.Title
@@ -55,7 +56,10 @@ class TempCloudPlayerImpl: CloudPlayer {
 
     }
 
-    override fun playSound(sound: Sound, emitter: Sound.Emitter) {
+    override fun playSound(sound: Sound, emitter: Emitter) {
+        if (emitter != Emitter.self()) {
+            throw UnsupportedOperationException("Only self emitters are supported")
+        }
     }
 
     override fun playSound(sound: Sound, x: Double, y: Double, z: Double) {

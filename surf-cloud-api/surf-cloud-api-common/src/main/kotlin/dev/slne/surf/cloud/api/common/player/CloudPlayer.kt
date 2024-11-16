@@ -1,11 +1,22 @@
 package dev.slne.surf.cloud.api.common.player
 
+import dev.slne.surf.cloud.api.common.player.ppdc.PersistentPlayerDataContainer
+import dev.slne.surf.cloud.api.common.player.ppdc.PersistentPlayerDataContainerView
 import dev.slne.surf.cloud.api.common.server.CloudServer
 import net.kyori.adventure.audience.Audience
 import java.util.*
 
 interface CloudPlayer: Audience {
     val uuid: UUID
+    val persistentDataView: PersistentPlayerDataContainerView
+
+    /**
+     * Edits the persistent data of the player.
+     * This method will suspend until the data is fully edited and synced across the network.
+     *
+     * @param block The block to edit the data.
+     */
+    suspend fun editPersistentData(block: PersistentPlayerDataContainer.() -> Unit)
 
     /**
      * Connects the player to the specified server.

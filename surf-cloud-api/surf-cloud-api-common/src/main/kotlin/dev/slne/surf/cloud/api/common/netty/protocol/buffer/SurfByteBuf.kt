@@ -26,6 +26,7 @@ import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer
 import okhttp3.internal.and
 import org.intellij.lang.annotations.Subst
 import java.io.*
+import java.net.URI
 import java.util.*
 import java.util.function.Consumer
 import kotlin.contracts.ExperimentalContracts
@@ -581,6 +582,12 @@ class SurfByteBuf(source: ByteBuf) : WrappedByteBuf(source) {
         inline fun <reified T : Serializable, B : ByteBuf> readSerializable(
             buf: B,
         ): T = readSerializable(buf, T::class.java)
+
+        fun <B : ByteBuf> writeURI(buf: B, uri: URI) {
+            writeUtf(buf, uri.toString())
+        }
+
+        fun <B : ByteBuf> readURI(buf: B) = URI(readUtf(buf))
     }
 
 
@@ -615,6 +622,8 @@ class SurfByteBuf(source: ByteBuf) : WrappedByteBuf(source) {
     @Suppress("DEPRECATION")
     @Deprecated("Use codec instead")
     inline fun <reified T : Serializable> readSerializable() = readSerializable(this, T::class.java)
+    fun writeURI(uri: URI) = writeURI(this, uri)
+    fun readURI() = readURI(this)
     fun readKey() = readKey(this)
     fun writeKey(key: Key) = writeKey(this, key)
     fun writeSound(sound: Sound) = writeSound(this, sound)
@@ -867,6 +876,7 @@ fun <E : Enum<E>> ByteBuf.writeEnumSet(enumSet: EnumSet<E>, enumClass: KClass<E>
     SurfByteBuf.writeEnumSet(this, enumSet, enumClass)
 
 fun <E : Enum<E>> ByteBuf.readEnum(enumClass: Class<E>) = SurfByteBuf.readEnum(this, enumClass)
+inline fun <reified E : Enum<E>> ByteBuf.readEnum() = SurfByteBuf.readEnum(this, E::class.java)
 fun <E : Enum<E>> ByteBuf.writeEnum(value: E) = SurfByteBuf.writeEnum(this, value)
 fun ByteBuf.writeUuid(uuid: UUID) = SurfByteBuf.writeUuid(this, uuid)
 fun ByteBuf.readUuid() = SurfByteBuf.readUuid(this)
@@ -951,6 +961,9 @@ fun <B : ByteBuf> B.writeWithCount(count: Int, writer: Consumer<B>) =
 
 fun <B : ByteBuf> B.readWithCount(reader: (B) -> Unit) = SurfByteBuf.readWithCount(this, reader)
 fun <B : ByteBuf> B.readWithCount(reader: Consumer<B>) = Companion.readWithCount(this, reader)
+
+fun <B: ByteBuf> B.readURI() = SurfByteBuf.readURI(this)
+fun <B: ByteBuf> B.writeURI(uri: URI) = SurfByteBuf.writeURI(this, uri)
 
 fun ByteBuf.wrap() = SurfByteBuf(this)
 // endregion

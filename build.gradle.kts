@@ -107,6 +107,7 @@ tasks.withType<Test> {
 kotlin {
     compilerOptions {
         freeCompilerArgs.addAll("-Xjsr305=strict")
+//        extraWarnings.set(true)
     }
 }
 allOpen {

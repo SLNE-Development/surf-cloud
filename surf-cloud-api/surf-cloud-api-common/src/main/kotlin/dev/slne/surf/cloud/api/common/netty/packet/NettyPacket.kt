@@ -22,6 +22,7 @@ import kotlin.reflect.full.companionObjectInstance
 import kotlin.reflect.full.declaredMemberProperties
 import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.jvm.isAccessible
+import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.channels.Channel as CoroutineChannel
 
@@ -120,7 +121,7 @@ abstract class NettyPacket {
 abstract class RespondingNettyPacket<P : NettyPacket> : NettyPacket() {
     val requestId = UUID.randomUUID()
 
-    suspend fun fireAndAwait(): P? = withTimeoutOrNull(15.seconds) {
+    suspend fun fireAndAwait(timeout: Duration = 15.seconds): P? = withTimeoutOrNull(timeout) {
         val responseChannel = CoroutineChannel<P>()
 
         // registerResponseChannel(requestId, responseChannel)

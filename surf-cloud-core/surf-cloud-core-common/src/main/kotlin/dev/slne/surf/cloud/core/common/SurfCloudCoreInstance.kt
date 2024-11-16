@@ -12,6 +12,8 @@ import dev.slne.surf.cloud.core.common.netty.NettyManager
 import dev.slne.surf.cloud.core.common.processors.NettyPacketProcessor
 import dev.slne.surf.cloud.core.common.spring.SurfSpringBanner
 import dev.slne.surf.cloud.core.common.spring.event.RootSpringContextInitialized
+import dev.slne.surf.cloud.core.common.util.checkCallerClass
+import dev.slne.surf.cloud.core.common.util.checkInstantiationByServiceLoader
 import dev.slne.surf.cloud.core.common.util.getCallerClass
 import dev.slne.surf.cloud.core.common.util.tempChangeSystemClassLoader
 import kotlinx.coroutines.runBlocking
@@ -35,7 +37,7 @@ abstract class SurfCloudCoreInstance(private val nettyManager: NettyManager) : S
     protected open val springProfile = "client"
 
     init {
-        check(getCallerClass()?.name?.startsWith("java.util.ServiceLoader") == true) { "Cannot instantiate instance directly" }
+        checkInstantiationByServiceLoader()
     }
 
     @MustBeInvokedByOverriders

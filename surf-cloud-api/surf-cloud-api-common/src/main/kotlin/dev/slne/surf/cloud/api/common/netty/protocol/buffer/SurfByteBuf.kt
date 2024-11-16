@@ -13,6 +13,7 @@ import dev.slne.surf.cloud.api.common.netty.protocol.buffer.ecoder.EncodeFactory
 import dev.slne.surf.cloud.api.common.netty.protocol.buffer.ecoder.EncodeFactory.EncodeLongFactory
 import dev.slne.surf.cloud.api.common.netty.protocol.buffer.types.Utf8String
 import dev.slne.surf.cloud.api.common.netty.protocol.buffer.types.VarInt
+import dev.slne.surf.cloud.api.common.util.codec.ExtraCodecs
 import dev.slne.surf.cloud.api.common.util.fromJson
 import io.netty.buffer.ByteBuf
 import io.netty.handler.codec.DecoderException
@@ -50,10 +51,7 @@ class SurfByteBuf(source: ByteBuf) : WrappedByteBuf(source) {
          * @param buf the buf
          * @return the key
          */
-        fun readKey(buf: ByteBuf): Key {
-            @Subst("key:value") val keyString = readUtf(buf)
-            return Key.key(keyString)
-        }
+        fun readKey(buf: ByteBuf): Key = ExtraCodecs.STREAM_KEY_CODEC.decode(buf)
 
         /**
          * Write key.
@@ -62,28 +60,18 @@ class SurfByteBuf(source: ByteBuf) : WrappedByteBuf(source) {
          * @param key the key
          */
         fun writeKey(buf: ByteBuf, key: Key) {
-            writeUtf(buf, key.asString())
+            ExtraCodecs.STREAM_KEY_CODEC.encode(buf, key)
         }
 
         fun writeSound(buf: ByteBuf, sound: Sound) {
-            writeKey(buf, sound.name())
-            writeEnum(buf, sound.source())
-            buf.writeFloat(sound.volume())
-            buf.writeFloat(sound.pitch())
-            writeOptionalLong(buf, sound.seed())
+            ExtraCodecs.STREAM_SOUND_CODEC.encode(buf, sound)
         }
 
-        fun readSound(buf: ByteBuf) = Sound.sound()
-            .type(readKey(buf))
-            .source(readEnum(buf, Sound.Source::class.java))
-            .volume(buf.readFloat())
-            .pitch(buf.readFloat())
-            .seed(readOptionalLong(buf))
-            .build()
+        fun readSound(buf: ByteBuf) = ExtraCodecs.STREAM_SOUND_CODEC.decode(buf)
 
-        fun readComponent(buf: ByteBuf) = GsonComponentSerializer.gson().deserialize(readUtf(buf))
+        fun readComponent(buf: ByteBuf) = ExtraCodecs.COMPONENT_STREAM.decode(buf)
         fun writeComponent(buf: ByteBuf, component: Component) =
-            writeUtf(buf, GsonComponentSerializer.gson().serialize(component))
+            ExtraCodecs.COMPONENT_STREAM.encode(buf, component)
 
         fun writeNumber(buf: ByteBuf, number: Number): Any = when (number) {
             is Byte -> {
@@ -339,7 +327,7 @@ class SurfByteBuf(source: ByteBuf) : WrappedByteBuf(source) {
             }
         }
 
-        fun <B : ByteBuf> writeUuidArray(buf: B, array: Array<UUID>) {
+        fun <B : ByteBuf> writeUuidArray(buf: B, array: Array<out UUID>) {
             buf.writeVarInt(array.size)
             for (element in array) {
                 writeUuid(buf, element)
@@ -683,7 +671,7 @@ class SurfByteBuf(source: ByteBuf) : WrappedByteBuf(source) {
     fun writeShortArray(array: ShortArray) = writeShortArray(this, array)
     fun writeCharArray(array: CharArray) = writeCharArray(this, array)
     fun writeStringArray(array: Array<String>) = writeStringArray(this, array)
-    fun writeUuidArray(array: Array<UUID>) = writeUuidArray(this, array)
+    fun writeUuidArray(array: Array<out UUID>) = writeUuidArray(this, array)
 
     @Throws(EncoderException::class)
     fun <T> writeCodecJsonArray(

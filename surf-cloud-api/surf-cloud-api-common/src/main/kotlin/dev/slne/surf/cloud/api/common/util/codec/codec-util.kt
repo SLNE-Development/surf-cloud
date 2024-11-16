@@ -363,9 +363,15 @@ object ExtraCodecs {
     })
 
 
-    val KEY_CODEC =
+    val KEY_CODEC: Codec<Key> =
         Codec.STRING.comapFlatMap({ if (Key.parseable(it)) DataResult.success(Key.key(it)) else DataResult.error { "Cannot convert $it to adventure Key" } },
             { it.asString() })
+
+    val STREAM_KEY_CODEC = streamCodec<ByteBuf, Key>({ buf, key ->
+        buf.writeUtf(key.asString())
+    }, { buf ->
+        Key.key(buf.readUtf())
+    })
 
     // endregion
 

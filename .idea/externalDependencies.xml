@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ExternalDependencies">
+    <plugin id="LivePlugin" />
+    <plugin id="com.haulmont.jpab" />
+    <plugin id="com.intellij.hibernate" />
+    <plugin id="com.intellij.spring" />
+    <plugin id="com.intellij.spring.boot" />
+    <plugin id="com.jetbrains.writerside" />
+  </component>
+</project>

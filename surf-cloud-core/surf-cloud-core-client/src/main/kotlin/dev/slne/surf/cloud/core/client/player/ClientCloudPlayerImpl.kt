@@ -18,6 +18,14 @@ import net.kyori.adventure.title.TitlePart
 import java.util.*
 
 class ClientCloudPlayerImpl(uuid: UUID) : CommonCloudPlayerImpl(uuid) {
+    @Volatile
+    var proxyServerUid: Long? = null
+
+    @Volatile
+    var serverUid: Long? = null
+
+    override val connectedToProxy get() = proxyServerUid != null
+    override val connectedToServer get() = serverUid != null
 
     /**
      * The audience for this player. If the player is on this server, this will point to

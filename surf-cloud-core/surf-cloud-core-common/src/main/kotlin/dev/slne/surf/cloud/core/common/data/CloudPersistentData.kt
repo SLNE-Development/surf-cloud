@@ -11,5 +11,5 @@ object CloudPersistentData {
         { LongTag(it) },
         { asLong() },
         SERVER_ID_NOT_SET
-    )
+    ).nonNull()
 }

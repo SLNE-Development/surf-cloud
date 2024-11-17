@@ -23,7 +23,7 @@ class ProtocolCodecBuilder<B : ByteBuf>(side: PacketFlow) {
         codec: StreamCodec<in B, out T>
     ) = apply {
         val meta = id.getPacketMeta()
-        check(meta.flow == this.flow) { "Invalid packet flow for packet $id, expected ${flow.name}" }
+        check(meta.flow == this.flow || meta.flow == PacketFlow.BIDIRECTIONAL) { "Invalid packet flow for packet $id, expected ${flow.name}" }
         dispatchBuilder.add(id, codec)
     }
 

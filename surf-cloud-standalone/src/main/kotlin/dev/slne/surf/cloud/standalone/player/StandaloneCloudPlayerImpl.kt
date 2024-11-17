@@ -1,5 +1,7 @@
 package dev.slne.surf.cloud.standalone.player
 
+import dev.slne.surf.cloud.api.common.server.CloudServer
+import dev.slne.surf.cloud.api.common.util.mutableObjectSetOf
 import dev.slne.surf.cloud.api.server.server.ServerCloudServer
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.*
 import dev.slne.surf.cloud.core.common.player.CommonCloudPlayerImpl
@@ -16,8 +18,13 @@ import net.kyori.adventure.title.Title
 import net.kyori.adventure.title.TitlePart
 import java.util.*
 
-class StandaloneCloudPlayerImpl(uuid: UUID, var server: ServerCloudServer) :
+class StandaloneCloudPlayerImpl(uuid: UUID) :
     CommonCloudPlayerImpl(uuid) {
+        val servers = mutableObjectSetOf<CloudServer>()
+
+    private val server: ServerCloudServer
+        get() = servers.firstOrNull() as? ServerCloudServer ?: error("Player is not connected to a server")
+
     @Deprecated("Deprecated in Java")
     @Suppress("UnstableApiUsage")
     override fun sendMessage(source: Identity, message: Component, type: MessageType) {

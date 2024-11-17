@@ -29,6 +29,7 @@ object RunningProtocols {
                 .addPacket(ClientboundSendResourcePacksPacket.STREAM_CODEC)
                 .addPacket(ClientboundRemoveResourcePacksPacket.STREAM_CODEC)
                 .addPacket(ClientboundClearResourcePacks.STREAM_CODEC)
+                .addPacket(PlayerConnectToServerPacket.STREAM_CODEC)
         }
 
     val CLIENTBOUND by lazy { CLIENTBOUND_TEMPLATE.freeze().bind(::SurfByteBuf) }
@@ -55,6 +56,10 @@ object RunningProtocols {
                 .addPacket(ServerboundSendResourcePacksPacket.STREAM_CODEC)
                 .addPacket(ServerboundRemoveResourcePacksPacket.STREAM_CODEC)
                 .addPacket(ServerboundClearResourcePacks.STREAM_CODEC)
+                .addPacket(ServerboundBroadcastPacket.STREAM_CODEC)
+                .addPacket(ServerboundClientInformationPacket.STREAM_CODEC)
+                .addPacket(ServerboundPingRequestPacket.STREAM_CODEC)
+                .addPacket(PlayerConnectToServerPacket.STREAM_CODEC)
         }
 
     val SERVERBOUND by lazy { SERVERBOUND_TEMPLATE.freeze().bind(::SurfByteBuf) }

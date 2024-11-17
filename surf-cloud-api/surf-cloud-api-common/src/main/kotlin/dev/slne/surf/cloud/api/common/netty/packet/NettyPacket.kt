@@ -95,12 +95,6 @@ abstract class NettyPacket {
             decoder: StreamDecoder<B, T>
         ): StreamCodec<B, T> = StreamCodec.ofMember(encoder, decoder)
     }
-
-
-    // TODO: 16.09.2024 14:49 - send method
-
-    val channel: Channel
-        get() = TODO()
 }
 
 abstract class RespondingNettyPacket<P : NettyPacket> : NettyPacket() {

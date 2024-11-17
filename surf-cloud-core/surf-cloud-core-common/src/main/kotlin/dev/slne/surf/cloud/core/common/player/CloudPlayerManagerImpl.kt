@@ -8,8 +8,7 @@ import dev.slne.surf.cloud.api.common.util.synchronize
 import dev.slne.surf.cloud.core.common.util.checkInstantiationByServiceLoader
 import java.util.*
 
-@AutoService(CloudPlayerManager::class)
-class CloudPlayerManagerImpl : CloudPlayerManager {
+abstract class CloudPlayerManagerImpl : CloudPlayerManager {
     private val players = mutableObject2ObjectMapOf<UUID, CloudPlayer>().synchronize()
 
     init {
@@ -20,12 +19,22 @@ class CloudPlayerManagerImpl : CloudPlayerManager {
         return players[uuid]
     }
 
+    abstract fun createPlayer(uuid: UUID, serverUid: Long, proxy: Boolean): CloudPlayer
+
     fun addPlayer(player: CloudPlayer) {
         players[player.uuid] = player
     }
 
+    fun addPlayer(uuid: UUID, serverUid: Long, proxy: Boolean) {
+        addPlayer(createPlayer(uuid, serverUid, proxy))
+    }
+
     fun removePlayer(player: CloudPlayer) {
         players.remove(player.uuid)
+    }
+
+    fun removePlayer(uuid: UUID) {
+        players.remove(uuid)
     }
 }
 

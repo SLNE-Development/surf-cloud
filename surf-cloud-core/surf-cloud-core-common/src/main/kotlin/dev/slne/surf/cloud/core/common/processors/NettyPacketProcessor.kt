@@ -75,6 +75,17 @@ object NettyPacketProcessor : ApplicationContextInitializer<ConfigurableApplicat
                             packet.java as Class<NettyPacket>,
                             codec as StreamCodec<in SurfByteBuf, NettyPacket>
                         )
+
+                        PacketFlow.BIDIRECTIONAL -> {
+                            RunningProtocols.CLIENTBOUND_TEMPLATE.addPacket(
+                                packet.java as Class<NettyPacket>,
+                                codec as StreamCodec<in SurfByteBuf, NettyPacket>
+                            )
+                            RunningProtocols.SERVERBOUND_TEMPLATE.addPacket(
+                                packet.java as Class<NettyPacket>,
+                                codec as StreamCodec<in SurfByteBuf, NettyPacket>
+                            )
+                        }
                     }
 
                     println(

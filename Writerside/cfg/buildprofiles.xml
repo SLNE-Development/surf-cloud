@@ -1,13 +1,32 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE buildprofiles SYSTEM "https://resources.jetbrains.com/writerside/1.0/build-profiles.dtd">
-<buildprofiles xsi:noNamespaceSchemaLocation="https://resources.jetbrains.com/writerside/1.0/build-profiles.xsd"
-               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<buildprofiles
+  xsi:noNamespaceSchemaLocation="https://resources.jetbrains.com/writerside/1.0/build-profiles.xsd"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 
-    <variables></variables>
+  <variables>
+    <color-preset>vivid</color-preset>
+    <header-logo>surf-cloud-logo.png</header-logo>
+    <custom-favicons>surf-cloud-logo.png</custom-favicons>
+    <primary-color>deep-ocean</primary-color>
+  </variables>
+
+  <shortcuts>
+    <src>keymap.xml</src>
+    <layout name="Windows" display-name="Windows"/>
+    <layout name="macOS" display-name="macOS"/>
+    <layout name="Linux" display-name="Linux"/>
+  </shortcuts>
+
   <build-profile instance="scd">
     <variables>
       <noindex-content>true</noindex-content>
     </variables>
+
+    <footer>
+      <link href="https://git.slne.dev/surf/surf-data">GitLab</link>
+      <copyright>SLNE Development Team 2024-2025</copyright>
+    </footer>
   </build-profile>
 
 </buildprofiles>

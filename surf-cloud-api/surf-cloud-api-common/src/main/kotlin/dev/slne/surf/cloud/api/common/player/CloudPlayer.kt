@@ -7,8 +7,37 @@ import net.kyori.adventure.audience.Audience
 import java.util.*
 
 interface CloudPlayer: Audience {
+    /**
+     * The UUID of the player.
+     */
     val uuid: UUID
+
+    /**
+     * Represents a view of the persistent data container for the player.
+     *
+     * Provides a read-only interface to access the persistent data associated with the player.
+     * This includes checking for the presence of metadata, retrieving stored values,
+     * and listing the keys present in the data container.
+     */
     val persistentDataView: PersistentPlayerDataContainerView
+
+    /**
+     * Indicates whether the CloudPlayer is currently connected to a proxy server.
+     */
+    val connectedToProxy: Boolean
+
+    /**
+     * Indicates whether the player is currently connected to a real server (paper).
+     */
+    val connectedToServer: Boolean
+
+    /**
+     * Indicates whether the player is currently connected to a proxy or a server.
+     *
+     * This property returns `true` if the player is connected to either a proxy
+     * or a server, and `false` otherwise.
+     */
+    val connected get() = connectedToProxy || connectedToServer
 
     /**
      * Edits the persistent data of the player.
@@ -76,9 +105,36 @@ interface CloudPlayer: Audience {
     suspend fun connectToServerOrQueue(group: String): ConnectionResult
 }
 
+/**
+ * Represents the result of a connection attempt to a server.
+ */
 enum class ConnectionResult {
+    /**
+     * Represents a successful connection attempt to a server.
+     *
+     * @see CloudPlayer.connectToServer
+     * @see CloudPlayer.connectToServerOrQueue
+     */
     SUCCESS,
+    /**
+     * Represents a connection attempt where the specified server was not found.
+     *
+     * @see CloudPlayer.connectToServer
+     * @see CloudPlayer.connectToServerOrQueue
+     */
     SERVER_NOT_FOUND,
+    /**
+     * Represents a connection attempt where the specified server was found,
+     * but is currently full and cannot accept new connections.
+     *
+     * @see CloudPlayer.connectToServer
+     */
     SERVER_FULL,
+    /**
+     * Represents a connection attempt where the specified server was found but is currently offline.
+     *
+     * @see CloudPlayer.connectToServer
+     * @see CloudPlayer.connectToServerOrQueue
+     */
     SERVER_OFFLINE,
 }

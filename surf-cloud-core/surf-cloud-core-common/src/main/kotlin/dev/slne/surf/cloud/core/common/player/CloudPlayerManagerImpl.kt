@@ -1,6 +1,5 @@
 package dev.slne.surf.cloud.core.common.player
 
-import com.google.auto.service.AutoService
 import dev.slne.surf.cloud.api.common.player.CloudPlayer
 import dev.slne.surf.cloud.api.common.player.CloudPlayerManager
 import dev.slne.surf.cloud.api.common.util.mutableObject2ObjectMapOf
@@ -21,20 +20,62 @@ abstract class CloudPlayerManagerImpl : CloudPlayerManager {
 
     abstract fun createPlayer(uuid: UUID, serverUid: Long, proxy: Boolean): CloudPlayer
 
-    fun addPlayer(player: CloudPlayer) {
+    abstract fun updateProxyServer(player: CloudPlayer, serverUid: Long)
+    abstract fun updateServer(player: CloudPlayer, serverUid: Long)
+
+    abstract fun removeProxyServer(player: CloudPlayer, serverUid: Long)
+    abstract fun removeServer(player: CloudPlayer, serverUid: Long)
+
+    private fun addPlayer(player: CloudPlayer) {
         players[player.uuid] = player
     }
 
-    fun addPlayer(uuid: UUID, serverUid: Long, proxy: Boolean) {
-        addPlayer(createPlayer(uuid, serverUid, proxy))
+    /**
+     * Updates the server or proxy information of an existing player,
+     * or creates a new player if one does not exist.
+     *
+     * @param uuid The UUID of the player to update or create.
+     * @param serverUid The unique identifier of the server the player is connecting to.
+     * @param proxy A boolean indicating if the player is connecting through a proxy.
+     */
+    fun updateOrCreatePlayer(uuid: UUID, serverUid: Long, proxy: Boolean) {
+        val player = players[uuid]
+
+        if (proxy) {
+            if (player == null) {
+                addPlayer(createPlayer(uuid, serverUid, true))
+            } else {
+                updateProxyServer(player, serverUid)
+            }
+        } else {
+            if (player == null) {
+                addPlayer(createPlayer(uuid, serverUid, false))
+            } else {
+                updateServer(player, serverUid)
+            }
+        }
     }
 
-    fun removePlayer(player: CloudPlayer) {
-        players.remove(player.uuid)
-    }
+    /**
+     * Updates the server or proxy information for a given player upon disconnecting,
+     * or removes the player if they are no longer connected to any server or proxy.
+     *
+     * @param uuid The unique identifier of the player.
+     * @param serverUid The unique identifier of the server.
+     * @param proxy A boolean indicating if the player was connected through a proxy.
+     */
+    fun updateOrRemoveOnDisconnect(uuid: UUID, serverUid: Long, proxy: Boolean) {
+        val player = players[uuid] ?: return
 
-    fun removePlayer(uuid: UUID) {
-        players.remove(uuid)
+        if (proxy) {
+            removeProxyServer(player, serverUid)
+        } else {
+            removeServer(player, serverUid)
+        }
+
+        if (!player.connected) {
+            players.remove(uuid)
+        }
     }
 }
 

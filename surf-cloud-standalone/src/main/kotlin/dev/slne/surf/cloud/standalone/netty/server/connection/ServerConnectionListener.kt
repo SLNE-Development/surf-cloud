@@ -122,7 +122,7 @@ class ServerConnectionListener(val server: NettyServerImpl) {
     suspend fun acceptConnections() {
         channelsMutex.withLock {
             for (future in channels) {
-                future.channel().config().setAutoRead(true)
+                future.channel().config().isAutoRead = true
             }
         }
     }
@@ -186,6 +186,12 @@ class ServerConnectionListener(val server: NettyServerImpl) {
                     connection.handleDisconnection()
                 }
             }
+        }
+    }
+
+    fun broadcast(packet: NettyPacket) {
+        for (connection in connections) {
+            connection.send(packet)
         }
     }
 

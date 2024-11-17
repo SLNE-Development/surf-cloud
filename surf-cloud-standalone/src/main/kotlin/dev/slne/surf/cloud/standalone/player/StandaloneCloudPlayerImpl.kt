@@ -1,7 +1,5 @@
 package dev.slne.surf.cloud.standalone.player
 
-import dev.slne.surf.cloud.api.common.server.CloudServer
-import dev.slne.surf.cloud.api.common.util.mutableObjectSetOf
 import dev.slne.surf.cloud.api.server.server.ServerCloudServer
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.*
 import dev.slne.surf.cloud.core.common.player.CommonCloudPlayerImpl
@@ -18,55 +16,66 @@ import net.kyori.adventure.title.Title
 import net.kyori.adventure.title.TitlePart
 import java.util.*
 
-class StandaloneCloudPlayerImpl(uuid: UUID) :
-    CommonCloudPlayerImpl(uuid) {
-        val servers = mutableObjectSetOf<CloudServer>()
+class StandaloneCloudPlayerImpl(uuid: UUID) : CommonCloudPlayerImpl(uuid) {
+    @Volatile
+    var proxyServer: ServerCloudServer? = null
 
-    private val server: ServerCloudServer
-        get() = servers.firstOrNull() as? ServerCloudServer ?: error("Player is not connected to a server")
+    @Volatile
+    var server: ServerCloudServer? = null
+
+    override val connectedToProxy get() = proxyServer != null
+    override val connectedToServer get() = server != null
+    private val anyServer
+        get() = server ?: proxyServer ?: error("Player is not connected to a server")
 
     @Deprecated("Deprecated in Java")
     @Suppress("UnstableApiUsage")
     override fun sendMessage(source: Identity, message: Component, type: MessageType) {
-        server.connection.send(ClientboundSendMessagePacket(uuid, message))
+        anyServer.connection.send(ClientboundSendMessagePacket(uuid, message))
     }
 
     override fun sendActionBar(message: Component) {
-        server.connection.send(ClientboundSendActionBarPacket(uuid, message))
+        anyServer.connection.send(ClientboundSendActionBarPacket(uuid, message))
     }
 
     override fun sendPlayerListHeaderAndFooter(
         header: Component,
         footer: Component
     ) {
-        server.connection.send(ClientboundSendPlayerListHeaderAndFooterPacket(uuid, header, footer))
+        anyServer.connection.send(
+            ClientboundSendPlayerListHeaderAndFooterPacket(
+                uuid,
+                header,
+                footer
+            )
+        )
     }
 
     override fun showTitle(title: Title) {
-        server.connection.send(ClientboundShowTitlePacket(uuid, title))
+        anyServer.connection.send(ClientboundShowTitlePacket(uuid, title))
     }
 
     override fun <T : Any> sendTitlePart(
         part: TitlePart<T?>,
         value: T
     ) {
-        server.connection.send(ClientboundSendTitlePartPacket(uuid, part, value))
+        anyServer.connection.send(ClientboundSendTitlePartPacket(uuid, part, value))
     }
 
     override fun clearTitle() {
-        server.connection.send(ClientboundClearTitlePacket(uuid))
+        anyServer.connection.send(ClientboundClearTitlePacket(uuid))
     }
 
     override fun resetTitle() {
-        server.connection.send(ClientboundResetTitlePacket(uuid))
+        anyServer.connection.send(ClientboundResetTitlePacket(uuid))
     }
 
     override fun showBossBar(bar: BossBar) {
-        server.connection.send(ClientboundShowBossBarPacket(uuid, bar))
+        anyServer.connection.send(ClientboundShowBossBarPacket(uuid, bar))
     }
 
     override fun hideBossBar(bar: BossBar) {
-        server.connection.send(ClientboundHideBossBarPacket(uuid, bar))
+        anyServer.connection.send(ClientboundHideBossBarPacket(uuid, bar))
     }
 
     override fun playSound(
@@ -75,7 +84,7 @@ class StandaloneCloudPlayerImpl(uuid: UUID) :
         y: Double,
         z: Double
     ) {
-        server.connection.send(ClientboundPlaySoundPacket(uuid, sound, x, y, z))
+        anyServer.connection.send(ClientboundPlaySoundPacket(uuid, sound, x, y, z))
     }
 
     override fun playSound(
@@ -86,30 +95,30 @@ class StandaloneCloudPlayerImpl(uuid: UUID) :
             throw UnsupportedOperationException("Only self emitters are supported")
         }
 
-        server.connection.send(ClientboundPlaySoundPacket(uuid, sound, emitter))
+        anyServer.connection.send(ClientboundPlaySoundPacket(uuid, sound, emitter))
     }
 
     override fun playSound(sound: Sound) {
-        server.connection.send(ClientboundPlaySoundPacket(uuid, sound))
+        anyServer.connection.send(ClientboundPlaySoundPacket(uuid, sound))
     }
 
     override fun stopSound(stop: SoundStop) {
-        server.connection.send(ClientboundStopSoundPacket(uuid, stop))
+        anyServer.connection.send(ClientboundStopSoundPacket(uuid, stop))
     }
 
     override fun openBook(book: Book) {
-        server.connection.send(ClientboundOpenBookPacket(uuid, book))
+        anyServer.connection.send(ClientboundOpenBookPacket(uuid, book))
     }
 
     override fun sendResourcePacks(request: ResourcePackRequest) {
-        server.connection.send(ClientboundSendResourcePacksPacket(uuid, request))
+        anyServer.connection.send(ClientboundSendResourcePacksPacket(uuid, request))
     }
 
     override fun removeResourcePacks(id: UUID, vararg others: UUID) {
-        server.connection.send(ClientboundRemoveResourcePacksPacket(uuid, id, *others))
+        anyServer.connection.send(ClientboundRemoveResourcePacksPacket(uuid, id, *others))
     }
 
     override fun clearResourcePacks() {
-        server.connection.send(ClientboundClearResourcePacks(uuid))
+        anyServer.connection.send(ClientboundClearResourcePacks(uuid))
     }
 }

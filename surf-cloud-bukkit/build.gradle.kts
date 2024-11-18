@@ -27,6 +27,7 @@ configurations {
 tasks {
     runServer {
         minecraftVersion("1.21.1")
+        jvmArgs("-Dsurf.cloud.serverName=test")
     }
 }
 

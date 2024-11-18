@@ -37,7 +37,7 @@ class ServerLoginPacketListenerImpl(val server: NettyServerImpl, val connection:
 
     override fun handleLoginStart(packet: ServerboundLoginStartPacket) {
         check(state == State.HELLO) { "Unexpected login start packet" }
-        this.client = ServerClientImpl(server, packet.serverId, packet.serverCategory)
+        this.client = ServerClientImpl(server, packet.serverId, packet.serverCategory, packet.serverName)
         startClientVerification()
     }
 
@@ -54,7 +54,6 @@ class ServerLoginPacketListenerImpl(val server: NettyServerImpl, val connection:
         state = State.PROTOCOL_SWITCHING
         connection.send(ClientboundLoginFinishedPacket)
     }
-
 
 
     override suspend fun handleLoginAcknowledgement(packet: ServerboundLoginAcknowledgedPacket) {

@@ -19,7 +19,7 @@ class StandaloneCloudPlayerManagerImpl : CloudPlayerManagerImpl() {
         proxy: Boolean
     ): CloudPlayer {
         return StandaloneCloudPlayerImpl(uuid).also {
-            val server = serverManagerImpl.getServerById(serverUid) as? ServerCloudServer
+            val server = serverManagerImpl.getServerByUid(serverUid)
             if (server != null) {
                 if (proxy) {
                     it.proxyServer = server
@@ -79,7 +79,7 @@ class StandaloneCloudPlayerManagerImpl : CloudPlayerManagerImpl() {
     ): Pair<StandaloneCloudPlayerImpl, ServerCloudServer?> {
         val standalonePlayer = player as? StandaloneCloudPlayerImpl
             ?: error("Player is not a StandaloneCloudPlayerImpl")
-        val server = serverManagerImpl.getServerById(serverUid) as? ServerCloudServer
+        val server = serverManagerImpl.getServerByUid(serverUid) as? ServerCloudServer
         return standalonePlayer to server
     }
 

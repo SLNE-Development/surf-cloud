@@ -1,6 +1,6 @@
 package dev.slne.surf.cloud.core.client.netty.network
 
-import dev.slne.surf.cloud.core.common.netty.ClientNettyClientImpl
+import dev.slne.surf.cloud.core.client.netty.ClientNettyClientImpl
 import dev.slne.surf.cloud.core.common.netty.network.ConnectionImpl
 import dev.slne.surf.cloud.core.common.netty.network.DisconnectionDetails
 import dev.slne.surf.cloud.core.common.netty.network.protocol.login.ClientLoginPacketListener
@@ -19,7 +19,8 @@ class ClientHandshakePacketListenerImpl(
     private val state = AtomicReference(State.CONNECTING)
 
     override suspend fun handleLoginFinished(packet: ClientboundLoginFinishedPacket) {
-        switchState(State.JOINING)
+        switchState(State.PREPARE_CONNECTION)
+
         val listener = ClientRunningPacketListenerImpl(connection)
         connection.setupInboundProtocol(
             RunningProtocols.CLIENTBOUND,
@@ -28,6 +29,8 @@ class ClientHandshakePacketListenerImpl(
         connection.send(ServerboundLoginAcknowledgedPacket)
         connection.setupOutboundProtocol(RunningProtocols.SERVERBOUND)
         client.initListener(listener)
+
+        switchState(State.CONNECTED)
     }
 
     override fun onDisconnect(details: DisconnectionDetails) {
@@ -46,6 +49,7 @@ class ClientHandshakePacketListenerImpl(
         CONNECTING("Connecting to the server..."),
         AUTHORIZING("Logging in...", setOf(CONNECTING)),
         ENCRYPTING("Encrypting...", setOf(AUTHORIZING)),
-        JOINING("Joining world...", setOf(ENCRYPTING, CONNECTING));
+        PREPARE_CONNECTION("Preparing connection...", setOf(ENCRYPTING, CONNECTING)),
+        CONNECTED("Connected!", setOf(PREPARE_CONNECTION))
     }
 }

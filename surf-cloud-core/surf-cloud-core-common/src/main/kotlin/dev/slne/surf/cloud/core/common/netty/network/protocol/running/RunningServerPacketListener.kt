@@ -14,5 +14,9 @@ interface RunningServerPacketListener: ServerboundPacketListener, TickablePacket
 
     fun handlePingRequest(packet: ServerboundPingRequestPacket)
 
+    fun handlePlayerConnectToServer(packet: PlayerConnectToServerPacket)
+
+    fun handlePlayerDisconnectFromServer(packet: PlayerDisconnectFromServerPacket)
+
     fun handlePacket(packet: NettyPacket)
 }

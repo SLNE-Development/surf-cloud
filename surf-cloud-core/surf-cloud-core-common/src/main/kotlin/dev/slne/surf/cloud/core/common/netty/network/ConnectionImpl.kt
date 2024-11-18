@@ -225,6 +225,15 @@ class ConnectionImpl(val receiving: PacketFlow) : SimpleChannelInboundHandler<Ne
                     is RunningServerPacketListener -> {
                         when (msg) {
                             is ServerboundBundlePacket -> listener.handleBundlePacket(msg)
+                            is ServerboundKeepAlivePacket -> listener.handleKeepAlivePacket(msg)
+                            is ServerboundPingRequestPacket -> listener.handlePingRequest(msg)
+                            is PlayerConnectToServerPacket -> listener.handlePlayerConnectToServer(
+                                msg
+                            )
+
+                            is PlayerDisconnectFromServerPacket -> listener.handlePlayerDisconnectFromServer(
+                                msg
+                            )
 
                             else -> listener.handlePacket(msg) // handle other packets
                         }
@@ -257,6 +266,14 @@ class ConnectionImpl(val receiving: PacketFlow) : SimpleChannelInboundHandler<Ne
                             is ClientboundKeepAlivePacket -> listener.handleKeepAlive(msg)
                             is ClientboundPingPacket -> listener.handlePing(msg)
                             is ClientboundDisconnectPacket -> listener.handleDisconnect(msg)
+                            is PlayerConnectToServerPacket -> listener.handlePlayerConnectToServer(
+                                msg
+                            )
+
+                            is PlayerDisconnectFromServerPacket -> listener.handlePlayerDisconnectFromServer(
+                                msg
+                            )
+
                             is ClientboundBundlePacket -> listener.handleBundlePacket(msg)
 
                             else -> listener.handlePacket(msg)
@@ -654,11 +671,11 @@ class ConnectionImpl(val receiving: PacketFlow) : SimpleChannelInboundHandler<Ne
     }
 
     fun setReadOnly() {
-        _channel?.config()?.setAutoRead(false)
+        _channel?.config()?.isAutoRead = false
     }
 
     fun enableAutoRead() {
-        _channel?.config()?.setAutoRead(true)
+        _channel?.config()?.isAutoRead = true
     }
 
     fun handleDisconnection() {

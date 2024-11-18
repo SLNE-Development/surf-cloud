@@ -189,18 +189,18 @@ class ServerConnectionListener(val server: NettyServerImpl) {
         }
     }
 
-    fun broadcast(packet: NettyPacket) {
+    fun broadcast(packet: NettyPacket, flush: Boolean = true) {
         for (connection in connections) {
-            connection.send(packet)
+            connection.send(packet, flush)
         }
     }
 
-    fun broadcast(packets: List<NettyPacket>) {
+    fun broadcast(packets: List<NettyPacket>, flush: Boolean = true) {
         if (packets.isEmpty()) return
         val packet = if (packets.size == 1) packets.first() else ClientboundBundlePacket(packets)
 
         for (connection in connections) {
-            connection.send(packet)
+            connection.send(packet, flush)
         }
     }
 

@@ -19,7 +19,7 @@ abstract class CommonNettyClientImpl(
 
     private val packetQueue by lazy { mutableObject2ObjectMapOf<NettyPacket, CompletableDeferred<Boolean>?>().synchronize() }
 
-    private var _connection: ConnectionImpl? = null
+    protected var _connection: ConnectionImpl? = null
         set(value) {
             field = value
 
@@ -37,16 +37,7 @@ abstract class CommonNettyClientImpl(
             }
         }
 
-    val connection get() = _connection ?: error("connection not yet set")
-
-    override val receiving get() = connection.receiving
-    override val sending get() = connection.sending
-    override val receivedPackets get() = _connection?.receivedPackets ?: 0
-    override val sentPackets get() = _connection?.sentPackets ?: 0
-    override val averageReceivedPackets get() = _connection?.averageReceivedPackets ?: 0f
-    override val averageSentPackets get() = _connection?.averageSentPackets ?: 0f
-    override val host get() = connection.hostname
-    override val virtualHost get() = connection.virtualHost
+    override val connection get() = _connection ?: error("connection not yet set")
 
     override fun fireAndForget(packet: NettyPacket) {
         val connection = _connection
@@ -83,6 +74,7 @@ abstract class CommonNettyClientImpl(
     abstract fun broadcast(packets: List<NettyPacket>)
 
     protected fun initConnection(connection: ConnectionImpl) {
+        check(_connection == null) { "Connection already set" }
         _connection = connection
     }
 }

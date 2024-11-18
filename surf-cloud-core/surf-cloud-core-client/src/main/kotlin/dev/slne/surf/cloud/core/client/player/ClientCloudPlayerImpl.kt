@@ -17,7 +17,7 @@ import net.kyori.adventure.title.Title
 import net.kyori.adventure.title.TitlePart
 import java.util.*
 
-class ClientCloudPlayerImpl(uuid: UUID) : CommonCloudPlayerImpl(uuid) {
+abstract class ClientCloudPlayerImpl(uuid: UUID) : CommonCloudPlayerImpl(uuid) {
     @Volatile
     var proxyServerUid: Long? = null
 
@@ -31,8 +31,7 @@ class ClientCloudPlayerImpl(uuid: UUID) : CommonCloudPlayerImpl(uuid) {
      * The audience for this player. If the player is on this server, this will point to
      * the bukkit / velocity player. Otherwise packets will be sent to the player via the network.
      */
-    @Volatile
-    var audience: Audience? = null
+    protected abstract val audience: Audience?
 
     @Deprecated("Deprecated in Java")
     @Suppress("UnstableApiUsage")

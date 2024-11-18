@@ -9,6 +9,7 @@ import dev.slne.surf.cloud.api.common.netty.packet.findPacketCodec
 import dev.slne.surf.cloud.api.common.netty.packet.getPacketMetaOrNull
 import dev.slne.surf.cloud.api.common.netty.protocol.buffer.SurfByteBuf
 import dev.slne.surf.cloud.api.common.util.logger
+import dev.slne.surf.cloud.core.common.netty.network.protocol.ProtocolInfoBuilder
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.RunningProtocols
 import org.springframework.boot.autoconfigure.AutoConfigurationPackages
 import org.springframework.context.ApplicationContextInitializer
@@ -18,6 +19,8 @@ import org.springframework.context.annotation.ClassPathScanningCandidateComponen
 import org.springframework.context.annotation.ScannedGenericBeanDefinition
 import org.springframework.context.event.ContextRefreshedEvent
 import org.springframework.core.type.filter.AnnotationTypeFilter
+
+private val internalPackage = ProtocolInfoBuilder::class.java.packageName
 
 object NettyPacketProcessor : ApplicationContextInitializer<ConfigurableApplicationContext> {
     private val log = logger()
@@ -46,7 +49,7 @@ object NettyPacketProcessor : ApplicationContextInitializer<ConfigurableApplicat
                     .mapNotNull { it as? ScannedGenericBeanDefinition }
                     .mapNotNull { it.resolveBeanClass(context.classLoader) }
                     .mapNotNull { (it as? Class<out NettyPacket>)?.kotlin }
-                    .filter { it.qualifiedName?.startsWith("dev.slne.surf.cloud.core.netty.network.protocol") == false }
+                    .filter { it.qualifiedName?.startsWith(internalPackage) == false }
 
                 for (packet in packets) {
                     val packetMeta = packet.getPacketMetaOrNull()

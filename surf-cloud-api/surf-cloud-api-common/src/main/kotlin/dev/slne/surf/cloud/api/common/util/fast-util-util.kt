@@ -65,6 +65,14 @@ fun emptyLong2LongMap(): @Unmodifiable Long2LongMap = Long2LongMaps.EMPTY_MAP
 fun Long2LongOpenHashMap.synchronize(): Long2LongMap = Long2LongMaps.synchronize(this)
 fun Long2LongOpenHashMap.freeze(): @UnmodifiableView Long2LongMap = Long2LongMaps.unmodifiable(this)
 // endregion
+// region Long2ObjectMap
+fun <V> mutableLong2ObjectMapOf(vararg pairs: Pair<Long, V>) = Long2ObjectOpenHashMap<V>(pairs.size).apply { putAll(pairs) }
+fun <V> mutableLong2ObjectMapOf() = Long2ObjectOpenHashMap<V>()
+fun <V> long2ObjectMapOf(vararg pairs: Pair<Long, V>) = mutableLong2ObjectMapOf(*pairs).freeze()
+fun <V> long2ObjectMapOf() = emptyLong2ObjectMap<V>()
+fun <V> emptyLong2ObjectMap(): @Unmodifiable Long2ObjectMap<V> = Long2ObjectMaps.emptyMap()
+fun <V> Long2ObjectOpenHashMap<V>.synchronize(): Long2ObjectMap<V> = Long2ObjectMaps.synchronize(this)
+fun <V> Long2ObjectOpenHashMap<V>.freeze(): @UnmodifiableView Long2ObjectMap<V> = Long2ObjectMaps.unmodifiable(this)
 // endregion
 // region LongSet
 fun mutableLongSetOf(vararg elements: Long) = LongOpenHashSet(elements)

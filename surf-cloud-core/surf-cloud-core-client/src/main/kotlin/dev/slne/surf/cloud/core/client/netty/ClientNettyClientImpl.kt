@@ -6,13 +6,13 @@ import dev.slne.surf.cloud.api.common.exceptions.FatalSurfError
 import dev.slne.surf.cloud.api.common.netty.network.protocol.PacketFlow
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
 import dev.slne.surf.cloud.api.common.util.logger
+import dev.slne.surf.cloud.core.client.netty.network.ClientHandshakePacketListenerImpl
+import dev.slne.surf.cloud.core.client.netty.network.ClientRunningPacketListenerImpl
+import dev.slne.surf.cloud.core.client.netty.network.StatusUpdate
 import dev.slne.surf.cloud.core.common.config.cloudConfig
 import dev.slne.surf.cloud.core.common.coroutines.NettyConnectionScope
 import dev.slne.surf.cloud.core.common.data.CloudPersistentData
 import dev.slne.surf.cloud.core.common.netty.CommonNettyClientImpl
-import dev.slne.surf.cloud.core.common.netty.client.network.ClientHandshakePacketListenerImpl
-import dev.slne.surf.cloud.core.common.netty.client.network.ClientRunningPacketListenerImpl
-import dev.slne.surf.cloud.core.common.netty.client.network.StatusUpdate
 import dev.slne.surf.cloud.core.common.netty.network.ConnectionImpl
 import dev.slne.surf.cloud.core.common.netty.network.DisconnectionDetails
 import dev.slne.surf.cloud.core.common.netty.network.protocol.initialize.ClientInitializePacketListener
@@ -30,8 +30,9 @@ import java.net.InetSocketAddress
 import kotlin.time.Duration.Companion.seconds
 
 class ClientNettyClientImpl : CommonNettyClientImpl(
-    CloudPersistentData.SERVER_ID.value() ?: CloudPersistentData.SERVER_ID_NOT_SET,
-    CloudProperties.SERVER_CATEGORY.value() ?: CloudProperties.SERVER_CATEGORY_NOT_SET
+    CloudPersistentData.SERVER_ID.value(),
+    CloudProperties.SERVER_CATEGORY.value() ?: CloudProperties.SERVER_CATEGORY_NOT_SET,
+    CloudProperties.SERVER_NAME.value()
 ) {
     private val log = logger()
 
@@ -82,7 +83,7 @@ class ClientNettyClientImpl : CommonNettyClientImpl(
                 ClientHandshakePacketListenerImpl(this, connection, statusUpdate),
                 false
             )
-            connection.send(ServerboundLoginStartPacket(serverId, serverCategory))
+            connection.send(ServerboundLoginStartPacket(serverId, serverCategory, serverName))
         } catch (e: Exception) {
             val cause = e.cause as? Exception ?: e
 

@@ -10,7 +10,7 @@ import dev.slne.surf.cloud.core.common.netty.network.DisconnectionDetails
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.*
 import dev.slne.surf.cloud.core.common.netty.protocol.packet.NettyPacketInfo
 import dev.slne.surf.cloud.core.common.netty.registry.listener.NettyListenerRegistry
-import dev.slne.surf.cloud.core.netty.network.protocol.running.*
+import dev.slne.surf.cloud.core.common.player.playerManagerImpl
 import dev.slne.surf.cloud.standalone.netty.server.NettyServerImpl
 import dev.slne.surf.cloud.standalone.netty.server.ServerClientImpl
 import kotlinx.coroutines.launch
@@ -61,10 +61,7 @@ class ServerRunningPacketListenerImpl(
     private fun handleBroadcastPacket(packets: List<NettyPacket>) {
         if (packets.isEmpty()) return
         val packet = if (packets.size == 1) packets.first() else ClientboundBundlePacket(packets)
-
-        for (connection in server.connection.connections) {
-            connection.send(packet)
-        }
+        broadcast(packet)
     }
 
     override suspend fun handleKeepAlivePacket(packet: ServerboundKeepAlivePacket) {
@@ -83,7 +80,19 @@ class ServerRunningPacketListenerImpl(
     }
 
     override fun handlePingRequest(packet: ServerboundPingRequestPacket) {
-        connection.send(ClientboundPongResponsePacket(packet.time))
+        send(ClientboundPongResponsePacket(packet.time))
+    }
+
+    override fun handlePlayerConnectToServer(packet: PlayerConnectToServerPacket) {
+        playerManagerImpl.updateOrCreatePlayer(packet.uuid, packet.serverUid, packet.proxy)
+        broadcast(packet)
+        log.atInfo().log("Player ${packet.uuid} connected to server ${packet.serverUid} on proxy ${packet.proxy}")
+    }
+
+    override fun handlePlayerDisconnectFromServer(packet: PlayerDisconnectFromServerPacket) {
+        playerManagerImpl.updateOrRemoveOnDisconnect(packet.uuid, packet.serverUid, packet.proxy)
+        broadcast(packet)
+        log.atInfo().log("Player ${packet.uuid} disconnected from server ${packet.serverUid} on proxy ${packet.proxy}")
     }
 
     override fun handlePacket(packet: NettyPacket) {
@@ -91,7 +100,7 @@ class ServerRunningPacketListenerImpl(
         if (listeners.isEmpty()) return
 
         val (proxiedSource, finalPacket) = when (packet) {
-            is ProxiedNettyPacket -> packet.source to packet.packet
+//            is ProxiedNettyPacket -> packet.source to packet.packet
             else -> null to packet
         }
         val info = NettyPacketInfo(this, proxiedSource)
@@ -119,7 +128,7 @@ class ServerRunningPacketListenerImpl(
         processedDisconnect = true
 
         log.atInfo()
-            .log("${client.serverCategory}/${client.serverId} (${client.host}) lost connection: ${details.reason}")
+            .log("${client.serverCategory}/${client.serverId} (${client.connection.hostname}) lost connection: ${details.reason}")
     }
 
     private fun close() {
@@ -175,6 +184,17 @@ class ServerRunningPacketListenerImpl(
 
         val flush = !suspendFlushingOnServerThread
         connection.send(packet, flush)
+    }
+
+    fun broadcast(packet: NettyPacket) {
+        if (processedDisconnect) return
+
+        if (packet.terminal) {
+            close()
+        }
+
+        val flush = !suspendFlushingOnServerThread
+        server.connection.broadcast(packet, flush)
     }
 
     suspend fun disconnect(reason: String) {

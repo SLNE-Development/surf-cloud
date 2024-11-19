@@ -206,6 +206,6 @@ abstract class ClientCloudPlayerImpl(uuid: UUID) : CommonCloudPlayerImpl(uuid) {
             return
         }
 
-        ServerboundClearResourcePacks(uuid).fireAndForget()
+        ServerboundClearResourcePacksPacket(uuid).fireAndForget()
     }
 }

@@ -119,6 +119,6 @@ class StandaloneCloudPlayerImpl(uuid: UUID) : CommonCloudPlayerImpl(uuid) {
     }
 
     override fun clearResourcePacks() {
-        anyServer.connection.send(ClientboundClearResourcePacks(uuid))
+        anyServer.connection.send(ClientboundClearResourcePacksPacket(uuid))
     }
 }

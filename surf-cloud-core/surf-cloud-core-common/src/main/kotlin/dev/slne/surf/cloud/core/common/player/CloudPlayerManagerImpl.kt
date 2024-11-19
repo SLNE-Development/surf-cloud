@@ -10,10 +10,6 @@ import java.util.*
 abstract class CloudPlayerManagerImpl : CloudPlayerManager {
     private val players = mutableObject2ObjectMapOf<UUID, CloudPlayer>().synchronize()
 
-    init {
-        checkInstantiationByServiceLoader()
-    }
-
     override fun getPlayer(uuid: UUID?): CloudPlayer? {
         return players[uuid]
     }

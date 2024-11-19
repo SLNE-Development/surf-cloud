@@ -176,7 +176,7 @@ class ConnectionImpl(val receiving: PacketFlow) : SimpleChannelInboundHandler<Ne
         }
     }
 
-    override fun channelRead0(ctx: ChannelHandlerContext?, msg: NettyPacket) {
+    override fun channelRead0(ctx: ChannelHandlerContext, msg: NettyPacket) {
         if (!channel.isOpen) return
 
         val packetListener = _packetListener
@@ -186,7 +186,8 @@ class ConnectionImpl(val receiving: PacketFlow) : SimpleChannelInboundHandler<Ne
 
         this.receivedPackets++
         NettyListenerScope.launch {
-            handlePacket(msg)
+            runCatching { handlePacket(msg) }
+                .onFailure { exceptionCaught(ctx, it) }
         }
     }
 
@@ -454,7 +455,7 @@ class ConnectionImpl(val receiving: PacketFlow) : SimpleChannelInboundHandler<Ne
 
         if (connected
             && (Util.canSendImmediate(this, packet)
-                    || (packet.isReady() && pendingActions.isEmpty() && packet.extraPackets?.isEmpty() == true))
+                    || (packet.isReady() && pendingActions.isEmpty() && packet.extraPackets.isNullOrEmpty()))
         ) {
             sendPacket(packet, flush, deferred)
         } else {
@@ -575,10 +576,8 @@ class ConnectionImpl(val receiving: PacketFlow) : SimpleChannelInboundHandler<Ne
     private fun flushQueue(): Boolean {
         if (!connected) return true
 
-        if (this.isPending) {
-            synchronized(this.pendingActions) {
-                return this.processQueue()
-            }
+        synchronized(this.pendingActions) {
+            return this.processQueue()
         }
 
         return false
@@ -697,8 +696,54 @@ class ConnectionImpl(val receiving: PacketFlow) : SimpleChannelInboundHandler<Ne
     private object Util {
         fun canSendImmediate(connection: ConnectionImpl, packet: NettyPacket): Boolean {
             return connection.isPending || connection._packetListener?.protocol != ConnectionProtocol.RUNNING
+                    // region Clientbound
+                    || packet is ClientboundBundlePacket
+                    || packet is ClientboundClearResourcePacksPacket
+                    || packet is ClientboundClearTitlePacket
+                    || packet is ClientboundDisconnectPacket
+                    || packet is ClientboundHideBossBarPacket
                     || packet is ClientboundKeepAlivePacket
+                    || packet is ClientboundOpenBookPacket
+                    || packet is ClientboundPingPacket
+                    || packet is ClientboundPlaySoundPacket
+                    || packet is ClientboundPongResponsePacket
+                    || packet is ClientboundRemoveResourcePacksPacket
+                    || packet is ClientboundResetTitlePacket
+                    || packet is ClientboundSendActionBarPacket
+                    || packet is ClientboundSendMessagePacket
+                    || packet is ClientboundSendPlayerListHeaderAndFooterPacket
+                    || packet is ClientboundSendResourcePacksPacket
+                    || packet is ClientboundSendTitlePartPacket
+                    || packet is ClientboundShowBossBarPacket
+                    || packet is ClientboundShowTitlePacket
+                    || packet is ClientboundStopSoundPacket
+                    // endregion
+                    // region Bidirectional
+                    || packet is PlayerConnectToServerPacket
+                    || packet is PlayerDisconnectFromServerPacket
+                    // endregion
+                    // region Serverbound
+                    || packet is ServerboundBundlePacket
+                    || packet is ServerboundClearResourcePacksPacket
+                    || packet is ServerboundClearTitlePacket
+                    || packet is ServerboundClientInformationPacket
+                    || packet is ServerboundHideBossBarPacket
                     || packet is ServerboundKeepAlivePacket
+                    || packet is ServerboundOpenBookPacket
+                    || packet is ServerboundPingRequestPacket
+                    || packet is ServerboundPlaySoundPacket
+                    || packet is ServerboundPongPacket
+                    || packet is ServerboundRemoveResourcePacksPacket
+                    || packet is ServerboundResetTitlePacket
+                    || packet is ServerboundSendActionBarPacket
+                    || packet is ServerboundSendMessagePacket
+                    || packet is ServerboundSendPlayerListHeaderAndFooter
+                    || packet is ServerboundSendResourcePacksPacket
+                    || packet is ServerboundSendTitlePartPacket
+                    || packet is ServerboundShowBossBarPacket
+                    || packet is ServerboundShowTitlePacket
+                    || packet is ServerboundStopSoundPacket
+                    // endregion
         }
 
         fun buildExtraPackets(packet: NettyPacket): List<NettyPacket>? {

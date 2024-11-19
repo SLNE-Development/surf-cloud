@@ -85,7 +85,7 @@ class ServerRunningPacketListenerImpl(
 
     override fun handlePlayerConnectToServer(packet: PlayerConnectToServerPacket) {
         playerManagerImpl.updateOrCreatePlayer(packet.uuid, packet.serverUid, packet.proxy)
-        broadcast(packet)
+        broadcast(PlayerConnectToServerPacket(packet.uuid, packet.serverUid, packet.proxy))
     }
 
     override fun handlePlayerDisconnectFromServer(packet: PlayerDisconnectFromServerPacket) {

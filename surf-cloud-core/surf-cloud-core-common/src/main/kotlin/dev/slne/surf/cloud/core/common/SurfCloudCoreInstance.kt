@@ -42,7 +42,7 @@ abstract class SurfCloudCoreInstance(private val nettyManager: NettyManager) : S
 
     @MustBeInvokedByOverriders
     open fun onLoad() {
-        println("Loading SurfCloudCoreInstance...")
+        log.atInfo().log("Loading SurfCloudCoreInstance...")
         Thread.setDefaultUncaughtExceptionHandler { thread, e ->
             log.atSevere()
                 .withCause(e)
@@ -56,7 +56,7 @@ abstract class SurfCloudCoreInstance(private val nettyManager: NettyManager) : S
                 )
         }
 
-        println("Starting Spring application...")
+        log.atInfo().log("Starting Spring application...")
         try {
             internalContext = startSpringApplication(SurfCloudMainApplication::class)
         } catch (e: Throwable) {
@@ -85,7 +85,7 @@ abstract class SurfCloudCoreInstance(private val nettyManager: NettyManager) : S
             }
         }
 
-        println("SurfCloudCoreInstance loaded.")
+        log.atInfo().log("SurfCloudCoreInstance loaded.")
         internalContext?.publishEvent(RootSpringContextInitialized(this))
     }
 
@@ -123,7 +123,7 @@ abstract class SurfCloudCoreInstance(private val nettyManager: NettyManager) : S
                 builder.parent(internalContext)
             }
 
-            println("Starting Spring application...")
+            log.atInfo().log("Starting Spring application...")
             builder.run()
         }
     }

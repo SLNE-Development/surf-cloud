@@ -28,7 +28,7 @@ object RunningProtocols {
                 .addPacket(ClientboundOpenBookPacket.STREAM_CODEC)
                 .addPacket(ClientboundSendResourcePacksPacket.STREAM_CODEC)
                 .addPacket(ClientboundRemoveResourcePacksPacket.STREAM_CODEC)
-                .addPacket(ClientboundClearResourcePacks.STREAM_CODEC)
+                .addPacket(ClientboundClearResourcePacksPacket.STREAM_CODEC)
                 .addPacket(PlayerConnectToServerPacket.STREAM_CODEC)
                 .addPacket(PlayerDisconnectFromServerPacket.STREAM_CODEC)
         }
@@ -56,7 +56,7 @@ object RunningProtocols {
                 .addPacket(ServerboundOpenBookPacket.STREAM_CODEC)
                 .addPacket(ServerboundSendResourcePacksPacket.STREAM_CODEC)
                 .addPacket(ServerboundRemoveResourcePacksPacket.STREAM_CODEC)
-                .addPacket(ServerboundClearResourcePacks.STREAM_CODEC)
+                .addPacket(ServerboundClearResourcePacksPacket.STREAM_CODEC)
                 .addPacket(ServerboundBroadcastPacket.STREAM_CODEC)
                 .addPacket(ServerboundClientInformationPacket.STREAM_CODEC)
                 .addPacket(ServerboundPingRequestPacket.STREAM_CODEC)

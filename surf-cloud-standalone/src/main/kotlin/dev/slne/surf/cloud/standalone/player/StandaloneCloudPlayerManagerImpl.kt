@@ -6,12 +6,17 @@ import dev.slne.surf.cloud.api.common.player.CloudPlayerManager
 import dev.slne.surf.cloud.api.common.util.logger
 import dev.slne.surf.cloud.api.server.server.ServerCloudServer
 import dev.slne.surf.cloud.core.common.player.CloudPlayerManagerImpl
+import dev.slne.surf.cloud.core.common.util.checkInstantiationByServiceLoader
 import dev.slne.surf.cloud.standalone.server.serverManagerImpl
 import java.util.*
 
 @AutoService(CloudPlayerManager::class)
 class StandaloneCloudPlayerManagerImpl : CloudPlayerManagerImpl() {
     private val log = logger()
+
+    init {
+        checkInstantiationByServiceLoader()
+    }
 
     override fun createPlayer(
         uuid: UUID,

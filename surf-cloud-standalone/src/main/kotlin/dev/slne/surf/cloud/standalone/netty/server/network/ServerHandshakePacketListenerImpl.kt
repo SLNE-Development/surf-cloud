@@ -17,8 +17,6 @@ class ServerHandshakePacketListenerImpl(val server: NettyServerImpl, val connect
     override suspend fun handleHandshake(packet: ServerboundHandshakePacket) {
         connection.hostname = "${packet.hostName}:${packet.port}"
 
-        println("Handling handshake packet: $packet")
-
         when (packet.intention) {
             ClientIntent.INITIALIZE -> initialize(packet)
             ClientIntent.LOGIN -> beginLogin(packet)

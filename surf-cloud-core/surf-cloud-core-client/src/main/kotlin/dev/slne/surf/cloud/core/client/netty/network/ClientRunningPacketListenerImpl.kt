@@ -44,12 +44,10 @@ class ClientRunningPacketListenerImpl(val connection: ConnectionImpl) : CommonTi
 
     override fun handlePlayerConnectToServer(packet: PlayerConnectToServerPacket) {
         playerManagerImpl.updateOrCreatePlayer(packet.uuid, packet.serverUid, packet.proxy)
-        log.atInfo().log("Player ${packet.uuid} connected to server ${packet.serverUid}")
     }
 
     override fun handlePlayerDisconnectFromServer(packet: PlayerDisconnectFromServerPacket) {
         playerManagerImpl.updateOrRemoveOnDisconnect(packet.uuid, packet.serverUid, packet.proxy)
-        log.atInfo().log("Player ${packet.uuid} disconnected from server ${packet.serverUid}")
     }
 
     override fun handlePacket(packet: NettyPacket) {

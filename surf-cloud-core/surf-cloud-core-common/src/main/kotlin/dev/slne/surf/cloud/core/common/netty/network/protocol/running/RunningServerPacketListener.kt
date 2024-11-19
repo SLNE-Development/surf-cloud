@@ -18,5 +18,35 @@ interface RunningServerPacketListener: ServerboundPacketListener, TickablePacket
 
     fun handlePlayerDisconnectFromServer(packet: PlayerDisconnectFromServerPacket)
 
+    fun handleSendResourcePacks(packet: ServerboundSendResourcePacksPacket)
+
+    fun handleClearResourcePacks(packet: ServerboundClearResourcePacksPacket)
+
+    fun handleRemoveResourcePacks(packet: ServerboundRemoveResourcePacksPacket)
+
+    fun handleShowTitle(packet: ServerboundShowTitlePacket)
+
+    fun handleSendTitlePart(packet: ServerboundSendTitlePartPacket)
+
+    fun handleClearTitle(packet: ServerboundClearTitlePacket)
+
+    fun handleResetTitle(packet: ServerboundResetTitlePacket)
+
+    fun handleShowBossBar(packet: ServerboundShowBossBarPacket)
+
+    fun handleHideBossBar(packet: ServerboundHideBossBarPacket)
+
+    fun handleOpenBook(packet: ServerboundOpenBookPacket)
+
+    fun handlePlaySound(packet: ServerboundPlaySoundPacket)
+
+    fun handleStopSound(packet: ServerboundStopSoundPacket)
+
+    fun handleSendMessage(packet: ServerboundSendMessagePacket)
+
+    fun handleSendActionBar(packet: ServerboundSendActionBarPacket)
+
+    fun handleSendPlayerListHeaderAndFooter(packet: ServerboundSendPlayerListHeaderAndFooterPacket)
+
     fun handlePacket(packet: NettyPacket)
 }

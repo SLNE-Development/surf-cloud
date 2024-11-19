@@ -275,6 +275,33 @@ class ConnectionImpl(val receiving: PacketFlow) : SimpleChannelInboundHandler<Ne
                                 msg
                             )
 
+                            is ClientboundSendResourcePacksPacket -> listener.handleSendResourcePacks(
+                                msg
+                            )
+
+                            is ClientboundClearResourcePacksPacket -> listener.handleClearResourcePacks(
+                                msg
+                            )
+
+                            is ClientboundRemoveResourcePacksPacket -> listener.handleRemoveResourcePacks(
+                                msg
+                            )
+
+                            is ClientboundShowTitlePacket -> listener.handleShowTitle(msg)
+                            is ClientboundSendTitlePartPacket -> listener.handleSendTitlePart(msg)
+                            is ClientboundClearTitlePacket -> listener.handleClearTitle(msg)
+                            is ClientboundResetTitlePacket -> listener.handleResetTitle(msg)
+                            is ClientboundShowBossBarPacket -> listener.handleShowBossBar(msg)
+                            is ClientboundHideBossBarPacket -> listener.handleHideBossBar(msg)
+                            is ClientboundOpenBookPacket -> listener.handleOpenBook(msg)
+                            is ClientboundPlaySoundPacket -> listener.handlePlaySound(msg)
+                            is ClientboundStopSoundPacket -> listener.handleStopSound(msg)
+                            is ClientboundSendMessagePacket -> listener.handleSendMessage(msg)
+                            is ClientboundSendActionBarPacket -> listener.handleSendActionBar(msg)
+                            is ClientboundSendPlayerListHeaderAndFooterPacket -> listener.handleSendPlayerListHeaderAndFooter(
+                                msg
+                            )
+
                             is ClientboundBundlePacket -> listener.handleBundlePacket(msg)
 
                             else -> listener.handlePacket(msg)
@@ -737,13 +764,13 @@ class ConnectionImpl(val receiving: PacketFlow) : SimpleChannelInboundHandler<Ne
                     || packet is ServerboundResetTitlePacket
                     || packet is ServerboundSendActionBarPacket
                     || packet is ServerboundSendMessagePacket
-                    || packet is ServerboundSendPlayerListHeaderAndFooter
+                    || packet is ServerboundSendPlayerListHeaderAndFooterPacket
                     || packet is ServerboundSendResourcePacksPacket
                     || packet is ServerboundSendTitlePartPacket
                     || packet is ServerboundShowBossBarPacket
                     || packet is ServerboundShowTitlePacket
                     || packet is ServerboundStopSoundPacket
-                    // endregion
+            // endregion
         }
 
         fun buildExtraPackets(packet: NettyPacket): List<NettyPacket>? {

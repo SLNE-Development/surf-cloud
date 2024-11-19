@@ -44,7 +44,7 @@ object RunningProtocols {
                 .addPacket(ServerboundPongPacket.STREAM_CODEC)
                 .addPacket(ServerboundSendMessagePacket.STREAM_CODEC)
                 .addPacket(ServerboundSendActionBarPacket.STREAM_CODEC)
-                .addPacket(ServerboundSendPlayerListHeaderAndFooter.STREAM_CODEC)
+                .addPacket(ServerboundSendPlayerListHeaderAndFooterPacket.STREAM_CODEC)
                 .addPacket(ServerboundShowTitlePacket.STREAM_CODEC)
                 .addPacket(ServerboundSendTitlePartPacket.STREAM_CODEC)
                 .addPacket(ServerboundClearTitlePacket.STREAM_CODEC)

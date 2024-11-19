@@ -10,11 +10,11 @@ import net.kyori.adventure.text.Component
 import java.util.*
 
 @SurfNettyPacket(DefaultIds.SERVERBOUND_SEND_PLAYER_LIST_HEADER_AND_FOOTER, PacketFlow.SERVERBOUND)
-class ServerboundSendPlayerListHeaderAndFooter : NettyPacket {
+class ServerboundSendPlayerListHeaderAndFooterPacket : NettyPacket {
     companion object {
         val STREAM_CODEC = packetCodec(
-            ServerboundSendPlayerListHeaderAndFooter::write,
-            ::ServerboundSendPlayerListHeaderAndFooter
+            ServerboundSendPlayerListHeaderAndFooterPacket::write,
+            ::ServerboundSendPlayerListHeaderAndFooterPacket
         )
     }
 

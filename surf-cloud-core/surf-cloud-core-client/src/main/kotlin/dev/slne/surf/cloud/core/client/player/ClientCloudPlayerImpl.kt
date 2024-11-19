@@ -62,7 +62,7 @@ abstract class ClientCloudPlayerImpl(uuid: UUID) : CommonCloudPlayerImpl(uuid) {
             return
         }
 
-        ServerboundSendPlayerListHeaderAndFooter(uuid, header, footer).fireAndForget()
+        ServerboundSendPlayerListHeaderAndFooterPacket(uuid, header, footer).fireAndForget()
     }
 
     override fun showTitle(title: Title) {

@@ -236,6 +236,33 @@ class ConnectionImpl(val receiving: PacketFlow) : SimpleChannelInboundHandler<Ne
                                 msg
                             )
 
+                            is ServerboundSendResourcePacksPacket -> listener.handleSendResourcePacks(
+                                msg
+                            )
+
+                            is ServerboundClearResourcePacksPacket -> listener.handleClearResourcePacks(
+                                msg
+                            )
+
+                            is ServerboundRemoveResourcePacksPacket -> listener.handleRemoveResourcePacks(
+                                msg
+                            )
+
+                            is ServerboundShowTitlePacket -> listener.handleShowTitle(msg)
+                            is ServerboundSendTitlePartPacket -> listener.handleSendTitlePart(msg)
+                            is ServerboundClearTitlePacket -> listener.handleClearTitle(msg)
+                            is ServerboundResetTitlePacket -> listener.handleResetTitle(msg)
+                            is ServerboundShowBossBarPacket -> listener.handleShowBossBar(msg)
+                            is ServerboundHideBossBarPacket -> listener.handleHideBossBar(msg)
+                            is ServerboundOpenBookPacket -> listener.handleOpenBook(msg)
+                            is ServerboundPlaySoundPacket -> listener.handlePlaySound(msg)
+                            is ServerboundStopSoundPacket -> listener.handleStopSound(msg)
+                            is ServerboundSendMessagePacket -> listener.handleSendMessage(msg)
+                            is ServerboundSendActionBarPacket -> listener.handleSendActionBar(msg)
+                            is ServerboundSendPlayerListHeaderAndFooterPacket -> listener.handleSendPlayerListHeaderAndFooter(
+                                msg
+                            )
+
                             else -> listener.handlePacket(msg) // handle other packets
                         }
                     }

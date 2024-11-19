@@ -4,6 +4,8 @@ import com.google.auto.service.AutoService
 import dev.slne.surf.cloud.api.common.player.CloudPlayerManager
 import dev.slne.surf.cloud.core.client.player.CommonClientCloudPlayerManagerImpl
 import dev.slne.surf.cloud.core.common.util.checkInstantiationByServiceLoader
+import net.kyori.adventure.audience.Audience
+import org.bukkit.Bukkit
 import java.util.*
 
 @AutoService(CloudPlayerManager::class)
@@ -23,4 +25,6 @@ class BukkitCloudPlayerManagerImpl : CommonClientCloudPlayerManagerImpl() {
             it.serverUid = serverUid
         }
     }
+
+    override fun getAudience(uuid: UUID): Audience? = Bukkit.getPlayer(uuid)
 }

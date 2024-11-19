@@ -27,6 +27,6 @@ val playerManager get() = CloudPlayerManager.instance
  * Get the CloudPlayer for this Audience.
  * @return The CloudPlayer, or null if the Audience is not a player.
  */
-fun Audience.toCloudPlayer(): CloudPlayer? {
-    return playerManager.getPlayer(this.pointers().get(Identity.UUID).orElse(null))
+fun Audience?.toCloudPlayer(): CloudPlayer? {
+    return playerManager.getPlayer(this?.pointers()?.get(Identity.UUID)?.orElse(null))
 }

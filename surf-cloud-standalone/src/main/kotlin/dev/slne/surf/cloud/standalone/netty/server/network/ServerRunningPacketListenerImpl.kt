@@ -86,13 +86,11 @@ class ServerRunningPacketListenerImpl(
     override fun handlePlayerConnectToServer(packet: PlayerConnectToServerPacket) {
         playerManagerImpl.updateOrCreatePlayer(packet.uuid, packet.serverUid, packet.proxy)
         broadcast(packet)
-        log.atInfo().log("Player ${packet.uuid} connected to server ${packet.serverUid} on proxy ${packet.proxy}")
     }
 
     override fun handlePlayerDisconnectFromServer(packet: PlayerDisconnectFromServerPacket) {
         playerManagerImpl.updateOrRemoveOnDisconnect(packet.uuid, packet.serverUid, packet.proxy)
         broadcast(packet)
-        log.atInfo().log("Player ${packet.uuid} disconnected from server ${packet.serverUid} on proxy ${packet.proxy}")
     }
 
     override fun handlePacket(packet: NettyPacket) {

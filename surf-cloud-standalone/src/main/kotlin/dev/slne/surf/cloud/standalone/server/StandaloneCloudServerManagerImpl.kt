@@ -42,9 +42,7 @@ class StandaloneCloudServerManagerImpl : ServerCloudServerManager {
     fun getServerByUid(uid: Long): ServerCloudServer? = servers[uid]
 
     suspend fun registerServer(server: StandaloneServerImpl) = serversMutex.withLock {
-        log.atInfo().log("Registering server ${server.name} (${server.uid})")
         servers[server.uid] = server
-        log.atInfo().log("Registered server ${server.name} (${server.uid})")
     }
 }
 

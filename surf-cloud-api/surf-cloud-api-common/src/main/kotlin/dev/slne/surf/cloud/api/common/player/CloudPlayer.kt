@@ -4,6 +4,7 @@ import dev.slne.surf.cloud.api.common.player.ppdc.PersistentPlayerDataContainer
 import dev.slne.surf.cloud.api.common.player.ppdc.PersistentPlayerDataContainerView
 import dev.slne.surf.cloud.api.common.server.CloudServer
 import net.kyori.adventure.audience.Audience
+import net.kyori.adventure.text.Component
 import java.util.*
 
 interface CloudPlayer: Audience {
@@ -38,6 +39,8 @@ interface CloudPlayer: Audience {
      * or a server, and `false` otherwise.
      */
     val connected get() = connectedToProxy || connectedToServer
+
+    suspend fun displayName(): Component
 
     /**
      * Edits the persistent data of the player.

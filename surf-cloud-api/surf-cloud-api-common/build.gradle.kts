@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 dependencies {
     api("org.springframework.boot:spring-boot-starter")
     api("com.fasterxml.jackson.core:jackson-core")
@@ -15,4 +17,10 @@ dependencies {
     // https://mvnrepository.com/artifact/org.springframework.data/spring-data-jpa
     api("org.springframework.data:spring-data-jpa")
     api("com.mojang:datafixerupper:8.0.16")
+}
+
+tasks {
+    withType<KotlinCompile> {
+        friendPaths = files(project(":surf-cloud-core:surf-cloud-core-common").buildDir)
+    }
 }

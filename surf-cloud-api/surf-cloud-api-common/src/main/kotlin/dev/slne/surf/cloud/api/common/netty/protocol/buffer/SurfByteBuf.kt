@@ -13,6 +13,7 @@ import dev.slne.surf.cloud.api.common.netty.protocol.buffer.ecoder.EncodeFactory
 import dev.slne.surf.cloud.api.common.netty.protocol.buffer.ecoder.EncodeFactory.EncodeLongFactory
 import dev.slne.surf.cloud.api.common.netty.protocol.buffer.types.Utf8String
 import dev.slne.surf.cloud.api.common.netty.protocol.buffer.types.VarInt
+import dev.slne.surf.cloud.api.common.netty.protocol.buffer.types.VarLong
 import dev.slne.surf.cloud.api.common.util.codec.ExtraCodecs
 import dev.slne.surf.cloud.api.common.util.fromJson
 import io.netty.buffer.ByteBuf
@@ -91,7 +92,7 @@ class SurfByteBuf(source: ByteBuf) : WrappedByteBuf(source) {
 
             is Long -> {
                 buf.writeByte(NUMBER_LONG.toInt())
-                buf.writeLong(number)
+                writeVarLong(buf, number)
             }
 
             is Float -> {
@@ -111,7 +112,7 @@ class SurfByteBuf(source: ByteBuf) : WrappedByteBuf(source) {
             NUMBER_BYTE -> buf.readByte()
             NUMBER_SHORT -> buf.readShort()
             NUMBER_INT -> readVarInt(buf)
-            NUMBER_LONG -> buf.readLong()
+            NUMBER_LONG -> readVarLong(buf)
             NUMBER_FLOAT -> buf.readFloat()
             NUMBER_DOUBLE -> buf.readDouble()
             else -> throw DecoderException("Unknown number type")
@@ -458,6 +459,8 @@ class SurfByteBuf(source: ByteBuf) : WrappedByteBuf(source) {
 
         fun readVarInt(buf: ByteBuf) = VarInt.readVarInt(buf)
         fun writeVarInt(buf: ByteBuf, value: Int) = VarInt.writeVarInt(buf, value)
+        fun readVarLong(buf: ByteBuf) = VarLong.readVarLong(buf)
+        fun writeVarLong(buf: ByteBuf, value: Long) = VarLong.writeVarLong(buf, value)
 
         fun <B : ByteBuf> writeWithCount(buf: B, count: Int, writer: (B) -> Unit) = buf.run {
             writeVarInt(count)
@@ -709,6 +712,8 @@ class SurfByteBuf(source: ByteBuf) : WrappedByteBuf(source) {
     fun writeUtf(string: String, maxLength: Int = Int.MAX_VALUE) = writeUtf(this, string, maxLength)
     fun readVarInt() = readVarInt(this)
     fun writeVarInt(value: Int) = writeVarInt(this, value)
+    fun readVarLong() = readVarLong(this)
+    fun writeVarLong(value: Long) = writeVarLong(this, value)
     fun <T> readNullable(decodeFactory: DecodeFactory<in SurfByteBuf, T>) = readNullable(this, decodeFactory)
     fun readNullableBoolean() = readNullable(this) { it.readBoolean() }
     fun readNullableByte() = readNullable(this) { it.readByte() }
@@ -766,6 +771,8 @@ inline fun checkDecoded(value: Boolean, message: () -> Any) {
 // region ByteBuf extensions
 fun ByteBuf.writeVarInt(value: Int) = SurfByteBuf.writeVarInt(this, value)
 fun ByteBuf.readVarInt() = SurfByteBuf.readVarInt(this)
+fun ByteBuf.writeVarLong(value: Long) = SurfByteBuf.writeVarLong(this, value)
+fun ByteBuf.readVarLong() = SurfByteBuf.readVarLong(this)
 
 fun ByteBuf.readKey() = SurfByteBuf.readKey(this)
 fun ByteBuf.writeKey(key: Key) = SurfByteBuf.writeKey(this, key)

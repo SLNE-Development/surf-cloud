@@ -16,6 +16,7 @@ import net.kyori.adventure.text.Component
 import net.kyori.adventure.title.Title
 import net.kyori.adventure.title.TitlePart
 import java.util.*
+import kotlin.time.Duration.Companion.seconds
 
 abstract class ClientCloudPlayerImpl(uuid: UUID) : CommonCloudPlayerImpl(uuid) {
     @Volatile
@@ -32,6 +33,16 @@ abstract class ClientCloudPlayerImpl(uuid: UUID) : CommonCloudPlayerImpl(uuid) {
      * the bukkit / velocity player. Otherwise packets will be sent to the player via the network.
      */
     protected abstract val audience: Audience?
+
+    override suspend fun displayName(): Component {
+        val localName = audience?.pointers()?.get(Identity.DISPLAY_NAME)?.orElse(null)
+        if (localName != null) {
+            return localName
+        }
+
+        return ServerboundRequestDisplayNamePacket(uuid).fireAndAwait(5.seconds)?.displayName
+            ?: error("Failed to get display name (probably timed out)")
+    }
 
     @Deprecated("Deprecated in Java")
     @Suppress("UnstableApiUsage")

@@ -183,6 +183,10 @@ class ServerRunningPacketListenerImpl(
         withPlayer(packet.uuid) { sendPlayerListHeaderAndFooter(packet.header, packet.footer) }
     }
 
+    override fun handleRequestDisplayName(packet: ServerboundRequestDisplayNamePacket) {
+
+    }
+
     override fun handlePacket(packet: NettyPacket) {
         val listeners = NettyListenerRegistry.getListeners(packet.javaClass) ?: return
         if (listeners.isEmpty()) return

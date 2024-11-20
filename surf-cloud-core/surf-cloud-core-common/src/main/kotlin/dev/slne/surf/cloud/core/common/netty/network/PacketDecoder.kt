@@ -1,5 +1,9 @@
 package dev.slne.surf.cloud.core.common.netty.network
 
+import dev.slne.surf.cloud.api.common.netty.packet.RespondingNettyPacket
+import dev.slne.surf.cloud.api.common.netty.packet.ResponseNettyPacket
+import dev.slne.surf.cloud.api.common.netty.protocol.buffer.readNullable
+import dev.slne.surf.cloud.api.common.netty.protocol.buffer.readVarLong
 import io.netty.buffer.ByteBuf
 import io.netty.channel.ChannelHandlerContext
 import io.netty.handler.codec.ByteToMessageDecoder
@@ -12,6 +16,17 @@ class PacketDecoder<T : PacketListener>(private val protocolInfo: ProtocolInfo<T
         if (readableBytes == 0) return
 
         val packet = protocolInfo.codec.decode(buf)
+        buf.readNullable { it.readVarLong() }
+
+        @Suppress("DEPRECATION")
+        if (packet is RespondingNettyPacket<*>) {
+            packet.extraDecode(buf)
+        }
+
+        if (packet is ResponseNettyPacket) {
+            packet.extraDecode(buf)
+        }
+
         if (buf.readableBytes() > 0) {
             val packetName = packet.javaClass.simpleName
             throw IOException("Packet ${protocolInfo.id.name}/$packetName was larger than I expected, found ${buf.readableBytes()} bytes extra whilst reading packet $packetName")

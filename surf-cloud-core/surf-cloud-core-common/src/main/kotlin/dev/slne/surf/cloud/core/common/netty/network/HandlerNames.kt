@@ -17,4 +17,5 @@ object HandlerNames {
     const val TIMEOUT: String = "timeout"
     const val LEGACY_QUERY: String = "legacy_query"
     const val LATENCY: String = "latency"
+    const val RESPONDING_PACKET_SEND: String = "responding_packet_send"
 }

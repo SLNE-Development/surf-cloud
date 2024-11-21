@@ -28,6 +28,10 @@ class RespondingPacketSendHandler : UnifiedReadOnlyChannelHandler<NettyPacket>()
         }
         msg.handled()
 
+        if (msg is RespondingNettyPacket<*>) {
+            msg.responseConnection = ctx.channel().attr(ConnectionImpl.CHANNEL_ATTRIBUTE_KEY).get()
+        }
+
         if (msg is ResponseNettyPacket) {
             val responseTo = msg.responseTo
             if (responseTo != null) {

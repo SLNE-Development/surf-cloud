@@ -28,6 +28,7 @@ import io.netty.handler.codec.EncoderException
 import io.netty.handler.flow.FlowControlHandler
 import io.netty.handler.timeout.ReadTimeoutHandler
 import io.netty.handler.timeout.TimeoutException
+import io.netty.util.AttributeKey
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.future.future
 import kotlinx.coroutines.launch
@@ -709,9 +710,8 @@ class ConnectionImpl(val receiving: PacketFlow) : SimpleChannelInboundHandler<Ne
         pendingActions.clear()
     }
 
-    fun configurePacketHandler(pipeline: ChannelPipeline) {
-        pipeline
-            .addLast("hackfix", object : ChannelOutboundHandlerAdapter() {
+    fun configurePacketHandler(channel: Channel, pipeline: ChannelPipeline) {
+        pipeline.addLast("hackfix", object : ChannelOutboundHandlerAdapter() {
                 override fun write(
                     ctx: ChannelHandlerContext?,
                     msg: Any?,
@@ -721,6 +721,8 @@ class ConnectionImpl(val receiving: PacketFlow) : SimpleChannelInboundHandler<Ne
                 }
             })
             .addLast(HandlerNames.PACKET_HANDLER, this)
+
+        channel.attr(CHANNEL_ATTRIBUTE_KEY).set(this)
     }
 
     fun setReadOnly() {
@@ -853,6 +855,7 @@ class ConnectionImpl(val receiving: PacketFlow) : SimpleChannelInboundHandler<Ne
         }
 
         private val INITIAL_PROTOCOL = HandshakeProtocols.SERVERBOUND
+        val CHANNEL_ATTRIBUTE_KEY: AttributeKey<ConnectionImpl> = AttributeKey.newInstance("connection")
 
         suspend fun connectToServer(
             address: InetSocketAddress,
@@ -894,7 +897,7 @@ class ConnectionImpl(val receiving: PacketFlow) : SimpleChannelInboundHandler<Ne
                             .addLast(HandlerNames.TIMEOUT, ReadTimeoutHandler(30))
 
                         configureSerialization(pipeline, PacketFlow.CLIENTBOUND, local = false)
-                        connection.configurePacketHandler(pipeline)
+                        connection.configurePacketHandler(channel, pipeline)
                     }
                 })
                 .connect(address.address, address.port)
@@ -917,6 +920,7 @@ class ConnectionImpl(val receiving: PacketFlow) : SimpleChannelInboundHandler<Ne
                     outboundHandlerName(sendingSide),
                     if (sendingSide) PacketEncoder(INITIAL_PROTOCOL) else UnconfiguredPipelineHandler.Outbound()
                 )
+                .addLast(HandlerNames.RESPONDING_PACKET_SEND, RespondingPacketSendHandler())
         }
 
         private fun createFrameEncoder(local: Boolean) =

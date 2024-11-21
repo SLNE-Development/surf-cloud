@@ -100,7 +100,7 @@ class ServerConnectionListener(val server: NettyServerImpl) {
                             val connection = ConnectionImpl(PacketFlow.SERVERBOUND) // TODO: rate limit
 
                             pending.add(connection)
-                            connection.configurePacketHandler(pipeline)
+                            connection.configurePacketHandler(channel, pipeline)
                             println(
                                 "Configured packet handler for ${
                                     connection.getLoggableAddress(

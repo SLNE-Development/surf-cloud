@@ -17,7 +17,7 @@ object UnconfiguredPipelineHandler {
     private fun setupInboundHandler(newDecoder: ChannelInboundHandler) =
         InboundConfigurationTask { context ->
             context.pipeline().replace(context.name(), HandlerNames.DECODER, newDecoder)
-            context.channel().config().setAutoRead(true)
+            context.channel().config().isAutoRead = true
         }
 
 

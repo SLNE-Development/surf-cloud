@@ -26,7 +26,7 @@ abstract class RespondingNettyPacket<P : ResponseNettyPacket> : NettyPacket() {
     }
 
     fun respond(packet: P) {
-        packet.responseTo = getUniqueSessionIdOrCreate()
+        packet.responseTo = uniqueSessionId ?: error("Responding packet has no session id. Are you sure it was sent?")
         responseConnection.send(packet)
     }
 

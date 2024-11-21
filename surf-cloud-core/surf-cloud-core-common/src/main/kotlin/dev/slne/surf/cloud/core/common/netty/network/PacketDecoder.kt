@@ -16,7 +16,6 @@ class PacketDecoder<T : PacketListener>(private val protocolInfo: ProtocolInfo<T
         if (readableBytes == 0) return
 
         val packet = protocolInfo.codec.decode(buf)
-        buf.readNullable { it.readVarLong() }
 
         @Suppress("DEPRECATION")
         if (packet is RespondingNettyPacket<*>) {

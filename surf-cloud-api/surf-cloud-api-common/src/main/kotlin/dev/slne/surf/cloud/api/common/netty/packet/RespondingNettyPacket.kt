@@ -11,6 +11,9 @@ import java.util.*
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
+val DEFAULT_TIMEOUT = 15.seconds
+val DEFAULT_URGENT_TIMEOUT = 5.seconds
+
 abstract class RespondingNettyPacket<P : ResponseNettyPacket> : NettyPacket() {
     private var uniqueSessionId: UUID? = null
 
@@ -21,7 +24,7 @@ abstract class RespondingNettyPacket<P : ResponseNettyPacket> : NettyPacket() {
     lateinit var responseConnection: Connection
 
     @Suppress("DEPRECATION")
-    suspend fun fireAndAwait(connection: Connection, timeout: Duration = 15.seconds): P? =
+    suspend fun fireAndAwait(connection: Connection, timeout: Duration = DEFAULT_TIMEOUT): P? =
         withTimeoutOrNull(timeout) {
             connection.send(this@RespondingNettyPacket)
             response.await()

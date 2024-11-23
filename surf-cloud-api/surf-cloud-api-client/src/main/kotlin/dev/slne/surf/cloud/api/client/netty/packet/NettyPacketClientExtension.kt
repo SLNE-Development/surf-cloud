@@ -1,6 +1,7 @@
 package dev.slne.surf.cloud.api.client.netty.packet
 
 import dev.slne.surf.cloud.api.client.netty.nettyManager
+import dev.slne.surf.cloud.api.common.netty.packet.DEFAULT_TIMEOUT
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
 import dev.slne.surf.cloud.api.common.netty.packet.RespondingNettyPacket
 import dev.slne.surf.cloud.api.common.netty.packet.ResponseNettyPacket
@@ -15,5 +16,5 @@ fun NettyPacket.fireAndForget() {
     nettyManager.client.fireAndForget(this)
 }
 
-suspend fun <P : ResponseNettyPacket> RespondingNettyPacket<P>.fireAndAwait(timeout: Duration = 15.seconds): P? =
+suspend fun <P : ResponseNettyPacket> RespondingNettyPacket<P>.fireAndAwait(timeout: Duration = DEFAULT_TIMEOUT): P? =
     fireAndAwait(nettyManager.client.connection, timeout)

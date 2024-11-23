@@ -2,6 +2,7 @@ package dev.slne.surf.cloud.core.client.player
 
 import dev.slne.surf.cloud.api.client.netty.packet.fireAndAwait
 import dev.slne.surf.cloud.api.client.netty.packet.fireAndForget
+import dev.slne.surf.cloud.api.common.netty.packet.DEFAULT_URGENT_TIMEOUT
 import dev.slne.surf.cloud.api.common.util.logger
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.*
 import dev.slne.surf.cloud.core.common.player.CommonCloudPlayerImpl
@@ -42,7 +43,7 @@ abstract class ClientCloudPlayerImpl(uuid: UUID) : CommonCloudPlayerImpl(uuid) {
             return localName
         }
 
-        return ServerboundRequestDisplayNamePacket(uuid).fireAndAwait(5.seconds)?.displayName
+        return ServerboundRequestDisplayNamePacket(uuid).fireAndAwait(DEFAULT_URGENT_TIMEOUT)?.displayName
             ?: error("Failed to get display name (probably timed out)")
     }
 

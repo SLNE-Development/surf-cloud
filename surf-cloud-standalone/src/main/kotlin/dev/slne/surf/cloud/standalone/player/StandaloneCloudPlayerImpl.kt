@@ -1,5 +1,6 @@
 package dev.slne.surf.cloud.standalone.player
 
+import dev.slne.surf.cloud.api.common.netty.packet.DEFAULT_URGENT_TIMEOUT
 import dev.slne.surf.cloud.api.server.server.ServerCloudServer
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.*
 import dev.slne.surf.cloud.core.common.player.CommonCloudPlayerImpl
@@ -32,7 +33,7 @@ class StandaloneCloudPlayerImpl(uuid: UUID) : CommonCloudPlayerImpl(uuid) {
     override suspend fun displayName(): Component {
         return ClientboundRequestDisplayNamePacket(uuid).fireAndAwait(
             anyServer.connection,
-            5.seconds
+            DEFAULT_URGENT_TIMEOUT
         )?.displayName ?: error("Failed to get display name (probably timed out)")
     }
 

@@ -8,6 +8,7 @@ import dev.slne.surf.cloud.api.common.util.mutableObject2ObjectMapOf
 import dev.slne.surf.cloud.api.common.util.synchronize
 import dev.slne.surf.cloud.core.common.netty.network.ConnectionImpl
 import kotlinx.coroutines.CompletableDeferred
+import kotlin.time.Duration
 
 abstract class CommonNettyClientImpl(
     serverId: Long,
@@ -70,8 +71,8 @@ abstract class CommonNettyClientImpl(
         }
     }
 
-    override suspend fun <P : ResponseNettyPacket> fireAndAwait(packet: RespondingNettyPacket<P>): P? {
-        TODO("Not yet implemented")
+    override suspend fun <P : ResponseNettyPacket> fireAndAwait(packet: RespondingNettyPacket<P>, timeout: Duration): P? {
+        return packet.fireAndAwait(connection, timeout)
     }
 
     abstract fun broadcast(packets: List<NettyPacket>)

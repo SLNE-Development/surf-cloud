@@ -1,5 +1,9 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
+plugins {
+    `core-convention`
+}
+
 dependencies {
     api("org.springframework.boot:spring-boot-starter")
     api("com.fasterxml.jackson.core:jackson-core")

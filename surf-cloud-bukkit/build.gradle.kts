@@ -1,6 +1,8 @@
 import net.minecrell.pluginyml.paper.PaperPluginDescription
 
+
 plugins {
+    `core-convention`
     java
     id("xyz.jpenilla.run-paper") version "2.3.1"
     id("net.minecrell.plugin-yml.paper") version "0.6.0"

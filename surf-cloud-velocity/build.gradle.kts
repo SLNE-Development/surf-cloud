@@ -1,3 +1,7 @@
+plugins {
+    `core-convention`
+}
+
 dependencies {
     api(project(":surf-cloud-core:surf-cloud-core-client"))
     compileOnly("com.velocitypowered:velocity-api:3.3.0-SNAPSHOT")

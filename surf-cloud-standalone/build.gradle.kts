@@ -1,5 +1,6 @@
 plugins {
-    kotlin("plugin.jpa") version "2.0.21"
+//    kotlin("plugin.jpa") version "2.0.21"
+    `core-convention`
 }
 
 dependencies {

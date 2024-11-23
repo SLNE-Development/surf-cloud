@@ -1,0 +1,16 @@
+:root {
+  --dokka-logo-image-url: url('../images/surf-cloud-logo.png');
+  --dokka-logo-height: 125px;
+  --dokka-logo-width: 50px;
+}
+
+/* link custom rules styles */
+.library-name--link {
+  /* ... */
+}
+
+/* logo custom rules styles */
+.library-name--link::before {
+  background-position: left;
+  width: 52px;
+}

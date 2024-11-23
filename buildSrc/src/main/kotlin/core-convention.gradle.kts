@@ -35,7 +35,7 @@ repositories {
 }
 
 dependencies {
-    implementation(enforcedPlatform("org.springframework.boot:spring-boot-dependencies:3.4.0"))
+    implementation(enforcedPlatform("org.springframework.boot:spring-boot-dependencies:3.3.5"))
     // developmentOnly("org.springframework.boot:spring-boot-devtools")
 
     kotlin("stdlib")

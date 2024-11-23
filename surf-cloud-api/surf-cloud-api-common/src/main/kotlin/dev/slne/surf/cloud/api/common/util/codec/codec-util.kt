@@ -1,4 +1,4 @@
-@file:OptIn(ExperimentalContracts::class)
+@file:OptIn(ExperimentalContracts::class, ExperimentalStdlibApi::class)
 
 package dev.slne.surf.cloud.api.common.util.codec
 

@@ -1,15 +1,36 @@
 package dev.slne.surf.cloud.api.common.server
 
+import dev.slne.surf.cloud.api.common.netty.network.codec.streamCodec
+import dev.slne.surf.cloud.api.common.netty.protocol.buffer.SurfByteBuf
 import dev.slne.surf.cloud.api.common.player.CloudPlayer
 import dev.slne.surf.cloud.api.common.player.playerManager
 import dev.slne.surf.cloud.api.common.util.mutableObjectSetOf
 import dev.slne.surf.cloud.api.common.util.synchronize
+import it.unimi.dsi.fastutil.objects.ObjectSet
 import java.util.*
 
 open class UserListImpl : UserList {
-    internal val playerReferences = mutableObjectSetOf<UUID>().synchronize()
+    companion object {
+        val STREAM_CODEC = streamCodec<SurfByteBuf, UserListImpl>({ buf, list ->
+            buf.writeCollection(list.playerReferences) { buffer, uuid -> buffer.writeUuid(uuid) }
+        }, { buf ->
+            val references = buf.readCollection({ mutableObjectSetOf<UUID>(it) }, { it.readUuid() })
+            UserListImpl(references)
+        })
+    }
+
+    internal val playerReferences: ObjectSet<UUID>
 
     override val size get() = playerReferences.size
+
+    constructor() {
+        playerReferences = mutableObjectSetOf<UUID>().synchronize()
+    }
+
+    internal constructor(playerReferences: ObjectSet<UUID>) {
+        this.playerReferences = playerReferences.synchronize()
+    }
+
     override fun contains(element: CloudPlayer) = playerReferences.contains(element.uuid)
     override fun containsAll(elements: Collection<CloudPlayer>) =
         elements.all { playerReferences.contains(it.uuid) }
@@ -39,7 +60,7 @@ open class UserListImpl : UserList {
     }
 }
 
-class MutableUserListImpl: UserListImpl(), MutableUserList {
+class MutableUserListImpl : UserListImpl(), MutableUserList {
     override fun addAll(elements: Collection<CloudPlayer>): Boolean {
         return elements.all { playerReferences.add(it.uuid) }
     }

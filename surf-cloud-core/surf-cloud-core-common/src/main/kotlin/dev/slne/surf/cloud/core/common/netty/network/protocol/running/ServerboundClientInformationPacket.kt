@@ -2,10 +2,12 @@ package dev.slne.surf.cloud.core.common.netty.network.protocol.running
 
 import dev.slne.surf.cloud.api.common.meta.DefaultIds
 import dev.slne.surf.cloud.api.common.meta.SurfNettyPacket
+import dev.slne.surf.cloud.api.common.netty.network.codec.streamCodec
 import dev.slne.surf.cloud.api.common.netty.network.protocol.PacketFlow
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
 import dev.slne.surf.cloud.api.common.netty.packet.packetCodec
 import dev.slne.surf.cloud.api.common.netty.protocol.buffer.SurfByteBuf
+import dev.slne.surf.cloud.api.common.netty.protocol.buffer.readEnum
 import dev.slne.surf.cloud.api.common.server.state.ServerState
 import dev.slne.surf.cloud.api.common.util.codec.bool
 import dev.slne.surf.cloud.api.common.util.codec.createRecordCodec
@@ -56,6 +58,20 @@ data class ClientInformation(
                 enum("state") { state }
             ).apply(this, ::ClientInformation)
         }
+
+        val STREAM_CODEC = streamCodec<SurfByteBuf, ClientInformation>({ buf, info ->
+            buf.writeVarInt(info.maxPlayerCount)
+            buf.writeVarInt(info.currentPlayerCount)
+            buf.writeBoolean(info.whitelist)
+            buf.writeEnum(info.state)
+        }, { buf ->
+            ClientInformation(
+                maxPlayerCount = buf.readVarInt(),
+                currentPlayerCount = buf.readVarInt(),
+                whitelist = buf.readBoolean(),
+                state = buf.readEnum()
+            )
+        })
 
         val NOT_AVAILABLE = ClientInformation(
             maxPlayerCount = -1,

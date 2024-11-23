@@ -5,6 +5,7 @@ import dev.slne.surf.cloud.api.common.netty.protocol.buffer.readUuid
 import dev.slne.surf.cloud.api.common.netty.protocol.buffer.writeUuid
 import io.netty.buffer.ByteBuf
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.withTimeoutOrNull
 import org.jetbrains.annotations.ApiStatus.Internal
 import java.util.*
@@ -29,6 +30,21 @@ abstract class RespondingNettyPacket<P : ResponseNettyPacket> : NettyPacket() {
             connection.send(this@RespondingNettyPacket)
             response.await()
         }
+
+    suspend fun fireAndAwaitUrgent(connection: Connection): P? =
+        fireAndAwait(connection, DEFAULT_URGENT_TIMEOUT)
+
+    @Suppress("DEPRECATION")
+    suspend fun fireAndAwaitOrThrow(
+        connection: Connection,
+        timeout: Duration = DEFAULT_TIMEOUT
+    ): P = withTimeout(timeout) {
+        connection.send(this@RespondingNettyPacket)
+        response.await()
+    }
+
+    suspend fun fireAndAwaitOrThrowUrgent(connection: Connection): P =
+        fireAndAwaitOrThrow(connection, DEFAULT_URGENT_TIMEOUT)
 
     fun respond(packet: P) {
         packet.responseTo = uniqueSessionId

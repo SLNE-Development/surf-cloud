@@ -22,6 +22,8 @@ interface CloudServerManager {
 
     /**
      * Retrieves a server by its category and name.
+     * If multiple servers share the same name within the same category,
+     * the server with the lowest player count will be returned.
      *
      * @param category The category of the server.
      * @param name The name of the server within the specified category.
@@ -30,7 +32,8 @@ interface CloudServerManager {
     suspend fun retrieveServerByCategoryAndName(category: String, name: String): CloudServer?
 
     /**
-     * Retrieves a server by its name.
+     * Retrieves a server by its name. If multiple servers share the same name,
+     * the server with the lowest player count will be returned.
      *
      * @param name The name of the server.
      * @return The [CloudServer] if found, or `null` if no server matches the provided name.

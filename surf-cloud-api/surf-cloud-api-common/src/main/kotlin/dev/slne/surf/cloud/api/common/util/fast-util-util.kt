@@ -11,6 +11,7 @@ import org.jetbrains.annotations.UnmodifiableView
 // region ObjectSet
 fun <T> mutableObjectSetOf(vararg elements: T) = ObjectOpenHashSet(elements)
 fun <T> mutableObjectSetOf() = ObjectOpenHashSet<T>()
+fun <T> mutableObjectSetOf(capacity: Int) = ObjectOpenHashSet<T>(capacity)
 fun <T> objectSetOf(vararg elements: T) = mutableObjectSetOf(elements).freeze()
 fun <T> objectSetOf(collection: Collection<T>) = mutableObjectSetOf<T>().apply { addAll(collection) }.freeze()
 fun <T> objectSetOf() = emptyObjectSet<T>()

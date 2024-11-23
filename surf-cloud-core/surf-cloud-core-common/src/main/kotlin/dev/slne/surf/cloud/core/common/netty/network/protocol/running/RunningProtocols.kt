@@ -33,6 +33,8 @@ object RunningProtocols {
                 .addPacket(PlayerDisconnectFromServerPacket.STREAM_CODEC)
                 .addPacket(ClientboundRequestDisplayNamePacket.STREAM_CODEC)
                 .addPacket(ResponseDisplayNamePacketRequestPacket.STREAM_CODEC)
+                .addPacket(ClientboundResponseCloudServerPacket.STREAM_CODEC)
+                .addPacket(ClientboundResponseRequestServersByCategory.STREAM_CODEC)
         }
 
     val CLIENTBOUND by lazy { CLIENTBOUND_TEMPLATE.freeze().bind(::SurfByteBuf) }
@@ -66,6 +68,10 @@ object RunningProtocols {
                 .addPacket(PlayerDisconnectFromServerPacket.STREAM_CODEC)
                 .addPacket(ServerboundRequestDisplayNamePacket.STREAM_CODEC)
                 .addPacket(ResponseDisplayNamePacketRequestPacket.STREAM_CODEC)
+                .addPacket(ServerboundRequestCloudServerByIdPacket.STREAM_CODEC)
+                .addPacket(ServerboundRequestCloudServerByCategoryAndNamePacket.STREAM_CODEC)
+                .addPacket(ServerboundRequestCloudServerByNamePacket.STREAM_CODEC)
+                .addPacket(ServerboundRequestServersByCategory.STREAM_CODEC)
         }
 
     val SERVERBOUND by lazy { SERVERBOUND_TEMPLATE.freeze().bind(::SurfByteBuf) }

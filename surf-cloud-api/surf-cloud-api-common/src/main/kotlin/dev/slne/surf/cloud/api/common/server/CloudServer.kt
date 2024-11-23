@@ -14,6 +14,7 @@ interface CloudServer: ForwardingAudience {
     val group: String
     val name: String
 
+    val proxy: Boolean
     val maxPlayerCount: Int
     val currentPlayerCount: Int
     val whitelist: Boolean

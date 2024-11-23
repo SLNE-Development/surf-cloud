@@ -16,6 +16,7 @@ class ServerLoginPacketListenerImpl(val server: NettyServerImpl, val connection:
 
     private val log = logger()
     private var client: ServerClientImpl? = null
+    private var proxy: Boolean = false
 
     @Volatile
     var state: State = State.HELLO
@@ -38,6 +39,7 @@ class ServerLoginPacketListenerImpl(val server: NettyServerImpl, val connection:
     override fun handleLoginStart(packet: ServerboundLoginStartPacket) {
         check(state == State.HELLO) { "Unexpected login start packet" }
         this.client = ServerClientImpl(server, packet.serverId, packet.serverCategory, packet.serverName)
+        this.proxy = packet.proxy
         startClientVerification()
     }
 
@@ -68,7 +70,7 @@ class ServerLoginPacketListenerImpl(val server: NettyServerImpl, val connection:
         )
         client.initListener(listener)
         state = State.ACCEPTED
-        server.registerClient(client)
+        server.registerClient(client, proxy)
     }
 
     override fun onDisconnect(details: DisconnectionDetails) {

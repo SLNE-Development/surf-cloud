@@ -23,22 +23,26 @@ class ServerboundLoginStartPacket : NettyPacket {
     val serverId: Long
     val serverCategory: String
     val serverName: String
+    val proxy: Boolean
 
-    constructor(serverId: Long, serverCategory: String, serverName: String) {
+    constructor(serverId: Long, serverCategory: String, serverName: String, proxy: Boolean) {
         this.serverId = serverId
         this.serverCategory = serverCategory
         this.serverName = serverName
+        this.proxy = proxy
     }
 
     private constructor(buffer: SurfByteBuf) {
         serverId = buffer.readLong()
         serverCategory = buffer.readUtf()
         serverName = buffer.readUtf()
+        proxy = buffer.readBoolean()
     }
 
     private fun write(buf: SurfByteBuf) {
         buf.writeLong(serverId)
         buf.writeUtf(serverCategory)
         buf.writeUtf(serverName)
+        buf.writeBoolean(proxy)
     }
 }

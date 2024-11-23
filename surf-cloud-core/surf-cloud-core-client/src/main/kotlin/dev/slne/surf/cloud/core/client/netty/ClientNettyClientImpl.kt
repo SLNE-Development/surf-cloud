@@ -29,7 +29,7 @@ import kotlinx.coroutines.launch
 import java.net.InetSocketAddress
 import kotlin.time.Duration.Companion.seconds
 
-class ClientNettyClientImpl : CommonNettyClientImpl(
+class ClientNettyClientImpl(val proxy: Boolean) : CommonNettyClientImpl(
     CloudPersistentData.SERVER_ID.value(),
     CloudProperties.SERVER_CATEGORY.value() ?: CloudProperties.SERVER_CATEGORY_NOT_SET,
     CloudProperties.SERVER_NAME.value()
@@ -83,7 +83,7 @@ class ClientNettyClientImpl : CommonNettyClientImpl(
                 ClientHandshakePacketListenerImpl(this, connection, statusUpdate),
                 false
             )
-            connection.send(ServerboundLoginStartPacket(serverId, serverCategory, serverName))
+            connection.send(ServerboundLoginStartPacket(serverId, serverCategory, serverName, proxy))
         } catch (e: Exception) {
             val cause = e.cause as? Exception ?: e
 

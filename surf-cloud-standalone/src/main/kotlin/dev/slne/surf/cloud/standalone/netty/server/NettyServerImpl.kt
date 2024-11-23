@@ -114,13 +114,13 @@ class NettyServerImpl {
         schedules.add(function)
     }
 
-    suspend fun registerClient(client: ServerClientImpl) {
+    suspend fun registerClient(client: ServerClientImpl, proxy: Boolean) {
         clientsLock.withLock {
             clients.add(client)
         }
 
         log.atInfo().log("Registered client ${client.displayName}")
-        serverManagerImpl.registerServer(StandaloneServerImpl(client.serverId, client.serverCategory, client.serverName, client.connection))
+        serverManagerImpl.registerServer(StandaloneServerImpl(client.serverId, client.serverCategory, client.serverName, proxy, client.connection))
     }
 
     suspend fun forEachClient(action: suspend (ServerClientImpl) -> Unit) {

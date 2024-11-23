@@ -8,5 +8,6 @@ class StandaloneServerImpl(
     uid: Long,
     group: String,
     name: String,
+    proxy: Boolean,
     override val connection: Connection
-) : CloudServerImpl(uid, group, name), ServerCloudServer
+) : CloudServerImpl(uid, group, name, proxy), ServerCloudServer

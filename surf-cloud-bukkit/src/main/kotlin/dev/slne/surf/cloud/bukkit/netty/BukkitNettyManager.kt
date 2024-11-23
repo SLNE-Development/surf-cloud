@@ -5,7 +5,7 @@ import dev.slne.surf.cloud.core.client.netty.NettyCommonClientManager
 import dev.slne.surf.surfapi.bukkit.api.event.register
 import dev.slne.surf.surfapi.bukkit.api.event.unregister
 
-object BukkitNettyManager : NettyCommonClientManager() {
+object BukkitNettyManager : NettyCommonClientManager(false) {
     override fun blockPlayerConnections() {
         NettyPlayerConnectionBlocker.register()
     }

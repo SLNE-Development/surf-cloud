@@ -8,7 +8,8 @@ import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ClientInfo
 open class CloudServerImpl(
     override val uid: Long,
     override val group: String,
-    override val name: String
+    override val name: String,
+    override val proxy: Boolean
 ) : CloudServer {
     var information = ClientInformation.NOT_AVAILABLE
     override val users = UserListImpl()

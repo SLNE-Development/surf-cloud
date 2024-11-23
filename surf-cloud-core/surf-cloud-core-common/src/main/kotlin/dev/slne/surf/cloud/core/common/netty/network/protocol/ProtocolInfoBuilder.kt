@@ -131,7 +131,6 @@ class ProtocolInfoBuilder<T : PacketListener, B : ByteBuf>(
         ) = mutableProtocol(type, PacketFlow.CLIENTBOUND, registrar)
     }
 
-    @JvmRecord
     data class CodecEntry<P : NettyPacket, B : ByteBuf>(
         val type: Class<out NettyPacket>,
         val serializer: StreamCodec<in B, P>
@@ -145,7 +144,6 @@ class ProtocolInfoBuilder<T : PacketListener, B : ByteBuf>(
         }
     }
 
-    @JvmRecord
     internal data class ProtocolInfoImpl<L : PacketListener>(
         override val id: ConnectionProtocol,
         override val flow: PacketFlow,

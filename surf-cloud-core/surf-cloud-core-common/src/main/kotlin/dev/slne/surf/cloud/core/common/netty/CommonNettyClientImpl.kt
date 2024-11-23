@@ -3,6 +3,7 @@ package dev.slne.surf.cloud.core.common.netty
 import dev.slne.surf.cloud.api.common.netty.NettyClient
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
 import dev.slne.surf.cloud.api.common.netty.packet.RespondingNettyPacket
+import dev.slne.surf.cloud.api.common.netty.packet.ResponseNettyPacket
 import dev.slne.surf.cloud.api.common.util.mutableObject2ObjectMapOf
 import dev.slne.surf.cloud.api.common.util.synchronize
 import dev.slne.surf.cloud.core.common.netty.network.ConnectionImpl
@@ -19,7 +20,7 @@ abstract class CommonNettyClientImpl(
 
     private val packetQueue by lazy { mutableObject2ObjectMapOf<NettyPacket, CompletableDeferred<Boolean>?>().synchronize() }
 
-    protected var _connection: ConnectionImpl? = null
+    private var _connection: ConnectionImpl? = null
         set(value) {
             field = value
 
@@ -38,6 +39,8 @@ abstract class CommonNettyClientImpl(
         }
 
     override val connection get() = _connection ?: error("connection not yet set")
+
+    val displayName get() = "${serverCategory}/${serverId} $serverName (${_connection?.hostname})"
 
     override fun fireAndForget(packet: NettyPacket) {
         val connection = _connection
@@ -67,7 +70,7 @@ abstract class CommonNettyClientImpl(
         }
     }
 
-    override suspend fun <P : NettyPacket> fireAndAwait(packet: RespondingNettyPacket<P>): P? {
+    override suspend fun <P : ResponseNettyPacket> fireAndAwait(packet: RespondingNettyPacket<P>): P? {
         TODO("Not yet implemented")
     }
 

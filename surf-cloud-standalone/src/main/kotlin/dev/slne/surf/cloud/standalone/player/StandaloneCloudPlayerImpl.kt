@@ -15,6 +15,7 @@ import net.kyori.adventure.text.Component
 import net.kyori.adventure.title.Title
 import net.kyori.adventure.title.TitlePart
 import java.util.*
+import kotlin.time.Duration.Companion.seconds
 
 class StandaloneCloudPlayerImpl(uuid: UUID) : CommonCloudPlayerImpl(uuid) {
     @Volatile
@@ -28,8 +29,15 @@ class StandaloneCloudPlayerImpl(uuid: UUID) : CommonCloudPlayerImpl(uuid) {
     private val anyServer
         get() = server ?: proxyServer ?: error("Player is not connected to a server")
 
+    override suspend fun displayName(): Component {
+        return ClientboundRequestDisplayNamePacket(uuid).fireAndAwait(
+            anyServer.connection,
+            5.seconds
+        )?.displayName ?: error("Failed to get display name (probably timed out)")
+    }
+
     @Deprecated("Deprecated in Java")
-    @Suppress("UnstableApiUsage")
+    @Suppress("UnstableApiUsage", "DEPRECATION")
     override fun sendMessage(source: Identity, message: Component, type: MessageType) {
         anyServer.connection.send(ClientboundSendMessagePacket(uuid, message))
     }

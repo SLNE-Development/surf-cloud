@@ -95,7 +95,6 @@ class IdDispatchCodec<B : ByteBuf, V, T> private constructor(
         }
     }
 
-    @JvmRecord
     internal data class Entry<B, V, T>(val serializer: StreamCodec<in B, out V>, val type: T)
 
     companion object {

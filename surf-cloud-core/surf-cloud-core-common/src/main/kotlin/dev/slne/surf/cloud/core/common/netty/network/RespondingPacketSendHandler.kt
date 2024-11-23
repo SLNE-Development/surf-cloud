@@ -22,11 +22,13 @@ class RespondingPacketSendHandler : UnifiedReadOnlyChannelHandler<NettyPacket>()
         ctx: ChannelHandlerContext,
         msg: NettyPacket
     ) {
-        if (msg.handled) {
-            error("Packet $msg was already handled")
-            return
+        if (msg is RespondingNettyPacket<*> || msg is ResponseNettyPacket) {
+            if (msg.handled) {
+                error("Packet $msg was already handled")
+                return
+            }
+            msg.handled()
         }
-        msg.handled()
 
         if (msg is RespondingNettyPacket<*>) {
             msg.responseConnection = ctx.channel().attr(ConnectionImpl.CHANNEL_ATTRIBUTE_KEY).get()
@@ -51,11 +53,13 @@ class RespondingPacketSendHandler : UnifiedReadOnlyChannelHandler<NettyPacket>()
         msg: NettyPacket,
         promise: ChannelPromise
     ) {
-        if (msg.handled) {
-            error("Packet $msg was already handled")
-            return
+        if (msg is RespondingNettyPacket<*> || msg is ResponseNettyPacket) {
+            if (msg.handled) {
+                error("Packet $msg was already handled")
+                return
+            }
+            msg.handled()
         }
-        msg.handled()
 
         if (msg is RespondingNettyPacket<*>) {
             respondingPackets.put(

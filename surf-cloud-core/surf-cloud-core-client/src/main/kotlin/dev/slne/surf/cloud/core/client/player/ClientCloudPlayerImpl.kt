@@ -1,6 +1,8 @@
 package dev.slne.surf.cloud.core.client.player
 
+import dev.slne.surf.cloud.api.client.netty.packet.fireAndAwait
 import dev.slne.surf.cloud.api.client.netty.packet.fireAndForget
+import dev.slne.surf.cloud.api.common.util.logger
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.*
 import dev.slne.surf.cloud.core.common.player.CommonCloudPlayerImpl
 import net.kyori.adventure.audience.Audience
@@ -45,7 +47,7 @@ abstract class ClientCloudPlayerImpl(uuid: UUID) : CommonCloudPlayerImpl(uuid) {
     }
 
     @Deprecated("Deprecated in Java")
-    @Suppress("UnstableApiUsage")
+    @Suppress("UnstableApiUsage", "DEPRECATION")
     override fun sendMessage(source: Identity, message: Component, type: MessageType) {
         val audience = audience
         if (audience != null) {

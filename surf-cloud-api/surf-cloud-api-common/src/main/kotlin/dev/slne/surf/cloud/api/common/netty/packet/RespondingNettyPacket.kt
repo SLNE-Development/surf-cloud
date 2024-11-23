@@ -20,18 +20,22 @@ abstract class RespondingNettyPacket<P : ResponseNettyPacket> : NettyPacket() {
 
     lateinit var responseConnection: Connection
 
-    suspend fun fireAndAwait(timeout: Duration = 15.seconds): P? = withTimeoutOrNull(timeout) {
-        TODO("Fire packet")
-        response.await()
-    }
+    @Suppress("DEPRECATION")
+    suspend fun fireAndAwait(connection: Connection, timeout: Duration = 15.seconds): P? =
+        withTimeoutOrNull(timeout) {
+            connection.send(this@RespondingNettyPacket)
+            response.await()
+        }
 
     fun respond(packet: P) {
-        packet.responseTo = uniqueSessionId ?: error("Responding packet has no session id. Are you sure it was sent?")
+        packet.responseTo = uniqueSessionId
+            ?: error("Responding packet has no session id. Are you sure it was sent?")
         responseConnection.send(packet)
     }
 
     @Deprecated("internal use only")
     @Internal
+    @Suppress("DEPRECATION")
     fun extraEncode(buf: ByteBuf) {
         buf.writeUuid(getUniqueSessionIdOrCreate())
     }
@@ -42,6 +46,8 @@ abstract class RespondingNettyPacket<P : ResponseNettyPacket> : NettyPacket() {
         uniqueSessionId = buf.readUuid()
     }
 
+    @Deprecated("internal use only")
+    @Internal
     fun getUniqueSessionIdOrCreate(): UUID {
         if (uniqueSessionId == null) {
             uniqueSessionId = UUID.randomUUID()

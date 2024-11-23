@@ -32,7 +32,6 @@ internal object PersistentDataImpl {
     }
 
 
-    @JvmRecord
     private data class DataImpl<T : Tag<D>, D>(
         val tag: CompoundTag,
         val key: String,

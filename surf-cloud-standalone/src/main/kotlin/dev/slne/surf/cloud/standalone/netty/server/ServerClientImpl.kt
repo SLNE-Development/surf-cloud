@@ -16,8 +16,6 @@ class ServerClientImpl(val server: NettyServerImpl, serverId: Long, serverCatego
         }
     val listener get() = _listener ?: error("listener not yet set")
 
-    val displayName get() = "${serverCategory}/${serverId} $serverName (${_connection?.hostname})"
-
     fun initListener(listener: ServerRunningPacketListenerImpl) {
         _listener = listener
     }

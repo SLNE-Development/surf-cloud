@@ -50,5 +50,7 @@ interface RunningClientPacketListener: ClientboundPacketListener, TickablePacket
 
     fun handleSendPlayerListHeaderAndFooter(packet: ClientboundSendPlayerListHeaderAndFooterPacket)
 
+    fun handleRequestDisplayName(packet: ClientboundRequestDisplayNamePacket)
+
     fun handlePacket(packet: NettyPacket)
 }

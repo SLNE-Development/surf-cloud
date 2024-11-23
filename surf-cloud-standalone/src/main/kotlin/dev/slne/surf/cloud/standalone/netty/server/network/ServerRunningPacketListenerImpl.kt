@@ -18,8 +18,11 @@ import kotlinx.coroutines.launch
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.title.Title
 import net.kyori.adventure.title.TitlePart
-import java.util.UUID
+import java.util.*
 import java.util.concurrent.TimeUnit
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.InvocationKind
+import kotlin.contracts.contract
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
@@ -114,6 +117,7 @@ class ServerRunningPacketListenerImpl(
         withPlayer(packet.uuid) { showTitle(packet.title) }
     }
 
+    @Suppress("UNCHECKED_CAST")
     override fun handleSendTitlePart(packet: ServerboundSendTitlePartPacket) {
         withPlayer(packet.uuid) {
             when (packet.titlePart) {
@@ -121,10 +125,12 @@ class ServerRunningPacketListenerImpl(
                     packet.titlePart as TitlePart<Component>,
                     packet.value as Component
                 )
+
                 TitlePart.TIMES -> sendTitlePart(
                     packet.titlePart as TitlePart<Title.Times>,
                     packet.value as Title.Times
                 )
+
                 else -> error("Unknown title part: ${packet.titlePart}")
             }
         }
@@ -183,8 +189,26 @@ class ServerRunningPacketListenerImpl(
         withPlayer(packet.uuid) { sendPlayerListHeaderAndFooter(packet.header, packet.footer) }
     }
 
-    override fun handleRequestDisplayName(packet: ServerboundRequestDisplayNamePacket) {
+    override suspend fun handleRequestDisplayName(packet: ServerboundRequestDisplayNamePacket) {
+        log.atInfo()
+            .log("Requesting display name for %s", packet.uuid)
 
+        withPlayer(packet.uuid) {
+            log.atInfo()
+                .log("Trying to respond with display name for %s", packet.uuid)
+
+            val displayName = displayName()
+
+            log.atInfo()
+                .log("Responding with display name for %s: %s", packet.uuid, displayName)
+
+            packet.respond(
+                ResponseDisplayNamePacketRequestPacket(
+                    uuid,
+                    displayName
+                )
+            )
+        }
     }
 
     override fun handlePacket(packet: NettyPacket) {
@@ -311,7 +335,12 @@ class ServerRunningPacketListenerImpl(
         keepConnectionAlive()
     }
 
-    private fun withPlayer(uuid: UUID, block: CloudPlayer.() -> Unit) {
+    @OptIn(ExperimentalContracts::class)
+    private inline fun withPlayer(uuid: UUID, block: CloudPlayer.() -> Unit) {
+        contract {
+            callsInPlace(block, InvocationKind.AT_MOST_ONCE)
+        }
+
         val player = playerManagerImpl.getPlayer(uuid) ?: return
         player.block()
     }

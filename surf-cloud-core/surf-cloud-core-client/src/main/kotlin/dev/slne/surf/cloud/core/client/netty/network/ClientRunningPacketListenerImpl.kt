@@ -14,7 +14,7 @@ import dev.slne.surf.cloud.core.common.netty.registry.listener.NettyListenerRegi
 import dev.slne.surf.cloud.core.common.player.playerManagerImpl
 import kotlinx.coroutines.launch
 import net.kyori.adventure.audience.Audience
-import net.kyori.adventure.sound.Sound.Emitter
+import net.kyori.adventure.identity.Identity
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.title.Title
 import net.kyori.adventure.title.TitlePart
@@ -74,6 +74,7 @@ class ClientRunningPacketListenerImpl(val connection: ConnectionImpl) :
         withAudience(packet.uuid) { showTitle(packet.title) }
     }
 
+    @Suppress("UNCHECKED_CAST")
     override fun handleSendTitlePart(packet: ClientboundSendTitlePartPacket) {
         withAudience(packet.uuid) {
             when (packet.titlePart) {
@@ -81,10 +82,12 @@ class ClientRunningPacketListenerImpl(val connection: ConnectionImpl) :
                     packet.titlePart as TitlePart<Component>,
                     packet.value as Component
                 )
+
                 TitlePart.TIMES -> sendTitlePart(
                     packet.titlePart as TitlePart<Title.Times>,
                     packet.value as Title.Times
                 )
+
                 else -> error("Unknown title part: ${packet.titlePart}")
             }
         }
@@ -143,6 +146,13 @@ class ClientRunningPacketListenerImpl(val connection: ConnectionImpl) :
         withAudience(packet.uuid) { sendPlayerListHeaderAndFooter(packet.header, packet.footer) }
     }
 
+    override fun handleRequestDisplayName(packet: ClientboundRequestDisplayNamePacket) {
+        withRequiredAudience(packet.uuid, {
+            val displayName = pointers().get(Identity.DISPLAY_NAME).orElse(Component.empty())
+            packet.respond(ResponseDisplayNamePacketRequestPacket(packet.uuid, displayName))
+        }) { "Display name requested for player ${packet.uuid} who is not online. Probably send to wrong server." }
+    }
+
     override fun handlePacket(packet: NettyPacket) {
         val listeners = NettyListenerRegistry.getListeners(packet.javaClass) ?: return
         if (listeners.isEmpty()) return
@@ -182,5 +192,19 @@ class ClientRunningPacketListenerImpl(val connection: ConnectionImpl) :
 
     private fun withAudience(uuid: UUID, block: Audience.() -> Unit) {
         commonPlayerManagerImpl.getAudience(uuid)?.block()
+    }
+
+    private fun withRequiredAudience(
+        uuid: UUID,
+        block: Audience.() -> Unit,
+        errorMessage: () -> String
+    ) {
+        val audience = commonPlayerManagerImpl.getAudience(uuid)
+        if (audience == null) {
+            log.atWarning().log(errorMessage())
+            return
+        }
+
+        audience.block()
     }
 }

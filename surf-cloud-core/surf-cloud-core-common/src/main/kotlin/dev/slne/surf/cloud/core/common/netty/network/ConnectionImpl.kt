@@ -263,6 +263,7 @@ class ConnectionImpl(val receiving: PacketFlow) : SimpleChannelInboundHandler<Ne
                             is ServerboundSendPlayerListHeaderAndFooterPacket -> listener.handleSendPlayerListHeaderAndFooter(
                                 msg
                             )
+                            is ServerboundRequestDisplayNamePacket -> listener.handleRequestDisplayName(msg)
 
                             else -> listener.handlePacket(msg) // handle other packets
                         }
@@ -329,6 +330,7 @@ class ConnectionImpl(val receiving: PacketFlow) : SimpleChannelInboundHandler<Ne
                             is ClientboundSendPlayerListHeaderAndFooterPacket -> listener.handleSendPlayerListHeaderAndFooter(
                                 msg
                             )
+                            is ClientboundRequestDisplayNamePacket -> listener.handleRequestDisplayName(msg)
 
                             is ClientboundBundlePacket -> listener.handleBundlePacket(msg)
 

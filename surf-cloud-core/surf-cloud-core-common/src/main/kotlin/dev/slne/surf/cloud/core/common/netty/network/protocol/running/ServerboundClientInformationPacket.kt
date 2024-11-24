@@ -13,6 +13,7 @@ import dev.slne.surf.cloud.api.common.util.codec.bool
 import dev.slne.surf.cloud.api.common.util.codec.createRecordCodec
 import dev.slne.surf.cloud.api.common.util.codec.enum
 import dev.slne.surf.cloud.api.common.util.codec.int
+import dev.slne.surf.cloud.core.common.data.CloudPersistentData
 
 
 @SurfNettyPacket(
@@ -28,24 +29,27 @@ class ServerboundClientInformationPacket : NettyPacket {
         )
     }
 
+    val serverId: Long
     val information: ClientInformation
 
     constructor(information: ClientInformation) {
         this.information = information
+        this.serverId = CloudPersistentData.SERVER_ID.value()
     }
 
     private constructor(buffer: SurfByteBuf) {
         information = buffer.readJsonWithCodec(ClientInformation.CODEC)
+        serverId = buffer.readVarLong()
     }
 
     private fun write(buffer: SurfByteBuf) {
         buffer.writeJsonWithCodec(ClientInformation.CODEC, information)
+        buffer.writeVarLong(serverId)
     }
 }
 
 data class ClientInformation(
     val maxPlayerCount: Int,
-    val currentPlayerCount: Int,
     val whitelist: Boolean,
     val state: ServerState
 ) {
@@ -53,7 +57,6 @@ data class ClientInformation(
         val CODEC = createRecordCodec<ClientInformation> {
             group(
                 int("maxPlayerCount") { maxPlayerCount },
-                int("currentPlayerCount") { currentPlayerCount },
                 bool("whitelist") { whitelist },
                 enum("state") { state }
             ).apply(this, ::ClientInformation)
@@ -61,13 +64,11 @@ data class ClientInformation(
 
         val STREAM_CODEC = streamCodec<SurfByteBuf, ClientInformation>({ buf, info ->
             buf.writeVarInt(info.maxPlayerCount)
-            buf.writeVarInt(info.currentPlayerCount)
             buf.writeBoolean(info.whitelist)
             buf.writeEnum(info.state)
         }, { buf ->
             ClientInformation(
                 maxPlayerCount = buf.readVarInt(),
-                currentPlayerCount = buf.readVarInt(),
                 whitelist = buf.readBoolean(),
                 state = buf.readEnum()
             )
@@ -75,7 +76,6 @@ data class ClientInformation(
 
         val NOT_AVAILABLE = ClientInformation(
             maxPlayerCount = -1,
-            currentPlayerCount = -1,
             whitelist = true,
             state = ServerState.OFFLINE
         )

@@ -1,23 +1,18 @@
 package dev.slne.surf.cloud.bukkit
 
-import dev.jorel.commandapi.kotlindsl.anyExecutor
-import dev.jorel.commandapi.kotlindsl.commandAPICommand
-import dev.jorel.commandapi.kotlindsl.commandTree
-import dev.jorel.commandapi.kotlindsl.getValue
-import dev.jorel.commandapi.kotlindsl.literalArgument
-import dev.jorel.commandapi.kotlindsl.longArgument
-import dev.jorel.commandapi.kotlindsl.stringArgument
+import com.github.shynixn.mccoroutine.folia.SuspendingJavaPlugin
+import dev.jorel.commandapi.kotlindsl.*
 import dev.slne.surf.cloud.api.common.exceptions.FatalSurfError
+import dev.slne.surf.cloud.api.common.player.toCloudPlayer
 import dev.slne.surf.cloud.api.common.server.serverManager
+import dev.slne.surf.cloud.core.client.player.ClientCloudPlayerImpl
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.bukkit.Bukkit
-import org.bukkit.plugin.java.JavaPlugin
 import org.springframework.core.NestedRuntimeException
-import kotlin.Long
 
-class BukkitMain : JavaPlugin() {
-    override fun onLoad() {
+class BukkitMain : SuspendingJavaPlugin() {
+    override suspend fun onLoadAsync() {
         try {
             bukkitCloudInstance.onLoad()
         } catch (t: Throwable) {
@@ -25,7 +20,7 @@ class BukkitMain : JavaPlugin() {
         }
     }
 
-    override fun onEnable() {
+    override suspend fun onEnableAsync() {
         try {
             bukkitCloudInstance.onEnable()
         } catch (t: Throwable) {
@@ -59,7 +54,8 @@ class BukkitMain : JavaPlugin() {
                             val category: String by args
                             val name: String by args
                             GlobalScope.launch {
-                                val server = serverManager.retrieveServerByCategoryAndName(category, name)
+                                val server =
+                                    serverManager.retrieveServerByCategoryAndName(category, name)
                                 sender.sendMessage("Server: $server")
                             }
                         }
@@ -88,10 +84,23 @@ class BukkitMain : JavaPlugin() {
                     }
                 }
             }
+            literalArgument("self") {
+                playerExecutor { player, _ ->
+                    player.sendPlainMessage("Server: ${(player.toCloudPlayer()!! as ClientCloudPlayerImpl).serverUid}")
+                }
+            }
+        }
+
+        commandAPICommand("changePlayers") {
+            integerArgument("amount", min = 0)
+            anyExecutor { sender, args ->
+                val amount: Int by args
+                Bukkit.setMaxPlayers(amount)
+            }
         }
     }
 
-    override fun onDisable() {
+    override suspend fun onDisableAsync() {
         try {
             bukkitCloudInstance.onDisable()
         } catch (t: Throwable) {
@@ -125,3 +134,5 @@ class BukkitMain : JavaPlugin() {
             get() = getPlugin(BukkitMain::class.java)
     }
 }
+
+val plugin get() = BukkitMain.instance

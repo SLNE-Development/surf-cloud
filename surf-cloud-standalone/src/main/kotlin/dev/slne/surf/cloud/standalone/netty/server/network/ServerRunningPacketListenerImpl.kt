@@ -213,7 +213,13 @@ class ServerRunningPacketListenerImpl(
     }
 
     override suspend fun handleRequestCloudServerById(packet: ServerboundRequestCloudServerByIdPacket) {
-        packet.respond(ClientboundResponseCloudServerPacket(serverManagerImpl.retrieveServerById(packet.serverId)))
+        packet.respond(
+            ClientboundResponseCloudServerPacket(
+                serverManagerImpl.retrieveServerById(
+                    packet.serverId
+                )
+            )
+        )
     }
 
     override suspend fun handleRequestCloudServerByCategoryAndName(packet: ServerboundRequestCloudServerByCategoryAndNamePacket) {
@@ -228,11 +234,27 @@ class ServerRunningPacketListenerImpl(
     }
 
     override suspend fun handleRequestCloudServerByName(packet: ServerboundRequestCloudServerByNamePacket) {
-        packet.respond(ClientboundResponseCloudServerPacket(serverManagerImpl.retrieveServerByName(packet.name)))
+        packet.respond(
+            ClientboundResponseCloudServerPacket(
+                serverManagerImpl.retrieveServerByName(
+                    packet.name
+                )
+            )
+        )
     }
 
     override suspend fun handleRequestCloudServersByCategory(packet: ServerboundRequestCloudServersByCategory) {
-        packet.respond(ClientboundResponseRequestServersByCategory(serverManagerImpl.retrieveServersByCategory(packet.category)))
+        packet.respond(
+            ClientboundResponseRequestServersByCategory(
+                serverManagerImpl.retrieveServersByCategory(
+                    packet.category
+                )
+            )
+        )
+    }
+
+    override suspend fun handleClientInformation(packet: ServerboundClientInformationPacket) {
+        serverManagerImpl.retrieveServerById(packet.serverId)?.information = packet.information
     }
 
     override fun handlePacket(packet: NettyPacket) {

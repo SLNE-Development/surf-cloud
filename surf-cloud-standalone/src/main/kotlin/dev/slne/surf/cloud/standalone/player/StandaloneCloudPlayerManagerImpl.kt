@@ -4,9 +4,9 @@ import com.google.auto.service.AutoService
 import dev.slne.surf.cloud.api.common.player.CloudPlayer
 import dev.slne.surf.cloud.api.common.player.CloudPlayerManager
 import dev.slne.surf.cloud.api.common.util.logger
-import dev.slne.surf.cloud.api.server.server.ServerCloudServer
 import dev.slne.surf.cloud.core.common.player.CloudPlayerManagerImpl
 import dev.slne.surf.cloud.core.common.util.checkInstantiationByServiceLoader
+import dev.slne.surf.cloud.standalone.server.StandaloneServerImpl
 import dev.slne.surf.cloud.standalone.server.serverManagerImpl
 import java.util.*
 
@@ -31,6 +31,7 @@ class StandaloneCloudPlayerManagerImpl : CloudPlayerManagerImpl() {
                 } else {
                     it.server = server
                 }
+                server.addPlayer(it)
             } else {
                 log.atWarning()
                     .log("Could not find server with id $serverUid for player $uuid")
@@ -40,9 +41,11 @@ class StandaloneCloudPlayerManagerImpl : CloudPlayerManagerImpl() {
 
     override suspend fun updateProxyServer(player: CloudPlayer, serverUid: Long) {
         val (standalonePlayer, server) = getStandalonePlayerAndServer(player, serverUid)
+        standalonePlayer.proxyServer?.removePlayer(standalonePlayer)
 
         if (server != null) {
             standalonePlayer.proxyServer = server
+            server.addPlayer(standalonePlayer)
         } else {
             logServerNotFound(serverUid, standalonePlayer)
         }
@@ -50,9 +53,11 @@ class StandaloneCloudPlayerManagerImpl : CloudPlayerManagerImpl() {
 
     override suspend fun updateServer(player: CloudPlayer, serverUid: Long) {
         val (standalonePlayer, server) = getStandalonePlayerAndServer(player, serverUid)
+        standalonePlayer.server?.removePlayer(standalonePlayer)
 
         if (server != null) {
             standalonePlayer.server = server
+            server.addPlayer(standalonePlayer)
         } else {
             logServerNotFound(serverUid, standalonePlayer)
         }
@@ -63,6 +68,7 @@ class StandaloneCloudPlayerManagerImpl : CloudPlayerManagerImpl() {
 
         if (server != null && standalonePlayer.proxyServer == server) {
             standalonePlayer.proxyServer = null
+            server.removePlayer(standalonePlayer)
         } else {
             logServerNotFound(serverUid, standalonePlayer)
         }
@@ -73,6 +79,7 @@ class StandaloneCloudPlayerManagerImpl : CloudPlayerManagerImpl() {
 
         if (server != null && standalonePlayer.server == server) {
             standalonePlayer.server = null
+            server.removePlayer(standalonePlayer)
         } else {
             logServerNotFound(serverUid, standalonePlayer)
         }
@@ -81,7 +88,7 @@ class StandaloneCloudPlayerManagerImpl : CloudPlayerManagerImpl() {
     private suspend fun getStandalonePlayerAndServer(
         player: CloudPlayer,
         serverUid: Long
-    ): Pair<StandaloneCloudPlayerImpl, ServerCloudServer?> {
+    ): Pair<StandaloneCloudPlayerImpl, StandaloneServerImpl?> {
         val standalonePlayer = player as? StandaloneCloudPlayerImpl
             ?: error("Player is not a StandaloneCloudPlayerImpl")
         val server = serverManagerImpl.retrieveServerById(serverUid)

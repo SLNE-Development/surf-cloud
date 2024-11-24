@@ -284,6 +284,10 @@ class ConnectionImpl(val receiving: PacketFlow) : SimpleChannelInboundHandler<Ne
                                 msg
                             )
 
+                            is ServerboundClientInformationPacket -> listener.handleClientInformation(
+                                msg
+                            )
+
                             else -> listener.handlePacket(msg) // handle other packets
                         }
                     }

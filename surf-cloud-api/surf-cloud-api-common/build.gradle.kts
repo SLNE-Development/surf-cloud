@@ -21,6 +21,7 @@ dependencies {
     // https://mvnrepository.com/artifact/org.springframework.data/spring-data-jpa
     api("org.springframework.data:spring-data-jpa")
     api("com.mojang:datafixerupper:8.0.16")
+    api("net.bytebuddy:byte-buddy:1.15.10")
 }
 
 tasks {

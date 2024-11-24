@@ -35,19 +35,3 @@ class ClientboundResponseCloudServerPacket : ResponseNettyPacket {
         buf.writeNullable(server, CloudServerImpl.STREAM_CODEC::encode)
     }
 }
-
-fun main() {
-    val packet = ClientboundResponseCloudServerPacket(CloudServerImpl(
-        1,
-        "group",
-        "name",
-        true,
-        UserListImpl(),
-        ClientInformation(1, 1, true, ServerState.ONLINE)
-    ))
-
-    val buf = SurfByteBuf(Unpooled.buffer())
-    ClientboundResponseCloudServerPacket.STREAM_CODEC.encode(buf, packet)
-
-    ClientboundResponseCloudServerPacket.STREAM_CODEC.decode(buf)
-}

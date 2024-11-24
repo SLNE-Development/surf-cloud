@@ -13,6 +13,8 @@ open class CloudServerImpl(
     override val name: String,
     override val proxy: Boolean,
     override val users: UserListImpl = UserListImpl(),
+
+    @Volatile
     var information: ClientInformation = ClientInformation.NOT_AVAILABLE
 ) : CloudServer {
     companion object {
@@ -51,7 +53,7 @@ open class CloudServerImpl(
     }
 
     override val maxPlayerCount get() = information.maxPlayerCount
-    override val currentPlayerCount get() = information.currentPlayerCount
+    override val currentPlayerCount get() = users.size
     override val whitelist get() = information.whitelist
     override val state get() = information.state
 

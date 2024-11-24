@@ -58,5 +58,7 @@ interface RunningServerPacketListener : ServerboundPacketListener, TickablePacke
 
     suspend fun handleRequestCloudServersByCategory(packet: ServerboundRequestCloudServersByCategory)
 
+    suspend fun handleClientInformation(packet: ServerboundClientInformationPacket)
+
     fun handlePacket(packet: NettyPacket)
 }

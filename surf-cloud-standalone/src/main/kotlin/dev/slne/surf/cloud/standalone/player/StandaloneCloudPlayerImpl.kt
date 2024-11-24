@@ -4,6 +4,8 @@ import dev.slne.surf.cloud.api.common.netty.packet.DEFAULT_URGENT_TIMEOUT
 import dev.slne.surf.cloud.api.server.server.ServerCloudServer
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.*
 import dev.slne.surf.cloud.core.common.player.CommonCloudPlayerImpl
+import dev.slne.surf.cloud.core.common.server.CloudServerImpl
+import dev.slne.surf.cloud.standalone.server.StandaloneServerImpl
 import net.kyori.adventure.audience.MessageType
 import net.kyori.adventure.bossbar.BossBar
 import net.kyori.adventure.identity.Identity
@@ -20,10 +22,10 @@ import kotlin.time.Duration.Companion.seconds
 
 class StandaloneCloudPlayerImpl(uuid: UUID) : CommonCloudPlayerImpl(uuid) {
     @Volatile
-    var proxyServer: ServerCloudServer? = null
+    var proxyServer: StandaloneServerImpl? = null
 
     @Volatile
-    var server: ServerCloudServer? = null
+    var server: StandaloneServerImpl? = null
 
     override val connectedToProxy get() = proxyServer != null
     override val connectedToServer get() = server != null

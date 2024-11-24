@@ -5,7 +5,7 @@ import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
 import dev.slne.surf.cloud.core.common.netty.network.ServerboundPacketListener
 import dev.slne.surf.cloud.core.common.netty.network.TickablePacketListener
 
-interface RunningServerPacketListener: ServerboundPacketListener, TickablePacketListener {
+interface RunningServerPacketListener : ServerboundPacketListener, TickablePacketListener {
     override val protocol get() = ConnectionProtocol.RUNNING
 
     fun handleBundlePacket(packet: ServerboundBundlePacket)
@@ -14,9 +14,9 @@ interface RunningServerPacketListener: ServerboundPacketListener, TickablePacket
 
     fun handlePingRequest(packet: ServerboundPingRequestPacket)
 
-    fun handlePlayerConnectToServer(packet: PlayerConnectToServerPacket)
+    suspend fun handlePlayerConnectToServer(packet: PlayerConnectToServerPacket)
 
-    fun handlePlayerDisconnectFromServer(packet: PlayerDisconnectFromServerPacket)
+    suspend fun handlePlayerDisconnectFromServer(packet: PlayerDisconnectFromServerPacket)
 
     fun handleSendResourcePacks(packet: ServerboundSendResourcePacksPacket)
 
@@ -49,6 +49,14 @@ interface RunningServerPacketListener: ServerboundPacketListener, TickablePacket
     fun handleSendPlayerListHeaderAndFooter(packet: ServerboundSendPlayerListHeaderAndFooterPacket)
 
     suspend fun handleRequestDisplayName(packet: ServerboundRequestDisplayNamePacket)
+
+    suspend fun handleRequestCloudServerById(packet: ServerboundRequestCloudServerByIdPacket)
+
+    suspend fun handleRequestCloudServerByCategoryAndName(packet: ServerboundRequestCloudServerByCategoryAndNamePacket)
+
+    suspend fun handleRequestCloudServerByName(packet: ServerboundRequestCloudServerByNamePacket)
+
+    suspend fun handleRequestCloudServersByCategory(packet: ServerboundRequestCloudServersByCategory)
 
     fun handlePacket(packet: NettyPacket)
 }

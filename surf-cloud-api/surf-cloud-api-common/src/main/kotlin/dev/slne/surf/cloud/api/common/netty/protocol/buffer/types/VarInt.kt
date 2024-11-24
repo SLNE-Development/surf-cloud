@@ -1,5 +1,6 @@
 package dev.slne.surf.cloud.api.common.netty.protocol.buffer.types
 
+import dev.slne.surf.cloud.api.common.netty.protocol.buffer.checkDecoded
 import io.netty.buffer.ByteBuf
 import kotlin.math.ceil
 
@@ -13,19 +14,8 @@ object VarInt {
     private const val CONTINUATION_BIT_MASK = 0x80
     private const val DATA_BITS_PER_BYTE = 7
 
-//    private val varIntByteLengths = IntArray(33) {
-//        if (it == 32) 1 else ceil((32.0 - (it - 1)) / DATA_BITS_PER_BYTE).toInt()
-//    }
-
-    private val varIntByteLengths: IntArray = IntArray(33)
-
-    init {
-        for (i in 0..32) {
-            varIntByteLengths[i] = ceil((31.0 - (i - 1)) / DATA_BITS_PER_BYTE.toDouble()).toInt()
-        }
-
-        varIntByteLengths[32] = 1
-    }
+    private val varIntByteLengths =
+        IntArray(33) { if (it == 32) 1 else ceil((31.0 - (it - 1)) / DATA_BITS_PER_BYTE).toInt() }
 
     /**
      * Gets the exact byte size needed to encode the given value as a VarInt.
@@ -59,12 +49,8 @@ object VarInt {
         do {
             currentByte = buf.readByte()
             result =
-                result or ((currentByte.toInt() and DATA_BITS_MASK) shl shift++ * DATA_BITS_PER_BYTE)
-
-            if (shift > MAX_VARINT_SIZE) {
-                throw RuntimeException("VarInt too big")
-            }
-
+                result or ((currentByte.toInt() and DATA_BITS_MASK) shl (shift++ * DATA_BITS_PER_BYTE))
+            checkDecoded(shift <= MAX_VARINT_SIZE) { "VarInt too big" }
         } while (hasContinuationBit(currentByte))
 
         return result
@@ -78,9 +64,9 @@ object VarInt {
      */
     fun writeVarInt(buffer: ByteBuf, value: Int): ByteBuf {
         // Handle one and two byte cases explicitly for improved performance in common cases.
-        if ((value and (-0x1 shl DATA_BITS_PER_BYTE)) == 0) {
+        if ((value and ((0xFFFFFFFF.toInt() shl DATA_BITS_PER_BYTE))) == 0) {
             buffer.writeByte(value)
-        } else if ((value and (-0x1 shl 14)) == 0) {
+        } else if ((value and (0xFFFFFFFF.toInt() shl (DATA_BITS_PER_BYTE * 2))) == 0) {
             val combinedValue =
                 (value and DATA_BITS_MASK or CONTINUATION_BIT_MASK) shl 8 or (value ushr DATA_BITS_PER_BYTE)
             buffer.writeShort(combinedValue)
@@ -99,13 +85,13 @@ object VarInt {
      * @param value The integer value to encode.
      */
     private fun writeComplexVarInt(buffer: ByteBuf, value: Int): ByteBuf {
-        var mutableValue = value
-        while ((mutableValue and CONTINUATION_BIT_MASK.inv()) != 0) {
-            buffer.writeByte(mutableValue and DATA_BITS_MASK or CONTINUATION_BIT_MASK)
-            mutableValue = mutableValue ushr DATA_BITS_PER_BYTE
+        var value = value
+        while ((value and -CONTINUATION_BIT_MASK) != 0) {
+            buffer.writeByte(value and DATA_BITS_MASK or CONTINUATION_BIT_MASK)
+            value = value ushr DATA_BITS_PER_BYTE
         }
 
-        buffer.writeByte(mutableValue)
+        buffer.writeByte(value)
         return buffer
     }
 }

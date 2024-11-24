@@ -263,7 +263,26 @@ class ConnectionImpl(val receiving: PacketFlow) : SimpleChannelInboundHandler<Ne
                             is ServerboundSendPlayerListHeaderAndFooterPacket -> listener.handleSendPlayerListHeaderAndFooter(
                                 msg
                             )
-                            is ServerboundRequestDisplayNamePacket -> listener.handleRequestDisplayName(msg)
+
+                            is ServerboundRequestDisplayNamePacket -> listener.handleRequestDisplayName(
+                                msg
+                            )
+
+                            is ServerboundRequestCloudServerByIdPacket -> listener.handleRequestCloudServerById(
+                                msg
+                            )
+
+                            is ServerboundRequestCloudServerByCategoryAndNamePacket -> listener.handleRequestCloudServerByCategoryAndName(
+                                msg
+                            )
+
+                            is ServerboundRequestCloudServerByNamePacket -> listener.handleRequestCloudServerByName(
+                                msg
+                            )
+
+                            is ServerboundRequestCloudServersByCategory -> listener.handleRequestCloudServersByCategory(
+                                msg
+                            )
 
                             else -> listener.handlePacket(msg) // handle other packets
                         }
@@ -330,7 +349,10 @@ class ConnectionImpl(val receiving: PacketFlow) : SimpleChannelInboundHandler<Ne
                             is ClientboundSendPlayerListHeaderAndFooterPacket -> listener.handleSendPlayerListHeaderAndFooter(
                                 msg
                             )
-                            is ClientboundRequestDisplayNamePacket -> listener.handleRequestDisplayName(msg)
+
+                            is ClientboundRequestDisplayNamePacket -> listener.handleRequestDisplayName(
+                                msg
+                            )
 
                             is ClientboundBundlePacket -> listener.handleBundlePacket(msg)
 
@@ -714,14 +736,14 @@ class ConnectionImpl(val receiving: PacketFlow) : SimpleChannelInboundHandler<Ne
 
     fun configurePacketHandler(channel: Channel, pipeline: ChannelPipeline) {
         pipeline.addLast("hackfix", object : ChannelOutboundHandlerAdapter() {
-                override fun write(
-                    ctx: ChannelHandlerContext?,
-                    msg: Any?,
-                    promise: ChannelPromise?
-                ) {
-                    super.write(ctx, msg, promise)
-                }
-            })
+            override fun write(
+                ctx: ChannelHandlerContext?,
+                msg: Any?,
+                promise: ChannelPromise?
+            ) {
+                super.write(ctx, msg, promise)
+            }
+        })
             .addLast(HandlerNames.PACKET_HANDLER, this)
 
         channel.attr(CHANNEL_ATTRIBUTE_KEY).set(this)
@@ -857,7 +879,8 @@ class ConnectionImpl(val receiving: PacketFlow) : SimpleChannelInboundHandler<Ne
         }
 
         private val INITIAL_PROTOCOL = HandshakeProtocols.SERVERBOUND
-        val CHANNEL_ATTRIBUTE_KEY: AttributeKey<ConnectionImpl> = AttributeKey.newInstance("connection")
+        val CHANNEL_ATTRIBUTE_KEY: AttributeKey<ConnectionImpl> =
+            AttributeKey.newInstance("connection")
 
         suspend fun connectToServer(
             address: InetSocketAddress,

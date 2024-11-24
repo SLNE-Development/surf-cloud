@@ -50,11 +50,11 @@ class ClientRunningPacketListenerImpl(val connection: ConnectionImpl) :
         connection.disconnect(packet.details)
     }
 
-    override fun handlePlayerConnectToServer(packet: PlayerConnectToServerPacket) {
+    override suspend fun handlePlayerConnectToServer(packet: PlayerConnectToServerPacket) {
         playerManagerImpl.updateOrCreatePlayer(packet.uuid, packet.serverUid, packet.proxy)
     }
 
-    override fun handlePlayerDisconnectFromServer(packet: PlayerDisconnectFromServerPacket) {
+    override suspend fun handlePlayerDisconnectFromServer(packet: PlayerDisconnectFromServerPacket) {
         playerManagerImpl.updateOrRemoveOnDisconnect(packet.uuid, packet.serverUid, packet.proxy)
     }
 

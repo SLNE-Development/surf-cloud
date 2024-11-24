@@ -14,6 +14,7 @@ import dev.slne.surf.cloud.core.common.netty.registry.listener.NettyListenerRegi
 import dev.slne.surf.cloud.core.common.player.playerManagerImpl
 import dev.slne.surf.cloud.standalone.netty.server.NettyServerImpl
 import dev.slne.surf.cloud.standalone.netty.server.ServerClientImpl
+import dev.slne.surf.cloud.standalone.server.serverManagerImpl
 import kotlinx.coroutines.launch
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.title.Title
@@ -91,12 +92,12 @@ class ServerRunningPacketListenerImpl(
         send(ClientboundPongResponsePacket(packet.time))
     }
 
-    override fun handlePlayerConnectToServer(packet: PlayerConnectToServerPacket) {
+    override suspend fun handlePlayerConnectToServer(packet: PlayerConnectToServerPacket) {
         playerManagerImpl.updateOrCreatePlayer(packet.uuid, packet.serverUid, packet.proxy)
         broadcast(PlayerConnectToServerPacket(packet.uuid, packet.serverUid, packet.proxy))
     }
 
-    override fun handlePlayerDisconnectFromServer(packet: PlayerDisconnectFromServerPacket) {
+    override suspend fun handlePlayerDisconnectFromServer(packet: PlayerDisconnectFromServerPacket) {
         playerManagerImpl.updateOrRemoveOnDisconnect(packet.uuid, packet.serverUid, packet.proxy)
         broadcast(packet)
     }
@@ -209,6 +210,29 @@ class ServerRunningPacketListenerImpl(
                 )
             )
         }
+    }
+
+    override suspend fun handleRequestCloudServerById(packet: ServerboundRequestCloudServerByIdPacket) {
+        packet.respond(ClientboundResponseCloudServerPacket(serverManagerImpl.retrieveServerById(packet.serverId)))
+    }
+
+    override suspend fun handleRequestCloudServerByCategoryAndName(packet: ServerboundRequestCloudServerByCategoryAndNamePacket) {
+        packet.respond(
+            ClientboundResponseCloudServerPacket(
+                serverManagerImpl.retrieveServerByCategoryAndName(
+                    packet.category,
+                    packet.name
+                )
+            )
+        )
+    }
+
+    override suspend fun handleRequestCloudServerByName(packet: ServerboundRequestCloudServerByNamePacket) {
+        packet.respond(ClientboundResponseCloudServerPacket(serverManagerImpl.retrieveServerByName(packet.name)))
+    }
+
+    override suspend fun handleRequestCloudServersByCategory(packet: ServerboundRequestCloudServersByCategory) {
+        packet.respond(ClientboundResponseRequestServersByCategory(serverManagerImpl.retrieveServersByCategory(packet.category)))
     }
 
     override fun handlePacket(packet: NettyPacket) {

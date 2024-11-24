@@ -14,8 +14,7 @@ open class UserListImpl : UserList {
         val STREAM_CODEC = streamCodec<SurfByteBuf, UserListImpl>({ buf, list ->
             buf.writeCollection(list.playerReferences) { buffer, uuid -> buffer.writeUuid(uuid) }
         }, { buf ->
-            val references = buf.readCollection({ mutableObjectSetOf<UUID>(it) }, { it.readUuid() })
-            UserListImpl(references)
+            UserListImpl(buf.readCollection({ mutableObjectSetOf(it) }, { it.readUuid() }))
         })
     }
 
@@ -57,6 +56,10 @@ open class UserListImpl : UserList {
 
     override fun snapshot(): MutableUserList {
         return MutableUserListImpl().also { it.addAll(this) }
+    }
+
+    override fun toString(): String {
+        return "UserListImpl(playerReferences=$playerReferences, size=$size)"
     }
 }
 

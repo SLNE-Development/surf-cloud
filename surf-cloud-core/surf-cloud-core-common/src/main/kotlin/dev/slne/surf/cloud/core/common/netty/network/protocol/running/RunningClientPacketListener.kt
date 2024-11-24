@@ -16,9 +16,9 @@ interface RunningClientPacketListener: ClientboundPacketListener, TickablePacket
 
     fun handleDisconnect(packet: ClientboundDisconnectPacket)
 
-    fun handlePlayerConnectToServer(packet: PlayerConnectToServerPacket)
+    suspend fun handlePlayerConnectToServer(packet: PlayerConnectToServerPacket)
 
-    fun handlePlayerDisconnectFromServer(packet: PlayerDisconnectFromServerPacket)
+    suspend fun handlePlayerDisconnectFromServer(packet: PlayerDisconnectFromServerPacket)
 
     fun handleSendResourcePacks(packet: ClientboundSendResourcePacksPacket)
 

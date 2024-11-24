@@ -8,28 +8,28 @@ import net.kyori.adventure.audience.Audience
 import java.util.UUID
 
 abstract class CommonClientCloudPlayerManagerImpl : CloudPlayerManagerImpl() {
-    override fun updateProxyServer(
+    override suspend fun updateProxyServer(
         player: CloudPlayer,
         serverUid: Long
     ) {
         (player as ClientCloudPlayerImpl).proxyServerUid = serverUid
     }
 
-    override fun updateServer(
+    override suspend fun updateServer(
         player: CloudPlayer,
         serverUid: Long
     ) {
         (player as ClientCloudPlayerImpl).serverUid = serverUid
     }
 
-    override fun removeProxyServer(
+    override suspend fun removeProxyServer(
         player: CloudPlayer,
         serverUid: Long
     ) {
         (player as ClientCloudPlayerImpl).proxyServerUid = null
     }
 
-    override fun removeServer(
+    override suspend fun removeServer(
         player: CloudPlayer,
         serverUid: Long
     ) {

@@ -71,7 +71,7 @@ object RunningProtocols {
                 .addPacket(ServerboundRequestCloudServerByIdPacket.STREAM_CODEC)
                 .addPacket(ServerboundRequestCloudServerByCategoryAndNamePacket.STREAM_CODEC)
                 .addPacket(ServerboundRequestCloudServerByNamePacket.STREAM_CODEC)
-                .addPacket(ServerboundRequestServersByCategory.STREAM_CODEC)
+                .addPacket(ServerboundRequestCloudServersByCategory.STREAM_CODEC)
         }
 
     val SERVERBOUND by lazy { SERVERBOUND_TEMPLATE.freeze().bind(::SurfByteBuf) }

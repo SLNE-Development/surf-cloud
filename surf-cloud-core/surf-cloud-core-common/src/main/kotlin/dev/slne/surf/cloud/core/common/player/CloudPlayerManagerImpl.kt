@@ -14,13 +14,13 @@ abstract class CloudPlayerManagerImpl : CloudPlayerManager {
         return players[uuid]
     }
 
-    abstract fun createPlayer(uuid: UUID, serverUid: Long, proxy: Boolean): CloudPlayer
+    abstract suspend fun createPlayer(uuid: UUID, serverUid: Long, proxy: Boolean): CloudPlayer
 
-    abstract fun updateProxyServer(player: CloudPlayer, serverUid: Long)
-    abstract fun updateServer(player: CloudPlayer, serverUid: Long)
+    abstract suspend fun updateProxyServer(player: CloudPlayer, serverUid: Long)
+    abstract suspend fun updateServer(player: CloudPlayer, serverUid: Long)
 
-    abstract fun removeProxyServer(player: CloudPlayer, serverUid: Long)
-    abstract fun removeServer(player: CloudPlayer, serverUid: Long)
+    abstract suspend fun removeProxyServer(player: CloudPlayer, serverUid: Long)
+    abstract suspend fun removeServer(player: CloudPlayer, serverUid: Long)
 
     private fun addPlayer(player: CloudPlayer) {
         players[player.uuid] = player
@@ -34,7 +34,7 @@ abstract class CloudPlayerManagerImpl : CloudPlayerManager {
      * @param serverUid The unique identifier of the server the player is connecting to.
      * @param proxy A boolean indicating if the player is connecting through a proxy.
      */
-    fun updateOrCreatePlayer(uuid: UUID, serverUid: Long, proxy: Boolean) {
+    suspend fun updateOrCreatePlayer(uuid: UUID, serverUid: Long, proxy: Boolean) {
         val player = players[uuid]
 
         if (proxy) {
@@ -60,7 +60,7 @@ abstract class CloudPlayerManagerImpl : CloudPlayerManager {
      * @param serverUid The unique identifier of the server.
      * @param proxy A boolean indicating if the player was connected through a proxy.
      */
-    fun updateOrRemoveOnDisconnect(uuid: UUID, serverUid: Long, proxy: Boolean) {
+    suspend fun updateOrRemoveOnDisconnect(uuid: UUID, serverUid: Long, proxy: Boolean) {
         val player = players[uuid] ?: return
 
         if (proxy) {

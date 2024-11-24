@@ -56,4 +56,9 @@ open class CloudServerImpl(
     override val state get() = information.state
 
     override fun audiences() = users
+    override fun toString(): String {
+        return "CloudServerImpl(group='$group', uid=$uid, name='$name', proxy=$proxy, users=$users, information=$information, maxPlayerCount=$maxPlayerCount, currentPlayerCount=$currentPlayerCount, whitelist=$whitelist, state=$state)"
+    }
+
+
 }

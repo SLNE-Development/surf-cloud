@@ -24,13 +24,12 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList
 import net.kyori.adventure.key.Key
 import net.kyori.adventure.sound.Sound
 import net.kyori.adventure.text.Component
-import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer
 import okhttp3.internal.and
-import org.intellij.lang.annotations.Subst
 import java.io.*
 import java.net.URI
 import java.util.*
 import java.util.function.Consumer
+import kotlin.Throws
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
 import kotlin.reflect.KClass
@@ -163,9 +162,7 @@ class SurfByteBuf(source: ByteBuf) : WrappedByteBuf(source) {
             val size = buf.readVarInt()
             val collection = collectionFactory(size)
 
-            for (i in 0 until size) {
-                collection.add(decodeFactory.invoke(buf))
-            }
+            repeat(size) { collection.add(decodeFactory(buf)) }
 
             return collection
         }
@@ -178,7 +175,7 @@ class SurfByteBuf(source: ByteBuf) : WrappedByteBuf(source) {
             buf.writeVarInt(collection.size)
 
             for (element in collection) {
-                encodeFactory.invoke(buf, element)
+                encodeFactory(buf, element)
             }
         }
 
@@ -957,8 +954,8 @@ fun <B : ByteBuf> B.writeWithCount(count: Int, writer: Consumer<B>) =
 fun <B : ByteBuf> B.readWithCount(reader: (B) -> Unit) = SurfByteBuf.readWithCount(this, reader)
 fun <B : ByteBuf> B.readWithCount(reader: Consumer<B>) = Companion.readWithCount(this, reader)
 
-fun <B: ByteBuf> B.readURI() = SurfByteBuf.readURI(this)
-fun <B: ByteBuf> B.writeURI(uri: URI) = SurfByteBuf.writeURI(this, uri)
+fun <B : ByteBuf> B.readURI() = SurfByteBuf.readURI(this)
+fun <B : ByteBuf> B.writeURI(uri: URI) = SurfByteBuf.writeURI(this, uri)
 
 fun ByteBuf.wrap() = SurfByteBuf(this)
 // endregion

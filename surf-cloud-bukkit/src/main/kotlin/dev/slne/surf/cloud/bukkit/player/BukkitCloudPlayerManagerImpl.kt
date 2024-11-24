@@ -14,7 +14,7 @@ class BukkitCloudPlayerManagerImpl : CommonClientCloudPlayerManagerImpl() {
         checkInstantiationByServiceLoader()
     }
 
-    override fun createPlayer(
+    override suspend fun createPlayer(
         uuid: UUID,
         serverUid: Long,
         proxy: Boolean

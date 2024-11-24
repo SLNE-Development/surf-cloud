@@ -18,13 +18,13 @@ class StandaloneCloudPlayerManagerImpl : CloudPlayerManagerImpl() {
         checkInstantiationByServiceLoader()
     }
 
-    override fun createPlayer(
+    override suspend fun createPlayer(
         uuid: UUID,
         serverUid: Long,
         proxy: Boolean
     ): CloudPlayer {
         return StandaloneCloudPlayerImpl(uuid).also {
-            val server = serverManagerImpl.getServerByUid(serverUid)
+            val server = serverManagerImpl.retrieveServerById(serverUid)
             if (server != null) {
                 if (proxy) {
                     it.proxyServer = server
@@ -38,7 +38,7 @@ class StandaloneCloudPlayerManagerImpl : CloudPlayerManagerImpl() {
         }
     }
 
-    override fun updateProxyServer(player: CloudPlayer, serverUid: Long) {
+    override suspend fun updateProxyServer(player: CloudPlayer, serverUid: Long) {
         val (standalonePlayer, server) = getStandalonePlayerAndServer(player, serverUid)
 
         if (server != null) {
@@ -48,7 +48,7 @@ class StandaloneCloudPlayerManagerImpl : CloudPlayerManagerImpl() {
         }
     }
 
-    override fun updateServer(player: CloudPlayer, serverUid: Long) {
+    override suspend fun updateServer(player: CloudPlayer, serverUid: Long) {
         val (standalonePlayer, server) = getStandalonePlayerAndServer(player, serverUid)
 
         if (server != null) {
@@ -58,7 +58,7 @@ class StandaloneCloudPlayerManagerImpl : CloudPlayerManagerImpl() {
         }
     }
 
-    override fun removeProxyServer(player: CloudPlayer, serverUid: Long) {
+    override suspend fun removeProxyServer(player: CloudPlayer, serverUid: Long) {
         val (standalonePlayer, server) = getStandalonePlayerAndServer(player, serverUid)
 
         if (server != null && standalonePlayer.proxyServer == server) {
@@ -68,7 +68,7 @@ class StandaloneCloudPlayerManagerImpl : CloudPlayerManagerImpl() {
         }
     }
 
-    override fun removeServer(player: CloudPlayer, serverUid: Long) {
+    override suspend fun removeServer(player: CloudPlayer, serverUid: Long) {
         val (standalonePlayer, server) = getStandalonePlayerAndServer(player, serverUid)
 
         if (server != null && standalonePlayer.server == server) {
@@ -78,13 +78,13 @@ class StandaloneCloudPlayerManagerImpl : CloudPlayerManagerImpl() {
         }
     }
 
-    private fun getStandalonePlayerAndServer(
+    private suspend fun getStandalonePlayerAndServer(
         player: CloudPlayer,
         serverUid: Long
     ): Pair<StandaloneCloudPlayerImpl, ServerCloudServer?> {
         val standalonePlayer = player as? StandaloneCloudPlayerImpl
             ?: error("Player is not a StandaloneCloudPlayerImpl")
-        val server = serverManagerImpl.getServerByUid(serverUid) as? ServerCloudServer
+        val server = serverManagerImpl.retrieveServerById(serverUid)
         return standalonePlayer to server
     }
 

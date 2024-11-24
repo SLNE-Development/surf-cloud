@@ -16,9 +16,9 @@ class ClientboundResponseRequestServersByCategory : ResponseNettyPacket {
         val STREAM_CODEC = packetCodec(ClientboundResponseRequestServersByCategory::write, ::ClientboundResponseRequestServersByCategory)
     }
 
-    val servers: ObjectList<CloudServerImpl>
+    val servers: ObjectList<out CloudServerImpl>
 
-    constructor(servers: ObjectList<CloudServerImpl>) {
+    constructor(servers: ObjectList<out CloudServerImpl>) {
         this.servers = servers
     }
 

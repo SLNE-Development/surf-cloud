@@ -7,7 +7,7 @@ import dev.slne.surf.cloud.api.common.server.CloudServerManager
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ServerboundRequestCloudServerByCategoryAndNamePacket
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ServerboundRequestCloudServerByIdPacket
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ServerboundRequestCloudServerByNamePacket
-import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ServerboundRequestServersByCategory
+import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ServerboundRequestCloudServersByCategory
 import dev.slne.surf.cloud.core.common.util.checkInstantiationByServiceLoader
 import it.unimi.dsi.fastutil.objects.ObjectList
 
@@ -32,5 +32,5 @@ class CommonCloudServerManagerImpl : CloudServerManager {
         ServerboundRequestCloudServerByNamePacket(name).fireAndAwaitOrThrow().server
 
     override suspend fun retrieveServersByCategory(category: String): ObjectList<out CloudServer> =
-        ServerboundRequestServersByCategory(category).fireAndAwaitOrThrow().servers
+        ServerboundRequestCloudServersByCategory(category).fireAndAwaitOrThrow().servers
 }

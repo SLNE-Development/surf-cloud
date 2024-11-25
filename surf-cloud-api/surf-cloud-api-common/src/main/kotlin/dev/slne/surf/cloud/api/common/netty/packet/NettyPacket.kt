@@ -66,24 +66,20 @@ abstract class NettyPacket {
         if (other !is NettyPacket) return false
 
         if (id != other.id) return false
+        if (sessionId != other.sessionId) return false
         if (flow != other.flow) return false
-        if (skippable != other.skippable) return false
-        if (extraPackets != other.extraPackets) return false
-        if (terminal != other.terminal) return false
 
         return true
     }
 
     override fun hashCode(): Int {
         var result = id
+        result = 31 * result + sessionId.hashCode()
         result = 31 * result + flow.hashCode()
-        result = 31 * result + skippable.hashCode()
-        result = 31 * result + (extraPackets?.hashCode() ?: 0)
-        result = 31 * result + terminal.hashCode()
         return result
     }
 
-
+    @Suppress("DEPRECATION")
     override fun toString(): String = runCatching {
         ToStringBuilder.reflectionToString(this).toString()
     }.getOrElse { "NettyPacket(id=$id, flow=$flow, skippable=$skippable, extraPackets=$extraPackets, terminal=$terminal, sessionId=$sessionId, handled=$handled)" }

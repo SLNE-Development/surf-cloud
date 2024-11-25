@@ -38,12 +38,9 @@ dependencies {
     implementation(enforcedPlatform("org.springframework.boot:spring-boot-dependencies:3.3.5"))
     // developmentOnly("org.springframework.boot:spring-boot-devtools")
 
-    kotlin("stdlib")
-
     compileOnly("dev.slne.surf:surf-api-core-api:1.21+")
     compileOnly("com.google.auto.service:auto-service-annotations:1.1.1")
-    api(kotlin("reflect", "2.0.21"))
-    api("org.jetbrains.kotlinx:kotlinx-coroutines-reactor:1.9.0")
+    api("org.jetbrains.kotlinx:kotlinx-coroutines-reactor:1.9.0") { isTransitive = false }
 
     implementation("org.springframework.boot:spring-boot-configuration-processor:3.4.0")
     kapt("org.springframework.boot:spring-boot-configuration-processor:3.3.3")

@@ -24,11 +24,11 @@ class PacketEncoder<T : PacketListener>(private val protocolInfo: ProtocolInfo<T
     MessageToByteEncoder<NettyPacket>() {
     private val log = logger()
 
+    @Suppress("DEPRECATION")
     override fun encode(ctx: ChannelHandlerContext, msg: NettyPacket, out: ByteBuf) {
         try {
             protocolInfo.codec.encode(out, msg)
 
-            @Suppress("DEPRECATION")
             if (msg is RespondingNettyPacket<*>) {
                 msg.extraEncode(out)
             }

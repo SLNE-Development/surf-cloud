@@ -37,6 +37,7 @@ object NettyListenerRegistry {
                     if (packetClass != null) {
                         throw SurfNettyListenerRegistrationException("Listener method must have only one parameter of type NettyPacket")
                     }
+                    @Suppress("UNCHECKED_CAST")
                     packetClass = param as Class<out NettyPacket>
                     packetClassIndex = index
                 }

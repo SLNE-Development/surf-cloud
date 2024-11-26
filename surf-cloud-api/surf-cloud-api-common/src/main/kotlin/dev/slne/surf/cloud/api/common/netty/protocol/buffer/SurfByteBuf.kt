@@ -547,6 +547,7 @@ class SurfByteBuf(source: ByteBuf) : WrappedByteBuf(source) {
                 }
             }
 
+        @Suppress("UNCHECKED_CAST")
         @Deprecated("Use codec instead")
         fun <T : Serializable, B : ByteBuf> readSerializable(
             buf: B,

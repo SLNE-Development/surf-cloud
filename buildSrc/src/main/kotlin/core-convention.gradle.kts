@@ -1,3 +1,6 @@
+@file:Suppress("UnstableApiUsage")
+
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons.requested
 import org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension
 
 plugins {
@@ -35,15 +38,14 @@ repositories {
 }
 
 dependencies {
-    implementation(enforcedPlatform("org.springframework.boot:spring-boot-dependencies:3.3.5"))
+    implementation(platform("org.springframework.boot:spring-boot-dependencies:3.3.6"))
     // developmentOnly("org.springframework.boot:spring-boot-devtools")
 
     compileOnly("dev.slne.surf:surf-api-core-api:1.21+")
     compileOnly("com.google.auto.service:auto-service-annotations:1.1.1")
-    api("org.jetbrains.kotlinx:kotlinx-coroutines-reactor:1.9.0") { isTransitive = false }
 
     implementation("org.springframework.boot:spring-boot-configuration-processor:3.4.0")
-    kapt("org.springframework.boot:spring-boot-configuration-processor:3.3.3")
+    kapt("org.springframework.boot:spring-boot-configuration-processor:3.4.0")
 
     implementation("com.google.auto.service:auto-service:1.1.1")
     kapt("com.google.auto.service:auto-service:1.1.1")
@@ -62,6 +64,9 @@ publishing {
 configurations {
     compileOnly {
         extendsFrom(configurations.annotationProcessor.get())
+    }
+    runtimeClasspath {
+        exclude(group = "org.reactivestreams", module = "reactive-streams")
     }
 }
 

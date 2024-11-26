@@ -19,6 +19,7 @@ abstract class NettyPacket {
 
     @Deprecated("internal use only")
     @Internal
+    @Suppress("DEPRECATION")
     fun handled() {
         handled = true
     }

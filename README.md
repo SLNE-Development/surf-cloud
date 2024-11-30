@@ -1,5 +1,7 @@
 [![Netlify Status](https://api.netlify.com/api/v1/badges/faf8d5de-85be-4d57-ba0f-bab1e058808f/deploy-status)](https://app.netlify.com/sites/surf-cloud-docs/deploys)
 
+Docs: [https://surf-cloud-docs.netlify.app/](https://surf-cloud-docs.netlify.app/)
+
 # System properties properties:
 - 
 

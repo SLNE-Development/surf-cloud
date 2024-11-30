@@ -6,7 +6,7 @@ import dev.slne.surf.cloud.api.common.netty.network.protocol.PacketFlow
 import dev.slne.surf.cloud.api.common.netty.packet.ResponseNettyPacket
 import dev.slne.surf.cloud.api.common.netty.packet.packetCodec
 import dev.slne.surf.cloud.api.common.netty.protocol.buffer.SurfByteBuf
-import dev.slne.surf.cloud.core.common.server.CloudServerImpl
+import dev.slne.surf.cloud.core.common.server.CommonCloudServerImpl
 import it.unimi.dsi.fastutil.objects.ObjectList
 
 @SurfNettyPacket(DefaultIds.CLIENTBOUND_RESPONSE_REQUEST_SERVERS_BY_CATEGORY, PacketFlow.CLIENTBOUND)
@@ -16,17 +16,17 @@ class ClientboundResponseRequestServersByCategory : ResponseNettyPacket {
         val STREAM_CODEC = packetCodec(ClientboundResponseRequestServersByCategory::write, ::ClientboundResponseRequestServersByCategory)
     }
 
-    val servers: ObjectList<out CloudServerImpl>
+    val servers: ObjectList<out CommonCloudServerImpl>
 
-    constructor(servers: ObjectList<out CloudServerImpl>) {
+    constructor(servers: ObjectList<out CommonCloudServerImpl>) {
         this.servers = servers
     }
 
     private constructor(buffer: SurfByteBuf) {
-        this.servers = buffer.readList { CloudServerImpl.STREAM_CODEC.decode(it) }
+        this.servers = buffer.readList { CommonCloudServerImpl.STREAM_CODEC.decode(it) }
     }
 
     private fun write(buffer: SurfByteBuf) {
-        buffer.writeCollection(servers, CloudServerImpl.STREAM_CODEC::encode)
+        buffer.writeCollection(servers, CommonCloudServerImpl.STREAM_CODEC::encode)
     }
 }

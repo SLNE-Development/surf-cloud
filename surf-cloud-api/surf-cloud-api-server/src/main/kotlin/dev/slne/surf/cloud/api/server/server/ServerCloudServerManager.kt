@@ -10,11 +10,11 @@ interface ServerCloudServerManager : CloudServerManager {
     override suspend fun retrieveServerByCategoryAndName(
         category: String,
         name: String
-    ): ServerCloudServer?
+    ): ServerCommonCloudServer?
 
-    override suspend fun retrieveServerById(id: Long): ServerCloudServer?
-    override suspend fun retrieveServerByName(name: String): ServerCloudServer?
-    override suspend fun retrieveServersByCategory(category: String): ObjectList<out ServerCloudServer>
+    override suspend fun retrieveServerById(id: Long): ServerCommonCloudServer?
+    override suspend fun retrieveServerByName(name: String): ServerCommonCloudServer?
+    override suspend fun retrieveServersByCategory(category: String): ObjectList<out ServerCommonCloudServer>
 
     companion object {
         val instance get() = CloudServerManager.instance as ServerCloudServerManager

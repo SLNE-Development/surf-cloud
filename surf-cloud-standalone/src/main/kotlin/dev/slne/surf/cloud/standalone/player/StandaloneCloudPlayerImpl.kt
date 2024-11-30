@@ -1,11 +1,11 @@
 package dev.slne.surf.cloud.standalone.player
 
 import dev.slne.surf.cloud.api.common.netty.packet.DEFAULT_URGENT_TIMEOUT
-import dev.slne.surf.cloud.api.server.server.ServerCloudServer
+import dev.slne.surf.cloud.api.common.player.ConnectionResult
+import dev.slne.surf.cloud.api.common.server.CommonCloudServer
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.*
 import dev.slne.surf.cloud.core.common.player.CommonCloudPlayerImpl
-import dev.slne.surf.cloud.core.common.server.CloudServerImpl
-import dev.slne.surf.cloud.standalone.server.StandaloneServerImpl
+import dev.slne.surf.cloud.standalone.server.StandaloneServerImplCommon
 import net.kyori.adventure.audience.MessageType
 import net.kyori.adventure.bossbar.BossBar
 import net.kyori.adventure.identity.Identity
@@ -18,14 +18,13 @@ import net.kyori.adventure.text.Component
 import net.kyori.adventure.title.Title
 import net.kyori.adventure.title.TitlePart
 import java.util.*
-import kotlin.time.Duration.Companion.seconds
 
 class StandaloneCloudPlayerImpl(uuid: UUID) : CommonCloudPlayerImpl(uuid) {
     @Volatile
-    var proxyServer: StandaloneServerImpl? = null
+    var proxyServer: StandaloneServerImplCommon? = null
 
     @Volatile
-    var server: StandaloneServerImpl? = null
+    var server: StandaloneServerImplCommon? = null
 
     override val connectedToProxy get() = proxyServer != null
     override val connectedToServer get() = server != null
@@ -37,6 +36,14 @@ class StandaloneCloudPlayerImpl(uuid: UUID) : CommonCloudPlayerImpl(uuid) {
             anyServer.connection,
             DEFAULT_URGENT_TIMEOUT
         )?.displayName ?: error("Failed to get display name (probably timed out)")
+    }
+
+    override suspend fun connectToServer(server: CommonCloudServer): ConnectionResult {
+
+    }
+
+    override suspend fun connectToServerOrQueue(server: CommonCloudServer): ConnectionResult {
+        TODO("Not yet implemented")
     }
 
     @Deprecated("Deprecated in Java")

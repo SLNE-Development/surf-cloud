@@ -5,17 +5,16 @@ import dev.slne.surf.cloud.api.common.server.CloudServerManager
 import dev.slne.surf.cloud.api.common.util.mutableLong2ObjectMapOf
 import dev.slne.surf.cloud.api.common.util.mutableObjectListOf
 import dev.slne.surf.cloud.api.common.util.synchronize
-import dev.slne.surf.cloud.api.server.server.ServerCloudServer
 import dev.slne.surf.cloud.api.server.server.ServerCloudServerManager
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
 @AutoService(CloudServerManager::class)
 class StandaloneCloudServerManagerImpl : ServerCloudServerManager {
-    private val servers = mutableLong2ObjectMapOf<StandaloneServerImpl>().synchronize()
+    private val servers = mutableLong2ObjectMapOf<StandaloneServerImplCommon>().synchronize()
     private val serversMutex = Mutex()
 
-    override suspend fun retrieveServerById(id: Long): StandaloneServerImpl? =
+    override suspend fun retrieveServerById(id: Long): StandaloneServerImplCommon? =
         serversMutex.withLock { servers[id] }
 
     override suspend fun retrieveServerByCategoryAndName(
@@ -37,7 +36,7 @@ class StandaloneCloudServerManagerImpl : ServerCloudServerManager {
         servers.values.filterTo(mutableObjectListOf()) { it.group == category }
     }
 
-    suspend fun registerServer(server: StandaloneServerImpl) = serversMutex.withLock {
+    suspend fun registerServer(server: StandaloneServerImplCommon) = serversMutex.withLock {
         servers[server.uid] = server
     }
 }

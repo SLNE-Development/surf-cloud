@@ -2,7 +2,7 @@ package dev.slne.surf.cloud.core.client.server
 
 import com.google.auto.service.AutoService
 import dev.slne.surf.cloud.api.client.netty.packet.fireAndAwaitOrThrow
-import dev.slne.surf.cloud.api.common.server.CloudServer
+import dev.slne.surf.cloud.api.common.server.CommonCloudServer
 import dev.slne.surf.cloud.api.common.server.CloudServerManager
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ServerboundRequestCloudServerByCategoryAndNamePacket
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ServerboundRequestCloudServerByIdPacket
@@ -17,20 +17,20 @@ class CommonCloudServerManagerImpl : CloudServerManager {
         checkInstantiationByServiceLoader()
     }
 
-    override suspend fun retrieveServerById(id: Long): CloudServer? =
+    override suspend fun retrieveServerById(id: Long): CommonCloudServer? =
         ServerboundRequestCloudServerByIdPacket(id).fireAndAwaitOrThrow().server
 
     override suspend fun retrieveServerByCategoryAndName(
         category: String,
         name: String
-    ): CloudServer? = ServerboundRequestCloudServerByCategoryAndNamePacket(
+    ): CommonCloudServer? = ServerboundRequestCloudServerByCategoryAndNamePacket(
         category,
         name
     ).fireAndAwaitOrThrow().server
 
-    override suspend fun retrieveServerByName(name: String): CloudServer? =
+    override suspend fun retrieveServerByName(name: String): CommonCloudServer? =
         ServerboundRequestCloudServerByNamePacket(name).fireAndAwaitOrThrow().server
 
-    override suspend fun retrieveServersByCategory(category: String): ObjectList<out CloudServer> =
+    override suspend fun retrieveServersByCategory(category: String): ObjectList<out CommonCloudServer> =
         ServerboundRequestCloudServersByCategory(category).fireAndAwaitOrThrow().servers
 }

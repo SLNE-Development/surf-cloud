@@ -16,9 +16,9 @@ interface CloudServerManager {
      * Retrieves a server by its unique ID.
      *
      * @param id The unique identifier of the server.
-     * @return The [CloudServer] if found, or `null` if no server matches the provided ID.
+     * @return The [CommonCloudServer] if found, or `null` if no server matches the provided ID.
      */
-    suspend fun retrieveServerById(id: Long): CloudServer?
+    suspend fun retrieveServerById(id: Long): CommonCloudServer?
 
     /**
      * Retrieves a server by its category and name.
@@ -27,26 +27,26 @@ interface CloudServerManager {
      *
      * @param category The category of the server.
      * @param name The name of the server within the specified category.
-     * @return The [CloudServer] if found, or `null` if no server matches the provided category and name.
+     * @return The [CommonCloudServer] if found, or `null` if no server matches the provided category and name.
      */
-    suspend fun retrieveServerByCategoryAndName(category: String, name: String): CloudServer?
+    suspend fun retrieveServerByCategoryAndName(category: String, name: String): CommonCloudServer?
 
     /**
      * Retrieves a server by its name. If multiple servers share the same name,
      * the server with the lowest player count will be returned.
      *
      * @param name The name of the server.
-     * @return The [CloudServer] if found, or `null` if no server matches the provided name.
+     * @return The [CommonCloudServer] if found, or `null` if no server matches the provided name.
      */
-    suspend fun retrieveServerByName(name: String): CloudServer?
+    suspend fun retrieveServerByName(name: String): CommonCloudServer?
 
     /**
      * Retrieves all servers in a specified category.
      *
      * @param category The category of servers to retrieve.
-     * @return An [ObjectList] of [CloudServer] instances belonging to the specified category.
+     * @return An [ObjectList] of [CommonCloudServer] instances belonging to the specified category.
      */
-    suspend fun retrieveServersByCategory(category: String): ObjectList<out CloudServer>
+    suspend fun retrieveServersByCategory(category: String): ObjectList<out CommonCloudServer>
 
     companion object {
         /**

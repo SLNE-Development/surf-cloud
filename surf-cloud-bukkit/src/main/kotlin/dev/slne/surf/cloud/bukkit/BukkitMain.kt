@@ -1,5 +1,6 @@
 package dev.slne.surf.cloud.bukkit
 
+import com.destroystokyo.paper.event.player.PlayerHandshakeEvent
 import com.github.shynixn.mccoroutine.folia.SuspendingJavaPlugin
 import dev.jorel.commandapi.kotlindsl.*
 import dev.slne.surf.cloud.api.common.exceptions.FatalSurfError

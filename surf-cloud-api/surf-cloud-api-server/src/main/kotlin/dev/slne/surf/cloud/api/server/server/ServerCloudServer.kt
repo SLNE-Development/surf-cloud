@@ -1,8 +1,9 @@
 package dev.slne.surf.cloud.api.server.server
 
-import dev.slne.surf.cloud.api.common.netty.network.Connection
 import dev.slne.surf.cloud.api.common.server.CloudServer
+import org.jetbrains.annotations.ApiStatus
 
-interface ServerCloudServer: CloudServer {
-    val connection: Connection
+@ApiStatus.NonExtendable
+interface ServerCloudServer : ServerCommonCloudServer, CloudServer {
+    val proxy: ServerProxyCloudServer?
 }

@@ -6,7 +6,7 @@ import dev.slne.surf.cloud.api.common.player.CloudPlayerManager
 import dev.slne.surf.cloud.api.common.util.logger
 import dev.slne.surf.cloud.core.common.player.CloudPlayerManagerImpl
 import dev.slne.surf.cloud.core.common.util.checkInstantiationByServiceLoader
-import dev.slne.surf.cloud.standalone.server.StandaloneServerImpl
+import dev.slne.surf.cloud.standalone.server.StandaloneServerImplCommon
 import dev.slne.surf.cloud.standalone.server.serverManagerImpl
 import java.util.*
 
@@ -88,7 +88,7 @@ class StandaloneCloudPlayerManagerImpl : CloudPlayerManagerImpl() {
     private suspend fun getStandalonePlayerAndServer(
         player: CloudPlayer,
         serverUid: Long
-    ): Pair<StandaloneCloudPlayerImpl, StandaloneServerImpl?> {
+    ): Pair<StandaloneCloudPlayerImpl, StandaloneServerImplCommon?> {
         val standalonePlayer = player as? StandaloneCloudPlayerImpl
             ?: error("Player is not a StandaloneCloudPlayerImpl")
         val server = serverManagerImpl.retrieveServerById(serverUid)

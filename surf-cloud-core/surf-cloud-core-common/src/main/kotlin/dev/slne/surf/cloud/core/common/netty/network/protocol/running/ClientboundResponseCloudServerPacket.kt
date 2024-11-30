@@ -6,10 +6,7 @@ import dev.slne.surf.cloud.api.common.netty.network.protocol.PacketFlow
 import dev.slne.surf.cloud.api.common.netty.packet.ResponseNettyPacket
 import dev.slne.surf.cloud.api.common.netty.packet.packetCodec
 import dev.slne.surf.cloud.api.common.netty.protocol.buffer.SurfByteBuf
-import dev.slne.surf.cloud.api.common.server.UserListImpl
-import dev.slne.surf.cloud.api.common.server.state.ServerState
-import dev.slne.surf.cloud.core.common.server.CloudServerImpl
-import io.netty.buffer.Unpooled
+import dev.slne.surf.cloud.core.common.server.CommonCloudServerImpl
 
 @SurfNettyPacket(DefaultIds.CLIENTBOUND_RESPONSE_CLOUD_SERVER, PacketFlow.CLIENTBOUND)
 class ClientboundResponseCloudServerPacket : ResponseNettyPacket {
@@ -21,17 +18,17 @@ class ClientboundResponseCloudServerPacket : ResponseNettyPacket {
         )
     }
 
-    val server: CloudServerImpl?
+    val server: CommonCloudServerImpl?
 
-    constructor(server: CloudServerImpl?) {
+    constructor(server: CommonCloudServerImpl?) {
         this.server = server
     }
 
     private constructor(buf: SurfByteBuf) {
-        server = buf.readNullable(CloudServerImpl.STREAM_CODEC::decode)
+        server = buf.readNullable(CommonCloudServerImpl.STREAM_CODEC::decode)
     }
 
     private fun write(buf: SurfByteBuf) {
-        buf.writeNullable(server, CloudServerImpl.STREAM_CODEC::encode)
+        buf.writeNullable(server, CommonCloudServerImpl.STREAM_CODEC::encode)
     }
 }

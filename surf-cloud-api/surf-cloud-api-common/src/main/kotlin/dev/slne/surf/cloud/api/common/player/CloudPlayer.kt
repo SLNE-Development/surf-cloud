@@ -2,7 +2,7 @@ package dev.slne.surf.cloud.api.common.player
 
 import dev.slne.surf.cloud.api.common.player.ppdc.PersistentPlayerDataContainer
 import dev.slne.surf.cloud.api.common.player.ppdc.PersistentPlayerDataContainerView
-import dev.slne.surf.cloud.api.common.server.CloudServer
+import dev.slne.surf.cloud.api.common.server.CommonCloudServer
 import net.kyori.adventure.audience.Audience
 import net.kyori.adventure.text.Component
 import java.util.*
@@ -81,7 +81,7 @@ interface CloudPlayer : Audience {
      * @param server The target server to connect to.
      * @return A [ConnectionResult] indicating the result of the connection attempt.
      */
-    suspend fun connectToServer(server: CloudServer): ConnectionResult
+    suspend fun connectToServer(server: CommonCloudServer): ConnectionResult
 
     /**
      * Connects the player to a specified server by group and name.
@@ -116,7 +116,7 @@ interface CloudPlayer : Audience {
      * @param server The target server to connect to.
      * @return A [ConnectionResult] indicating the result of the connection attempt.
      */
-    suspend fun connectToServerOrQueue(server: CloudServer): ConnectionResult
+    suspend fun connectToServerOrQueue(server: CommonCloudServer): ConnectionResult
 
     /**
      * Connects the player to a specified server by group and name or queues the player if the server is unavailable.
@@ -180,4 +180,12 @@ enum class ConnectionResult {
      * @see CloudPlayer.connectToServerOrQueue
      */
     SERVER_OFFLINE,
+
+    /**
+     * Indicates that the player is already connected to the specified server.
+     *
+     * @see CloudPlayer.connectToServer
+     * @see CloudPlayer.connectToServerOrQueue
+     */
+    ALREADY_CONNECTED
 }

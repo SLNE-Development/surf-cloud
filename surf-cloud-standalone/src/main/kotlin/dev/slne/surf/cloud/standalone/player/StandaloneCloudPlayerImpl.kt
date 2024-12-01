@@ -5,7 +5,9 @@ import dev.slne.surf.cloud.api.common.player.ConnectionResult
 import dev.slne.surf.cloud.api.common.server.CommonCloudServer
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.*
 import dev.slne.surf.cloud.core.common.player.CommonCloudPlayerImpl
-import dev.slne.surf.cloud.standalone.server.StandaloneServerImplCommon
+import dev.slne.surf.cloud.standalone.server.CommonStandaloneServerImpl
+import dev.slne.surf.cloud.standalone.server.StandaloneCloudServerImpl
+import dev.slne.surf.cloud.standalone.server.StandaloneProxyCloudServerImpl
 import net.kyori.adventure.audience.MessageType
 import net.kyori.adventure.bossbar.BossBar
 import net.kyori.adventure.identity.Identity
@@ -21,10 +23,10 @@ import java.util.*
 
 class StandaloneCloudPlayerImpl(uuid: UUID) : CommonCloudPlayerImpl(uuid) {
     @Volatile
-    var proxyServer: StandaloneServerImplCommon? = null
+    var proxyServer: StandaloneProxyCloudServerImpl? = null
 
     @Volatile
-    var server: StandaloneServerImplCommon? = null
+    var server: StandaloneCloudServerImpl? = null
 
     override val connectedToProxy get() = proxyServer != null
     override val connectedToServer get() = server != null

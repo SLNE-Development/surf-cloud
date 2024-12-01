@@ -5,7 +5,8 @@ variables:
 stages:
   - build_docs
   - test_docs
-  - deploy_docs
+  - deploy_docs_preview
+  - deploy_docs_production
 
 build_docs:
   stage: build_docs
@@ -39,26 +40,50 @@ test_docs:
   dependencies:
     - build_docs
 
-deploy_docs:
-  stage: deploy_docs
-  image: ubuntu:latest
-  before_script:
-    - apt-get update -y && apt-get install unzip -y
-    - echo docker login -u "$DOCKER_USERNAME" -p "$DOCKER_ACCESS_TOKEN"
-    - echo netlify login -i "$NETLIFY_AUTH_TOKEN"
-
+deploy_docs_preview:
+  stage: deploy_docs_preview
+  except:
+    - master
+  image: node:16.16.0
   script:
-    - npm install -g netlify-cli
-    - PROJECT_ID=$(echo $INSTANCE | cut -d'/' -f2 | tr '[:lower:]' '[:upper:]')
-    - ARTIFACT="webHelp${PROJECT_ID}2-all.zip"
-    - echo "Using artifact $ARTIFACT"
-    - cd public
-    - unzip -O UTF-8 $ARTIFACT
-    - netlify deploy --site "$SITE_ID" --auth "$NETLIFY_AUTH_TOKEN" --prod
-    - echo "Deploying the project"
+    - npm install --global vercel
+    - vercel pull --yes --environment=preview --token=$VERCEL_TOKEN
+    - vercel deploy public --prebuilt --token=$VERCEL_TOKEN
   dependencies:
     - build_docs
-  artifacts:
-    paths:
-      - public
-    expire_in: 1 week
+
+deploy_docs_production:
+  stage: deploy_production
+  only:
+    - master
+  image: node:16.16.0
+  script:
+    - npm install --global vercel
+    - vercel pull --yes --environment=production --token=$VERCEL_TOKEN
+    - vercel deploy public --prebuilt --prod --token=$VERCEL_TOKEN
+  dependencies:
+    - build_docs
+
+#deploy_docs:
+#  stage: deploy_docs
+#  image: ubuntu:latest
+#  before_script:
+#    - apt-get update -y && apt-get install unzip -y
+#    - echo docker login -u "$DOCKER_USERNAME" -p "$DOCKER_ACCESS_TOKEN"
+#    - echo netlify login -i "$NETLIFY_AUTH_TOKEN"
+#
+#  script:
+#    - npm install -g netlify-cli
+#    - PROJECT_ID=$(echo $INSTANCE | cut -d'/' -f2 | tr '[:lower:]' '[:upper:]')
+#    - ARTIFACT="webHelp${PROJECT_ID}2-all.zip"
+#    - echo "Using artifact $ARTIFACT"
+#    - cd public
+#    - unzip -O UTF-8 $ARTIFACT
+#    - netlify deploy --site "$SITE_ID" --auth "$NETLIFY_AUTH_TOKEN" --prod
+#    - echo "Deploying the project"
+#  dependencies:
+#    - build_docs
+#  artifacts:
+#    paths:
+#      - public
+#    expire_in: 1 week

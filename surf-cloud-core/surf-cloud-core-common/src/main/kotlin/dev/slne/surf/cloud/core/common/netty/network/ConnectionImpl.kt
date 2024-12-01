@@ -268,22 +268,6 @@ class ConnectionImpl(val receiving: PacketFlow) : SimpleChannelInboundHandler<Ne
                                 msg
                             )
 
-                            is ServerboundRequestCloudServerByIdPacket -> listener.handleRequestCloudServerById(
-                                msg
-                            )
-
-                            is ServerboundRequestCloudServerByCategoryAndNamePacket -> listener.handleRequestCloudServerByCategoryAndName(
-                                msg
-                            )
-
-                            is ServerboundRequestCloudServerByNamePacket -> listener.handleRequestCloudServerByName(
-                                msg
-                            )
-
-                            is ServerboundRequestCloudServersByCategory -> listener.handleRequestCloudServersByCategory(
-                                msg
-                            )
-
                             is ServerboundClientInformationPacket -> listener.handleClientInformation(
                                 msg
                             )
@@ -359,6 +343,21 @@ class ConnectionImpl(val receiving: PacketFlow) : SimpleChannelInboundHandler<Ne
                             )
 
                             is ClientboundBundlePacket -> listener.handleBundlePacket(msg)
+                            is ClientboundRegisterServerPacket -> listener.handleRegisterServerPacket(
+                                msg
+                            )
+                            is ClientboundUnregisterServerPacket -> listener.handleUnregisterServerPacket(
+                                msg
+                            )
+                            is ClientboundAddPlayerToServerPacket -> listener.handleAddPlayerToServer(
+                                msg
+                            )
+                            is ClientboundRemovePlayerFromServerPacket -> listener.handleRemovePlayerFromServer(
+                                msg
+                            )
+                            is ClientboundUpdateServerInformationPacket -> listener.handleUpdateServerInformation(
+                                msg
+                            )
 
                             else -> listener.handlePacket(msg)
                         }

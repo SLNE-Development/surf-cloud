@@ -30,14 +30,10 @@ class StandaloneCloudPlayerManagerImpl : CloudPlayerManagerImpl() {
             if (server != null) {
                 if (proxy) {
                     check(server is StandaloneProxyCloudServerImpl) { "Server with id $serverUid is not a proxy server but specified as proxy" }
-
                     it.proxyServer = server
-                    server.addPlayer(it)
                 } else {
                     check(server is StandaloneCloudServerImpl) { "Server with id $serverUid is not a standalone server but specified as standalone" }
-
                     it.server = server
-                    server.addPlayer(it)
                 }
             } else {
                 log.atWarning()
@@ -50,11 +46,8 @@ class StandaloneCloudPlayerManagerImpl : CloudPlayerManagerImpl() {
         val (standalonePlayer, server) = getStandalonePlayerAndServer(player, serverUid)
         check(server == null || server is StandaloneProxyCloudServerImpl) { "Server with id $serverUid is not a proxy server but specified as proxy" }
 
-        standalonePlayer.proxyServer?.removePlayer(standalonePlayer)
-
         if (server != null) {
             standalonePlayer.proxyServer = server
-            server.addPlayer(standalonePlayer)
         } else {
             logServerNotFound(serverUid, standalonePlayer)
         }
@@ -64,11 +57,8 @@ class StandaloneCloudPlayerManagerImpl : CloudPlayerManagerImpl() {
         val (standalonePlayer, server) = getStandalonePlayerAndServer(player, serverUid)
         check(server == null || server is StandaloneCloudServerImpl) { "Server with id $serverUid is not a standalone server but specified as standalone" }
 
-        standalonePlayer.server?.removePlayer(standalonePlayer)
-
         if (server != null) {
             standalonePlayer.server = server
-            server.addPlayer(standalonePlayer)
         } else {
             logServerNotFound(serverUid, standalonePlayer)
         }
@@ -80,7 +70,6 @@ class StandaloneCloudPlayerManagerImpl : CloudPlayerManagerImpl() {
 
         if (server != null && standalonePlayer.proxyServer == server) {
             standalonePlayer.proxyServer = null
-            server.removePlayer(standalonePlayer)
         } else {
             logServerNotFound(serverUid, standalonePlayer)
         }
@@ -92,7 +81,6 @@ class StandaloneCloudPlayerManagerImpl : CloudPlayerManagerImpl() {
 
         if (server != null && standalonePlayer.server == server) {
             standalonePlayer.server = null
-            server.removePlayer(standalonePlayer)
         } else {
             logServerNotFound(serverUid, standalonePlayer)
         }

@@ -6,6 +6,8 @@ import dev.slne.surf.cloud.api.common.util.synchronize
 import dev.slne.surf.cloud.core.common.config.cloudConfig
 import dev.slne.surf.cloud.standalone.netty.server.connection.ServerConnectionListener
 import dev.slne.surf.cloud.standalone.server.CommonStandaloneServerImpl
+import dev.slne.surf.cloud.standalone.server.StandaloneCloudServerImpl
+import dev.slne.surf.cloud.standalone.server.StandaloneProxyCloudServerImpl
 import dev.slne.surf.cloud.standalone.server.serverManagerImpl
 import io.netty.channel.epoll.Epoll
 import io.netty.channel.unix.DomainSocketAddress
@@ -119,7 +121,14 @@ class NettyServerImpl {
         }
 
         log.atInfo().log("Registered client ${client.displayName}")
-        serverManagerImpl.registerServer(CommonStandaloneServerImpl(client.serverId, client.serverCategory, client.serverName, proxy, client.connection))
+
+        val server = if (proxy) {
+            StandaloneProxyCloudServerImpl(client.serverId, client.serverCategory, client.serverName, client.connection)
+        } else {
+            StandaloneCloudServerImpl(client.serverId, client.serverCategory, client.serverName, client.connection)
+        }
+
+        serverManagerImpl.registerServer(server)
     }
 
     suspend fun forEachClient(action: suspend (ServerClientImpl) -> Unit) {

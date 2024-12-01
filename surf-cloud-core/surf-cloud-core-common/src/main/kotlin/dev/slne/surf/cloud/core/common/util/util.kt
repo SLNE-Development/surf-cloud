@@ -4,6 +4,7 @@ package dev.slne.surf.cloud.core.common.util
 
 import dev.slne.surf.cloud.api.common.util.logger
 import dev.slne.surf.cloud.core.common.coreCloudInstance
+import org.jetbrains.annotations.ApiStatus
 import java.security.SecureRandom
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
@@ -58,4 +59,5 @@ fun checkInstantiationByServiceLoader() {
     check(getCallerClass(1)?.name?.startsWith("java.util.ServiceLoader") == true) { "Cannot instantiate instance directly" }
 }
 
+@ApiStatus.Internal
 inline fun <reified T : Any> bean(): T = coreCloudInstance.dataContext.getBean(T::class.java)

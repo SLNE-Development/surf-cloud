@@ -1,8 +1,10 @@
 package dev.slne.surf.cloud.core.client.netty.network
 
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
+import dev.slne.surf.cloud.api.common.server.UserListImpl
 import dev.slne.surf.cloud.api.common.util.logger
 import dev.slne.surf.cloud.core.client.player.commonPlayerManagerImpl
+import dev.slne.surf.cloud.core.client.server.serverManagerImpl
 import dev.slne.surf.cloud.core.common.coroutines.NettyConnectionScope
 import dev.slne.surf.cloud.core.common.coroutines.NettyListenerScope
 import dev.slne.surf.cloud.core.common.netty.network.CommonTickablePacketListener
@@ -12,6 +14,8 @@ import dev.slne.surf.cloud.core.common.netty.network.protocol.running.*
 import dev.slne.surf.cloud.core.common.netty.protocol.packet.NettyPacketInfo
 import dev.slne.surf.cloud.core.common.netty.registry.listener.NettyListenerRegistry
 import dev.slne.surf.cloud.core.common.player.playerManagerImpl
+import dev.slne.surf.cloud.core.common.server.CloudServerImpl
+import dev.slne.surf.cloud.core.common.server.ProxyCloudServerImpl
 import kotlinx.coroutines.launch
 import net.kyori.adventure.audience.Audience
 import net.kyori.adventure.identity.Identity
@@ -151,6 +155,41 @@ class ClientRunningPacketListenerImpl(val connection: ConnectionImpl) :
             val displayName = pointers().get(Identity.DISPLAY_NAME).orElse(Component.empty())
             packet.respond(ResponseDisplayNamePacketRequestPacket(packet.uuid, displayName))
         }) { "Display name requested for player ${packet.uuid} who is not online. Probably send to wrong server." }
+    }
+
+    override suspend fun handleRegisterServerPacket(packet: ClientboundRegisterServerPacket) {
+        val server = if (packet.proxy) {
+            ProxyCloudServerImpl(
+                packet.serverId,
+                packet.group,
+                packet.name,
+            )
+        } else {
+            CloudServerImpl(
+                packet.serverId,
+                packet.group,
+                packet.name,
+            )
+        }
+
+        serverManagerImpl.registerServer(server)
+    }
+
+    override suspend fun handleUnregisterServerPacket(packet: ClientboundUnregisterServerPacket) {
+        serverManagerImpl.unregisterServer(packet.serverId)
+    }
+
+    override suspend fun handleAddPlayerToServer(packet: ClientboundAddPlayerToServerPacket) {
+        (serverManagerImpl.retrieveServerById(packet.serverUid)?.users as? UserListImpl)?.add(packet.playerUuid)
+    }
+
+    override suspend fun handleRemovePlayerFromServer(packet: ClientboundRemovePlayerFromServerPacket) {
+        (serverManagerImpl.retrieveServerById(packet.serverUid)?.users as? UserListImpl)
+            ?.remove(packet.playerUuid)
+    }
+
+    override fun handleUpdateServerInformation(packet: ClientboundUpdateServerInformationPacket) {
+        serverManagerImpl.updateServerInformationNow(packet.serverId, packet.information)
     }
 
     override fun handlePacket(packet: NettyPacket) {

@@ -1,11 +1,11 @@
 package dev.slne.surf.cloud.standalone.player
 
-import dev.slne.surf.cloud.api.common.netty.packet.DEFAULT_URGENT_TIMEOUT
+import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
 import dev.slne.surf.cloud.api.common.player.ConnectionResult
 import dev.slne.surf.cloud.api.common.server.CommonCloudServer
+import dev.slne.surf.cloud.api.server.server.ServerCommonCloudServer
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.*
 import dev.slne.surf.cloud.core.common.player.CommonCloudPlayerImpl
-import dev.slne.surf.cloud.standalone.server.CommonStandaloneServerImpl
 import dev.slne.surf.cloud.standalone.server.StandaloneCloudServerImpl
 import dev.slne.surf.cloud.standalone.server.StandaloneProxyCloudServerImpl
 import net.kyori.adventure.audience.MessageType
@@ -30,18 +30,15 @@ class StandaloneCloudPlayerImpl(uuid: UUID) : CommonCloudPlayerImpl(uuid) {
 
     override val connectedToProxy get() = proxyServer != null
     override val connectedToServer get() = server != null
-    private val anyServer
+    private val anyServer: ServerCommonCloudServer
         get() = server ?: proxyServer ?: error("Player is not connected to a server")
 
-    override suspend fun displayName(): Component {
-        return ClientboundRequestDisplayNamePacket(uuid).fireAndAwait(
-            anyServer.connection,
-            DEFAULT_URGENT_TIMEOUT
-        )?.displayName ?: error("Failed to get display name (probably timed out)")
-    }
+    override suspend fun displayName(): Component = ClientboundRequestDisplayNamePacket(uuid)
+        .fireAndAwaitUrgent(anyServer.connection)?.displayName
+        ?: error("Failed to get display name (probably timed out)")
 
     override suspend fun connectToServer(server: CommonCloudServer): ConnectionResult {
-
+        TODO("Not yet implemented")
     }
 
     override suspend fun connectToServerOrQueue(server: CommonCloudServer): ConnectionResult {
@@ -51,18 +48,18 @@ class StandaloneCloudPlayerImpl(uuid: UUID) : CommonCloudPlayerImpl(uuid) {
     @Deprecated("Deprecated in Java")
     @Suppress("UnstableApiUsage", "DEPRECATION")
     override fun sendMessage(source: Identity, message: Component, type: MessageType) {
-        anyServer.connection.send(ClientboundSendMessagePacket(uuid, message))
+        send(ClientboundSendMessagePacket(uuid, message))
     }
 
     override fun sendActionBar(message: Component) {
-        anyServer.connection.send(ClientboundSendActionBarPacket(uuid, message))
+        send(ClientboundSendActionBarPacket(uuid, message))
     }
 
     override fun sendPlayerListHeaderAndFooter(
         header: Component,
         footer: Component
     ) {
-        anyServer.connection.send(
+        send(
             ClientboundSendPlayerListHeaderAndFooterPacket(
                 uuid,
                 header,
@@ -72,30 +69,30 @@ class StandaloneCloudPlayerImpl(uuid: UUID) : CommonCloudPlayerImpl(uuid) {
     }
 
     override fun showTitle(title: Title) {
-        anyServer.connection.send(ClientboundShowTitlePacket(uuid, title))
+        send(ClientboundShowTitlePacket(uuid, title))
     }
 
     override fun <T : Any> sendTitlePart(
         part: TitlePart<T?>,
         value: T
     ) {
-        anyServer.connection.send(ClientboundSendTitlePartPacket(uuid, part, value))
+        send(ClientboundSendTitlePartPacket(uuid, part, value))
     }
 
     override fun clearTitle() {
-        anyServer.connection.send(ClientboundClearTitlePacket(uuid))
+        send(ClientboundClearTitlePacket(uuid))
     }
 
     override fun resetTitle() {
-        anyServer.connection.send(ClientboundResetTitlePacket(uuid))
+        send(ClientboundResetTitlePacket(uuid))
     }
 
     override fun showBossBar(bar: BossBar) {
-        anyServer.connection.send(ClientboundShowBossBarPacket(uuid, bar))
+        send(ClientboundShowBossBarPacket(uuid, bar))
     }
 
     override fun hideBossBar(bar: BossBar) {
-        anyServer.connection.send(ClientboundHideBossBarPacket(uuid, bar))
+        send(ClientboundHideBossBarPacket(uuid, bar))
     }
 
     override fun playSound(
@@ -104,7 +101,7 @@ class StandaloneCloudPlayerImpl(uuid: UUID) : CommonCloudPlayerImpl(uuid) {
         y: Double,
         z: Double
     ) {
-        anyServer.connection.send(ClientboundPlaySoundPacket(uuid, sound, x, y, z))
+        send(ClientboundPlaySoundPacket(uuid, sound, x, y, z))
     }
 
     override fun playSound(
@@ -115,30 +112,34 @@ class StandaloneCloudPlayerImpl(uuid: UUID) : CommonCloudPlayerImpl(uuid) {
             throw UnsupportedOperationException("Only self emitters are supported")
         }
 
-        anyServer.connection.send(ClientboundPlaySoundPacket(uuid, sound, emitter))
+        send(ClientboundPlaySoundPacket(uuid, sound, emitter))
     }
 
     override fun playSound(sound: Sound) {
-        anyServer.connection.send(ClientboundPlaySoundPacket(uuid, sound))
+        send(ClientboundPlaySoundPacket(uuid, sound))
     }
 
     override fun stopSound(stop: SoundStop) {
-        anyServer.connection.send(ClientboundStopSoundPacket(uuid, stop))
+        send(ClientboundStopSoundPacket(uuid, stop))
     }
 
     override fun openBook(book: Book) {
-        anyServer.connection.send(ClientboundOpenBookPacket(uuid, book))
+        send(ClientboundOpenBookPacket(uuid, book))
     }
 
-    override fun sendResourcePacks(request: ResourcePackRequest) {
-        anyServer.connection.send(ClientboundSendResourcePacksPacket(uuid, request))
+    override fun sendResourcePacks(request: ResourcePackRequest) { // TODO: Implement callback
+        send(ClientboundSendResourcePacksPacket(uuid, request))
     }
 
     override fun removeResourcePacks(id: UUID, vararg others: UUID) {
-        anyServer.connection.send(ClientboundRemoveResourcePacksPacket(uuid, id, *others))
+        send(ClientboundRemoveResourcePacksPacket(uuid, id, *others))
     }
 
     override fun clearResourcePacks() {
-        anyServer.connection.send(ClientboundClearResourcePacksPacket(uuid))
+        send(ClientboundClearResourcePacksPacket(uuid))
+    }
+
+    private fun send(packet: NettyPacket) {
+        anyServer.connection.send(packet)
     }
 }

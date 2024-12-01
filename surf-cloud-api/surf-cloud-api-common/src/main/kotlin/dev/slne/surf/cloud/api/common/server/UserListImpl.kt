@@ -46,12 +46,12 @@ open class UserListImpl : UserList {
         }
     }
 
-    fun add(player: CloudPlayer): Boolean {
-        return playerReferences.add(player.uuid)
+    fun add(playerUuid: UUID): Boolean {
+        return playerReferences.add(playerUuid)
     }
 
-    fun remove(player: CloudPlayer): Boolean {
-        return playerReferences.remove(player.uuid)
+    fun remove(playerUuid: UUID): Boolean {
+        return playerReferences.remove(playerUuid)
     }
 
     override fun snapshot(): MutableUserList {
@@ -64,6 +64,10 @@ open class UserListImpl : UserList {
 }
 
 class MutableUserListImpl : UserListImpl(), MutableUserList {
+    override fun add(element: CloudPlayer): Boolean {
+        return add(element.uuid)
+    }
+
     override fun addAll(elements: Collection<CloudPlayer>): Boolean {
         return elements.all { playerReferences.add(it.uuid) }
     }
@@ -85,6 +89,10 @@ class MutableUserListImpl : UserListImpl(), MutableUserList {
                 iterator.remove()
             }
         }
+    }
+
+    override fun remove(element: CloudPlayer): Boolean {
+        return remove(element.uuid)
     }
 
     override fun removeAll(elements: Collection<CloudPlayer>): Boolean {

@@ -52,5 +52,15 @@ interface RunningClientPacketListener: ClientboundPacketListener, TickablePacket
 
     fun handleRequestDisplayName(packet: ClientboundRequestDisplayNamePacket)
 
+    suspend fun handleRegisterServerPacket(packet: ClientboundRegisterServerPacket)
+
+    suspend fun handleUnregisterServerPacket(packet: ClientboundUnregisterServerPacket)
+
+    suspend fun handleAddPlayerToServer(packet: ClientboundAddPlayerToServerPacket)
+
+    suspend fun handleRemovePlayerFromServer(packet: ClientboundRemovePlayerFromServerPacket)
+
+    fun handleUpdateServerInformation(packet: ClientboundUpdateServerInformationPacket)
+
     fun handlePacket(packet: NettyPacket)
 }

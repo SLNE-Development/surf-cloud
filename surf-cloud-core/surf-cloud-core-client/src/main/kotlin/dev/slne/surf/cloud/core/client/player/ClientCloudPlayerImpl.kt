@@ -3,7 +3,8 @@ package dev.slne.surf.cloud.core.client.player
 import dev.slne.surf.cloud.api.client.netty.packet.fireAndAwait
 import dev.slne.surf.cloud.api.client.netty.packet.fireAndForget
 import dev.slne.surf.cloud.api.common.netty.packet.DEFAULT_URGENT_TIMEOUT
-import dev.slne.surf.cloud.api.common.util.logger
+import dev.slne.surf.cloud.api.common.player.ConnectionResult
+import dev.slne.surf.cloud.api.common.server.CommonCloudServer
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.*
 import dev.slne.surf.cloud.core.common.player.CommonCloudPlayerImpl
 import net.kyori.adventure.audience.Audience
@@ -19,7 +20,6 @@ import net.kyori.adventure.text.Component
 import net.kyori.adventure.title.Title
 import net.kyori.adventure.title.TitlePart
 import java.util.*
-import kotlin.time.Duration.Companion.seconds
 
 abstract class ClientCloudPlayerImpl(uuid: UUID) : CommonCloudPlayerImpl(uuid) {
     @Volatile
@@ -45,6 +45,14 @@ abstract class ClientCloudPlayerImpl(uuid: UUID) : CommonCloudPlayerImpl(uuid) {
 
         return ServerboundRequestDisplayNamePacket(uuid).fireAndAwait(DEFAULT_URGENT_TIMEOUT)?.displayName
             ?: error("Failed to get display name (probably timed out)")
+    }
+
+    override suspend fun connectToServer(server: CommonCloudServer): ConnectionResult {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun connectToServerOrQueue(server: CommonCloudServer): ConnectionResult {
+        TODO("Not yet implemented")
     }
 
     @Deprecated("Deprecated in Java")

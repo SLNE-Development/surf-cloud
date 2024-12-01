@@ -50,14 +50,6 @@ interface RunningServerPacketListener : ServerboundPacketListener, TickablePacke
 
     suspend fun handleRequestDisplayName(packet: ServerboundRequestDisplayNamePacket)
 
-    suspend fun handleRequestCloudServerById(packet: ServerboundRequestCloudServerByIdPacket)
-
-    suspend fun handleRequestCloudServerByCategoryAndName(packet: ServerboundRequestCloudServerByCategoryAndNamePacket)
-
-    suspend fun handleRequestCloudServerByName(packet: ServerboundRequestCloudServerByNamePacket)
-
-    suspend fun handleRequestCloudServersByCategory(packet: ServerboundRequestCloudServersByCategory)
-
     suspend fun handleClientInformation(packet: ServerboundClientInformationPacket)
 
     fun handlePacket(packet: NettyPacket)

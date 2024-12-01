@@ -1,44 +1,44 @@
 package dev.slne.surf.cloud.standalone.server
 
 import com.google.auto.service.AutoService
+import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
 import dev.slne.surf.cloud.api.common.server.CloudServerManager
-import dev.slne.surf.cloud.api.common.util.mutableLong2ObjectMapOf
-import dev.slne.surf.cloud.api.common.util.mutableObjectListOf
-import dev.slne.surf.cloud.api.common.util.synchronize
 import dev.slne.surf.cloud.api.server.server.ServerCloudServerManager
 import dev.slne.surf.cloud.api.server.server.ServerCommonCloudServer
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
+import dev.slne.surf.cloud.api.server.server.ServerProxyCloudServer
+import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ClientboundRegisterServerPacket
+import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ClientboundUnregisterServerPacket
+import dev.slne.surf.cloud.core.common.server.CommonCloudServerManagerImpl
+import dev.slne.surf.cloud.core.common.util.bean
+import dev.slne.surf.cloud.standalone.netty.server.NettyServerImpl
 
 @AutoService(CloudServerManager::class)
-class StandaloneCloudServerManagerImpl : ServerCloudServerManager {
-    private val servers = mutableLong2ObjectMapOf<ServerCommonCloudServer>().synchronize()
-    private val serversMutex = Mutex()
+class StandaloneCloudServerManagerImpl : CommonCloudServerManagerImpl<ServerCommonCloudServer>(),
+    ServerCloudServerManager {
+    private val server by lazy { bean<NettyServerImpl>() }
 
-    override suspend fun retrieveServerById(id: Long): ServerCommonCloudServer? =
-        serversMutex.withLock { servers[id] }
 
-    override suspend fun retrieveServerByCategoryAndName(
-        category: String,
-        name: String
-    ) = serversMutex.withLock {
-        servers.values.asSequence()
-            .filter { it.group == category && it.name == name }
-            .minByOrNull { it.currentPlayerCount }
+    suspend fun getCommonStandaloneServerByUid(uid: Long) = retrieveServerById(uid) as? CommonStandaloneServer
+
+    override suspend fun registerServer(cloudServer: ServerCommonCloudServer) {
+        super.registerServer(cloudServer)
+        broadcast(
+            ClientboundRegisterServerPacket(
+                cloudServer.uid,
+                cloudServer is ServerProxyCloudServer,
+                cloudServer.group,
+                cloudServer.name
+            )
+        )
     }
 
-    override suspend fun retrieveServerByName(name: String) = serversMutex.withLock {
-        servers.values.asSequence()
-            .filter { it.name == name }
-            .minByOrNull { it.currentPlayerCount }
+    override suspend fun unregisterServer(uid: Long) {
+        super.unregisterServer(uid)
+        broadcast(ClientboundUnregisterServerPacket(uid))
     }
 
-    override suspend fun retrieveServersByCategory(category: String) = serversMutex.withLock {
-        servers.values.filterTo(mutableObjectListOf()) { it.group == category }
-    }
-
-    suspend fun registerServer(server: ServerCommonCloudServer) = serversMutex.withLock {
-        servers[server.uid] = server
+    private fun broadcast(packet: NettyPacket) {
+        server.connection.broadcast(packet)
     }
 }
 

@@ -53,7 +53,7 @@ deploy_docs_preview:
     - build_docs
 
 deploy_docs_production:
-  stage: deploy_production
+  stage: deploy_docs_production
   only:
     - master
   image: node:16.16.0

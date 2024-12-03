@@ -1,10 +1,8 @@
 package dev.slne.surf.cloud.standalone.server
 
 import dev.slne.surf.cloud.api.common.netty.network.Connection
-import dev.slne.surf.cloud.api.server.server.ServerCommonCloudServer
 import dev.slne.surf.cloud.api.server.server.ServerProxyCloudServer
 import dev.slne.surf.cloud.core.common.server.ProxyCloudServerImpl
-import dev.slne.surf.cloud.standalone.player.StandaloneCloudPlayerImpl
 
 class StandaloneProxyCloudServerImpl(
     uid: Long,

@@ -4,8 +4,8 @@ plugins {
 
 dependencies {
     api(project(":surf-cloud-core:surf-cloud-core-client"))
-    compileOnly("com.velocitypowered:velocity-api:3.3.0-SNAPSHOT")
-//    kapt("com.velocitypowered:velocity-api:3.3.0-SNAPSHOT")
+    compileOnly("com.velocitypowered:velocity-api:3.4.0-SNAPSHOT")
+    kapt("com.velocitypowered:velocity-api:3.4.0-SNAPSHOT")
 
     api("org.springframework.boot:spring-boot-starter-data-jpa")
     api("org.springframework.boot:spring-boot-starter-data-redis")

@@ -15,6 +15,7 @@ import dev.slne.surf.cloud.api.common.netty.protocol.buffer.types.Utf8String
 import dev.slne.surf.cloud.api.common.netty.protocol.buffer.types.VarInt
 import dev.slne.surf.cloud.api.common.netty.protocol.buffer.types.VarLong
 import dev.slne.surf.cloud.api.common.util.codec.ExtraCodecs
+import dev.slne.surf.cloud.api.common.util.createUnresolvedInetSocketAddress
 import dev.slne.surf.cloud.api.common.util.fromJson
 import io.netty.buffer.ByteBuf
 import io.netty.handler.codec.DecoderException
@@ -26,6 +27,7 @@ import net.kyori.adventure.sound.Sound
 import net.kyori.adventure.text.Component
 import okhttp3.internal.and
 import java.io.*
+import java.net.InetSocketAddress
 import java.net.URI
 import java.util.*
 import java.util.function.Consumer
@@ -577,6 +579,14 @@ class SurfByteBuf(source: ByteBuf) : WrappedByteBuf(source) {
         }
 
         fun <B : ByteBuf> readURI(buf: B) = URI(readUtf(buf))
+
+        fun <B : ByteBuf> writeInetSocketAddress(buf: B, address: InetSocketAddress) {
+            writeUtf(buf, address.hostString)
+            buf.writeVarInt(address.port)
+        }
+
+        fun <B : ByteBuf> readInetSocketAddress(buf: B) =
+            createUnresolvedInetSocketAddress(readUtf(buf), buf.readVarInt())
     }
 
 
@@ -742,6 +752,8 @@ class SurfByteBuf(source: ByteBuf) : WrappedByteBuf(source) {
     fun writeWithCount(count: Int, writer: Consumer<SurfByteBuf>) = writeWithCount(this, count, writer)
     fun readWithCount(reader: (SurfByteBuf) -> Unit) = readWithCount(this, reader)
     fun readWithCount(reader: Consumer<SurfByteBuf>) = readWithCount(this, reader)
+    fun writeInetSocketAddress(address: InetSocketAddress) = writeInetSocketAddress(this, address)
+    fun readInetSocketAddress() = readInetSocketAddress(this)
     // @formatter:on
 // endregion
 
@@ -957,6 +969,10 @@ fun <B : ByteBuf> B.readWithCount(reader: Consumer<B>) = Companion.readWithCount
 
 fun <B : ByteBuf> B.readURI() = SurfByteBuf.readURI(this)
 fun <B : ByteBuf> B.writeURI(uri: URI) = SurfByteBuf.writeURI(this, uri)
+
+fun <B : ByteBuf> B.readInetSocketAddress() = SurfByteBuf.readInetSocketAddress(this)
+fun <B : ByteBuf> B.writeInetSocketAddress(address: InetSocketAddress) =
+    SurfByteBuf.writeInetSocketAddress(this, address)
 
 fun ByteBuf.wrap() = SurfByteBuf(this)
 // endregion

@@ -358,6 +358,10 @@ class ConnectionImpl(val receiving: PacketFlow) : SimpleChannelInboundHandler<Ne
                             is ClientboundUpdateServerInformationPacket -> listener.handleUpdateServerInformation(
                                 msg
                             )
+                            is ClientboundIsServerManagedByThisProxyPacket -> listener.handleIsServerManagedByThisProxy(
+                                msg
+                            )
+                            is ClientboundTransferPlayerPacket -> listener.handleTransferPlayer(msg)
 
                             else -> listener.handlePacket(msg)
                         }

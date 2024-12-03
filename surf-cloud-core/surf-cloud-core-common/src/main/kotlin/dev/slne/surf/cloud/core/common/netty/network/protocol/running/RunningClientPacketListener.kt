@@ -62,5 +62,9 @@ interface RunningClientPacketListener: ClientboundPacketListener, TickablePacket
 
     fun handleUpdateServerInformation(packet: ClientboundUpdateServerInformationPacket)
 
+    fun handleIsServerManagedByThisProxy(packet: ClientboundIsServerManagedByThisProxyPacket)
+
+    suspend fun handleTransferPlayer(packet: ClientboundTransferPlayerPacket)
+
     fun handlePacket(packet: NettyPacket)
 }

@@ -8,6 +8,7 @@ import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
 import dev.slne.surf.cloud.api.common.util.logger
 import dev.slne.surf.cloud.core.client.netty.network.ClientHandshakePacketListenerImpl
 import dev.slne.surf.cloud.core.client.netty.network.ClientRunningPacketListenerImpl
+import dev.slne.surf.cloud.core.client.netty.network.PlatformSpecificPacketListenerExtension
 import dev.slne.surf.cloud.core.client.netty.network.StatusUpdate
 import dev.slne.surf.cloud.core.common.config.cloudConfig
 import dev.slne.surf.cloud.core.common.coroutines.NettyConnectionScope
@@ -29,7 +30,7 @@ import kotlinx.coroutines.launch
 import java.net.InetSocketAddress
 import kotlin.time.Duration.Companion.seconds
 
-class ClientNettyClientImpl(val proxy: Boolean) : CommonNettyClientImpl(
+class ClientNettyClientImpl(val proxy: Boolean, val platformExtension: PlatformSpecificPacketListenerExtension) : CommonNettyClientImpl(
     CloudPersistentData.SERVER_ID.value(),
     CloudProperties.SERVER_CATEGORY.value() ?: CloudProperties.SERVER_CATEGORY_NOT_SET,
     CloudProperties.SERVER_NAME.value()
@@ -80,7 +81,7 @@ class ClientNettyClientImpl(val proxy: Boolean) : CommonNettyClientImpl(
                 inetSocketAddress.port,
                 LoginProtocols.SERVERBOUND,
                 LoginProtocols.CLIENTBOUND,
-                ClientHandshakePacketListenerImpl(this, connection, statusUpdate),
+                ClientHandshakePacketListenerImpl(this, connection, platformExtension, statusUpdate),
                 false
             )
             connection.send(ServerboundLoginStartPacket(serverId, serverCategory, serverName, proxy))

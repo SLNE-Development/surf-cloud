@@ -2,7 +2,7 @@ package dev.slne.surf.cloud.api.common.player
 
 import dev.slne.surf.cloud.api.common.player.ppdc.PersistentPlayerDataContainer
 import dev.slne.surf.cloud.api.common.player.ppdc.PersistentPlayerDataContainerView
-import dev.slne.surf.cloud.api.common.server.CommonCloudServer
+import dev.slne.surf.cloud.api.common.server.CloudServer
 import net.kyori.adventure.audience.Audience
 import net.kyori.adventure.text.Component
 import java.util.*
@@ -79,9 +79,9 @@ interface CloudPlayer : Audience {
      * [server] and suspends until the operation completes.
      *
      * @param server The target server to connect to.
-     * @return A [ConnectionResult] indicating the result of the connection attempt.
+     * @return A [ConnectionResultEnum] indicating the result of the connection attempt.
      */
-    suspend fun connectToServer(server: CommonCloudServer): ConnectionResult
+    suspend fun connectToServer(server: CloudServer): ConnectionResult
 
     /**
      * Connects the player to a specified server by group and name.
@@ -91,7 +91,7 @@ interface CloudPlayer : Audience {
      *
      * @param group The server group.
      * @param server The name of the target server.
-     * @return A [ConnectionResult] indicating the result of the connection attempt.
+     * @return A [ConnectionResultEnum] indicating the result of the connection attempt.
      */
     suspend fun connectToServer(group: String, server: String): ConnectionResult
 
@@ -101,7 +101,7 @@ interface CloudPlayer : Audience {
      * Suspends until the connection attempt completes.
      *
      * @param group The server group to connect to.
-     * @return A [ConnectionResult] indicating the result of the connection attempt.
+     * @return A [ConnectionResultEnum] indicating the result of the connection attempt.
      */
     suspend fun connectToServer(group: String): ConnectionResult
 
@@ -114,9 +114,9 @@ interface CloudPlayer : Audience {
      * It does not complete while the player remains in the queue.
      *
      * @param server The target server to connect to.
-     * @return A [ConnectionResult] indicating the result of the connection attempt.
+     * @return A [ConnectionResultEnum] indicating the result of the connection attempt.
      */
-    suspend fun connectToServerOrQueue(server: CommonCloudServer): ConnectionResult
+    suspend fun connectToServerOrQueue(server: CloudServer): ConnectionResult
 
     /**
      * Connects the player to a specified server by group and name or queues the player if the server is unavailable.
@@ -126,7 +126,7 @@ interface CloudPlayer : Audience {
      *
      * @param group The server group.
      * @param server The name of the target server.
-     * @return A [ConnectionResult] indicating the result of the connection attempt.
+     * @return A [ConnectionResultEnum] indicating the result of the connection attempt.
      */
     suspend fun connectToServerOrQueue(group: String, server: String): ConnectionResult
 
@@ -140,7 +140,7 @@ interface CloudPlayer : Audience {
      * It does not complete while the player remains in the queue.
      *
      * @param group The server group to connect to.
-     * @return A [ConnectionResult] indicating the result of the connection attempt.
+     * @return A [ConnectionResultEnum] indicating the result of the connection attempt.
      */
     suspend fun connectToServerOrQueue(group: String): ConnectionResult
 }
@@ -148,7 +148,7 @@ interface CloudPlayer : Audience {
 /**
  * Represents the result of a connection attempt to a server.
  */
-enum class ConnectionResult {
+enum class ConnectionResultEnum {
     /**
      * Indicates that the connection to the server was successful.
      *
@@ -187,5 +187,19 @@ enum class ConnectionResult {
      * @see CloudPlayer.connectToServer
      * @see CloudPlayer.connectToServerOrQueue
      */
-    ALREADY_CONNECTED
+    ALREADY_CONNECTED,
+
+    CANNOT_SWITCH_PROXY,
+
+    OTHER_SERVER_CANNOT_ACCEPT_TRANSFER_PACKET,
+
+    CANNOT_COMMUNICATE_WITH_PROXY,
+    CONNECTION_IN_PROGRESS,
+    CONNECTION_CANCELLED,
+    SERVER_DISCONNECTED,
+
+    CANNOT_CONNECT_TO_PROXY,
+
 }
+
+typealias ConnectionResult = Pair<ConnectionResultEnum, Component?>

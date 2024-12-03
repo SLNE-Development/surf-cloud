@@ -3,11 +3,13 @@ package dev.slne.surf.cloud.velocity
 import com.google.inject.Inject
 import com.velocitypowered.api.event.EventManager
 import com.velocitypowered.api.event.Subscribe
+import com.velocitypowered.api.event.proxy.ListenerBoundEvent
 import com.velocitypowered.api.event.proxy.ProxyInitializeEvent
 import com.velocitypowered.api.event.proxy.ProxyShutdownEvent
 import com.velocitypowered.api.plugin.Plugin
 import com.velocitypowered.api.plugin.PluginManager
 import com.velocitypowered.api.plugin.annotation.DataDirectory
+import com.velocitypowered.api.proxy.Player
 import com.velocitypowered.api.proxy.ProxyServer
 import java.nio.file.Path
 
@@ -44,3 +46,5 @@ class VelocityMain @Inject constructor(
         lateinit var instance: VelocityMain
     }
 }
+
+val proxy get() = VelocityMain.instance.server

@@ -14,6 +14,7 @@ typealias StatusUpdate = (String) -> Unit
 class ClientHandshakePacketListenerImpl(
     val client: ClientNettyClientImpl,
     val connection: ConnectionImpl,
+    val platformExtension: PlatformSpecificPacketListenerExtension,
     val updateStatus: StatusUpdate
 ) : ClientLoginPacketListener {
     private val state = AtomicReference(State.CONNECTING)
@@ -21,7 +22,7 @@ class ClientHandshakePacketListenerImpl(
     override suspend fun handleLoginFinished(packet: ClientboundLoginFinishedPacket) {
         switchState(State.PREPARE_CONNECTION)
 
-        val listener = ClientRunningPacketListenerImpl(connection)
+        val listener = ClientRunningPacketListenerImpl(connection, platformExtension)
         connection.setupInboundProtocol(
             RunningProtocols.CLIENTBOUND,
             listener

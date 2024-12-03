@@ -2,12 +2,15 @@ package dev.slne.surf.cloud.standalone.player
 
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
 import dev.slne.surf.cloud.api.common.player.ConnectionResult
-import dev.slne.surf.cloud.api.common.server.CommonCloudServer
+import dev.slne.surf.cloud.api.common.player.ConnectionResultEnum
+import dev.slne.surf.cloud.api.common.server.CloudServer
 import dev.slne.surf.cloud.api.server.server.ServerCommonCloudServer
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.*
+import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ServerboundTransferPlayerPacketResponse.Status
 import dev.slne.surf.cloud.core.common.player.CommonCloudPlayerImpl
 import dev.slne.surf.cloud.standalone.server.StandaloneCloudServerImpl
 import dev.slne.surf.cloud.standalone.server.StandaloneProxyCloudServerImpl
+import kotlinx.coroutines.withTimeout
 import net.kyori.adventure.audience.MessageType
 import net.kyori.adventure.bossbar.BossBar
 import net.kyori.adventure.identity.Identity
@@ -20,6 +23,7 @@ import net.kyori.adventure.text.Component
 import net.kyori.adventure.title.Title
 import net.kyori.adventure.title.TitlePart
 import java.util.*
+import kotlin.time.Duration
 
 class StandaloneCloudPlayerImpl(uuid: UUID) : CommonCloudPlayerImpl(uuid) {
     @Volatile
@@ -33,15 +37,74 @@ class StandaloneCloudPlayerImpl(uuid: UUID) : CommonCloudPlayerImpl(uuid) {
     private val anyServer: ServerCommonCloudServer
         get() = server ?: proxyServer ?: error("Player is not connected to a server")
 
+    @Volatile
+    private var connecting = false
+
     override suspend fun displayName(): Component = ClientboundRequestDisplayNamePacket(uuid)
         .fireAndAwaitUrgent(anyServer.connection)?.displayName
         ?: error("Failed to get display name (probably timed out)")
 
-    override suspend fun connectToServer(server: CommonCloudServer): ConnectionResult {
-        TODO("Not yet implemented")
+    override suspend fun connectToServer(server: CloudServer): ConnectionResult {
+        check(server is StandaloneCloudServerImpl) { "Server must be a StandaloneCloudServerImpl" }
+
+        if (connecting) {
+            return ConnectionResultEnum.CONNECTION_IN_PROGRESS to null
+        }
+
+        connecting = true
+
+        // is user connected through proxy?
+        // yes
+        //   -> Is new server managed by the same proxy?
+        //      yes
+        //        -> Send connect packet
+        //      no
+        //        -> Return ConnectionResult.CANNOT_SWITCH_PROXY
+        // no
+        //   -> try send transfer packet
+        //   -> if failed, return ConnectionResult.OTHER_SERVER_CANNOT_ACCEPT_TRANSFER_PACKET
+        //   -> if succeeded, return ConnectionResult.SUCCESS
+
+        val proxy = proxyServer
+        if (proxy != null) {
+            return switchServerUnderSameProxy(proxy, server).also { connecting = false }
+        }
+
+        return switchServerUnderNoProxy(server).also { connecting = false }
     }
 
-    override suspend fun connectToServerOrQueue(server: CommonCloudServer): ConnectionResult {
+    private suspend fun switchServerUnderSameProxy(
+        proxy: StandaloneProxyCloudServerImpl,
+        target: StandaloneCloudServerImpl
+    ): ConnectionResult {
+        val underSameProxy =
+            ClientboundIsServerManagedByThisProxyPacket(target.connection.virtualHost)
+                .fireAndAwait(proxy.connection)
+                ?.isManagedByThisProxy
+                ?: return ConnectionResultEnum.CANNOT_COMMUNICATE_WITH_PROXY to null
+
+        if (!underSameProxy) {
+            return ConnectionResultEnum.CANNOT_SWITCH_PROXY to null
+        }
+
+        val response = ClientboundTransferPlayerPacket(uuid, target.connection.virtualHost)
+            .fireAndAwait(target.connection, Duration.INFINITE)
+            ?: error("Failed to send transfer packet")
+
+        return when (response.status) {
+            Status.SUCCESS -> ConnectionResultEnum.SUCCESS
+            Status.ALREADY_CONNECTED -> ConnectionResultEnum.ALREADY_CONNECTED
+            Status.CONNECTION_IN_PROGRESS -> ConnectionResultEnum.CONNECTION_IN_PROGRESS
+            Status.CONNECTION_CANCELLED -> ConnectionResultEnum.CONNECTION_CANCELLED
+            Status.SERVER_DISCONNECTED -> ConnectionResultEnum.SERVER_DISCONNECTED
+        } to response.reasonComponent
+    }
+
+    private suspend fun switchServerUnderNoProxy(target: CloudServer): ConnectionResult {
+        error("NOT SUPPORTED")
+    }
+
+    override suspend fun connectToServerOrQueue(server: CloudServer): ConnectionResult {
         TODO("Not yet implemented")
     }
 

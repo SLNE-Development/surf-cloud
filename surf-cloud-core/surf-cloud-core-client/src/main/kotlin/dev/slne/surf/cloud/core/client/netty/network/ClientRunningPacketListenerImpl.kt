@@ -25,7 +25,10 @@ import net.kyori.adventure.title.TitlePart
 import java.util.*
 import java.util.concurrent.TimeUnit
 
-class ClientRunningPacketListenerImpl(val connection: ConnectionImpl) :
+class ClientRunningPacketListenerImpl(
+    val connection: ConnectionImpl,
+    val platformExtension: PlatformSpecificPacketListenerExtension
+) :
     CommonTickablePacketListener(),
     RunningClientPacketListener {
     private val log = logger()
@@ -190,6 +193,19 @@ class ClientRunningPacketListenerImpl(val connection: ConnectionImpl) :
 
     override fun handleUpdateServerInformation(packet: ClientboundUpdateServerInformationPacket) {
         serverManagerImpl.updateServerInformationNow(packet.serverId, packet.information)
+    }
+
+    override fun handleIsServerManagedByThisProxy(packet: ClientboundIsServerManagedByThisProxyPacket) {
+        val managed = platformExtension.isServerManagedByThisProxy(packet.clientAddress)
+        packet.respond(ServerboundIsServerManagedByThisProxyResponse(managed))
+    }
+
+    override suspend fun handleTransferPlayer(packet: ClientboundTransferPlayerPacket) {
+        val (status, reason) = platformExtension.transferPlayerToServer(
+            packet.playerUuid,
+            packet.address
+        )
+        packet.respond(ServerboundTransferPlayerPacketResponse(status, reason))
     }
 
     override fun handlePacket(packet: NettyPacket) {

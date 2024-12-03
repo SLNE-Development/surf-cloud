@@ -2,8 +2,10 @@ package dev.slne.surf.cloud.core.common.player
 
 import dev.slne.surf.cloud.api.common.player.CloudPlayer
 import dev.slne.surf.cloud.api.common.player.ConnectionResult
+import dev.slne.surf.cloud.api.common.player.ConnectionResultEnum
 import dev.slne.surf.cloud.api.common.player.ppdc.PersistentPlayerDataContainer
 import dev.slne.surf.cloud.api.common.player.ppdc.PersistentPlayerDataContainerView
+import dev.slne.surf.cloud.api.common.server.CloudServer
 import dev.slne.surf.cloud.api.common.server.serverManager
 import java.util.*
 
@@ -19,28 +21,30 @@ abstract class CommonCloudPlayerImpl(override val uuid: UUID) : CloudPlayer {
     override suspend fun connectToServer(
         group: String,
         server: String
-    ) = serverManager.retrieveServerByCategoryAndName(group, server)
+    ): ConnectionResult = serverManager.retrieveServerByCategoryAndName(group, server)
+        ?.let { it as? CloudServer ?: return (ConnectionResultEnum.CANNOT_CONNECT_TO_PROXY to null) }
         ?.let { connectToServer(it) }
-        ?: ConnectionResult.SERVER_NOT_FOUND
+        ?: (ConnectionResultEnum.SERVER_NOT_FOUND to null)
 
-    override suspend fun connectToServer(group: String) =
+    override suspend fun connectToServer(group: String): ConnectionResult =
         serverManager.retrieveServersByCategory(group).asSequence()
+            .filterIsInstance<CloudServer>()
             .filter { it.emptySlots > 0 }
             .minBy { it.currentPlayerCount }
-            ?.let { connectToServer(it) }
-            ?: ConnectionResult.SERVER_NOT_FOUND
+            .let { connectToServer(it) }
 
     override suspend fun connectToServerOrQueue(
         group: String,
         server: String
-    ) = serverManager.retrieveServerByCategoryAndName(group, server)
+    ): ConnectionResult = serverManager.retrieveServerByCategoryAndName(group, server)
+        ?.let { it as? CloudServer ?: return (ConnectionResultEnum.CANNOT_CONNECT_TO_PROXY to null) }
         ?.let { connectToServerOrQueue(it) }
-        ?: ConnectionResult.SERVER_NOT_FOUND
+        ?: (ConnectionResultEnum.SERVER_NOT_FOUND to null)
 
-    override suspend fun connectToServerOrQueue(group: String) =
+    override suspend fun connectToServerOrQueue(group: String): ConnectionResult =
         serverManager.retrieveServersByCategory(group).asSequence()
+            .filterIsInstance<CloudServer>()
             .filter { it.emptySlots > 0 }
             .minBy { it.currentPlayerCount }
-            ?.let { connectToServerOrQueue(it) }
-            ?: ConnectionResult.SERVER_NOT_FOUND
+            .let { connectToServerOrQueue(it) }
 }

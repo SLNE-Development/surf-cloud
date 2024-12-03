@@ -3,8 +3,8 @@ package dev.slne.surf.cloud.core.client.player
 import dev.slne.surf.cloud.api.client.netty.packet.fireAndAwait
 import dev.slne.surf.cloud.api.client.netty.packet.fireAndForget
 import dev.slne.surf.cloud.api.common.netty.packet.DEFAULT_URGENT_TIMEOUT
-import dev.slne.surf.cloud.api.common.player.ConnectionResult
-import dev.slne.surf.cloud.api.common.server.CommonCloudServer
+import dev.slne.surf.cloud.api.common.player.ConnectionResultEnum
+import dev.slne.surf.cloud.api.common.server.CloudServer
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.*
 import dev.slne.surf.cloud.core.common.player.CommonCloudPlayerImpl
 import net.kyori.adventure.audience.Audience
@@ -47,11 +47,11 @@ abstract class ClientCloudPlayerImpl(uuid: UUID) : CommonCloudPlayerImpl(uuid) {
             ?: error("Failed to get display name (probably timed out)")
     }
 
-    override suspend fun connectToServer(server: CommonCloudServer): ConnectionResult {
+    override suspend fun connectToServer(server: CloudServer): ConnectionResultEnum {
         TODO("Not yet implemented")
     }
 
-    override suspend fun connectToServerOrQueue(server: CommonCloudServer): ConnectionResult {
+    override suspend fun connectToServerOrQueue(server: CloudServer): ConnectionResultEnum {
         TODO("Not yet implemented")
     }
 

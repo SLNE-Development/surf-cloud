@@ -45,6 +45,8 @@ interface CommonCloudServer : ForwardingAudience {
     val emptySlots: Int
         get() = maxPlayerCount - currentPlayerCount
 
+    fun hasEmptySlots(): Boolean = emptySlots > 0
+
     /**
      * The current state of the server.
      */

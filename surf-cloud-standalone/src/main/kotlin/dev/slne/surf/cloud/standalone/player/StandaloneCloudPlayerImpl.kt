@@ -10,7 +10,7 @@ import dev.slne.surf.cloud.core.common.netty.network.protocol.running.Serverboun
 import dev.slne.surf.cloud.core.common.player.CommonCloudPlayerImpl
 import dev.slne.surf.cloud.standalone.server.StandaloneCloudServerImpl
 import dev.slne.surf.cloud.standalone.server.StandaloneProxyCloudServerImpl
-import kotlinx.coroutines.withTimeout
+import kotlinx.coroutines.CompletableDeferred
 import net.kyori.adventure.audience.MessageType
 import net.kyori.adventure.bossbar.BossBar
 import net.kyori.adventure.identity.Identity
@@ -39,6 +39,10 @@ class StandaloneCloudPlayerImpl(uuid: UUID) : CommonCloudPlayerImpl(uuid) {
 
     @Volatile
     private var connecting = false
+
+    @Volatile
+    var connectionQueueCallback: CompletableDeferred<ConnectionResult>? = null
+        private set
 
     override suspend fun displayName(): Component = ClientboundRequestDisplayNamePacket(uuid)
         .fireAndAwaitUrgent(anyServer.connection)?.displayName
@@ -100,12 +104,46 @@ class StandaloneCloudPlayerImpl(uuid: UUID) : CommonCloudPlayerImpl(uuid) {
         } to response.reasonComponent
     }
 
-    private suspend fun switchServerUnderNoProxy(target: CloudServer): ConnectionResult {
+    private fun switchServerUnderNoProxy(target: CloudServer): ConnectionResult {
         error("NOT SUPPORTED")
     }
 
     override suspend fun connectToServerOrQueue(server: CloudServer): ConnectionResult {
-        TODO("Not yet implemented")
+        check(server is StandaloneCloudServerImpl) { "Server must be a StandaloneCloudServerImpl" }
+
+        if (connecting) {
+            return ConnectionResultEnum.CONNECTION_IN_PROGRESS to null
+        }
+
+        connecting = true
+        assert(connectionQueueCallback == null) { "Connection queue callback is not null" }
+        connectionQueueCallback = CompletableDeferred<ConnectionResult>()
+
+        val proxy = proxyServer
+        if (proxy != null) {
+            return switchServerOrQueueUnderSameProxy(proxy, server).also { connecting = false }
+        }
+
+        error("NOT SUPPORTED")
+//        return switchServerOrQueueUnderNoProxy(server).also { connecting = false }
+    }
+
+    private suspend fun switchServerOrQueueUnderSameProxy(
+        proxy: StandaloneProxyCloudServerImpl,
+        target: StandaloneCloudServerImpl
+    ): ConnectionResult {
+        val underSameProxy =
+            ClientboundIsServerManagedByThisProxyPacket(target.connection.virtualHost)
+                .fireAndAwait(proxy.connection)
+                ?.isManagedByThisProxy
+                ?: return ConnectionResultEnum.CANNOT_COMMUNICATE_WITH_PROXY to null
+
+        if (!underSameProxy) {
+            return ConnectionResultEnum.CANNOT_SWITCH_PROXY to null
+        }
+
+        target.queue.addPlayerToQueue(this)
+        return connectionQueueCallback!!.await()
     }
 
     @Deprecated("Deprecated in Java")

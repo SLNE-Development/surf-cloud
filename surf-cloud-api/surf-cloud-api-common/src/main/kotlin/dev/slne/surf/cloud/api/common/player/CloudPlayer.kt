@@ -173,6 +173,8 @@ enum class ConnectionResultEnum {
      */
     SERVER_FULL,
 
+    CATEGORY_FULL,
+
     /**
      * Indicates that the specified server is offline and unavailable for connections.
      *

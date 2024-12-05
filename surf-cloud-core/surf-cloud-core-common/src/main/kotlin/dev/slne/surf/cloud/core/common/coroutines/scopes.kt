@@ -35,3 +35,17 @@ object NettyConnectionScope : CoroutineScope {
 
     override val coroutineContext = executor + CoroutineName("netty-connection") + SupervisorJob()
 }
+
+object QueueScope : CoroutineScope {
+    private val executor = Executors.newCachedThreadPool(object : ThreadFactory {
+        val factory = BasicThreadFactory.Builder()
+            .namingPattern("queue-thread-%d")
+            .daemon(false)
+            .build()
+
+        override fun newThread(r: Runnable): Thread = factory.newThread(r)
+
+    }).asCoroutineDispatcher()
+
+    override val coroutineContext = executor + CoroutineName("queue") + SupervisorJob()
+}

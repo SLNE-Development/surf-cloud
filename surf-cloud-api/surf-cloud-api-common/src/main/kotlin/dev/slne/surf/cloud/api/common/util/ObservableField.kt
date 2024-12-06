@@ -2,6 +2,7 @@ package dev.slne.surf.cloud.api.common.util
 
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
+import org.jetbrains.annotations.ApiStatus
 import java.util.concurrent.Executors
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
@@ -68,27 +69,29 @@ class ObservableField<T>(
     fun observe(listener: (T) -> Unit) {
         this.listener.add(listener)
     }
-}
-
-/**
- * A singleton object that provides a shared [CoroutineScope] for [ObservableField] instances.
- * This scope is backed by a cached thread pool and includes exception handling for uncaught exceptions.
- */
-internal object ObservableCoroutineScope : CoroutineScope {
-    private val log = logger()
 
     /**
-     * The [CoroutineDispatcher] used by this scope, backed by a cached thread pool.
+     * A singleton object that provides a shared [CoroutineScope] for [ObservableField] instances.
+     * This scope is backed by a cached thread pool and includes exception handling for uncaught exceptions.
      */
-    val dispatcher = Executors.newCachedThreadPool(threadFactory {
-        nameFormat("observable-field-thread-%d")
-        daemon(false)
-        exceptionHandler { thread, throwable ->
-            log.atSevere()
-                .withCause(throwable)
-                .log("Uncaught exception in observable field thread ${thread.name}")
-        }
-    }).asCoroutineDispatcher()
+    @ApiStatus.Internal
+    object ObservableCoroutineScope : CoroutineScope {
+        private val log = logger()
 
-    override val coroutineContext = dispatcher + CoroutineName("observable-field") + SupervisorJob()
+        /**
+         * The [CoroutineDispatcher] used by this scope, backed by a cached thread pool.
+         */
+        val dispatcher = Executors.newCachedThreadPool(threadFactory {
+            nameFormat("observable-field-thread-%d")
+            daemon(false)
+            exceptionHandler { thread, throwable ->
+                log.atSevere()
+                    .withCause(throwable)
+                    .log("Uncaught exception in observable field thread ${thread.name}")
+            }
+        }).asCoroutineDispatcher()
+
+        override val coroutineContext =
+            dispatcher + CoroutineName("observable-field") + SupervisorJob()
+    }
 }

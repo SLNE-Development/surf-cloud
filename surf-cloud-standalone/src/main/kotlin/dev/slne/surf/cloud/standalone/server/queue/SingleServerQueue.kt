@@ -4,10 +4,10 @@ import dev.slne.surf.cloud.api.common.player.CloudPlayer
 import dev.slne.surf.cloud.api.common.player.ConnectionResultEnum.*
 import dev.slne.surf.cloud.api.common.util.logger
 import dev.slne.surf.cloud.api.common.util.queue.FairPriorityQueue
+import dev.slne.surf.cloud.api.common.util.toObjectList
 import dev.slne.surf.cloud.core.common.coroutines.QueueScope
 import dev.slne.surf.cloud.standalone.player.StandaloneCloudPlayerImpl
 import dev.slne.surf.cloud.standalone.server.StandaloneCloudServerImpl
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -22,14 +22,7 @@ class SingleServerQueue(private val server: StandaloneCloudServerImpl) {
     @Volatile
     private var processing = false
 
-    init {
-        QueueScope.launch {
-            while (true) {
-                delay(50)
-                processQueue()
-            }
-        }
-    }
+    val queueDisplay = ServerQueueDisplay(this)
 
     private suspend fun processQueue() {
         if (processing) return
@@ -79,19 +72,29 @@ class SingleServerQueue(private val server: StandaloneCloudServerImpl) {
             }
         }
 
-//        processQueue() TODO: wait until Simon forked paper
+        QueueScope.launch { processQueue() }
     }
 
-
-    suspend fun handlePlayerLeave(player: CloudPlayer) { // called when a player leaves the server (not the network)
+    /**
+     * Called when a player leaves the network.
+     *
+     * @param player The player that left the network.
+     */
+    suspend fun handlePlayerLeave(player: CloudPlayer) {
         if (player !is StandaloneCloudPlayerImpl) return
 
         mutex.withLock { queue.remove(player) }
-        // processQueue() TODO: wait until Simon forked paper
+        QueueScope.launch { processQueue() }
     }
 
     suspend fun removePlayerFromQueue(player: StandaloneCloudPlayerImpl) {
         mutex.withLock { queue.remove(player) }
-        // processQueue() TODO: wait until Simon forked paper
+        QueueScope.launch { processQueue() }
     }
+
+    fun handleServerUpdate() {
+        QueueScope.launch { processQueue() }
+    }
+
+    suspend fun snapshot() = mutex.withLock { queue.toObjectList() }
 }

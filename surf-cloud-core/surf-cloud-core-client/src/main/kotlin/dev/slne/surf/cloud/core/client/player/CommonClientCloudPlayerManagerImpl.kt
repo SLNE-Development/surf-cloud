@@ -1,41 +1,49 @@
 package dev.slne.surf.cloud.core.client.player
 
-import dev.slne.surf.cloud.api.common.player.CloudPlayer
-import dev.slne.surf.cloud.api.common.player.CloudPlayerManager
 import dev.slne.surf.cloud.core.common.player.CloudPlayerManagerImpl
 import dev.slne.surf.cloud.core.common.player.playerManagerImpl
 import net.kyori.adventure.audience.Audience
-import java.util.UUID
+import java.util.*
 
-abstract class CommonClientCloudPlayerManagerImpl : CloudPlayerManagerImpl() {
+abstract class CommonClientCloudPlayerManagerImpl<P : ClientCloudPlayerImpl> :
+    CloudPlayerManagerImpl<P>() {
     override suspend fun updateProxyServer(
-        player: CloudPlayer,
+        player: P,
         serverUid: Long
     ) {
-        (player as ClientCloudPlayerImpl).proxyServerUid = serverUid
+        player.proxyServerUid = serverUid
     }
 
     override suspend fun updateServer(
-        player: CloudPlayer,
+        player: P,
         serverUid: Long
     ) {
-        (player as ClientCloudPlayerImpl).serverUid = serverUid
+        player.serverUid = serverUid
     }
 
     override suspend fun removeProxyServer(
-        player: CloudPlayer,
+        player: P,
         serverUid: Long
     ) {
-        (player as ClientCloudPlayerImpl).proxyServerUid = null
+        player.proxyServerUid = null
     }
 
     override suspend fun removeServer(
-        player: CloudPlayer,
+        player: P,
         serverUid: Long
     ) {
-        (player as ClientCloudPlayerImpl).serverUid = null
+        player.serverUid = null
+    }
+
+    override fun getProxyServerUid(player: P): Long? {
+        return player.proxyServerUid
+    }
+
+    override fun getServerUid(player: P): Long? {
+        return player.serverUid
     }
 
     abstract fun getAudience(uuid: UUID): Audience?
 }
+
 val commonPlayerManagerImpl get() = playerManagerImpl as CommonClientCloudPlayerManagerImpl

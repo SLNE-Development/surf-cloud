@@ -25,6 +25,9 @@ configurations {
     all {
         exclude(group = "ch.qos.logback", module = "logback-classic")
     }
+    runtimeClasspath {
+        exclude(group = "org.reactivestreams", module = "reactive-streams")
+    }
 }
 
 tasks {

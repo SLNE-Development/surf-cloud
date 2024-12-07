@@ -1,28 +1,30 @@
 package dev.slne.surf.cloud.core.common.player
 
-import dev.slne.surf.cloud.api.common.player.CloudPlayer
 import dev.slne.surf.cloud.api.common.player.CloudPlayerManager
 import dev.slne.surf.cloud.api.common.util.mutableObject2ObjectMapOf
 import dev.slne.surf.cloud.api.common.util.synchronize
-import dev.slne.surf.cloud.core.common.util.checkInstantiationByServiceLoader
+import org.jetbrains.annotations.ApiStatus
 import java.util.*
 
-abstract class CloudPlayerManagerImpl : CloudPlayerManager {
-    private val players = mutableObject2ObjectMapOf<UUID, CloudPlayer>().synchronize()
+abstract class CloudPlayerManagerImpl<P : CommonCloudPlayerImpl> : CloudPlayerManager {
+    private val players = mutableObject2ObjectMapOf<UUID, P>().synchronize()
 
-    override fun getPlayer(uuid: UUID?): CloudPlayer? {
+    override fun getPlayer(uuid: UUID?): P? {
         return players[uuid]
     }
 
-    abstract suspend fun createPlayer(uuid: UUID, serverUid: Long, proxy: Boolean): CloudPlayer
+    abstract suspend fun createPlayer(uuid: UUID, serverUid: Long, proxy: Boolean): P
 
-    abstract suspend fun updateProxyServer(player: CloudPlayer, serverUid: Long)
-    abstract suspend fun updateServer(player: CloudPlayer, serverUid: Long)
+    abstract suspend fun updateProxyServer(player: P, serverUid: Long)
+    abstract suspend fun updateServer(player: P, serverUid: Long)
 
-    abstract suspend fun removeProxyServer(player: CloudPlayer, serverUid: Long)
-    abstract suspend fun removeServer(player: CloudPlayer, serverUid: Long)
+    abstract suspend fun removeProxyServer(player: P, serverUid: Long)
+    abstract suspend fun removeServer(player: P, serverUid: Long)
 
-    private fun addPlayer(player: CloudPlayer) {
+    abstract fun getProxyServerUid(player: P): Long?
+    abstract fun getServerUid(player: P): Long?
+
+    private fun addPlayer(player: P) {
         players[player.uuid] = player
     }
 
@@ -39,13 +41,17 @@ abstract class CloudPlayerManagerImpl : CloudPlayerManager {
 
         if (proxy) {
             if (player == null) {
-                addPlayer(createPlayer(uuid, serverUid, true))
+                val createPlayer = createPlayer(uuid, serverUid, true)
+                addPlayer(createPlayer)
+                onConnect(uuid, createPlayer)
             } else {
                 updateProxyServer(player, serverUid)
             }
         } else {
             if (player == null) {
-                addPlayer(createPlayer(uuid, serverUid, false))
+                val createPlayer = createPlayer(uuid, serverUid, false)
+                addPlayer(createPlayer)
+                onConnect(uuid, createPlayer)
             } else {
                 updateServer(player, serverUid)
             }
@@ -62,17 +68,35 @@ abstract class CloudPlayerManagerImpl : CloudPlayerManager {
      */
     suspend fun updateOrRemoveOnDisconnect(uuid: UUID, serverUid: Long, proxy: Boolean) {
         val player = players[uuid] ?: return
+        val oldProxy = getProxyServerUid(player)
+        val oldServer = getServerUid(player)
 
         if (proxy) {
             removeProxyServer(player, serverUid)
         } else {
             removeServer(player, serverUid)
         }
+        onServerDisconnect(uuid, player, serverUid)
 
         if (!player.connected) {
             players.remove(uuid)
+            onNetworkDisconnect(uuid, player, oldProxy, oldServer)
         }
+    }
+
+    @ApiStatus.OverrideOnly
+    open suspend fun onServerDisconnect(uuid: UUID, player: P, serverUid: Long) {
+        // May be overridden
+    }
+
+    open suspend fun onNetworkDisconnect(uuid: UUID, player: P, oldProxy: Long?, oldServer: Long?) {
+        // May be overridden
+    }
+
+    @ApiStatus.OverrideOnly
+    open suspend fun onConnect(uuid: UUID, player: P) {
+        // May be overridden
     }
 }
 
-val playerManagerImpl get() = CloudPlayerManager.instance as CloudPlayerManagerImpl
+val playerManagerImpl get() = CloudPlayerManager.instance as CloudPlayerManagerImpl<*>

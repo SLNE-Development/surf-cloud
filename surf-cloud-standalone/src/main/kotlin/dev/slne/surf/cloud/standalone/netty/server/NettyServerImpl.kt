@@ -4,6 +4,7 @@ import dev.slne.surf.cloud.api.common.util.logger
 import dev.slne.surf.cloud.api.common.util.mutableObjectListOf
 import dev.slne.surf.cloud.api.common.util.synchronize
 import dev.slne.surf.cloud.core.common.config.cloudConfig
+import dev.slne.surf.cloud.core.common.coroutines.NettyTickScope
 import dev.slne.surf.cloud.standalone.netty.server.connection.ServerConnectionListener
 import dev.slne.surf.cloud.standalone.server.CommonStandaloneServerImpl
 import dev.slne.surf.cloud.standalone.server.StandaloneCloudServerImpl
@@ -14,6 +15,8 @@ import io.netty.channel.unix.DomainSocketAddress
 import jakarta.annotation.PostConstruct
 import jakarta.annotation.PreDestroy
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -25,6 +28,7 @@ import java.net.InetAddress
 import java.net.InetSocketAddress
 import java.net.SocketAddress
 import java.util.concurrent.TimeUnit
+import kotlin.time.Duration.Companion.seconds
 
 @Component
 @Profile("independent")
@@ -44,6 +48,13 @@ class NettyServerImpl {
         runBlocking {
             initServer()
             finalizeServer()
+
+            NettyTickScope.launch {
+                while (true) {
+                    delay(1.seconds)
+                    tick()
+                }
+            }
         }
     }
 
@@ -101,7 +112,7 @@ class NettyServerImpl {
     }
 
 
-    @Scheduled(fixedRate = 1, timeUnit = TimeUnit.SECONDS)
+//    @Scheduled(fixedRate = 1, timeUnit = TimeUnit.SECONDS)
     suspend fun tick() {
         connection.connections.forEach { it.tick() }
         connection.tick()

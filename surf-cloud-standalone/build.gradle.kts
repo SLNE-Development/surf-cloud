@@ -14,6 +14,8 @@ dependencies {
     api("org.springframework.boot:spring-boot-starter-data-redis")
 //    api("org.springframework.shell:spring-shell-starter")
     api("dev.slne.surf:surf-api-standalone:1.21+")
+    api("org.reactivestreams:reactive-streams:1.0.4")
+    api("io.lettuce:lettuce-core")
 }
 
 //dependencyManagement {

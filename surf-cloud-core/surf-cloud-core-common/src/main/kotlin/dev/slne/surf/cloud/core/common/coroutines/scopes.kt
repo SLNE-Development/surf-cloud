@@ -1,5 +1,7 @@
 package dev.slne.surf.cloud.core.common.coroutines
 
+import dev.slne.surf.cloud.api.common.util.logger
+import dev.slne.surf.cloud.api.common.util.threadFactory
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
@@ -36,6 +38,22 @@ object NettyConnectionScope : CoroutineScope {
     override val coroutineContext = executor + CoroutineName("netty-connection") + SupervisorJob()
 }
 
+object NettyTickScope : CoroutineScope {
+    private val log = logger()
+    private val executor = Executors.newCachedThreadPool(threadFactory {
+        nameFormat("netty-tick-thread-%d")
+        daemon(false)
+        uncaughtExceptionHandler { thread, throwable ->
+            log.atSevere()
+                .withCause(throwable)
+                .log("Uncaught exception in tick thread %s", thread.name)
+        }
+    })
+
+    override val coroutineContext =
+        executor.asCoroutineDispatcher() + CoroutineName("netty-tick") + SupervisorJob()
+}
+
 object QueueScope : CoroutineScope {
     private val executor = Executors.newCachedThreadPool(object : ThreadFactory {
         val factory = BasicThreadFactory.Builder()
@@ -48,4 +66,13 @@ object QueueScope : CoroutineScope {
     }).asCoroutineDispatcher()
 
     override val coroutineContext = executor + CoroutineName("queue") + SupervisorJob()
+}
+
+object QueueDisplayScope : CoroutineScope {
+    private val executor = Executors.newSingleThreadExecutor(threadFactory {
+        nameFormat("queue-display-thread-%d")
+        daemon(false)
+    }).asCoroutineDispatcher()
+
+    override val coroutineContext = executor + CoroutineName("queue-display") + SupervisorJob()
 }

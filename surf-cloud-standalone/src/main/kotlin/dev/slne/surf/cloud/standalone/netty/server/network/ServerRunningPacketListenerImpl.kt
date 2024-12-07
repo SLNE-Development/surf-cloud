@@ -16,6 +16,7 @@ import dev.slne.surf.cloud.standalone.netty.server.NettyServerImpl
 import dev.slne.surf.cloud.standalone.netty.server.ServerClientImpl
 import dev.slne.surf.cloud.standalone.server.StandaloneCloudServerImpl
 import dev.slne.surf.cloud.standalone.server.StandaloneProxyCloudServerImpl
+import dev.slne.surf.cloud.standalone.server.asStandaloneServer
 import dev.slne.surf.cloud.standalone.server.serverManagerImpl
 import kotlinx.coroutines.launch
 import net.kyori.adventure.text.Component
@@ -225,6 +226,7 @@ class ServerRunningPacketListenerImpl(
             server.information = packet.information
         } else if (server is StandaloneCloudServerImpl) {
             server.information = packet.information
+            server.queue.handleServerUpdate()
         }
 
         broadcast(ClientboundUpdateServerInformationPacket(packet.serverId, packet.information))

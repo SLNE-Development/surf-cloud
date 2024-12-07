@@ -65,9 +65,6 @@ configurations {
     compileOnly {
         extendsFrom(configurations.annotationProcessor.get())
     }
-    runtimeClasspath {
-        exclude(group = "org.reactivestreams", module = "reactive-streams")
-    }
 }
 
 tasks {

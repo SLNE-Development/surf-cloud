@@ -44,6 +44,10 @@ class StandaloneCloudPlayerImpl(uuid: UUID) : CommonCloudPlayerImpl(uuid) {
     var connectionQueueCallback: CompletableDeferred<ConnectionResult>? = null
         private set
 
+    @Volatile
+    var connectingToServer: StandaloneCloudServerImpl? = null
+        private set
+
     override suspend fun displayName(): Component = ClientboundRequestDisplayNamePacket(uuid)
         .fireAndAwaitUrgent(anyServer.connection)?.displayName
         ?: error("Failed to get display name (probably timed out)")
@@ -71,10 +75,14 @@ class StandaloneCloudPlayerImpl(uuid: UUID) : CommonCloudPlayerImpl(uuid) {
 
         val proxy = proxyServer
         if (proxy != null) {
-            return switchServerUnderSameProxy(proxy, server).also { connecting = false }
+            connectingToServer = server
+            return switchServerUnderSameProxy(proxy, server).also {
+                connecting = false; connectingToServer = null
+            }
         }
 
-        return switchServerUnderNoProxy(server).also { connecting = false }
+        error("NOT SUPPORTED")
+//        return switchServerUnderNoProxy(server).also { connecting = false }
     }
 
     private suspend fun switchServerUnderSameProxy(
@@ -102,10 +110,6 @@ class StandaloneCloudPlayerImpl(uuid: UUID) : CommonCloudPlayerImpl(uuid) {
             Status.CONNECTION_CANCELLED -> ConnectionResultEnum.CONNECTION_CANCELLED
             Status.SERVER_DISCONNECTED -> ConnectionResultEnum.SERVER_DISCONNECTED
         } to response.reasonComponent
-    }
-
-    private fun switchServerUnderNoProxy(target: CloudServer): ConnectionResult {
-        error("NOT SUPPORTED")
     }
 
     override suspend fun connectToServerOrQueue(server: CloudServer): ConnectionResult {

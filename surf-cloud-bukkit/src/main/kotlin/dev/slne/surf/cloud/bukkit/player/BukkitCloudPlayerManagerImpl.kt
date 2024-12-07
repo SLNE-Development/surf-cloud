@@ -9,7 +9,7 @@ import org.bukkit.Bukkit
 import java.util.*
 
 @AutoService(CloudPlayerManager::class)
-class BukkitCloudPlayerManagerImpl : CommonClientCloudPlayerManagerImpl() {
+class BukkitCloudPlayerManagerImpl : CommonClientCloudPlayerManagerImpl<BukkitClientCloudPlayerImpl>() {
     init {
         checkInstantiationByServiceLoader()
     }

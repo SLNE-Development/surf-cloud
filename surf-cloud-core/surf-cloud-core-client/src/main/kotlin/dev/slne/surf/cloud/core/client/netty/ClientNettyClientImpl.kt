@@ -30,7 +30,10 @@ import kotlinx.coroutines.launch
 import java.net.InetSocketAddress
 import kotlin.time.Duration.Companion.seconds
 
-class ClientNettyClientImpl(val proxy: Boolean, val platformExtension: PlatformSpecificPacketListenerExtension) : CommonNettyClientImpl(
+class ClientNettyClientImpl(
+    val proxy: Boolean,
+    val platformExtension: PlatformSpecificPacketListenerExtension
+) : CommonNettyClientImpl(
     CloudPersistentData.SERVER_ID.value(),
     CloudProperties.SERVER_CATEGORY.value() ?: CloudProperties.SERVER_CATEGORY_NOT_SET,
     CloudProperties.SERVER_NAME.value()
@@ -81,10 +84,22 @@ class ClientNettyClientImpl(val proxy: Boolean, val platformExtension: PlatformS
                 inetSocketAddress.port,
                 LoginProtocols.SERVERBOUND,
                 LoginProtocols.CLIENTBOUND,
-                ClientHandshakePacketListenerImpl(this, connection, platformExtension, statusUpdate),
+                ClientHandshakePacketListenerImpl(
+                    this,
+                    connection,
+                    platformExtension,
+                    statusUpdate
+                ),
                 false
             )
-            connection.send(ServerboundLoginStartPacket(serverId, serverCategory, serverName, proxy))
+            connection.send(
+                ServerboundLoginStartPacket(
+                    serverId,
+                    serverCategory,
+                    serverName,
+                    proxy
+                )
+            )
         } catch (e: Exception) {
             val cause = e.cause as? Exception ?: e
 
@@ -138,6 +153,7 @@ class ClientNettyClientImpl(val proxy: Boolean, val platformExtension: PlatformS
                 connection.sendWithIndication(ServerboundInitializeRequestIdPacket)
                 internalServerId = responseId.await()
                 CloudPersistentData.SERVER_ID.setValue(internalServerId)
+                connection.disconnect("Server ID fetched")
             } catch (e: Throwable) {
                 throw FatalSurfError {
                     simpleErrorMessage("Couldn't fetch server ID")

@@ -3,8 +3,8 @@ package dev.slne.surf.cloud.standalone.netty.server.network
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
 import dev.slne.surf.cloud.api.common.player.CloudPlayer
 import dev.slne.surf.cloud.api.common.util.logger
-import dev.slne.surf.cloud.core.common.coroutines.NettyConnectionScope
-import dev.slne.surf.cloud.core.common.coroutines.NettyListenerScope
+import dev.slne.surf.cloud.core.common.coroutines.ConnectionManagementScope
+import dev.slne.surf.cloud.core.common.coroutines.PacketHandlerScope
 import dev.slne.surf.cloud.core.common.netty.network.CommonTickablePacketListener
 import dev.slne.surf.cloud.core.common.netty.network.ConnectionImpl
 import dev.slne.surf.cloud.core.common.netty.network.DisconnectionDetails
@@ -16,7 +16,6 @@ import dev.slne.surf.cloud.standalone.netty.server.NettyServerImpl
 import dev.slne.surf.cloud.standalone.netty.server.ServerClientImpl
 import dev.slne.surf.cloud.standalone.server.StandaloneCloudServerImpl
 import dev.slne.surf.cloud.standalone.server.StandaloneProxyCloudServerImpl
-import dev.slne.surf.cloud.standalone.server.asStandaloneServer
 import dev.slne.surf.cloud.standalone.server.serverManagerImpl
 import kotlinx.coroutines.launch
 import net.kyori.adventure.text.Component
@@ -63,7 +62,7 @@ class ServerRunningPacketListenerImpl(
             return
         }
 
-        NettyConnectionScope.launch {
+        ConnectionManagementScope.launch {
             for (subPacket in packet.subPackets) {
                 connection.handlePacket(subPacket)
             }
@@ -243,7 +242,7 @@ class ServerRunningPacketListenerImpl(
         val info = NettyPacketInfo(this, proxiedSource)
 
         for (listener in listeners) {
-            NettyListenerScope.launch {
+            PacketHandlerScope.launch {
                 try {
                     listener.handle(finalPacket, info)
                 } catch (e: Exception) {
@@ -341,7 +340,7 @@ class ServerRunningPacketListenerImpl(
     suspend fun disconnect(details: DisconnectionDetails) {
         if (processedDisconnect) return
 
-        NettyConnectionScope.launch {
+        ConnectionManagementScope.launch {
             connection.sendWithIndication(ClientboundDisconnectPacket(details))
             connection.disconnect(details)
         }

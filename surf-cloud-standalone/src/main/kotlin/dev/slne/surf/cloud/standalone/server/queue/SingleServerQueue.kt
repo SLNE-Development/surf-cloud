@@ -5,7 +5,7 @@ import dev.slne.surf.cloud.api.common.player.ConnectionResultEnum.*
 import dev.slne.surf.cloud.api.common.util.logger
 import dev.slne.surf.cloud.api.common.util.queue.FairPriorityQueue
 import dev.slne.surf.cloud.api.common.util.toObjectList
-import dev.slne.surf.cloud.core.common.coroutines.QueueScope
+import dev.slne.surf.cloud.core.common.coroutines.QueueProcessingScope
 import dev.slne.surf.cloud.standalone.player.StandaloneCloudPlayerImpl
 import dev.slne.surf.cloud.standalone.server.StandaloneCloudServerImpl
 import kotlinx.coroutines.launch
@@ -33,7 +33,7 @@ class SingleServerQueue(private val server: StandaloneCloudServerImpl) {
                 if (queue.isEmpty() || !server.hasEmptySlots()) return
                 queue.poll()
             } ?: break // No more players to process at the moment
-            val rawResult = player.connectToServer(server)
+            val rawResult = player.connectToServer(server) // suspend
             val (result, message) = rawResult
 
             runCatching {
@@ -72,7 +72,7 @@ class SingleServerQueue(private val server: StandaloneCloudServerImpl) {
             }
         }
 
-        QueueScope.launch { processQueue() }
+        QueueProcessingScope.launch { processQueue() }
     }
 
     /**
@@ -84,16 +84,24 @@ class SingleServerQueue(private val server: StandaloneCloudServerImpl) {
         if (player !is StandaloneCloudPlayerImpl) return
 
         mutex.withLock { queue.remove(player) }
-        QueueScope.launch { processQueue() }
+        QueueProcessingScope.launch { processQueue() }
     }
 
+    /**
+     * Removes a player from the queue.
+     *
+     * @param player The player to remove from the queue.
+     */
     suspend fun removePlayerFromQueue(player: StandaloneCloudPlayerImpl) {
         mutex.withLock { queue.remove(player) }
-        QueueScope.launch { processQueue() }
+        QueueProcessingScope.launch { processQueue() }
     }
 
+    /**
+     * Called when the server information is updated. E.g., the maximum player count changes.
+     */
     fun handleServerUpdate() {
-        QueueScope.launch { processQueue() }
+        QueueProcessingScope.launch { processQueue() }
     }
 
     suspend fun snapshot() = mutex.withLock { queue.toObjectList() }

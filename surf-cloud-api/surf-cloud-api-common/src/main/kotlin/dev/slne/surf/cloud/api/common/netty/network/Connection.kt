@@ -30,16 +30,4 @@ interface Connection {
     )
 
     fun getLoggableAddress(): String
-
-    // region Java bridges
-    fun sendWithIndicationJava(packet: NettyPacket) = sendWithIndicationJava(packet, true)
-    fun sendWithIndicationJava(packet: NettyPacket, flush: Boolean) =
-        sendWithIndicationJava(packet, flush, true)
-
-    fun sendWithIndicationJava(
-        packet: NettyPacket,
-        flush: Boolean,
-        convertExceptions: Boolean
-    ): CompletableFuture<Boolean>
-    // endregion
 }

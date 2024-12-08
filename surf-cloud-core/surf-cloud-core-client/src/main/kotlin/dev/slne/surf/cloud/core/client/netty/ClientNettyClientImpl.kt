@@ -11,7 +11,7 @@ import dev.slne.surf.cloud.core.client.netty.network.ClientRunningPacketListener
 import dev.slne.surf.cloud.core.client.netty.network.PlatformSpecificPacketListenerExtension
 import dev.slne.surf.cloud.core.client.netty.network.StatusUpdate
 import dev.slne.surf.cloud.core.common.config.cloudConfig
-import dev.slne.surf.cloud.core.common.coroutines.NettyConnectionScope
+import dev.slne.surf.cloud.core.common.coroutines.ConnectionTickScope
 import dev.slne.surf.cloud.core.common.data.CloudPersistentData
 import dev.slne.surf.cloud.core.common.netty.CommonNettyClientImpl
 import dev.slne.surf.cloud.core.common.netty.network.ConnectionImpl
@@ -35,8 +35,8 @@ class ClientNettyClientImpl(
     val platformExtension: PlatformSpecificPacketListenerExtension
 ) : CommonNettyClientImpl(
     CloudPersistentData.SERVER_ID.value(),
-    CloudProperties.SERVER_CATEGORY.value() ?: CloudProperties.SERVER_CATEGORY_NOT_SET,
-    CloudProperties.SERVER_NAME.value()
+    CloudProperties.SERVER_CATEGORY,
+    CloudProperties.SERVER_NAME
 ) {
     private val log = logger()
 
@@ -135,7 +135,7 @@ class ClientNettyClientImpl(
                 }
             }
 
-            NettyConnectionScope.launch {
+            ConnectionTickScope.launch {
                 while (connection.connected) {
                     connection.tick()
                     delay(1.seconds)

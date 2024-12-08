@@ -4,7 +4,7 @@ import dev.slne.surf.cloud.api.common.netty.network.protocol.PacketFlow
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
 import dev.slne.surf.cloud.api.common.util.*
 import dev.slne.surf.cloud.core.common.config.cloudConfig
-import dev.slne.surf.cloud.core.common.coroutines.NettyConnectionScope
+import dev.slne.surf.cloud.core.common.coroutines.ConnectionManagementScope
 import dev.slne.surf.cloud.core.common.netty.network.ConnectionImpl
 import dev.slne.surf.cloud.core.common.netty.network.DisconnectionDetails
 import dev.slne.surf.cloud.core.common.netty.network.HandlerNames
@@ -32,7 +32,6 @@ import java.net.InetAddress
 import java.net.InetSocketAddress
 import java.net.SocketAddress
 import java.util.concurrent.ConcurrentLinkedQueue
-import kotlin.concurrent.Volatile
 
 class ServerConnectionListener(val server: NettyServerImpl) {
 
@@ -169,7 +168,7 @@ class ServerConnectionListener(val server: NettyServerImpl) {
                             .withCause(e)
                             .log("Failed to handle packet for ${connection.getLoggableAddress(logIps)}")
 
-                        NettyConnectionScope.launch {
+                        ConnectionManagementScope.launch {
                             val details = DisconnectionDetails("Internal server error")
                             connection.sendWithIndication(ClientboundDisconnectPacket(details))
                             connection.disconnect(details)

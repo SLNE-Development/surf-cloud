@@ -4,9 +4,8 @@ import dev.slne.surf.cloud.api.common.util.logger
 import dev.slne.surf.cloud.api.common.util.mutableObjectListOf
 import dev.slne.surf.cloud.api.common.util.synchronize
 import dev.slne.surf.cloud.core.common.config.cloudConfig
-import dev.slne.surf.cloud.core.common.coroutines.NettyTickScope
+import dev.slne.surf.cloud.core.common.coroutines.ConnectionTickScope
 import dev.slne.surf.cloud.standalone.netty.server.connection.ServerConnectionListener
-import dev.slne.surf.cloud.standalone.server.CommonStandaloneServerImpl
 import dev.slne.surf.cloud.standalone.server.StandaloneCloudServerImpl
 import dev.slne.surf.cloud.standalone.server.StandaloneProxyCloudServerImpl
 import dev.slne.surf.cloud.standalone.server.serverManagerImpl
@@ -22,12 +21,10 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import org.springframework.context.annotation.Profile
-import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 import java.net.InetAddress
 import java.net.InetSocketAddress
 import java.net.SocketAddress
-import java.util.concurrent.TimeUnit
 import kotlin.time.Duration.Companion.seconds
 
 @Component
@@ -49,7 +46,7 @@ class NettyServerImpl {
             initServer()
             finalizeServer()
 
-            NettyTickScope.launch {
+            ConnectionTickScope.launch {
                 while (true) {
                     delay(1.seconds)
                     tick()

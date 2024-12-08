@@ -5,8 +5,8 @@ import dev.slne.surf.cloud.api.common.server.UserListImpl
 import dev.slne.surf.cloud.api.common.util.logger
 import dev.slne.surf.cloud.core.client.player.commonPlayerManagerImpl
 import dev.slne.surf.cloud.core.client.server.serverManagerImpl
-import dev.slne.surf.cloud.core.common.coroutines.NettyConnectionScope
-import dev.slne.surf.cloud.core.common.coroutines.NettyListenerScope
+import dev.slne.surf.cloud.core.common.coroutines.ConnectionManagementScope
+import dev.slne.surf.cloud.core.common.coroutines.PacketHandlerScope
 import dev.slne.surf.cloud.core.common.netty.network.CommonTickablePacketListener
 import dev.slne.surf.cloud.core.common.netty.network.ConnectionImpl
 import dev.slne.surf.cloud.core.common.netty.network.DisconnectionDetails
@@ -38,7 +38,7 @@ class ClientRunningPacketListenerImpl(
     }
 
     override fun handleBundlePacket(packet: ClientboundBundlePacket) {
-        NettyConnectionScope.launch {
+        ConnectionManagementScope.launch {
             for (subPacket in packet.subPackets) {
                 connection.handlePacket(subPacket)
             }
@@ -219,7 +219,7 @@ class ClientRunningPacketListenerImpl(
         val info = NettyPacketInfo(this, proxiedSource)
 
         for (listener in listeners) {
-            NettyListenerScope.launch {
+            PacketHandlerScope.launch {
                 try {
                     listener.handle(finalPacket, info)
                 } catch (e: Exception) {

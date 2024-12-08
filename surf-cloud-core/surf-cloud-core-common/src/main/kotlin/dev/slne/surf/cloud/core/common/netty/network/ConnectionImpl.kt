@@ -7,8 +7,8 @@ import dev.slne.surf.cloud.api.common.netty.network.protocol.PacketFlow
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
 import dev.slne.surf.cloud.api.common.util.*
 import dev.slne.surf.cloud.core.common.config.cloudConfig
-import dev.slne.surf.cloud.core.common.coroutines.NettyConnectionScope
-import dev.slne.surf.cloud.core.common.coroutines.NettyListenerScope
+import dev.slne.surf.cloud.core.common.coroutines.ConnectionManagementScope
+import dev.slne.surf.cloud.core.common.coroutines.PacketHandlerScope
 import dev.slne.surf.cloud.core.common.netty.network.protocol.handshake.ClientIntent
 import dev.slne.surf.cloud.core.common.netty.network.protocol.handshake.HandshakeProtocols
 import dev.slne.surf.cloud.core.common.netty.network.protocol.handshake.ServerHandshakePacketListener
@@ -30,8 +30,8 @@ import io.netty.handler.timeout.ReadTimeoutHandler
 import io.netty.handler.timeout.TimeoutException
 import io.netty.util.AttributeKey
 import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.future.future
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.net.InetSocketAddress
 import java.net.SocketAddress
 import java.nio.channels.ClosedChannelException
@@ -159,7 +159,7 @@ class ConnectionImpl(val receiving: PacketFlow) : SimpleChannelInboundHandler<Ne
                                 disconnectionDetails
                             ) else ClientboundDisconnectPacket(disconnectionDetails)
 
-                            NettyConnectionScope.launch {
+                            ConnectionManagementScope.launch {
                                 sendWithIndication(packet)
                                 disconnect(disconnectionDetails)
                             }
@@ -186,14 +186,14 @@ class ConnectionImpl(val receiving: PacketFlow) : SimpleChannelInboundHandler<Ne
         if (stopReadingPackets) return
 
         this.receivedPackets++
-        NettyListenerScope.launch {
+        PacketHandlerScope.launch {
             runCatching { handlePacket(msg) }
                 .onFailure { exceptionCaught(ctx, it) }
         }
     }
 
-    suspend fun handlePacket(msg: NettyPacket) {
-        val listener = _packetListener ?: return
+    suspend fun handlePacket(msg: NettyPacket) = withContext(PacketHandlerScope.coroutineContext) {
+        val listener = _packetListener ?: return@withContext
 
         when (listener) {
             is ServerboundPacketListener -> {
@@ -522,12 +522,6 @@ class ConnectionImpl(val receiving: PacketFlow) : SimpleChannelInboundHandler<Ne
         internalSend(packet, flush, deferred)
     }
 
-    override fun sendWithIndicationJava(
-        packet: NettyPacket,
-        flush: Boolean,
-        convertExceptions: Boolean
-    ) = NettyConnectionScope.future { sendWithIndication(packet, flush, convertExceptions) }
-
     private fun internalSend(
         packet: NettyPacket,
         flush: Boolean = true,
@@ -636,7 +630,7 @@ class ConnectionImpl(val receiving: PacketFlow) : SimpleChannelInboundHandler<Ne
         } else {
             val deferred = CompletableDeferred<Unit>()
             pendingActions.add(WrappedConsumer {
-                NettyConnectionScope.launch {
+                ConnectionManagementScope.launch {
                     deferred.complete(block(it))
                 }
             })

@@ -38,6 +38,7 @@ fun <T> ObjectArrayList<T>.freeze(): @UnmodifiableView ObjectList<T> =
 fun <T> Sequence<T>.toMutableObjectList() = ObjectArrayList<T>().apply { addAll(toList()) }
 fun <T> Sequence<T>.toObjectList() = toMutableObjectList().freeze()
 fun <T> Collection<T>.toObjectList() = this as? ObjectList<T> ?: ObjectArrayList<T>(this).freeze()
+fun <T> Iterable<T>.toObjectList() = this as? ObjectList<T> ?: ObjectArrayList<T>(iterator()).freeze()
 // endregion
 
 // region ObjectMap

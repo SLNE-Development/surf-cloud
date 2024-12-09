@@ -3,7 +3,7 @@ package dev.slne.surf.cloud.standalone.server.queue
 import dev.slne.surf.cloud.api.common.player.CloudPlayer
 import dev.slne.surf.cloud.api.common.player.ConnectionResultEnum.*
 import dev.slne.surf.cloud.api.common.util.logger
-import dev.slne.surf.cloud.api.common.util.queue.FairPriorityQueue
+import dev.slne.surf.cloud.api.common.util.queue.FairSuspendPriorityQueue
 import dev.slne.surf.cloud.api.common.util.toObjectList
 import dev.slne.surf.cloud.core.common.coroutines.QueueProcessingScope
 import dev.slne.surf.cloud.standalone.player.StandaloneCloudPlayerImpl
@@ -12,10 +12,16 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
+const val QUEUE_PRIORITY_KEY = "queue_priority"
+
 class SingleServerQueue(private val server: StandaloneCloudServerImpl) {
     private val log = logger()
     private val queue =
-        FairPriorityQueue<StandaloneCloudPlayerImpl> { a, b -> TODO("Somehow get the priority of the player") }
+        FairSuspendPriorityQueue<StandaloneCloudPlayerImpl> { a, b ->
+            val aPriority = a.getLuckpermsMetaData(QUEUE_PRIORITY_KEY)?.toIntOrNull() ?: -1
+            val bPriority = b.getLuckpermsMetaData(QUEUE_PRIORITY_KEY)?.toIntOrNull() ?: -1
+            bPriority.compareTo(aPriority)
+        }
 
     private val mutex = Mutex()
 
@@ -68,7 +74,7 @@ class SingleServerQueue(private val server: StandaloneCloudServerImpl) {
     suspend fun addPlayerToQueue(player: StandaloneCloudPlayerImpl) {
         mutex.withLock {
             if (!queue.contains(player)) {
-                queue.add(player)
+                queue.offer(player)
             }
         }
 

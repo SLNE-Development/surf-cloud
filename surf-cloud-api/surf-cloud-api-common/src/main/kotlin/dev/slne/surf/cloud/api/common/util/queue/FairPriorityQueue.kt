@@ -51,3 +51,66 @@ class FairPriorityQueue<T>(private val comparator: Comparator<T>) : AbstractQueu
         elements.addFirst(e to elementInsertionCounter++)
     }
 }
+
+class FairSuspendPriorityQueue<T>(private val comparator: SuspendComparator<T>) : AbstractSuspendingQueue<T>() {
+    private val elements = mutableObjectListOf<Pair<T, Long>>()
+
+    private val internalComparator: SuspendComparator<Pair<T, Long>> = { a, b ->
+        val result = comparator(a.first, b.first)
+        if (result != 0) result else a.second.compareTo(b.second)
+    }
+
+    private val internalIterator = object : MutableIterator<T> {
+        private val iterator = elements.iterator()
+
+        override fun hasNext(): Boolean = iterator.hasNext()
+        override fun next(): T = iterator.next().first
+        override fun remove() = iterator.remove()
+    }
+
+    @Volatile
+    private var elementInsertionCounter = 0L
+
+    override fun iterator(): MutableIterator<T> = internalIterator
+
+    override val size get() = elements.size
+
+    override suspend fun offer(e: T): Boolean {
+        if (e == null) return false
+
+        val element: Pair<T, Long> = e to elementInsertionCounter++
+        val index = findInsertIndex(element)
+        elements.add(if (index < 0) -index - 1 else index, element)
+        return true
+    }
+
+    override fun poll(): T? = elements.removeFirstOrNull()?.first
+
+    override fun peek(): T? = elements.firstOrNull()?.first
+
+    fun addFirst(e: T) {
+        elements.addFirst(e to elementInsertionCounter++)
+    }
+
+    /**
+     * Finds the index where the element should be inserted using the suspendable comparator.
+     */
+    private suspend fun findInsertIndex(element: Pair<T, Long>): Int {
+        var low = 0
+        var high = elements.size - 1
+
+        while (low <= high) {
+            val mid = (low + high) / 2
+            val comparison = internalComparator(element, elements[mid])
+            when {
+                comparison < 0 -> high = mid - 1
+                comparison > 0 -> low = mid + 1
+                else -> return mid
+            }
+        }
+
+        return low
+    }
+}
+
+typealias SuspendComparator<T> = suspend (T, T) -> Int

@@ -231,6 +231,13 @@ class ServerRunningPacketListenerImpl(
         broadcast(ClientboundUpdateServerInformationPacket(packet.serverId, packet.information))
     }
 
+    override suspend fun handleRequestLuckpermsMetaData(packet: RequestLuckpermsMetaDataPacket) {
+        val player = playerManagerImpl.getPlayer(packet.uuid)
+            ?: error("Received luckperms meta data request for unknown player ${packet.uuid}! Is the player online?")
+        val data = player.getLuckpermsMetaData(packet.key)
+        packet.respond(LuckpermsMetaDataResponsePacket(data))
+    }
+
     override fun handlePacket(packet: NettyPacket) {
         val listeners = NettyListenerRegistry.getListeners(packet.javaClass) ?: return
         if (listeners.isEmpty()) return

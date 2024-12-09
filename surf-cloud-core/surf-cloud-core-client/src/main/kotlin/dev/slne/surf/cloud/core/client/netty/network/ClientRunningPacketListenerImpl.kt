@@ -5,6 +5,8 @@ import dev.slne.surf.cloud.api.common.server.UserListImpl
 import dev.slne.surf.cloud.api.common.util.logger
 import dev.slne.surf.cloud.core.client.player.commonPlayerManagerImpl
 import dev.slne.surf.cloud.core.client.server.serverManagerImpl
+import dev.slne.surf.cloud.core.client.util.getOrLoadUser
+import dev.slne.surf.cloud.core.client.util.luckperms
 import dev.slne.surf.cloud.core.common.coroutines.ConnectionManagementScope
 import dev.slne.surf.cloud.core.common.coroutines.PacketHandlerScope
 import dev.slne.surf.cloud.core.common.netty.network.CommonTickablePacketListener
@@ -206,6 +208,12 @@ class ClientRunningPacketListenerImpl(
             packet.address
         )
         packet.respond(ServerboundTransferPlayerPacketResponse(status, reason))
+    }
+
+    override suspend fun handleRequestLuckpermsMetaData(packet: RequestLuckpermsMetaDataPacket) {
+        val metaValue =
+            luckperms.userManager.getOrLoadUser(packet.uuid).cachedData.metaData.getMetaValue(packet.key)
+        packet.respond(LuckpermsMetaDataResponsePacket(metaValue))
     }
 
     override fun handlePacket(packet: NettyPacket) {

@@ -52,5 +52,7 @@ interface RunningServerPacketListener : ServerboundPacketListener, TickablePacke
 
     suspend fun handleClientInformation(packet: ServerboundClientInformationPacket)
 
+    suspend fun handleRequestLuckpermsMetaData(packet: RequestLuckpermsMetaDataPacket)
+
     fun handlePacket(packet: NettyPacket)
 }

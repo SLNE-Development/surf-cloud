@@ -66,5 +66,7 @@ interface RunningClientPacketListener: ClientboundPacketListener, TickablePacket
 
     suspend fun handleTransferPlayer(packet: ClientboundTransferPlayerPacket)
 
+    suspend fun handleRequestLuckpermsMetaData(packet: RequestLuckpermsMetaDataPacket)
+
     fun handlePacket(packet: NettyPacket)
 }

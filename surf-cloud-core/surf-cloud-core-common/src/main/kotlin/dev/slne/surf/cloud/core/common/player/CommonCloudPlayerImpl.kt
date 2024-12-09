@@ -53,6 +53,11 @@ abstract class CommonCloudPlayerImpl(override val uuid: UUID) : CloudPlayer {
             .minBy { it.currentPlayerCount } // also check player count in queue / maybe do it completely different - a group queue?
             .let { connectToServerOrQueue(it) }
 
+    override suspend fun <R> getLuckpermsMetaData(
+        key: String,
+        transformer: (String) -> R
+    ): R? = getLuckpermsMetaData(key)?.let(transformer)
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is CommonCloudPlayerImpl) return false

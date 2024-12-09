@@ -143,6 +143,9 @@ interface CloudPlayer : Audience {
      * @return A [ConnectionResultEnum] indicating the result of the connection attempt.
      */
     suspend fun connectToServerOrQueue(group: String): ConnectionResult
+
+    suspend fun <R> getLuckpermsMetaData(key: String, transformer: (String) -> R): R?
+    suspend fun getLuckpermsMetaData(key: String): String?
 }
 
 /**

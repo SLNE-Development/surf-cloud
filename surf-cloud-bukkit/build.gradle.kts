@@ -60,5 +60,9 @@ paper {
             load = PaperPluginDescription.RelativeLoadOrder.BEFORE
             required = true
         }
+        register("LuckPerms") {
+            load = PaperPluginDescription.RelativeLoadOrder.BEFORE
+            required = true
+        }
     }
 }

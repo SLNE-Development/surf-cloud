@@ -272,6 +272,10 @@ class ConnectionImpl(val receiving: PacketFlow) : SimpleChannelInboundHandler<Ne
                                 msg
                             )
 
+                            is RequestLuckpermsMetaDataPacket -> listener.handleRequestLuckpermsMetaData(
+                                msg
+                            )
+
                             else -> listener.handlePacket(msg) // handle other packets
                         }
                     }
@@ -346,22 +350,31 @@ class ConnectionImpl(val receiving: PacketFlow) : SimpleChannelInboundHandler<Ne
                             is ClientboundRegisterServerPacket -> listener.handleRegisterServerPacket(
                                 msg
                             )
+
                             is ClientboundUnregisterServerPacket -> listener.handleUnregisterServerPacket(
                                 msg
                             )
+
                             is ClientboundAddPlayerToServerPacket -> listener.handleAddPlayerToServer(
                                 msg
                             )
+
                             is ClientboundRemovePlayerFromServerPacket -> listener.handleRemovePlayerFromServer(
                                 msg
                             )
+
                             is ClientboundUpdateServerInformationPacket -> listener.handleUpdateServerInformation(
                                 msg
                             )
+
                             is ClientboundIsServerManagedByThisProxyPacket -> listener.handleIsServerManagedByThisProxy(
                                 msg
                             )
+
                             is ClientboundTransferPlayerPacket -> listener.handleTransferPlayer(msg)
+                            is RequestLuckpermsMetaDataPacket -> listener.handleRequestLuckpermsMetaData(
+                                msg
+                            )
 
                             else -> listener.handlePacket(msg)
                         }

@@ -132,6 +132,10 @@ class StandaloneCloudPlayerImpl(uuid: UUID) : CommonCloudPlayerImpl(uuid) {
 //        return switchServerOrQueueUnderNoProxy(server).also { connecting = false }
     }
 
+    override suspend fun getLuckpermsMetaData(key: String): String? {
+        return RequestLuckpermsMetaDataPacket(uuid, key).fireAndAwait(anyServer.connection)?.data
+    }
+
     private suspend fun switchServerOrQueueUnderSameProxy(
         proxy: StandaloneProxyCloudServerImpl,
         target: StandaloneCloudServerImpl

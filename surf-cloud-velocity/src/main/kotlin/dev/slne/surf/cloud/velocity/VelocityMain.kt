@@ -6,6 +6,7 @@ import com.velocitypowered.api.event.Subscribe
 import com.velocitypowered.api.event.proxy.ListenerBoundEvent
 import com.velocitypowered.api.event.proxy.ProxyInitializeEvent
 import com.velocitypowered.api.event.proxy.ProxyShutdownEvent
+import com.velocitypowered.api.plugin.Dependency
 import com.velocitypowered.api.plugin.Plugin
 import com.velocitypowered.api.plugin.PluginManager
 import com.velocitypowered.api.plugin.annotation.DataDirectory
@@ -18,7 +19,8 @@ import java.nio.file.Path
     name = "Surf Data Velocity",
     version = "1.21.1-1.0.0-SNAPSHOT",
     description = "A cloud plugin for Velocity",
-    authors = ["twisti"]
+    authors = ["twisti"],
+    dependencies = [Dependency("surf-velocity-api", false), Dependency("LuckPerms", false)]
 )
 class VelocityMain @Inject constructor(
     val server: ProxyServer,

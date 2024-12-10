@@ -1,5 +1,7 @@
 package dev.slne.surf.cloud.core.common.netty.network
 
+import com.velocitypowered.natives.encryption.VelocityCipher
+import com.velocitypowered.natives.util.Natives
 import dev.slne.surf.cloud.api.common.exceptions.SkipPacketException
 import dev.slne.surf.cloud.api.common.netty.network.Connection
 import dev.slne.surf.cloud.api.common.netty.network.ConnectionProtocol
@@ -16,6 +18,7 @@ import dev.slne.surf.cloud.core.common.netty.network.protocol.handshake.Serverbo
 import dev.slne.surf.cloud.core.common.netty.network.protocol.initialize.*
 import dev.slne.surf.cloud.core.common.netty.network.protocol.login.*
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.*
+import dev.slne.surf.cloud.core.common.util.encryption.CryptException
 import io.netty.bootstrap.Bootstrap
 import io.netty.channel.*
 import io.netty.channel.epoll.Epoll
@@ -35,8 +38,10 @@ import kotlinx.coroutines.withContext
 import java.net.InetSocketAddress
 import java.net.SocketAddress
 import java.nio.channels.ClosedChannelException
+import java.security.GeneralSecurityException
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.atomic.AtomicBoolean
+import javax.crypto.SecretKey
 
 class ConnectionImpl(val receiving: PacketFlow) : SimpleChannelInboundHandler<NettyPacket>(),
     Connection {
@@ -88,6 +93,9 @@ class ConnectionImpl(val receiving: PacketFlow) : SimpleChannelInboundHandler<Ne
         private set
 
     var disconnectionDetails: DisconnectionDetails? = null
+        private set
+
+    var encrypted: Boolean = false
         private set
 
     @Volatile
@@ -216,6 +224,7 @@ class ConnectionImpl(val receiving: PacketFlow) : SimpleChannelInboundHandler<Ne
                     is ServerLoginPacketListener -> {
                         when (msg) {
                             is ServerboundLoginStartPacket -> listener.handleLoginStart(msg)
+                            is ServerboundKeyPacket -> listener.handleKey(msg)
                             is ServerboundLoginAcknowledgedPacket -> listener.handleLoginAcknowledgement(
                                 msg
                             )
@@ -297,6 +306,7 @@ class ConnectionImpl(val receiving: PacketFlow) : SimpleChannelInboundHandler<Ne
                     is ClientLoginPacketListener -> {
                         when (msg) {
                             is ClientboundLoginFinishedPacket -> listener.handleLoginFinished(msg)
+                            is ClientboundKeyPacket -> listener.handleKey(msg)
 
                             else -> error("Unexpected packet $msg")
                         }
@@ -761,6 +771,28 @@ class ConnectionImpl(val receiving: PacketFlow) : SimpleChannelInboundHandler<Ne
             .addLast(HandlerNames.PACKET_HANDLER, this)
 
         channel.attr(CHANNEL_ATTRIBUTE_KEY).set(this)
+    }
+
+    fun setupEncryption(key: SecretKey) {
+        if (encrypted) return
+        try {
+            val decryption = Natives.cipher.get().forDecryption(key)
+            val encryption = Natives.cipher.get().forEncryption(key)
+
+            this.encrypted = true
+            channel.pipeline()
+                .addBefore(HandlerNames.SPLITTER, HandlerNames.DECRYPT, CipherDecoder(decryption))
+                .addBefore(HandlerNames.PREPENDER, HandlerNames.ENCRYPT, CipherEncoder(encryption))
+        } catch (e: GeneralSecurityException) {
+            throw CryptException(e)
+        }
+    }
+
+    fun setEncryptionKey(decryptionCipher: VelocityCipher, encryptionCipher: VelocityCipher) {
+        encrypted = true
+        this.channel.pipeline()
+            .addBefore(HandlerNames.SPLITTER, HandlerNames.DECRYPT, CipherDecoder(decryptionCipher))
+            .addBefore(HandlerNames.PREPENDER, HandlerNames.ENCRYPT, CipherEncoder(encryptionCipher))
     }
 
     fun setReadOnly() {

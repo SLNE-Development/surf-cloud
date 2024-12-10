@@ -8,4 +8,5 @@ dependencies {
     }
 
     runtimeOnly("org.aspectj:aspectjweaver:1.9.22.1")
+    compileOnlyApi(libs.velocity.native)
 }

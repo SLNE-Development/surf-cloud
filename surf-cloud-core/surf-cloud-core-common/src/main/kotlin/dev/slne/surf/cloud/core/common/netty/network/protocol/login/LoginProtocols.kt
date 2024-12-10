@@ -12,6 +12,7 @@ object LoginProtocols {
         ) { builder ->
             builder.addPacket(ServerboundLoginAcknowledgedPacket.STREAM_CODEC)
             builder.addPacket(ServerboundLoginStartPacket.STREAM_CODEC)
+            builder.addPacket(ServerboundKeyPacket.STREAM_CODEC)
         }
 
     val SERVERBOUND = SERVERBOUND_TEMPLATE.bind(::SurfByteBuf)
@@ -22,6 +23,7 @@ object LoginProtocols {
         ) { builder ->
             builder.addPacket(ClientboundLoginDisconnectPacket.STREAM_CODEC)
             builder.addPacket(ClientboundLoginFinishedPacket.STREAM_CODEC)
+            builder.addPacket(ClientboundKeyPacket.STREAM_CODEC)
         }
 
     val CLIENTBOUND = CLIENTBOUND_TEMPLATE.bind(::SurfByteBuf)

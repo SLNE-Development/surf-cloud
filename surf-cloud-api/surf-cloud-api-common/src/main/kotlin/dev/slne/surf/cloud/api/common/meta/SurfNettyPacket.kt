@@ -30,6 +30,8 @@ object DefaultIds {
     const val CLIENTBOUND_LOGIN_FINISHED_PACKET = 0x06
     const val SERVERBOUND_LOGIN_ACKNOWLEDGED_PACKET = 0x07
     const val CLIENTBOUND_LOGIN_DISCONNECT_PACKET = 0x08
+    const val SERVERBOUND_KEY_PACKET = 0x09 // Different protocol state so the ids can be overlapping
+    const val CLIENTBOUND_KEY_PACKET = 0x0A
 
     // Running
     const val CLIENTBOUND_KEEP_ALIVE_PACKET = 0x09

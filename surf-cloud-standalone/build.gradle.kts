@@ -16,6 +16,7 @@ dependencies {
     api("dev.slne.surf:surf-api-standalone:1.21+")
     api("org.reactivestreams:reactive-streams:1.0.4")
     api("io.lettuce:lettuce-core")
+    api(libs.velocity.native)
 }
 
 //dependencyManagement {

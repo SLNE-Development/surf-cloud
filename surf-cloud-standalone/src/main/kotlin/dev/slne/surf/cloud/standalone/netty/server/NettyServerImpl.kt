@@ -5,6 +5,7 @@ import dev.slne.surf.cloud.api.common.util.mutableObjectListOf
 import dev.slne.surf.cloud.api.common.util.synchronize
 import dev.slne.surf.cloud.core.common.config.cloudConfig
 import dev.slne.surf.cloud.core.common.coroutines.ConnectionTickScope
+import dev.slne.surf.cloud.core.common.util.encryption.Crypt
 import dev.slne.surf.cloud.standalone.netty.server.connection.ServerConnectionListener
 import dev.slne.surf.cloud.standalone.server.StandaloneCloudServerImpl
 import dev.slne.surf.cloud.standalone.server.StandaloneProxyCloudServerImpl
@@ -25,6 +26,7 @@ import org.springframework.stereotype.Component
 import java.net.InetAddress
 import java.net.InetSocketAddress
 import java.net.SocketAddress
+import java.security.KeyPair
 import kotlin.time.Duration.Companion.seconds
 
 @Component
@@ -39,6 +41,8 @@ class NettyServerImpl {
     private val clients = mutableObjectListOf<ServerClientImpl>().synchronize()
     private val clientsLock = Mutex()
     private val schedules = mutableObjectListOf<() -> Unit>().synchronize()
+
+    lateinit var keyPair: KeyPair
 
     @PostConstruct
     protected fun init() {
@@ -96,7 +100,13 @@ class NettyServerImpl {
     }
 
     suspend fun finalizeServer() {
+        initKeyPair()
         connection.acceptConnections()
+    }
+
+    private fun initKeyPair() {
+        log.atInfo().log("Generating key pair...")
+        keyPair = Crypt.generateKeyPair()
     }
 
     @PreDestroy

@@ -9,5 +9,7 @@ interface ServerLoginPacketListener: ServerboundPacketListener, TickablePacketLi
 
     fun handleLoginStart(packet: ServerboundLoginStartPacket)
 
+    fun handleKey(packet: ServerboundKeyPacket)
+
     suspend fun handleLoginAcknowledgement(packet: ServerboundLoginAcknowledgedPacket)
 }

@@ -1,0 +1,5 @@
+[versions]
+velocity-version = "3.4.0-SNAPSHOT"
+
+[libraries]
+velocity-native = { module = "com.velocitypowered:velocity-native", version.ref = "velocity-version" }

@@ -1,12 +1,13 @@
 package dev.slne.surf.cloud.core.client.netty.network
 
+import com.velocitypowered.natives.encryption.VelocityCipher
+import com.velocitypowered.natives.util.Natives
 import dev.slne.surf.cloud.core.client.netty.ClientNettyClientImpl
 import dev.slne.surf.cloud.core.common.netty.network.ConnectionImpl
 import dev.slne.surf.cloud.core.common.netty.network.DisconnectionDetails
-import dev.slne.surf.cloud.core.common.netty.network.protocol.login.ClientLoginPacketListener
-import dev.slne.surf.cloud.core.common.netty.network.protocol.login.ClientboundLoginFinishedPacket
-import dev.slne.surf.cloud.core.common.netty.network.protocol.login.ServerboundLoginAcknowledgedPacket
+import dev.slne.surf.cloud.core.common.netty.network.protocol.login.*
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.RunningProtocols
+import dev.slne.surf.cloud.core.common.util.encryption.Crypt
 import java.util.concurrent.atomic.AtomicReference
 
 typealias StatusUpdate = (String) -> Unit
@@ -32,6 +33,28 @@ class ClientHandshakePacketListenerImpl(
         client.initListener(listener)
 
         switchState(State.CONNECTED)
+    }
+
+    override suspend fun handleKey(packet: ClientboundKeyPacket) {
+        switchState(State.AUTHORIZING)
+
+        val secretKey = Crypt.generateSecretKey()
+        val publicKey = packet.decryptPublicKey()
+        val decryptionCipher = Natives.cipher.get().forDecryption(secretKey)
+        val encryptionCipher = Natives.cipher.get().forEncryption(secretKey)
+        val responsePacket = ServerboundKeyPacket(secretKey, publicKey, packet.challenge)
+
+        setEncryption(responsePacket, decryptionCipher, encryptionCipher)
+    }
+
+    private suspend fun setEncryption(
+        responsePacket: ServerboundKeyPacket,
+        decryptionCipher: VelocityCipher,
+        encryptionCipher: VelocityCipher
+    ) {
+        switchState(State.ENCRYPTING)
+        connection.sendWithIndication(responsePacket)
+        connection.setEncryptionKey(decryptionCipher, encryptionCipher)
     }
 
     override fun onDisconnect(details: DisconnectionDetails) {

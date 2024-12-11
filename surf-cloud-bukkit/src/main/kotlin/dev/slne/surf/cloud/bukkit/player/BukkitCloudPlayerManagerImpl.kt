@@ -6,10 +6,11 @@ import dev.slne.surf.cloud.core.client.player.CommonClientCloudPlayerManagerImpl
 import dev.slne.surf.cloud.core.common.util.checkInstantiationByServiceLoader
 import net.kyori.adventure.audience.Audience
 import org.bukkit.Bukkit
+import org.bukkit.entity.Player
 import java.util.*
 
 @AutoService(CloudPlayerManager::class)
-class BukkitCloudPlayerManagerImpl : CommonClientCloudPlayerManagerImpl<BukkitClientCloudPlayerImpl>() {
+class BukkitCloudPlayerManagerImpl : CommonClientCloudPlayerManagerImpl<Player, BukkitClientCloudPlayerImpl>() {
     init {
         checkInstantiationByServiceLoader()
     }

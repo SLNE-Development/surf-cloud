@@ -20,7 +20,7 @@ import java.nio.file.Path
     version = "1.21.1-1.0.0-SNAPSHOT",
     description = "A cloud plugin for Velocity",
     authors = ["twisti"],
-    dependencies = [Dependency("surf-velocity-api", false), Dependency("LuckPerms", false)]
+    dependencies = [Dependency("surf-velocity-api", false), Dependency("luckperms", false)]
 )
 class VelocityMain @Inject constructor(
     val server: ProxyServer,

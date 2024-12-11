@@ -6,6 +6,7 @@ import dev.jorel.commandapi.kotlindsl.*
 import dev.slne.surf.cloud.api.common.exceptions.FatalSurfError
 import dev.slne.surf.cloud.api.common.player.toCloudPlayer
 import dev.slne.surf.cloud.api.common.server.serverManager
+import dev.slne.surf.cloud.bukkit.player.BukkitClientCloudPlayerImpl
 import dev.slne.surf.cloud.core.client.player.ClientCloudPlayerImpl
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -87,7 +88,7 @@ class BukkitMain : SuspendingJavaPlugin() {
             }
             literalArgument("self") {
                 playerExecutor { player, _ ->
-                    player.sendPlainMessage("Server: ${(player.toCloudPlayer()!! as ClientCloudPlayerImpl).serverUid}")
+                    player.sendPlainMessage("Server: ${(player.toCloudPlayer()!! as BukkitClientCloudPlayerImpl).serverUid}")
                 }
             }
         }

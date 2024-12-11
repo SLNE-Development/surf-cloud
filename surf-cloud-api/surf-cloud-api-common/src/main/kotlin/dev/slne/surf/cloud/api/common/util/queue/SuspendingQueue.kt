@@ -12,7 +12,7 @@ interface SuspendingQueue<E> : MutableIterable<E> {
     fun element(): E
 
     fun clear()
-    fun addAll(c: Collection<E>): Boolean
+    suspend fun offerAll(c: Collection<E>): Boolean
 
     fun contains(element: E): Boolean
     fun isEmpty(): Boolean

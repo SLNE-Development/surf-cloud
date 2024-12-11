@@ -57,13 +57,13 @@ abstract class AbstractSuspendingQueue<E> protected constructor() : SuspendingQu
         while (poll() != null);
     }
 
-    override fun addAll(c: Collection<E>): Boolean {
+    override suspend fun offerAll(c: Collection<E>): Boolean {
         if (c === this) {
             throw IllegalArgumentException()
         }
         var modified = false
         for (e in c) {
-            if (add(e)) {
+            if (offer(e)) {
                 modified = true
             }
         }

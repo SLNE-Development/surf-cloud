@@ -2,6 +2,7 @@ package dev.slne.surf.cloud.bukkit
 
 import com.destroystokyo.paper.event.player.PlayerHandshakeEvent
 import com.github.shynixn.mccoroutine.folia.SuspendingJavaPlugin
+import com.github.shynixn.mccoroutine.folia.launch
 import dev.jorel.commandapi.kotlindsl.*
 import dev.slne.surf.cloud.api.common.exceptions.FatalSurfError
 import dev.slne.surf.cloud.api.common.player.toCloudPlayer
@@ -42,7 +43,7 @@ class BukkitMain : SuspendingJavaPlugin() {
                 longArgument("id") {
                     anyExecutor { sender, args ->
                         val id: Long by args
-                        GlobalScope.launch {
+                        launch {
                             val server = serverManager.retrieveServerById(id)
                             sender.sendMessage("Server: $server")
                         }
@@ -55,7 +56,7 @@ class BukkitMain : SuspendingJavaPlugin() {
                         anyExecutor { sender, args ->
                             val category: String by args
                             val name: String by args
-                            GlobalScope.launch {
+                            launch {
                                 val server =
                                     serverManager.retrieveServerByCategoryAndName(category, name)
                                 sender.sendMessage("Server: $server")
@@ -68,7 +69,7 @@ class BukkitMain : SuspendingJavaPlugin() {
                 stringArgument("name") {
                     anyExecutor { sender, args ->
                         val name: String by args
-                        GlobalScope.launch {
+                        launch {
                             val server = serverManager.retrieveServerByName(name)
                             sender.sendMessage("Server: $server")
                         }
@@ -79,7 +80,7 @@ class BukkitMain : SuspendingJavaPlugin() {
                 stringArgument("category") {
                     anyExecutor { sender, args ->
                         val category: String by args
-                        GlobalScope.launch {
+                        launch {
                             val servers = serverManager.retrieveServersByCategory(category)
                             sender.sendMessage("Servers: $servers")
                         }

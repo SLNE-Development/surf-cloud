@@ -43,6 +43,7 @@ tasks {
 paper {
     main = "dev.slne.surf.cloud.bukkit.BukkitMain"
     loader = "dev.slne.surf.cloud.bukkit.BukkitLoader"
+    bootstrapper = "dev.slne.surf.cloud.bukkit.BukkitBootstrap"
     apiVersion = "1.21"
     authors = listOf("twisti", "SLNE Development")
 

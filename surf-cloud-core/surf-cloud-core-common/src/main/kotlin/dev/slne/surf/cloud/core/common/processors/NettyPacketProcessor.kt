@@ -59,7 +59,7 @@ object NettyPacketProcessor : ApplicationContextInitializer<ConfigurableApplicat
                         continue
                     }
 
-                    if (packetMeta.protocol != ConnectionProtocol.RUNNING) continue
+                    if (!packetMeta.protocols.contains(ConnectionProtocol.RUNNING)) continue
                     val codec = packet.findPacketCodec<SurfByteBuf, NettyPacket>()
 
                     if (codec == null) {

@@ -11,6 +11,12 @@ import dev.slne.surf.cloud.api.common.util.*
 import dev.slne.surf.cloud.core.common.config.cloudConfig
 import dev.slne.surf.cloud.core.common.coroutines.ConnectionManagementScope
 import dev.slne.surf.cloud.core.common.coroutines.PacketHandlerScope
+import dev.slne.surf.cloud.core.common.netty.network.protocol.common.ClientCommonPacketListener
+import dev.slne.surf.cloud.core.common.netty.network.protocol.common.ClientboundKeepAlivePacket
+import dev.slne.surf.cloud.core.common.netty.network.protocol.common.ClientboundPongResponsePacket
+import dev.slne.surf.cloud.core.common.netty.network.protocol.common.ServerCommonPacketListener
+import dev.slne.surf.cloud.core.common.netty.network.protocol.common.ServerboundKeepAlivePacket
+import dev.slne.surf.cloud.core.common.netty.network.protocol.common.ServerboundPingRequestPacket
 import dev.slne.surf.cloud.core.common.netty.network.protocol.handshake.ClientIntent
 import dev.slne.surf.cloud.core.common.netty.network.protocol.handshake.HandshakeProtocols
 import dev.slne.surf.cloud.core.common.netty.network.protocol.handshake.ServerHandshakePacketListener
@@ -60,6 +66,14 @@ class ConnectionImpl(val receiving: PacketFlow) : SimpleChannelInboundHandler<Ne
     val packetListener get() = _packetListener ?: error("Listener not set")
 
     val sending get() = receiving.getOpposite()
+
+    @Volatile
+    var inboundProtocolInfo: ProtocolInfo<*> = INITIAL_PROTOCOL
+        private set
+
+    @Volatile
+    var outboundProtocolInfo: ProtocolInfo<*> = INITIAL_PROTOCOL
+        private set
 
     @Volatile
     private var sendLoginDisconnect = true
@@ -205,6 +219,17 @@ class ConnectionImpl(val receiving: PacketFlow) : SimpleChannelInboundHandler<Ne
 
         when (listener) {
             is ServerboundPacketListener -> {
+                if (listener is ServerCommonPacketListener) {
+                    val handled = when(msg) {
+                        is ServerboundBundlePacket -> listener.handleBundlePacket(msg)
+                        is ServerboundKeepAlivePacket -> listener.handleKeepAlivePacket(msg)
+                        is ServerboundPingRequestPacket -> listener.handlePingRequest(msg)
+                        else -> null
+                    }
+
+                    if (handled != null) return@withContext
+                }
+
                 when (listener) {
                     is ServerHandshakePacketListener -> {
                         when (msg) {
@@ -235,9 +260,6 @@ class ConnectionImpl(val receiving: PacketFlow) : SimpleChannelInboundHandler<Ne
 
                     is RunningServerPacketListener -> {
                         when (msg) {
-                            is ServerboundBundlePacket -> listener.handleBundlePacket(msg)
-                            is ServerboundKeepAlivePacket -> listener.handleKeepAlivePacket(msg)
-                            is ServerboundPingRequestPacket -> listener.handlePingRequest(msg)
                             is PlayerConnectToServerPacket -> listener.handlePlayerConnectToServer(
                                 msg
                             )
@@ -292,6 +314,17 @@ class ConnectionImpl(val receiving: PacketFlow) : SimpleChannelInboundHandler<Ne
             }
 
             is ClientboundPacketListener -> {
+                if (listener is ClientCommonPacketListener) {
+                    val handled = when(msg) {
+                        is ClientboundBundlePacket -> listener.handleBundlePacket(msg)
+                        is ClientboundKeepAlivePacket -> listener.handleKeepAlive(msg)
+                        is ClientboundPingPacket -> listener.handlePing(msg)
+                        is ClientboundDisconnectPacket -> listener.handleDisconnect(msg)
+                        else -> null
+                    }
+                    if (handled != null) return@withContext
+                }
+
                 when (listener) {
                     is ClientInitializePacketListener -> {
                         when (msg) {
@@ -314,9 +347,6 @@ class ConnectionImpl(val receiving: PacketFlow) : SimpleChannelInboundHandler<Ne
 
                     is RunningClientPacketListener -> {
                         when (msg) {
-                            is ClientboundKeepAlivePacket -> listener.handleKeepAlive(msg)
-                            is ClientboundPingPacket -> listener.handlePing(msg)
-                            is ClientboundDisconnectPacket -> listener.handleDisconnect(msg)
                             is PlayerConnectToServerPacket -> listener.handlePlayerConnectToServer(
                                 msg
                             )
@@ -356,7 +386,6 @@ class ConnectionImpl(val receiving: PacketFlow) : SimpleChannelInboundHandler<Ne
                                 msg
                             )
 
-                            is ClientboundBundlePacket -> listener.handleBundlePacket(msg)
                             is ClientboundRegisterServerPacket -> listener.handleRegisterServerPacket(
                                 msg
                             )
@@ -420,6 +449,8 @@ class ConnectionImpl(val receiving: PacketFlow) : SimpleChannelInboundHandler<Ne
             }
         }
 
+        protocol += { this.inboundProtocolInfo = newState }
+
         syncAfterConfigurationChange(channel.writeAndFlush(protocol))
     }
 
@@ -441,6 +472,7 @@ class ConnectionImpl(val receiving: PacketFlow) : SimpleChannelInboundHandler<Ne
 
         val login = newState.id == ConnectionProtocol.LOGIN
         protocol += { this.sendLoginDisconnect = login }
+        protocol += { this.outboundProtocolInfo = newState }
 
         syncAfterConfigurationChange(channel.writeAndFlush(protocol))
     }
@@ -782,7 +814,7 @@ class ConnectionImpl(val receiving: PacketFlow) : SimpleChannelInboundHandler<Ne
             this.encrypted = true
             channel.pipeline()
                 .addBefore(HandlerNames.SPLITTER, HandlerNames.DECRYPT, CipherDecoder(decryption))
-                .addBefore(HandlerNames.PREPENDER, HandlerNames.ENCRYPT, CipherEncoder(encryption))
+            channel.pipeline().addBefore(HandlerNames.PREPENDER, HandlerNames.ENCRYPT, CipherEncoder(encryption))
         } catch (e: GeneralSecurityException) {
             throw CryptException(e)
         }

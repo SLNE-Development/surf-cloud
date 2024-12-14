@@ -34,14 +34,14 @@ class SurfCloudStandaloneInstance : SurfCloudCoreInstance(StandaloneNettyManager
         }
     }
 
-    override fun onLoad() {
+    override suspend fun onLoad() {
         SpringApplication.getShutdownHandlers().add(StandalonePluginManager)
         thread(name = "KeepAlive") { while (true) runBlocking { delay(5.seconds) } }
         super.onLoad()
         random
     }
 
-    override fun onEnable() = runBlocking {
+    override suspend fun onEnable() {
         super.onEnable()
 
         afterStart()

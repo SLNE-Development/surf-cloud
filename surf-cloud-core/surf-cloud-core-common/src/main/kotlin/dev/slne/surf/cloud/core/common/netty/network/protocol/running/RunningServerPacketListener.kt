@@ -4,15 +4,11 @@ import dev.slne.surf.cloud.api.common.netty.network.ConnectionProtocol
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
 import dev.slne.surf.cloud.core.common.netty.network.ServerboundPacketListener
 import dev.slne.surf.cloud.core.common.netty.network.TickablePacketListener
+import dev.slne.surf.cloud.core.common.netty.network.protocol.common.ServerCommonPacketListener
+import dev.slne.surf.cloud.core.common.netty.network.protocol.common.ServerboundKeepAlivePacket
 
-interface RunningServerPacketListener : ServerboundPacketListener, TickablePacketListener {
+interface RunningServerPacketListener : ServerCommonPacketListener, TickablePacketListener {
     override val protocol get() = ConnectionProtocol.RUNNING
-
-    fun handleBundlePacket(packet: ServerboundBundlePacket)
-
-    suspend fun handleKeepAlivePacket(packet: ServerboundKeepAlivePacket)
-
-    fun handlePingRequest(packet: ServerboundPingRequestPacket)
 
     suspend fun handlePlayerConnectToServer(packet: PlayerConnectToServerPacket)
 

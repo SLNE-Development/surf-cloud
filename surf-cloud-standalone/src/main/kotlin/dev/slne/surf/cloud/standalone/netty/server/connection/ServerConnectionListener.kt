@@ -1,5 +1,6 @@
 package dev.slne.surf.cloud.standalone.netty.server.connection
 
+import dev.slne.surf.cloud.api.common.netty.network.ConnectionProtocol
 import dev.slne.surf.cloud.api.common.netty.network.protocol.PacketFlow
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
 import dev.slne.surf.cloud.api.common.util.*
@@ -96,7 +97,8 @@ class ServerConnectionListener(val server: NettyServerImpl) {
                                 false
                             )
 
-                            val connection = ConnectionImpl(PacketFlow.SERVERBOUND) // TODO: rate limit
+                            val connection =
+                                ConnectionImpl(PacketFlow.SERVERBOUND) // TODO: rate limit
 
                             pending.add(connection)
                             connection.configurePacketHandler(channel, pipeline)
@@ -189,7 +191,9 @@ class ServerConnectionListener(val server: NettyServerImpl) {
     }
 
     fun broadcast(packet: NettyPacket, flush: Boolean = true) {
+        val activeProtocols = packet.protocols
         for (connection in connections) {
+            if (connection.outboundProtocolInfo.id !in activeProtocols) continue
             connection.send(packet, flush)
         }
     }
@@ -197,8 +201,10 @@ class ServerConnectionListener(val server: NettyServerImpl) {
     fun broadcast(packets: List<NettyPacket>, flush: Boolean = true) {
         if (packets.isEmpty()) return
         val packet = if (packets.size == 1) packets.first() else ClientboundBundlePacket(packets)
+        val activeProtocols = packet.protocols
 
         for (connection in connections) {
+            if (connection.outboundProtocolInfo.id !in activeProtocols) continue
             connection.send(packet, flush)
         }
     }

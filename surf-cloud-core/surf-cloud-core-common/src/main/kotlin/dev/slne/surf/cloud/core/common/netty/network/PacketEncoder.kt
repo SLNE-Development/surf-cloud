@@ -1,6 +1,7 @@
 package dev.slne.surf.cloud.core.common.netty.network
 
 import dev.slne.surf.cloud.api.common.exceptions.SkipPacketException
+import dev.slne.surf.cloud.api.common.netty.network.ConnectionProtocol
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
 import dev.slne.surf.cloud.api.common.netty.packet.RespondingNettyPacket
 import dev.slne.surf.cloud.api.common.netty.packet.ResponseNettyPacket
@@ -37,6 +38,9 @@ class PacketEncoder<T : PacketListener>(private val protocolInfo: ProtocolInfo<T
                 msg.extraEncode(out)
             }
 
+            if (protocolInfo.id == ConnectionProtocol.LOGIN) {
+                log.atInfo().log("Sending packet ${msg.javaClass.name} (skippable? ${msg.skippable})")
+            }
         } catch (e: Throwable) {
             log.atSevere()
                 .withCause(e)

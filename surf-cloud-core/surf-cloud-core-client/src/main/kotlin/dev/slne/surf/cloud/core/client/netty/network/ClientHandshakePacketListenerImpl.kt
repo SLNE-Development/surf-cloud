@@ -1,38 +1,42 @@
 package dev.slne.surf.cloud.core.client.netty.network
 
-import com.velocitypowered.natives.encryption.VelocityCipher
-import com.velocitypowered.natives.util.Natives
 import dev.slne.surf.cloud.core.client.netty.ClientNettyClientImpl
 import dev.slne.surf.cloud.core.common.netty.network.ConnectionImpl
 import dev.slne.surf.cloud.core.common.netty.network.DisconnectionDetails
 import dev.slne.surf.cloud.core.common.netty.network.protocol.login.*
-import dev.slne.surf.cloud.core.common.netty.network.protocol.running.RunningProtocols
+import dev.slne.surf.cloud.core.common.netty.network.protocol.prerunning.PreRunningProtocols
 import dev.slne.surf.cloud.core.common.util.encryption.Crypt
-import java.util.concurrent.atomic.AtomicReference
+import kotlinx.coroutines.CompletableDeferred
+import javax.crypto.SecretKey
 
-typealias StatusUpdate = (String) -> Unit
 
 class ClientHandshakePacketListenerImpl(
     val client: ClientNettyClientImpl,
     val connection: ConnectionImpl,
     val platformExtension: PlatformSpecificPacketListenerExtension,
-    val updateStatus: StatusUpdate
-) : ClientLoginPacketListener {
-    private val state = AtomicReference(State.CONNECTING)
+    updateStatus: StatusUpdate,
+    val awaitFinishPreRunning: CompletableDeferred<Unit>
+) : AbstractStatusUpdater(State.CONNECTING, updateStatus), ClientLoginPacketListener {
 
     override suspend fun handleLoginFinished(packet: ClientboundLoginFinishedPacket) {
         switchState(State.PREPARE_CONNECTION)
 
-        val listener = ClientRunningPacketListenerImpl(connection, platformExtension)
+        val listener = ClientPreRunningPacketListenerImpl(
+            client,
+            connection,
+            platformExtension,
+            getState(),
+            updateStatus,
+            awaitFinishPreRunning
+        )
         connection.setupInboundProtocol(
-            RunningProtocols.CLIENTBOUND,
+            PreRunningProtocols.CLIENTBOUND,
             listener
         )
         connection.send(ServerboundLoginAcknowledgedPacket)
-        connection.setupOutboundProtocol(RunningProtocols.SERVERBOUND)
-        client.initListener(listener)
+        connection.setupOutboundProtocol(PreRunningProtocols.SERVERBOUND)
 
-        switchState(State.CONNECTED)
+        switchState(State.PREPARE_CONNECTION)
     }
 
     override suspend fun handleKey(packet: ClientboundKeyPacket) {
@@ -40,40 +44,21 @@ class ClientHandshakePacketListenerImpl(
 
         val secretKey = Crypt.generateSecretKey()
         val publicKey = packet.decryptPublicKey()
-        val decryptionCipher = Natives.cipher.get().forDecryption(secretKey)
-        val encryptionCipher = Natives.cipher.get().forEncryption(secretKey)
         val responsePacket = ServerboundKeyPacket(secretKey, publicKey, packet.challenge)
 
-        setEncryption(responsePacket, decryptionCipher, encryptionCipher)
+        setEncryption(responsePacket, secretKey)
     }
 
     private suspend fun setEncryption(
         responsePacket: ServerboundKeyPacket,
-        decryptionCipher: VelocityCipher,
-        encryptionCipher: VelocityCipher
+        secretKey: SecretKey,
     ) {
         switchState(State.ENCRYPTING)
-        connection.sendWithIndication(responsePacket)
-        connection.setEncryptionKey(decryptionCipher, encryptionCipher)
+        connection.send(responsePacket)
+        connection.setupEncryption(secretKey)
     }
 
     override fun onDisconnect(details: DisconnectionDetails) {
 
-    }
-
-    private fun switchState(newState: State) {
-        val updatedState = this.state.updateAndGet {
-            check(newState.fromStates.contains(it)) { "Tried to switch to $newState from $it, but expected one of ${newState.fromStates}" }
-            newState
-        }
-        this.updateStatus(updatedState.stateIndication)
-    }
-
-    enum class State(val stateIndication: String, val fromStates: Set<State> = setOf()) {
-        CONNECTING("Connecting to the server..."),
-        AUTHORIZING("Logging in...", setOf(CONNECTING)),
-        ENCRYPTING("Encrypting...", setOf(AUTHORIZING)),
-        PREPARE_CONNECTION("Preparing connection...", setOf(ENCRYPTING, CONNECTING)),
-        CONNECTED("Connected!", setOf(PREPARE_CONNECTION))
     }
 }

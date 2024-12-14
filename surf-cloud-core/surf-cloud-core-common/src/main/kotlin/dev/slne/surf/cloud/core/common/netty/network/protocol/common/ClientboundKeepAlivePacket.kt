@@ -1,7 +1,8 @@
-package dev.slne.surf.cloud.core.common.netty.network.protocol.running
+package dev.slne.surf.cloud.core.common.netty.network.protocol.common
 
 import dev.slne.surf.cloud.api.common.meta.DefaultIds
 import dev.slne.surf.cloud.api.common.meta.SurfNettyPacket
+import dev.slne.surf.cloud.api.common.netty.network.ConnectionProtocol
 import dev.slne.surf.cloud.api.common.netty.network.protocol.PacketFlow
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
 import dev.slne.surf.cloud.api.common.netty.packet.packetCodec
@@ -16,11 +17,15 @@ import dev.slne.surf.cloud.api.common.netty.protocol.buffer.SurfByteBuf
  * if the server does not send any keep-alives for `20 seconds`, the client will disconnect and yields
  * a "Timed out" exception.
  */
-@SurfNettyPacket(DefaultIds.CLIENTBOUND_KEEP_ALIVE_PACKET, PacketFlow.CLIENTBOUND)
+@SurfNettyPacket(
+    DefaultIds.CLIENTBOUND_KEEP_ALIVE_PACKET, PacketFlow.CLIENTBOUND,
+    ConnectionProtocol.RUNNING, ConnectionProtocol.PRE_RUNNING
+)
 class ClientboundKeepAlivePacket : NettyPacket {
-    companion object{
+    companion object {
         @JvmStatic
-        val STREAM_CODEC = packetCodec(ClientboundKeepAlivePacket::write, ::ClientboundKeepAlivePacket)
+        val STREAM_CODEC =
+            packetCodec(ClientboundKeepAlivePacket::write, ::ClientboundKeepAlivePacket)
     }
 
     val keepAliveId: Long

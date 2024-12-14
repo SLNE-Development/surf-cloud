@@ -7,7 +7,6 @@ import dev.slne.surf.cloud.api.common.netty.network.codec.StreamDecoder
 import dev.slne.surf.cloud.api.common.netty.network.codec.StreamMemberEncoder
 import dev.slne.surf.cloud.api.common.util.mutableObject2ObjectMapOf
 import io.netty.buffer.ByteBuf
-import kotlin.collections.set
 import kotlin.reflect.KClass
 import kotlin.reflect.full.companionObject
 import kotlin.reflect.full.companionObjectInstance
@@ -20,7 +19,11 @@ fun <B : ByteBuf, T : NettyPacket> packetCodec(
     decoder: StreamDecoder<B, T>
 ): StreamCodec<B, T> = NettyPacket.codec(encoder, decoder)
 
-fun KClass<out NettyPacket>.getPacketMetaOrNull() = findAnnotation<SurfNettyPacket>()
+
+private val metaCache = mutableObject2ObjectMapOf<KClass<out NettyPacket>, SurfNettyPacket>(512)
+fun KClass<out NettyPacket>.getPacketMetaOrNull() =
+    metaCache[this] ?: findAnnotation<SurfNettyPacket>()?.also { metaCache[this] = it }
+
 fun KClass<out NettyPacket>.getPacketMeta() = getPacketMetaOrNull()
     ?: error("NettyPacket class must be annotated with SurfNettyPacket")
 

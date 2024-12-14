@@ -12,16 +12,28 @@ import org.jetbrains.annotations.UnmodifiableView
 fun <T> mutableObjectSetOf(vararg elements: T) = ObjectOpenHashSet(elements)
 fun <T> mutableObjectSetOf() = ObjectOpenHashSet<T>()
 fun <T> mutableObjectSetOf(capacity: Int) = ObjectOpenHashSet<T>(capacity)
-fun <T> objectSetOf(vararg elements: T) = mutableObjectSetOf(elements).freeze()
-fun <T> objectSetOf(collection: Collection<T>) =
-    mutableObjectSetOf<T>().apply { addAll(collection) }.freeze()
+fun <T> mutableObjectSetOf(iterable: Iterable<T>) = when (iterable) {
+    is Collection -> ObjectOpenHashSet(iterable)
+    else -> ObjectOpenHashSet<T>(iterable.iterator())
+}
 
+fun <T> objectSetOf(vararg elements: T): ObjectSet<out T> = when (elements.size) {
+    0 -> emptyObjectSet<T>()
+    1 -> ObjectSets.singleton(elements[0])
+    else -> mutableObjectSetOf<T>(*elements).freeze()
+}
+
+fun <T> objectSetOf(collection: Iterable<T>) = mutableObjectSetOf<T>(collection).freeze()
 fun <T> objectSetOf() = emptyObjectSet<T>()
 fun <T> emptyObjectSet(): @Unmodifiable ObjectSet<T> = ObjectSets.emptySet()
 fun <T> ObjectSet<T>.synchronize(): ObjectSet<T> = ObjectSets.synchronize(this)
-fun <T> ObjectSet<T>.freeze(): @UnmodifiableView ObjectSet<T> = ObjectSets.unmodifiable(this)
-fun <T> Sequence<T>.toMutableObjectSet() = ObjectOpenHashSet(toList())
+fun <T> ObjectSet<T>.freeze(): @UnmodifiableView ObjectSet<T> =
+    this as? ObjectSets.UnmodifiableSet ?: ObjectSets.unmodifiable(this)
+
+fun <T> Sequence<T>.toMutableObjectSet() = ObjectOpenHashSet(iterator())
 fun <T> Sequence<T>.toObjectSet() = toMutableObjectSet().freeze()
+fun <T> Array<out T>.toObjectSet() = objectSetOf(*this)
+fun <T> Iterable<T>.toObjectSet() = (this as? ObjectSet<T>)?.freeze() ?: objectSetOf(this)
 
 // endregion
 // region ObjectList
@@ -38,7 +50,8 @@ fun <T> ObjectArrayList<T>.freeze(): @UnmodifiableView ObjectList<T> =
 fun <T> Sequence<T>.toMutableObjectList() = ObjectArrayList<T>().apply { addAll(toList()) }
 fun <T> Sequence<T>.toObjectList() = toMutableObjectList().freeze()
 fun <T> Collection<T>.toObjectList() = this as? ObjectList<T> ?: ObjectArrayList<T>(this).freeze()
-fun <T> Iterable<T>.toObjectList() = this as? ObjectList<T> ?: ObjectArrayList<T>(iterator()).freeze()
+fun <T> Iterable<T>.toObjectList() =
+    this as? ObjectList<T> ?: ObjectArrayList<T>(iterator()).freeze()
 // endregion
 
 // region ObjectMap
@@ -47,6 +60,7 @@ fun <K, V> mutableObject2ObjectMapOf(vararg pairs: Pair<K, V>) =
     Object2ObjectOpenHashMap<K, V>(pairs.size).apply { putAll(pairs) }
 
 fun <K, V> mutableObject2ObjectMapOf() = Object2ObjectOpenHashMap<K, V>()
+fun <K, V> mutableObject2ObjectMapOf(capacity: Int) = Object2ObjectOpenHashMap<K, V>(capacity)
 fun <K, V> object2ObjectMapOf(vararg pairs: Pair<K, V>) = mutableObject2ObjectMapOf(*pairs).freeze()
 fun <K, V> object2ObjectMapOf() = emptyObject2ObjectMap<K, V>()
 fun <K, V> emptyObject2ObjectMap(): @Unmodifiable Object2ObjectMap<K, V> =

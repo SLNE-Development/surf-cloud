@@ -14,7 +14,6 @@ import dev.slne.surf.cloud.core.common.spring.SurfSpringBanner
 import dev.slne.surf.cloud.core.common.spring.event.RootSpringContextInitialized
 import dev.slne.surf.cloud.core.common.util.checkInstantiationByServiceLoader
 import dev.slne.surf.cloud.core.common.util.tempChangeSystemClassLoader
-import kotlinx.coroutines.runBlocking
 import org.jetbrains.annotations.MustBeInvokedByOverriders
 import org.springframework.boot.Banner
 import org.springframework.boot.builder.SpringApplicationBuilder
@@ -27,9 +26,7 @@ import javax.annotation.OverridingMethodsMustInvokeSuper
 abstract class SurfCloudCoreInstance(private val nettyManager: NettyManager) : SurfCloudInstance {
     protected val log = logger()
 
-    val dataContext: ConfigurableApplicationContext
-        get() = internalContext
-            ?: throw IllegalStateException("Data context is not initialized yet.")
+    val dataContext get() = internalContext ?: error("Data context is not initialized yet.")
 
     abstract val dataFolder: Path
     protected open val springProfile = "client"
@@ -39,8 +36,18 @@ abstract class SurfCloudCoreInstance(private val nettyManager: NettyManager) : S
     }
 
     @MustBeInvokedByOverriders
-    open fun onLoad() {
-        log.atInfo().log("Loading SurfCloudCoreInstance...")
+    open suspend fun bootstrap() {
+        log.atInfo().log("Bootstrapping SurfCloudCoreInstance...")
+
+        setupDefaultUncaughtExceptionHandler()
+        startSpringApplication()
+        nettyManager.bootstrap()
+
+        log.atInfo().log("SurfCloudCoreInstance bootstrapped.")
+    }
+
+    private fun setupDefaultUncaughtExceptionHandler() {
+        log.atInfo().log("Setting up default uncaught exception handler...")
         Thread.setDefaultUncaughtExceptionHandler { thread, e ->
             log.atSevere()
                 .withCause(e)
@@ -53,13 +60,15 @@ abstract class SurfCloudCoreInstance(private val nettyManager: NettyManager) : S
                     thread.name, e.javaClass.name, e.message
                 )
         }
+    }
 
+    private fun startSpringApplication() {
         log.atInfo().log("Starting Spring application...")
         try {
             internalContext = startSpringApplication(SurfCloudMainApplication::class)
         } catch (e: Throwable) {
-            if (e is FatalSurfError) {
-                // Re-throw FatalSurfError immediately
+            if (e is FatalSurfError || e is OutOfMemoryError) {
+                // Re-throw FatalSurfError and OutOfMemoryError immediately
                 throw e
             } else if (e is NestedRuntimeException && e.rootCause is FatalSurfError) {
                 // Re-throw FatalSurfError if it is wrapped inside NestedRuntimeException
@@ -82,25 +91,46 @@ abstract class SurfCloudCoreInstance(private val nettyManager: NettyManager) : S
                 }
             }
         }
-
-        log.atInfo().log("SurfCloudCoreInstance loaded.")
         internalContext?.publishEvent(RootSpringContextInitialized(this))
     }
 
-    @OverridingMethodsMustInvokeSuper
-    open fun onEnable() {
-        nettyManager.blockPlayerConnections()
+    @MustBeInvokedByOverriders
+    open suspend fun onLoad() {
+        log.atInfo().log("Loading SurfCloudCoreInstance...")
+
+        nettyManager.onLoad()
+
+        log.atInfo().log("SurfCloudCoreInstance loaded.")
     }
 
     @OverridingMethodsMustInvokeSuper
-    open fun onDisable() {
+    open suspend fun onEnable() {
+        log.atInfo().log("Enabling SurfCloudCoreInstance...")
+
+        nettyManager.blockPlayerConnections()
+        nettyManager.onEnable()
+
+        log.atInfo().log("SurfCloudCoreInstance enabled.")
+    }
+
+    @OverridingMethodsMustInvokeSuper
+    open suspend fun onDisable() {
+        log.atInfo().log("Disabling SurfCloudCoreInstance...")
+
         nettyManager.stop()
         if (internalContext?.isActive == true) internalContext?.close()
+
+        log.atInfo().log("SurfCloudCoreInstance disabled.")
     }
 
-    open fun afterStart() = runBlocking {
+    @MustBeInvokedByOverriders
+    open suspend fun afterStart() {
+        log.atInfo().log("Running afterStart...")
+
         nettyManager.afterStart()
         nettyManager.unblockPlayerConnections()
+
+        log.atInfo().log("afterStart completed.")
     }
 
     override fun startSpringApplication(
@@ -129,11 +159,7 @@ abstract class SurfCloudCoreInstance(private val nettyManager: NettyManager) : S
     companion object {
         @Volatile
         var internalContext: ConfigurableApplicationContext? = null
-
-        @JvmStatic
-        fun get() = SurfCloudInstance.get() as SurfCloudCoreInstance
     }
-
 }
 
 val coreCloudInstance: SurfCloudCoreInstance

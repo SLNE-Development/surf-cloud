@@ -1,0 +1,12 @@
+package dev.slne.surf.cloud.core.common.netty.network.protocol.prerunning
+
+import dev.slne.surf.cloud.api.common.netty.network.ConnectionProtocol
+import dev.slne.surf.cloud.core.common.netty.network.protocol.common.ServerCommonPacketListener
+
+interface ServerPreLoginPacketListener : ServerCommonPacketListener {
+    override val protocol get() = ConnectionProtocol.PRE_RUNNING
+
+    suspend fun handleReadyToRun(packet: ServerboundReadyToRunPacket)
+
+    suspend fun handlePreRunningAcknowledged(packet: ServerboundPreRunningAcknowledgedPacket)
+}

@@ -123,15 +123,15 @@ object Crypt {
     fun decryptByteToSecretKey(privateKey: PrivateKey, encryptedSecretKey: ByteArray): SecretKey =
         safeCrypto {
             val bs = decryptUsingKey(privateKey, encryptedSecretKey)
-            SecretKeySpec(bs, "AES")
+            SecretKeySpec(bs, SYMMETRIC_ALGORITHM)
         }
 
     fun encryptUsingKey(key: Key, data: ByteArray): ByteArray {
-        return cipherData(1, key, data)
+        return cipherData(Cipher.ENCRYPT_MODE, key, data)
     }
 
     fun decryptUsingKey(key: Key, data: ByteArray): ByteArray {
-        return cipherData(2, key, data)
+        return cipherData(Cipher.DECRYPT_MODE, key, data)
     }
 
     fun cipherData(opMode: Int, key: Key, data: ByteArray): ByteArray = safeCrypto {

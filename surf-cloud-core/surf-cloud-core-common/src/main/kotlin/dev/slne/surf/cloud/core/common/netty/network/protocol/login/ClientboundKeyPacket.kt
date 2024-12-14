@@ -19,9 +19,9 @@ class ClientboundKeyPacket : NettyPacket {
     val publicKey: ByteArray
     val challenge: ByteArray
 
-    constructor(publicKey: ByteArray, challenge: ByteArray) {
+    constructor(publicKey: ByteArray, nonce: ByteArray) {
         this.publicKey = publicKey
-        this.challenge = challenge
+        this.challenge = nonce
     }
 
     private constructor(buf: SurfByteBuf) {

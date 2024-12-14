@@ -6,7 +6,11 @@ import org.jetbrains.annotations.ApiStatus.Internal
 
 @Target(AnnotationTarget.CLASS)
 @Retention(AnnotationRetention.RUNTIME)
-annotation class SurfNettyPacket(val id: Int, val flow: PacketFlow, @Internal val protocol: ConnectionProtocol = ConnectionProtocol.RUNNING)
+annotation class SurfNettyPacket(
+    val id: Int,
+    val flow: PacketFlow,
+    @Internal vararg val protocols: ConnectionProtocol = [ConnectionProtocol.RUNNING]
+)
 
 @Target(AnnotationTarget.PROPERTY)
 @Retention(AnnotationRetention.RUNTIME)
@@ -30,8 +34,14 @@ object DefaultIds {
     const val CLIENTBOUND_LOGIN_FINISHED_PACKET = 0x06
     const val SERVERBOUND_LOGIN_ACKNOWLEDGED_PACKET = 0x07
     const val CLIENTBOUND_LOGIN_DISCONNECT_PACKET = 0x08
-    const val SERVERBOUND_KEY_PACKET = 0x09 // Different protocol state so the ids can be overlapping
+    const val SERVERBOUND_KEY_PACKET =
+        0x09 // Different protocol state so the ids can be overlapping
     const val CLIENTBOUND_KEY_PACKET = 0x0A
+
+    // Pre-Running
+    const val SERVERBOUND_READY_TO_RUN_PACKET = 0x00
+    const val CLIENTBOUND_PRE_RUNNING_FINISHED_PACKET = 0x01
+    const val SERVERBOUND_PRE_RUNNING_ACKNOWLEDGED_PACKET = 0x02
 
     // Running
     const val CLIENTBOUND_KEEP_ALIVE_PACKET = 0x09

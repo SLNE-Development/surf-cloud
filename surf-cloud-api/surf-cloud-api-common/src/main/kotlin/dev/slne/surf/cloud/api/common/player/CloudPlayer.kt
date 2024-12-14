@@ -14,7 +14,7 @@ import java.util.*
  * and modify persistent data containers. This interface also extends [Audience],
  * allowing interactions with the player via messages and components.
  */
-interface CloudPlayer : Audience { // TODO: conversation but done correctly?
+interface CloudPlayer : Audience { // TODO: conversation but done correctly?, teleport api
     /**
      * The unique identifier (UUID) of the player.
      */

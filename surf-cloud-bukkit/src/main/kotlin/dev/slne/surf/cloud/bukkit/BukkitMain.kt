@@ -1,17 +1,20 @@
 package dev.slne.surf.cloud.bukkit
 
-import com.destroystokyo.paper.event.player.PlayerHandshakeEvent
+import com.github.shynixn.mccoroutine.folia.CoroutineTimings
 import com.github.shynixn.mccoroutine.folia.SuspendingJavaPlugin
+import com.github.shynixn.mccoroutine.folia.globalRegionDispatcher
 import com.github.shynixn.mccoroutine.folia.launch
+import com.github.shynixn.mccoroutine.folia.ticks
 import dev.jorel.commandapi.kotlindsl.*
 import dev.slne.surf.cloud.api.common.exceptions.FatalSurfError
 import dev.slne.surf.cloud.api.common.player.toCloudPlayer
 import dev.slne.surf.cloud.api.common.server.serverManager
 import dev.slne.surf.cloud.bukkit.player.BukkitClientCloudPlayerImpl
-import dev.slne.surf.cloud.core.client.player.ClientCloudPlayerImpl
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
+import dev.slne.surf.surfapi.bukkit.api.event.listen
+import kotlinx.coroutines.delay
 import org.bukkit.Bukkit
+import org.bukkit.event.Event
+import org.bukkit.event.server.ServerLoadEvent
 import org.springframework.core.NestedRuntimeException
 
 class BukkitMain : SuspendingJavaPlugin() {
@@ -30,13 +33,25 @@ class BukkitMain : SuspendingJavaPlugin() {
             handleThrowable(t)
         }
 
-        server.scheduler.runTaskLater(this, Runnable {
+        var serverLoaded = false
+        listen<ServerLoadEvent> {
+            if (serverLoaded) {
+                return@listen
+            }
+
+            serverLoaded = true
+            System.err.println("Server loaded ##############################################")
+        }
+
+        // TODO: does this actually delay until the server is fully loaded?
+        launch(globalRegionDispatcher) {
+            delay(1.ticks)
             try {
                 bukkitCloudInstance.afterStart()
             } catch (t: Throwable) {
                 handleThrowable(t)
             }
-        }, 1L)
+        }
 
         commandTree("getServer") {
             literalArgument("byId") {

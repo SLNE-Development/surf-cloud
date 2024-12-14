@@ -31,6 +31,7 @@ abstract class NettyPacket {
     private val meta = this::class.getPacketMeta()
     val id = meta.id
     val flow = meta.flow
+    val protocols = meta.protocols
 
     val sessionId = ThreadLocalRandom.current().nextLong()
 

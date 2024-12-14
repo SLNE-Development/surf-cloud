@@ -9,9 +9,18 @@ abstract class NettyCommonClientManager(
 ) : NettyManager() {
     val nettyClient by lazy { ClientNettyClientImpl(proxy, platformExtension) }
 
+    override suspend fun bootstrap() {
+        super.bootstrap()
+        nettyClient.bootstrap()
+    }
+
+    override suspend fun onEnable() {
+        super.onEnable()
+    }
+
     override suspend fun afterStart() {
         super.afterStart()
-        nettyClient.start()
+        nettyClient.finalize()
     }
 
     override fun stop() {

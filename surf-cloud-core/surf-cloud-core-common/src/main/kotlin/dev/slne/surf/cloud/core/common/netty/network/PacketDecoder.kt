@@ -7,7 +7,7 @@ import io.netty.channel.ChannelHandlerContext
 import io.netty.handler.codec.ByteToMessageDecoder
 import java.io.IOException
 
-class PacketDecoder<T : PacketListener>(private val protocolInfo: ProtocolInfo<T>) :
+class PacketDecoder<T : PacketListener>(val protocolInfo: ProtocolInfo<T>) :
     ByteToMessageDecoder() {
 
     @Suppress("DEPRECATION")

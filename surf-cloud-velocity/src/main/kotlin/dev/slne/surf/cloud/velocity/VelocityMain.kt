@@ -1,17 +1,19 @@
 package dev.slne.surf.cloud.velocity
 
 import com.google.inject.Inject
+import com.velocitypowered.api.event.Continuation
 import com.velocitypowered.api.event.EventManager
+import com.velocitypowered.api.event.EventTask
 import com.velocitypowered.api.event.Subscribe
-import com.velocitypowered.api.event.proxy.ListenerBoundEvent
 import com.velocitypowered.api.event.proxy.ProxyInitializeEvent
 import com.velocitypowered.api.event.proxy.ProxyShutdownEvent
 import com.velocitypowered.api.plugin.Dependency
 import com.velocitypowered.api.plugin.Plugin
 import com.velocitypowered.api.plugin.PluginManager
 import com.velocitypowered.api.plugin.annotation.DataDirectory
-import com.velocitypowered.api.proxy.Player
 import com.velocitypowered.api.proxy.ProxyServer
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.suspendCancellableCoroutine
 import java.nio.file.Path
 
 @Plugin(
@@ -30,17 +32,20 @@ class VelocityMain @Inject constructor(
 ) {
     init {
         instance = this
-        velocityCloudInstance.onLoad()
         eventManager.register(this, this)
+        runBlocking {
+            velocityCloudInstance.bootstrap()
+            velocityCloudInstance.onLoad()
+        }
     }
 
     @Subscribe
-    fun onProxyInitialize(ignored: ProxyInitializeEvent?) {
+    suspend fun onProxyInitialize(ignored: ProxyInitializeEvent?) {
         velocityCloudInstance.onEnable()
     }
 
     @Subscribe
-    fun onProxyShutdown(ignored: ProxyShutdownEvent?) {
+    suspend fun onProxyShutdown(ignored: ProxyShutdownEvent?) {
         velocityCloudInstance.onDisable()
     }
 

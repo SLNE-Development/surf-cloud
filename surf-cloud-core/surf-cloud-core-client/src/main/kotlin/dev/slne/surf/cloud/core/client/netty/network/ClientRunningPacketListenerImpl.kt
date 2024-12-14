@@ -12,6 +12,8 @@ import dev.slne.surf.cloud.core.common.coroutines.PacketHandlerScope
 import dev.slne.surf.cloud.core.common.netty.network.CommonTickablePacketListener
 import dev.slne.surf.cloud.core.common.netty.network.ConnectionImpl
 import dev.slne.surf.cloud.core.common.netty.network.DisconnectionDetails
+import dev.slne.surf.cloud.core.common.netty.network.protocol.common.ClientboundKeepAlivePacket
+import dev.slne.surf.cloud.core.common.netty.network.protocol.common.ServerboundKeepAlivePacket
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.*
 import dev.slne.surf.cloud.core.common.netty.protocol.packet.NettyPacketInfo
 import dev.slne.surf.cloud.core.common.netty.registry.listener.NettyListenerRegistry
@@ -28,36 +30,10 @@ import java.util.*
 import java.util.concurrent.TimeUnit
 
 class ClientRunningPacketListenerImpl(
-    val connection: ConnectionImpl,
+    connection: ConnectionImpl,
     val platformExtension: PlatformSpecificPacketListenerExtension
-) :
-    CommonTickablePacketListener(),
-    RunningClientPacketListener {
+) : ClientCommonPacketListenerImpl(connection), RunningClientPacketListener {
     private val log = logger()
-
-    override suspend fun tick0() {
-
-    }
-
-    override fun handleBundlePacket(packet: ClientboundBundlePacket) {
-        ConnectionManagementScope.launch {
-            for (subPacket in packet.subPackets) {
-                connection.handlePacket(subPacket)
-            }
-        }
-    }
-
-    override fun handleKeepAlive(packet: ClientboundKeepAlivePacket) {
-        send(ServerboundKeepAlivePacket(packet.keepAliveId))
-    }
-
-    override fun handlePing(packet: ClientboundPingPacket) {
-        send(ServerboundPongPacket(packet.pingId))
-    }
-
-    override fun handleDisconnect(packet: ClientboundDisconnectPacket) {
-        connection.disconnect(packet.details)
-    }
 
     override suspend fun handlePlayerConnectToServer(packet: PlayerConnectToServerPacket) {
         playerManagerImpl.updateOrCreatePlayer(packet.uuid, packet.serverUid, packet.proxy)
@@ -242,15 +218,6 @@ class ClientRunningPacketListenerImpl(
                 }
             }
         }
-    }
-
-    override fun onDisconnect(details: DisconnectionDetails) {
-        log.atInfo().log("Client disconnected with reason: ${details.reason}")
-        // TODO: shutdown server if not already shutting down
-    }
-
-    fun send(packet: NettyPacket) {
-        connection.send(packet)
     }
 
     private fun withAudience(uuid: UUID, block: Audience.() -> Unit) {

@@ -5,9 +5,7 @@ import dev.slne.surf.cloud.api.common.player.CloudPlayer
 import dev.slne.surf.cloud.api.common.util.logger
 import dev.slne.surf.cloud.core.common.coroutines.ConnectionManagementScope
 import dev.slne.surf.cloud.core.common.coroutines.PacketHandlerScope
-import dev.slne.surf.cloud.core.common.netty.network.CommonTickablePacketListener
 import dev.slne.surf.cloud.core.common.netty.network.ConnectionImpl
-import dev.slne.surf.cloud.core.common.netty.network.DisconnectionDetails
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.*
 import dev.slne.surf.cloud.core.common.netty.protocol.packet.NettyPacketInfo
 import dev.slne.surf.cloud.core.common.netty.registry.listener.NettyListenerRegistry
@@ -26,73 +24,14 @@ import java.util.concurrent.TimeUnit
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.seconds
 
-
-private val KEEP_ALIVE_TIME = KeepAliveTime(15.seconds)
-private val KEEP_ALIVE_TIMEOUT = KeepAliveTime(30.seconds)
 
 class ServerRunningPacketListenerImpl(
-    val server: NettyServerImpl,
-    val client: ServerClientImpl,
-    val connection: ConnectionImpl
-) :
-    CommonTickablePacketListener(), RunningServerPacketListener {
+    server: NettyServerImpl,
+    client: ServerClientImpl,
+    connection: ConnectionImpl
+) : ServerCommonPacketListenerImpl(server, client, connection), RunningServerPacketListener {
     private val log = logger()
-
-    private var keepAliveTime = KeepAliveTime.now()
-    private var keepAlivePending = false
-    private var keepAliveChallenge: KeepAliveTime = KeepAliveTime(0)
-    private var processedDisconnect = false
-    private var closedListenerTime: Long = 0
-    var latency = 0
-        private set
-
-    @Volatile
-    private var suspendFlushingOnServerThread = false
-
-    private var closed = false
-
-    override fun handleBundlePacket(packet: ServerboundBundlePacket) {
-        val broadcastIdentifier = packet.subPackets.firstOrNull() as? ServerboundBroadcastPacket
-
-        if (broadcastIdentifier != null) {
-            handleBroadcastPacket(packet.subPackets.drop(1))
-            return
-        }
-
-        ConnectionManagementScope.launch {
-            for (subPacket in packet.subPackets) {
-                connection.handlePacket(subPacket)
-            }
-        }
-    }
-
-    private fun handleBroadcastPacket(packets: List<NettyPacket>) {
-        if (packets.isEmpty()) return
-        val packet = if (packets.size == 1) packets.first() else ClientboundBundlePacket(packets)
-        broadcast(packet)
-    }
-
-    override suspend fun handleKeepAlivePacket(packet: ServerboundKeepAlivePacket) {
-        if (keepAlivePending && packet.keepAliveId == keepAliveChallenge.time) {
-            val elapsedTime = KeepAliveTime.now() - keepAliveTime
-
-            this.latency = ((latency * 3 + elapsedTime) / 4).toInt()
-            this.keepAlivePending = false
-        } else {
-            disconnect("Invalid keep alive")
-        }
-    }
-
-    fun handlePongPacket(server: ServerboundPongPacket) {
-        TODO("Not yet implemented")
-    }
-
-    override fun handlePingRequest(packet: ServerboundPingRequestPacket) {
-        send(ClientboundPongResponsePacket(packet.time))
-    }
 
     override suspend fun handlePlayerConnectToServer(packet: PlayerConnectToServerPacket) {
         playerManagerImpl.updateOrCreatePlayer(packet.uuid, packet.serverUid, packet.proxy)
@@ -127,18 +66,20 @@ class ServerRunningPacketListenerImpl(
     @Suppress("UNCHECKED_CAST")
     override fun handleSendTitlePart(packet: ServerboundSendTitlePartPacket) {
         withPlayer(packet.uuid) {
-            when (packet.titlePart) {
+            val part = packet.titlePart
+            val value = packet.value
+            when (part) {
                 TitlePart.TITLE, TitlePart.SUBTITLE -> sendTitlePart(
-                    packet.titlePart as TitlePart<Component>,
-                    packet.value as Component
+                    part as TitlePart<Component>,
+                    value as Component
                 )
 
                 TitlePart.TIMES -> sendTitlePart(
-                    packet.titlePart as TitlePart<Title.Times>,
-                    packet.value as Title.Times
+                    part as TitlePart<Title.Times>,
+                    value as Title.Times
                 )
 
-                else -> error("Unknown title part: ${packet.titlePart}")
+                else -> error("Unknown title part: $part")
             }
         }
     }
@@ -266,102 +207,6 @@ class ServerRunningPacketListenerImpl(
         }
     }
 
-    override fun onDisconnect(details: DisconnectionDetails) {
-        if (processedDisconnect) return
-        processedDisconnect = true
-
-        log.atInfo()
-            .log("${client.serverCategory}/${client.serverId} (${client.connection.hostname}) lost connection: ${details.reason}")
-    }
-
-    private fun close() {
-        if (!closed) {
-            closedListenerTime = System.currentTimeMillis()
-            closed = true
-        }
-    }
-
-    private suspend fun keepConnectionAlive() {
-        val currentTime = KeepAliveTime.now()
-        val elapsedTime = currentTime - keepAliveTime
-
-        if (KEEP_ALIVE_TIME.isExpired(elapsedTime)) {
-            if (keepAlivePending && KEEP_ALIVE_TIMEOUT.isExpired(elapsedTime)) {
-                disconnect("Timed out")
-            } else if (checkIfClosed(currentTime)) {
-                keepAlivePending = true
-                keepAliveTime = currentTime
-                keepAliveChallenge = currentTime
-                send(ClientboundKeepAlivePacket(keepAliveChallenge.time))
-            }
-        }
-    }
-
-    private suspend fun checkIfClosed(time: KeepAliveTime): Boolean {
-        if (closed) {
-            if (KEEP_ALIVE_TIME.isExpired(time - closedListenerTime)) {
-                disconnect("Timed out")
-            }
-
-            return false
-        }
-
-        return true
-    }
-
-    fun suspendFlushing() {
-        this.suspendFlushingOnServerThread = true
-    }
-
-    fun resumeFlushing() {
-        this.suspendFlushingOnServerThread = false
-        connection.flushChannel()
-    }
-
-    fun send(packet: NettyPacket) {
-        if (processedDisconnect) return
-
-        if (packet.terminal) {
-            close()
-        }
-
-        val flush = !suspendFlushingOnServerThread
-        connection.send(packet, flush)
-    }
-
-    fun broadcast(packet: NettyPacket) {
-        if (processedDisconnect) return
-
-        if (packet.terminal) {
-            close()
-        }
-
-        val flush = !suspendFlushingOnServerThread
-        server.connection.broadcast(packet, flush)
-    }
-
-    suspend fun disconnect(reason: String) {
-        disconnect(DisconnectionDetails(reason))
-    }
-
-    suspend fun disconnect(details: DisconnectionDetails) {
-        if (processedDisconnect) return
-
-        ConnectionManagementScope.launch {
-            connection.sendWithIndication(ClientboundDisconnectPacket(details))
-            connection.disconnect(details)
-        }
-
-        onDisconnect(details)
-        connection.setReadOnly()
-
-        schedule { connection.handleDisconnection() }
-    }
-
-    override suspend fun tick0() {
-        keepConnectionAlive()
-    }
-
     @OptIn(ExperimentalContracts::class)
     private inline fun withPlayer(uuid: UUID, block: CloudPlayer.() -> Unit) {
         contract {
@@ -373,20 +218,3 @@ class ServerRunningPacketListenerImpl(
     }
 }
 
-@JvmInline
-value class KeepAliveTime(val time: Long) {
-
-    fun isExpired(elapsedTime: KeepAliveTime) = elapsedTime >= this
-
-    operator fun compareTo(other: KeepAliveTime) = time.compareTo(other.time)
-    operator fun minus(other: KeepAliveTime) = KeepAliveTime(time - other.time)
-    operator fun minus(other: Long) = KeepAliveTime(time - other)
-
-    companion object {
-        fun now() = KeepAliveTime(System.currentTimeMillis())
-    }
-}
-
-fun KeepAliveTime(duration: Duration) = KeepAliveTime(duration.inWholeMilliseconds)
-
-operator fun Int.plus(time: KeepAliveTime) = this + time.time

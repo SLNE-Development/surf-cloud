@@ -24,9 +24,7 @@ import dev.slne.surf.cloud.core.common.netty.network.protocol.login.ServerboundL
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ServerboundBroadcastPacket
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ServerboundBundlePacket
 import dev.slne.surf.cloud.core.common.util.ServerAddress
-import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import java.net.InetSocketAddress
 import kotlin.time.Duration.Companion.seconds
 
@@ -50,15 +48,35 @@ class ClientNettyClientImpl(
 
     val listener get() = _listener ?: error("listener not yet set")
 
+    private val finalizeJob = Job()
+    private val awaitPreRunning = CompletableDeferred<Unit>()
 
     private val statusUpdate: StatusUpdate = {
         log.atInfo().log(it)
     }
 
-    suspend fun start() {
+    /**
+     * Bootstraps the client. Setup the connection protocol until the PreRunning state.
+     */
+    suspend fun bootstrap() {
         val config = cloudConfig.connectionConfig.nettyConfig
         connectToServer(ServerAddress(config.host, config.port))
+        awaitPreRunning.await() // Wait until the connection is in the PreRunning state
     }
+
+    /**
+     * Finalizes the client.
+     * This method is called after all other plugins have registered their packets.
+     * Switches to the Running state.
+     */
+    suspend fun finalize() {
+        finalizeJob.complete()
+        finalizeJob.join()
+    }
+
+    fun finalizeHandler(handler: suspend () -> Unit) =
+        CoroutineScope(finalizeJob).plus(CoroutineName("netty-client-finalize-handler"))
+            .launch { handler() }
 
     fun stop() {
         connection.disconnect(DisconnectionDetails("Client stopped"))
@@ -88,7 +106,8 @@ class ClientNettyClientImpl(
                     this,
                     connection,
                     platformExtension,
-                    statusUpdate
+                    statusUpdate,
+                    awaitPreRunning
                 ),
                 false
             )

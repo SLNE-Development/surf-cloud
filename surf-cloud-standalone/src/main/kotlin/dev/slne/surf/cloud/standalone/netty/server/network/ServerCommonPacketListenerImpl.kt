@@ -12,9 +12,9 @@ import dev.slne.surf.cloud.core.common.netty.network.protocol.common.Serverbound
 import dev.slne.surf.cloud.core.common.netty.network.protocol.common.ServerboundPingRequestPacket
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ClientboundDisconnectPacket
 import dev.slne.surf.cloud.core.common.netty.network.protocol.common.ClientboundPongResponsePacket
-import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ClientboundBundlePacket
+import dev.slne.surf.cloud.core.common.netty.network.protocol.common.ClientboundBundlePacket
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ServerboundBroadcastPacket
-import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ServerboundBundlePacket
+import dev.slne.surf.cloud.core.common.netty.network.protocol.common.ServerboundBundlePacket
 import dev.slne.surf.cloud.standalone.netty.server.NettyServerImpl
 import dev.slne.surf.cloud.standalone.netty.server.ServerClientImpl
 import kotlinx.coroutines.launch

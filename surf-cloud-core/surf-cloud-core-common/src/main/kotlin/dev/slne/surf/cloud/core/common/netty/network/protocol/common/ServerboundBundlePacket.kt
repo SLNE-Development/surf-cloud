@@ -1,4 +1,4 @@
-package dev.slne.surf.cloud.core.common.netty.network.protocol.running
+package dev.slne.surf.cloud.core.common.netty.network.protocol.common
 
 import dev.slne.surf.cloud.api.common.meta.DefaultIds
 import dev.slne.surf.cloud.api.common.meta.SurfNettyPacket
@@ -8,8 +8,9 @@ import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
 import dev.slne.surf.cloud.core.common.netty.network.protocol.BundlePacket
 
 @SurfNettyPacket(
-    DefaultIds.CLIENTBOUND_BUNDLE_PACKET,
-    PacketFlow.CLIENTBOUND,
-    ConnectionProtocol.RUNNING, ConnectionProtocol.PRE_RUNNING
+    DefaultIds.SERVERBOUND_BUNDLE_PACKET,
+    PacketFlow.SERVERBOUND,
+    ConnectionProtocol.PRE_RUNNING,
+    ConnectionProtocol.RUNNING
 )
-class ClientboundBundlePacket(subPackets: Iterable<NettyPacket>) : BundlePacket(subPackets)
+class ServerboundBundlePacket(subPackets: Iterable<NettyPacket>) : BundlePacket(subPackets)

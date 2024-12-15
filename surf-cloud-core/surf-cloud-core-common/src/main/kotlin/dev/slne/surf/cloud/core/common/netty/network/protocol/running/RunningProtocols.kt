@@ -3,6 +3,8 @@ package dev.slne.surf.cloud.core.common.netty.network.protocol.running
 import dev.slne.surf.cloud.api.common.netty.network.ConnectionProtocol
 import dev.slne.surf.cloud.api.common.netty.protocol.buffer.SurfByteBuf
 import dev.slne.surf.cloud.core.common.netty.network.protocol.ProtocolInfoBuilder
+import dev.slne.surf.cloud.core.common.netty.network.protocol.common.ClientboundBundleDelimiterPacket
+import dev.slne.surf.cloud.core.common.netty.network.protocol.common.ClientboundBundlePacket
 import dev.slne.surf.cloud.core.common.netty.network.protocol.common.ClientboundKeepAlivePacket
 import dev.slne.surf.cloud.core.common.netty.network.protocol.common.ClientboundPongResponsePacket
 import dev.slne.surf.cloud.core.common.netty.network.protocol.common.ServerboundKeepAlivePacket

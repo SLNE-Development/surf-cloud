@@ -22,7 +22,7 @@ import dev.slne.surf.cloud.core.common.netty.network.protocol.initialize.Serverb
 import dev.slne.surf.cloud.core.common.netty.network.protocol.login.LoginProtocols
 import dev.slne.surf.cloud.core.common.netty.network.protocol.login.ServerboundLoginStartPacket
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ServerboundBroadcastPacket
-import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ServerboundBundlePacket
+import dev.slne.surf.cloud.core.common.netty.network.protocol.common.ServerboundBundlePacket
 import dev.slne.surf.cloud.core.common.util.ServerAddress
 import kotlinx.coroutines.*
 import java.net.InetSocketAddress

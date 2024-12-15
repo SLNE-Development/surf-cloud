@@ -12,9 +12,11 @@ import dev.slne.surf.cloud.core.common.config.cloudConfig
 import dev.slne.surf.cloud.core.common.coroutines.ConnectionManagementScope
 import dev.slne.surf.cloud.core.common.coroutines.PacketHandlerScope
 import dev.slne.surf.cloud.core.common.netty.network.protocol.common.ClientCommonPacketListener
+import dev.slne.surf.cloud.core.common.netty.network.protocol.common.ClientboundBundlePacket
 import dev.slne.surf.cloud.core.common.netty.network.protocol.common.ClientboundKeepAlivePacket
 import dev.slne.surf.cloud.core.common.netty.network.protocol.common.ClientboundPongResponsePacket
 import dev.slne.surf.cloud.core.common.netty.network.protocol.common.ServerCommonPacketListener
+import dev.slne.surf.cloud.core.common.netty.network.protocol.common.ServerboundBundlePacket
 import dev.slne.surf.cloud.core.common.netty.network.protocol.common.ServerboundKeepAlivePacket
 import dev.slne.surf.cloud.core.common.netty.network.protocol.common.ServerboundPingRequestPacket
 import dev.slne.surf.cloud.core.common.netty.network.protocol.handshake.ClientIntent

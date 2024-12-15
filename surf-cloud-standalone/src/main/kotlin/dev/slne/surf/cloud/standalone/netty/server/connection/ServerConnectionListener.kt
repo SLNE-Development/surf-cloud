@@ -9,7 +9,7 @@ import dev.slne.surf.cloud.core.common.coroutines.ConnectionManagementScope
 import dev.slne.surf.cloud.core.common.netty.network.ConnectionImpl
 import dev.slne.surf.cloud.core.common.netty.network.DisconnectionDetails
 import dev.slne.surf.cloud.core.common.netty.network.HandlerNames
-import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ClientboundBundlePacket
+import dev.slne.surf.cloud.core.common.netty.network.protocol.common.ClientboundBundlePacket
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ClientboundDisconnectPacket
 import dev.slne.surf.cloud.standalone.netty.server.NettyServerImpl
 import dev.slne.surf.cloud.standalone.netty.server.network.ServerHandshakePacketListenerImpl

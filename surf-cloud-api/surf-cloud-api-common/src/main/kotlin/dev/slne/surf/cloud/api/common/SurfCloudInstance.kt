@@ -16,9 +16,6 @@ interface SurfCloudInstance {
         vararg parentClassLoader: ClassLoader
     ): ConfigurableApplicationContext
 
-    @get:ApiStatus.Internal
-    val classLoader: ClassLoader
-
     companion object {
         private val INSTANCE = requiredService<SurfCloudInstance>()
 

@@ -28,18 +28,15 @@ abstract class SurfCloudCoreInstance(private val nettyManager: NettyManager) : S
 
     val dataContext get() = internalContext ?: error("Data context is not initialized yet.")
 
-    abstract val dataFolder: Path
+    lateinit var dataFolder: Path
     protected open val springProfile = "client"
 
-    init {
-        checkInstantiationByServiceLoader()
-    }
-
     @MustBeInvokedByOverriders
-    open suspend fun bootstrap() {
+    open suspend fun bootstrap(data: BootstrapData) {
         log.atInfo().log("Bootstrapping SurfCloudCoreInstance...")
 
         setupDefaultUncaughtExceptionHandler()
+        initBootstrapData(data)
         startSpringApplication()
         nettyManager.bootstrap()
 
@@ -60,6 +57,10 @@ abstract class SurfCloudCoreInstance(private val nettyManager: NettyManager) : S
                     thread.name, e.javaClass.name, e.message
                 )
         }
+    }
+
+    private fun initBootstrapData(data: BootstrapData) {
+        dataFolder = data.dataFolder
     }
 
     private fun startSpringApplication() {
@@ -160,6 +161,8 @@ abstract class SurfCloudCoreInstance(private val nettyManager: NettyManager) : S
         @Volatile
         var internalContext: ConfigurableApplicationContext? = null
     }
+
+    data class BootstrapData(val dataFolder: Path)
 }
 
 val coreCloudInstance: SurfCloudCoreInstance

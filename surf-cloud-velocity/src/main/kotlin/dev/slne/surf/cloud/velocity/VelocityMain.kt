@@ -12,6 +12,7 @@ import com.velocitypowered.api.plugin.Plugin
 import com.velocitypowered.api.plugin.PluginManager
 import com.velocitypowered.api.plugin.annotation.DataDirectory
 import com.velocitypowered.api.proxy.ProxyServer
+import dev.slne.surf.cloud.core.common.SurfCloudCoreInstance
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.suspendCancellableCoroutine
 import java.nio.file.Path
@@ -34,7 +35,9 @@ class VelocityMain @Inject constructor(
         instance = this
         eventManager.register(this, this)
         runBlocking {
-            velocityCloudInstance.bootstrap()
+            velocityCloudInstance.bootstrap(SurfCloudCoreInstance.BootstrapData(
+                dataFolder = dataPath
+            ))
             velocityCloudInstance.onLoad()
         }
     }

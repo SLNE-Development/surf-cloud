@@ -3,6 +3,7 @@ package dev.slne.surf.cloud.standalone
 import com.google.auto.service.AutoService
 import dev.slne.surf.cloud.api.common.SurfCloudInstance
 import dev.slne.surf.cloud.core.common.SurfCloudCoreInstance
+import dev.slne.surf.cloud.core.common.util.checkInstantiationByServiceLoader
 import dev.slne.surf.cloud.core.common.util.random
 import dev.slne.surf.cloud.standalone.netty.server.StandaloneNettyManager
 import dev.slne.surf.cloud.standalone.plugin.StandalonePluginManager
@@ -19,10 +20,11 @@ import kotlin.time.Duration.Companion.seconds
 @AutoService(SurfCloudInstance::class)
 class SurfCloudStandaloneInstance : SurfCloudCoreInstance(StandaloneNettyManager) {
     private val redisEventLog = Loggers.getLogger("RedisEvent")
-
-    override val dataFolder: Path = Path.of("")
-    override val classLoader: ClassLoader = javaClass.classLoader
     override val springProfile = "independent"
+
+    init {
+        checkInstantiationByServiceLoader()
+    }
 
     fun callRedisEvent(event: RedisEvent) {
         val template = dataContext.getBean(

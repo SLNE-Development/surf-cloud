@@ -1,6 +1,5 @@
 package dev.slne.surf.cloud.bukkit
 
-import com.github.shynixn.mccoroutine.folia.CoroutineTimings
 import com.github.shynixn.mccoroutine.folia.SuspendingJavaPlugin
 import com.github.shynixn.mccoroutine.folia.globalRegionDispatcher
 import com.github.shynixn.mccoroutine.folia.launch
@@ -13,7 +12,6 @@ import dev.slne.surf.cloud.bukkit.player.BukkitClientCloudPlayerImpl
 import dev.slne.surf.surfapi.bukkit.api.event.listen
 import kotlinx.coroutines.delay
 import org.bukkit.Bukkit
-import org.bukkit.event.Event
 import org.bukkit.event.server.ServerLoadEvent
 import org.springframework.core.NestedRuntimeException
 

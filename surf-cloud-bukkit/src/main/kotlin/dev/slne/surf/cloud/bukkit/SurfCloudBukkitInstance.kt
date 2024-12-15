@@ -6,11 +6,13 @@ import dev.slne.surf.cloud.bukkit.listener.ListenerManager
 import dev.slne.surf.cloud.bukkit.netty.BukkitNettyManager
 import dev.slne.surf.cloud.core.common.SurfCloudCoreInstance
 import dev.slne.surf.cloud.core.common.coreCloudInstance
+import dev.slne.surf.cloud.core.common.util.checkInstantiationByServiceLoader
 
 @AutoService(SurfCloudInstance::class)
 class SurfCloudBukkitInstance : SurfCloudCoreInstance(BukkitNettyManager) {
-    override val dataFolder get() = plugin.dataPath
-    override val classLoader get() = plugin.classLoader0
+    init {
+        checkInstantiationByServiceLoader()
+    }
 
     override suspend fun onEnable() {
         super.onEnable()

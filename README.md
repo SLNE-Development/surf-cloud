@@ -36,4 +36,6 @@ Docs: [https://surf-cloud-docs.netlify.app/](https://surf-cloud-docs.netlify.app
 - [ ] Generators
     - [ ] packet id generator (one class where all packet ids are stored, annotated with @PacketIdStore)
     - [ ] packet generator (generate basic packet class)
-    - 
+
+## Cloud
+- [ ] Fragwürdiges timeout bei bootstrap auf client

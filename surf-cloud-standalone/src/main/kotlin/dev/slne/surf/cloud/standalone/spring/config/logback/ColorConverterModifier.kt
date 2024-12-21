@@ -1,7 +1,7 @@
 package dev.slne.surf.cloud.standalone.spring.config.logback
 
 import ch.qos.logback.classic.Level
-import dev.slne.surf.surfapi.core.api.util.Util
+import dev.slne.surf.surfapi.core.api.util.setStaticFinalField
 import org.springframework.boot.ansi.AnsiColor
 import org.springframework.boot.ansi.AnsiElement
 import org.springframework.boot.logging.logback.ColorConverter
@@ -20,7 +20,7 @@ internal object ColorConverterModifier {
         val modifiableLevels = extractLevels(levelsField)
         modify(modifiableLevels)
 
-        Util.setStaticFinalField(levelsField, Collections.unmodifiableMap(modifiableLevels))
+        setStaticFinalField(levelsField, Collections.unmodifiableMap(modifiableLevels))
     }
 
     private fun extractLevels(field: Field) = HashMap(field.get(null) as Map<Int, AnsiElement>)

@@ -5,22 +5,21 @@ import com.github.shynixn.mccoroutine.folia.globalRegionDispatcher
 import com.github.shynixn.mccoroutine.folia.launch
 import com.github.shynixn.mccoroutine.folia.ticks
 import dev.jorel.commandapi.kotlindsl.*
-import dev.slne.surf.cloud.api.common.exceptions.FatalSurfError
 import dev.slne.surf.cloud.api.common.player.toCloudPlayer
 import dev.slne.surf.cloud.api.common.server.serverManager
 import dev.slne.surf.cloud.bukkit.player.BukkitClientCloudPlayerImpl
+import dev.slne.surf.cloud.core.common.handleEventuallyFatalError
 import dev.slne.surf.surfapi.bukkit.api.event.listen
 import kotlinx.coroutines.delay
 import org.bukkit.Bukkit
 import org.bukkit.event.server.ServerLoadEvent
-import org.springframework.core.NestedRuntimeException
 
 class BukkitMain : SuspendingJavaPlugin() {
     override suspend fun onLoadAsync() {
         try {
             bukkitCloudInstance.onLoad()
         } catch (t: Throwable) {
-            handleThrowable(t)
+            t.handleEventuallyFatalError { Bukkit.shutdown() }
         }
     }
 
@@ -28,7 +27,7 @@ class BukkitMain : SuspendingJavaPlugin() {
         try {
             bukkitCloudInstance.onEnable()
         } catch (t: Throwable) {
-            handleThrowable(t)
+            t.handleEventuallyFatalError { Bukkit.shutdown() }
         }
 
         var serverLoaded = false
@@ -47,7 +46,7 @@ class BukkitMain : SuspendingJavaPlugin() {
             try {
                 bukkitCloudInstance.afterStart()
             } catch (t: Throwable) {
-                handleThrowable(t)
+                t.handleEventuallyFatalError { Bukkit.shutdown() }
             }
         }
 
@@ -120,29 +119,12 @@ class BukkitMain : SuspendingJavaPlugin() {
         try {
             bukkitCloudInstance.onDisable()
         } catch (t: Throwable) {
-            handleThrowable(t)
+            t.handleEventuallyFatalError { }
         }
     }
 
     val classLoader0: ClassLoader
         get() = classLoader
-
-    private fun handleThrowable(t: Throwable) {
-        if (t is FatalSurfError) {
-            handleFatalError(t)
-        } else if (t is NestedRuntimeException && t.rootCause is FatalSurfError) {
-            handleFatalError(t.rootCause as FatalSurfError)
-        } else {
-            componentLogger.error("An unexpected error occurred", t)
-        }
-    }
-
-    private fun handleFatalError(fatalError: FatalSurfError) {
-        componentLogger.error("A fatal error occurred: ")
-        componentLogger.error(fatalError.buildMessage())
-        fatalError.printStackTrace()
-        Bukkit.shutdown()
-    }
 
     companion object {
         @JvmStatic

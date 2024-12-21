@@ -15,7 +15,7 @@ class CipherDecoder(private val cipher: VelocityCipher) : MessageToMessageDecode
     @OptIn(ExperimentalStdlibApi::class)
     override fun decode(ctx: ChannelHandlerContext, msg: ByteBuf, out: MutableList<Any>) {
         val compatible = MoreByteBufUtils.ensureCompatible(ctx.alloc(), cipher, msg)
-        log.atInfo().log("Decoding message $msg")
+
         runCatching {
             cipher.process(compatible)
             out.add(compatible)

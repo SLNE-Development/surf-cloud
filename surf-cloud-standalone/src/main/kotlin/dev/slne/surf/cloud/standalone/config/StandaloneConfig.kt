@@ -2,17 +2,15 @@ package dev.slne.surf.cloud.standalone.config
 
 import dev.slne.surf.cloud.core.common.coreCloudInstance
 import dev.slne.surf.surfapi.core.api.SurfCoreApi
+import dev.slne.surf.surfapi.core.api.config.createSpongeYmlConfig
+import dev.slne.surf.surfapi.core.api.config.surfConfigApi
 import org.spongepowered.configurate.objectmapping.ConfigSerializable
 import org.spongepowered.configurate.objectmapping.meta.Comment
 import org.spongepowered.configurate.objectmapping.meta.Setting
 
 
 val standaloneConfig: StandaloneConfig by lazy {
-    SurfCoreApi.getCore().createModernYamlConfig(
-        StandaloneConfig::class.java,
-        coreCloudInstance.dataFolder,
-        "standalone-config.yml"
-    )
+    surfConfigApi.createSpongeYmlConfig(coreCloudInstance.dataFolder, "standalone-config.yml")
 }
 
 @ConfigSerializable

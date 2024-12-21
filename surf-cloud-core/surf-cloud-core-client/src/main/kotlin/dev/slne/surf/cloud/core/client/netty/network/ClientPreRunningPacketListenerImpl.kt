@@ -16,11 +16,9 @@ class ClientPreRunningPacketListenerImpl(
     val client: ClientNettyClientImpl,
     connection: ConnectionImpl,
     val platformExtension: PlatformSpecificPacketListenerExtension,
-    currentState: State,
-    updateStatus: StatusUpdate,
+    val statusUpdater: AbstractStatusUpdater,
     val awaitFinishPreRunning: CompletableDeferred<Unit>
 ) : ClientCommonPacketListenerImpl(connection), ClientPreRunningPacketListener {
-    val statusUpdater = StatusUpdaterImpl(currentState, updateStatus)
 
     init {
         client.finalizeHandler { proceedToRunningState() }

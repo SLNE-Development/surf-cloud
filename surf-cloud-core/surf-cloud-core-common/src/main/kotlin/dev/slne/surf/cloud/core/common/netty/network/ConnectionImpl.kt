@@ -85,6 +85,7 @@ class ConnectionImpl(val receiving: PacketFlow) : SimpleChannelInboundHandler<Ne
 
     private var disconnectionHandled = false
 
+    private var packetsReceived = 0
     override var receivedPackets = 0
         private set
     override var sentPackets = 0
@@ -202,17 +203,31 @@ class ConnectionImpl(val receiving: PacketFlow) : SimpleChannelInboundHandler<Ne
     }
 
     override fun channelRead0(ctx: ChannelHandlerContext, msg: NettyPacket) {
-        if (!channel.isOpen) return
+        if (!channel.isOpen) {
+            println("Channel is closed")
+            return
+        }
 
         val packetListener = _packetListener
         check(packetListener != null) { "Received a packet before the packet listener was initialized" }
 
-        if (stopReadingPackets) return
+        if (stopReadingPackets) {
+            println("Stop reading packets")
+            return
+        }
 
+        val packetCount = this.packetsReceived++
         this.receivedPackets++
+        println("Before launch handle packet $packetCount")
         PacketHandlerScope.launch {
-            runCatching { handlePacket(msg) }
-                .onFailure { exceptionCaught(ctx, it) }
+            runCatching {
+                println("Before handle packet $packetCount")
+                handlePacket(msg)
+                println("After handle packet $packetCount")
+            }.onFailure {
+                it.printStackTrace()
+                exceptionCaught(ctx, it)
+            }
         }
     }
 
@@ -1015,6 +1030,17 @@ class ConnectionImpl(val receiving: PacketFlow) : SimpleChannelInboundHandler<Ne
             val sendingSide = opposite == PacketFlow.SERVERBOUND
 
             pipeline.addLast(HandlerNames.SPLITTER, createFrameDecoder(local))
+                .addLast(object : ChannelInboundHandlerAdapter() {
+                    override fun channelRead(
+                        ctx: ChannelHandlerContext?,
+                        msg: Any?
+                    ) {
+                        println("Channel read")
+                        println("msg: $msg")
+
+                        super.channelRead(ctx, msg)
+                    }
+                })
                 .addLast(FlowControlHandler())
                 .addLast(
                     inboundHandlerName(receivingSide),

@@ -1,12 +1,14 @@
 package dev.slne.surf.cloud.standalone
 
 import dev.slne.surf.cloud.api.common.exceptions.FatalSurfError
+import dev.slne.surf.cloud.core.common.SurfCloudCoreInstance.BootstrapData
 import dev.slne.surf.cloud.standalone.spring.config.logback.CloudLogbackConfigurator
 import dev.slne.surf.surfapi.standalone.SurfApiStandaloneBootstrap
 import kotlinx.coroutines.runBlocking
 import org.springframework.boot.SpringApplication
 import org.springframework.core.NestedRuntimeException
 import kotlin.concurrent.thread
+import kotlin.io.path.Path
 import kotlin.system.exitProcess
 
 object Bootstrap {
@@ -16,14 +18,18 @@ object Bootstrap {
             System.err.println("Classloader: " + Bootstrap::class.java.classLoader)
 
             SurfApiStandaloneBootstrap.bootstrap()
+            SurfApiStandaloneBootstrap.enable()
             CloudLogbackConfigurator.configure()
 
+            independentCloudInstance.bootstrap(BootstrapData(Path("")))
             independentCloudInstance.onLoad()
             independentCloudInstance.onEnable()
 
             Runtime.getRuntime().addShutdownHook(thread(start = false) {
-                runBlocking { independentCloudInstance.onDisable() }
-                SurfApiStandaloneBootstrap.shutdown()
+                runBlocking {
+                    independentCloudInstance.onDisable()
+                    SurfApiStandaloneBootstrap.shutdown()
+                }
             })
         } catch (e: NestedRuntimeException) {
             System.err.println("Root cause " + e.rootCause)

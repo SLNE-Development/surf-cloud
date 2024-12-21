@@ -39,7 +39,7 @@ class PacketEncoder<T : PacketListener>(private val protocolInfo: ProtocolInfo<T
             }
 
             if (protocolInfo.id == ConnectionProtocol.LOGIN) {
-                log.atInfo().log("Sending packet ${msg.javaClass.name} (skippable? ${msg.skippable})")
+                log.atInfo().log("Encoding packet ${msg.javaClass.name} (skippable? ${msg.skippable})")
             }
         } catch (e: Throwable) {
             log.atSevere()

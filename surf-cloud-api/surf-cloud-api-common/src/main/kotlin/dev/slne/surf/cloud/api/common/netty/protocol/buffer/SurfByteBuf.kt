@@ -25,7 +25,6 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList
 import net.kyori.adventure.key.Key
 import net.kyori.adventure.sound.Sound
 import net.kyori.adventure.text.Component
-import okhttp3.internal.and
 import java.io.*
 import java.net.InetSocketAddress
 import java.net.URI
@@ -34,6 +33,7 @@ import java.util.function.Consumer
 import kotlin.Throws
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
+import kotlin.experimental.and
 import kotlin.reflect.KClass
 
 private const val NUMBER_BYTE: Byte = 0
@@ -121,12 +121,12 @@ class SurfByteBuf(source: ByteBuf) : WrappedByteBuf(source) {
 
         fun writeUnsigned(buf: ByteBuf, value: Byte) {
             checkEncoded(value >= 0) { "Value must be positive" }
-            buf.writeByte(value and 0xFF)
+            buf.writeByte(value.toInt() and 0xFF)
         }
 
         fun writeUnsigned(buf: ByteBuf, value: Short) {
             checkEncoded(value >= 0) { "Value must be positive" }
-            buf.writeShort(value and 0xFFFF)
+            buf.writeShort(value.toInt() and 0xFFFF)
         }
 
         fun writeUnsigned(buf: ByteBuf, value: Int) {
@@ -232,9 +232,7 @@ class SurfByteBuf(source: ByteBuf) : WrappedByteBuf(source) {
         }
 
         fun <B : ByteBuf> readByteArray(buf: B) = ByteArray(buf.readVarInt()).apply {
-            for (i in indices) {
-                this[i] = buf.readByte()
-            }
+            buf.readBytes(this)
         }
 
         fun <B : ByteBuf> readShortArray(buf: B) = ShortArray(buf.readVarInt()).apply {
@@ -301,9 +299,7 @@ class SurfByteBuf(source: ByteBuf) : WrappedByteBuf(source) {
 
         fun <B : ByteBuf> writeByteArray(buf: B, array: ByteArray) {
             buf.writeVarInt(array.size)
-            for (element in array) {
-                buf.writeByte(element.toInt())
-            }
+            buf.writeBytes(array)
         }
 
         fun <B : ByteBuf> writeShortArray(buf: B, array: ShortArray) {

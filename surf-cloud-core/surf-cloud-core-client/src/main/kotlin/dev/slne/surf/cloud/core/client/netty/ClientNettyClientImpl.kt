@@ -76,7 +76,7 @@ class ClientNettyClientImpl(
 
     fun finalizeHandler(handler: suspend () -> Unit) =
         CoroutineScope(finalizeJob).plus(CoroutineName("netty-client-finalize-handler"))
-            .launch { handler() }
+            .launch(start = CoroutineStart.LAZY) { handler() }
 
     fun stop() {
         connection.disconnect(DisconnectionDetails("Client stopped"))

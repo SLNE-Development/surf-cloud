@@ -82,6 +82,18 @@ class ServerConnectionListener(val server: NettyServerImpl) {
                     .localAddress(address)
                     .option(ChannelOption.AUTO_READ, false)
                     .childHandler(object : ChannelInitializer<Channel>() {
+                        override fun handlerAdded(ctx: ChannelHandlerContext?) {
+                            super.handlerAdded(ctx)
+
+                            println("Handler added to channel ${ctx?.channel()?.id()?.asLongText()}")
+                        }
+
+                        override fun handlerRemoved(ctx: ChannelHandlerContext?) {
+                            super.handlerRemoved(ctx)
+
+                            println("Handler removed to channel ${ctx?.channel()?.id()?.asLongText()}")
+                        }
+
                         override fun initChannel(channel: Channel) {
                             runCatching {
                                 channel.config().setOption(ChannelOption.TCP_NODELAY, true)

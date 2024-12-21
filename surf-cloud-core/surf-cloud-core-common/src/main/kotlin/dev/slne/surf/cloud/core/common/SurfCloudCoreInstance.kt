@@ -167,3 +167,26 @@ abstract class SurfCloudCoreInstance(private val nettyManager: NettyManager) : S
 
 val coreCloudInstance: SurfCloudCoreInstance
     get() = cloudInstance as SurfCloudCoreInstance
+
+inline fun FatalSurfError.handle(additionalHandling: (FatalSurfError) -> Unit) {
+    val log = logger()
+    log.atSevere().log("A fatal error occurred: ")
+    log.atSevere()
+        .withCause(cause)
+        .log(buildMessage())
+    additionalHandling(this)
+}
+
+inline fun Throwable.handleEventuallyFatalError(additionalHandling: (FatalSurfError) -> Unit) {
+    if (this is OutOfMemoryError) {
+        throw this
+    }
+
+    if (this is FatalSurfError) {
+        handle(additionalHandling)
+    } else if (this is NestedRuntimeException && this.rootCause is FatalSurfError) {
+        (this.rootCause as FatalSurfError).handle(additionalHandling)
+    } else {
+        logger().atSevere().withCause(this).log("An unexpected error occurred")
+    }
+}

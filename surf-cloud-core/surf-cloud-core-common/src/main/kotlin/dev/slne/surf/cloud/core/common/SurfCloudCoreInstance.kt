@@ -12,8 +12,9 @@ import dev.slne.surf.cloud.core.common.netty.NettyManager
 import dev.slne.surf.cloud.core.common.processors.NettyPacketProcessor
 import dev.slne.surf.cloud.core.common.spring.SurfSpringBanner
 import dev.slne.surf.cloud.core.common.spring.event.RootSpringContextInitialized
-import dev.slne.surf.cloud.core.common.util.checkInstantiationByServiceLoader
 import dev.slne.surf.cloud.core.common.util.tempChangeSystemClassLoader
+import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.withTimeout
 import org.jetbrains.annotations.MustBeInvokedByOverriders
 import org.springframework.boot.Banner
 import org.springframework.boot.builder.SpringApplicationBuilder
@@ -22,6 +23,7 @@ import org.springframework.core.NestedRuntimeException
 import org.springframework.core.io.DefaultResourceLoader
 import java.nio.file.Path
 import javax.annotation.OverridingMethodsMustInvokeSuper
+import kotlin.time.Duration.Companion.minutes
 
 abstract class SurfCloudCoreInstance(private val nettyManager: NettyManager) : SurfCloudInstance {
     protected val log = logger()
@@ -32,7 +34,7 @@ abstract class SurfCloudCoreInstance(private val nettyManager: NettyManager) : S
     protected open val springProfile = "client"
 
     @MustBeInvokedByOverriders
-    open suspend fun bootstrap(data: BootstrapData) {
+    open suspend fun bootstrap(data: BootstrapData) = withTimeout(1.minutes) {
         log.atInfo().log("Bootstrapping SurfCloudCoreInstance...")
 
         setupDefaultUncaughtExceptionHandler()
@@ -186,6 +188,15 @@ inline fun Throwable.handleEventuallyFatalError(additionalHandling: (FatalSurfEr
         handle(additionalHandling)
     } else if (this is NestedRuntimeException && this.rootCause is FatalSurfError) {
         (this.rootCause as FatalSurfError).handle(additionalHandling)
+    } else if (this is TimeoutCancellationException) {
+        val fatalError = FatalSurfError {
+            simpleErrorMessage("An operation timed out")
+            detailedErrorMessage("An operation timed out")
+            cause(this@handleEventuallyFatalError)
+            additionalInformation("Error occurred in: " + javaClass.name)
+            exitCode(ExitCodes.TIMEOUT)
+        }
+        fatalError.handle(additionalHandling)
     } else {
         logger().atSevere().withCause(this).log("An unexpected error occurred")
     }

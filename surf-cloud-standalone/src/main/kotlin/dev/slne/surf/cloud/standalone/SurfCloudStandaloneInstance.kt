@@ -47,7 +47,9 @@ class SurfCloudStandaloneInstance : SurfCloudCoreInstance(StandaloneNettyManager
         super.onEnable()
 
         afterStart()
-        println("ready")
+
+        log.atInfo()
+            .log("Standalone instance is ready!")
     }
 
     companion object {

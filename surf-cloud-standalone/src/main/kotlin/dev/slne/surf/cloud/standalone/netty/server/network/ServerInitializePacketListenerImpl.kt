@@ -13,7 +13,6 @@ class ServerInitializePacketListenerImpl(val connection: ConnectionImpl) :
     override fun handleIdRequest(packet: ServerboundInitializeRequestIdPacket) {
         val id = StandalonePersistentData.SERVER_ID_COUNTER.value()
         StandalonePersistentData.SERVER_ID_COUNTER.setValue(id + 1)
-        println("Generated id: $id")
         connection.send(ClientboundInitializeIdResponsePacket(id))
     }
 

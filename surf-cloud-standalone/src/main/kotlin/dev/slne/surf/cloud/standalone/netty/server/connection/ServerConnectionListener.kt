@@ -1,6 +1,5 @@
 package dev.slne.surf.cloud.standalone.netty.server.connection
 
-import dev.slne.surf.cloud.api.common.netty.network.ConnectionProtocol
 import dev.slne.surf.cloud.api.common.netty.network.protocol.PacketFlow
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
 import dev.slne.surf.cloud.api.common.util.*
@@ -82,18 +81,6 @@ class ServerConnectionListener(val server: NettyServerImpl) {
                     .localAddress(address)
                     .option(ChannelOption.AUTO_READ, false)
                     .childHandler(object : ChannelInitializer<Channel>() {
-                        override fun handlerAdded(ctx: ChannelHandlerContext?) {
-                            super.handlerAdded(ctx)
-
-                            println("Handler added to channel ${ctx?.channel()?.id()?.asLongText()}")
-                        }
-
-                        override fun handlerRemoved(ctx: ChannelHandlerContext?) {
-                            super.handlerRemoved(ctx)
-
-                            println("Handler removed to channel ${ctx?.channel()?.id()?.asLongText()}")
-                        }
-
                         override fun initChannel(channel: Channel) {
                             runCatching {
                                 channel.config().setOption(ChannelOption.TCP_NODELAY, true)
@@ -114,13 +101,11 @@ class ServerConnectionListener(val server: NettyServerImpl) {
 
                             pending.add(connection)
                             connection.configurePacketHandler(channel, pipeline)
-                            println(
-                                "Configured packet handler for ${
-                                    connection.getLoggableAddress(
-                                        logIps
-                                    )
-                                }"
-                            )
+
+                            val loggableAddress = connection.getLoggableAddress(logIps)
+                            log.atInfo()
+                                .log("Configured packet handler for $loggableAddress")
+
                             connection.setListenerForServerboundHandshake(
                                 ServerHandshakePacketListenerImpl(server, connection)
                             )

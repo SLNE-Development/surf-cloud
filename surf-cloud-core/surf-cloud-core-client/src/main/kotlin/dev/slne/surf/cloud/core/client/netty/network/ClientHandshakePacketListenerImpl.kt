@@ -44,14 +44,7 @@ class ClientHandshakePacketListenerImpl(
         val secretKey = Crypt.generateSecretKey()
         val publicKey = packet.decryptPublicKey()
 
-        println("Secret key: ${secretKey.encoded.contentToString()}")
-        println("Public key: ${publicKey.encoded.contentToString()}")
-        println("Challenge: ${packet.challenge.contentToString()}")
-
         val responsePacket = ServerboundKeyPacket(secretKey, publicKey, packet.challenge)
-
-        println("Encrypted key: ${responsePacket.keyBytes.contentToString()}")
-        println("Encrypted challenge: ${responsePacket.encryptedChallenge.contentToString()}")
 
         setEncryption(responsePacket, secretKey)
     }

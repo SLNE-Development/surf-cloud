@@ -19,6 +19,7 @@ import org.springframework.context.annotation.ClassPathScanningCandidateComponen
 import org.springframework.context.annotation.ScannedGenericBeanDefinition
 import org.springframework.context.event.ContextRefreshedEvent
 import org.springframework.core.type.filter.AnnotationTypeFilter
+import kotlin.reflect.KClass
 
 private val internalPackage = ProtocolInfoBuilder::class.java.packageName
 
@@ -36,7 +37,8 @@ object NettyPacketProcessor : ApplicationContextInitializer<ConfigurableApplicat
                 val context = event.applicationContext
                 val autoConfigurationPackages =
                     AutoConfigurationPackages.get(context)
-                println("Eligible packets for NettyPackets: $autoConfigurationPackages")
+                log.atInfo()
+                    .log("Eligible packets for NettyPackets: $autoConfigurationPackages")
 
                 val scanner = ClassPathScanningCandidateComponentProvider(false)
                 scanner.resourceLoader = context
@@ -86,21 +88,27 @@ object NettyPacketProcessor : ApplicationContextInitializer<ConfigurableApplicat
                             )
                             RunningProtocols.SERVERBOUND_TEMPLATE.addPacket(
                                 packet.java as Class<NettyPacket>,
-                                codec as StreamCodec<in SurfByteBuf, NettyPacket>
+                                codec
                             )
                         }
                     }
 
-                    println(
-                        "Registered packet: ${packet.simpleName} (id: 0x${
-                            packetMeta.id.toString(
-                                16
-                            )
-                        }) ${if (packetMeta.flow == PacketFlow.SERVERBOUND) "C->S" else "S->C"}"
-                    )
+                    logRegistration(packet, packetMeta)
                 }
             }
         })
+    }
+
+    private fun logRegistration(packet: KClass<out NettyPacket>, packetMeta: SurfNettyPacket) {
+        log.atInfo()
+            .log(buildString {
+                append("Registered packet: ")
+                append(packet.simpleName)
+                append(" (id: 0x$")
+                append(packetMeta.id.toString(16))
+                append(") ")
+                append(packetMeta.flow.displayName())
+            })
     }
 
 //    private fun findBasePackages(context: ConfigurableApplicationContext): Sequence<String> {

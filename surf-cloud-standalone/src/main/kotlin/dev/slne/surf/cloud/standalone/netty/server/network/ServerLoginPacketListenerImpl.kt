@@ -31,11 +31,8 @@ class ServerLoginPacketListenerImpl(val server: NettyServerImpl, val connection:
     private var seconds = 0
 
     override suspend fun tick0() {
-        println("Ticking login packet listener")
         if (state == State.VERIFYING) {
-            println("State is verifying")
             if (connection.connected) {
-                println("Connection is connected")
                 verifyLoginAndFinishConnectionSetup()
             }
         }
@@ -50,19 +47,13 @@ class ServerLoginPacketListenerImpl(val server: NettyServerImpl, val connection:
         this.client = ServerClientImpl(server, packet.serverId, packet.serverCategory, packet.serverName)
         this.proxy = packet.proxy
 
-        state = State.AUTHENTICATING
-        println("Sending key packet")
+        state = State.KEY
         val publicKey = server.keyPair.public.encoded
 
-        println("Public key: ${publicKey.contentToString()}")
-        println("Challenge: ${challenge.contentToString()}")
-
-//        connection.send(ClientboundKeyPacket(publicKey, challenge))
-        startClientVerification()
+        connection.send(ClientboundKeyPacket(publicKey, challenge))
     }
 
     private fun startClientVerification() {
-        println("Starting client verification")
         state = State.VERIFYING
     }
 
@@ -77,14 +68,12 @@ class ServerLoginPacketListenerImpl(val server: NettyServerImpl, val connection:
 
     override fun handleKey(packet: ServerboundKeyPacket) {
         check(state == State.KEY) { "Unexpected key packet" }
-        println("Handling key packet")
 
         try {
             val privateKey = server.keyPair.private
             check(packet.isChallengeValid(challenge, privateKey)) { "Protocol error: Invalid key" }
 
             val secretkey = packet.getSecretKey(privateKey)
-            println("Secret key: ${secretkey.encoded.contentToString()}")
             state = State.AUTHENTICATING
             connection.setupEncryption(secretkey)
         } catch (e: CryptException) {

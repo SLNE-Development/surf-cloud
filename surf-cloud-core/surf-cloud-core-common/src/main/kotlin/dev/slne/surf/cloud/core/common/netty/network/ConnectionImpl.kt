@@ -203,29 +203,18 @@ class ConnectionImpl(val receiving: PacketFlow) : SimpleChannelInboundHandler<Ne
     }
 
     override fun channelRead0(ctx: ChannelHandlerContext, msg: NettyPacket) {
-        if (!channel.isOpen) {
-            println("Channel is closed")
-            return
-        }
+        if (!channel.isOpen) return
 
         val packetListener = _packetListener
         check(packetListener != null) { "Received a packet before the packet listener was initialized" }
 
-        if (stopReadingPackets) {
-            println("Stop reading packets")
-            return
-        }
+        if (stopReadingPackets) return
 
-        val packetCount = this.packetsReceived++
         this.receivedPackets++
-        println("Before launch handle packet $packetCount")
         PacketHandlerScope.launch {
             runCatching {
-                println("Before handle packet $packetCount")
                 handlePacket(msg)
-                println("After handle packet $packetCount")
             }.onFailure {
-                it.printStackTrace()
                 exceptionCaught(ctx, it)
             }
         }
@@ -1030,17 +1019,6 @@ class ConnectionImpl(val receiving: PacketFlow) : SimpleChannelInboundHandler<Ne
             val sendingSide = opposite == PacketFlow.SERVERBOUND
 
             pipeline.addLast(HandlerNames.SPLITTER, createFrameDecoder(local))
-                .addLast(object : ChannelInboundHandlerAdapter() {
-                    override fun channelRead(
-                        ctx: ChannelHandlerContext?,
-                        msg: Any?
-                    ) {
-                        println("Channel read")
-                        println("msg: $msg")
-
-                        super.channelRead(ctx, msg)
-                    }
-                })
                 .addLast(FlowControlHandler())
                 .addLast(
                     inboundHandlerName(receivingSide),

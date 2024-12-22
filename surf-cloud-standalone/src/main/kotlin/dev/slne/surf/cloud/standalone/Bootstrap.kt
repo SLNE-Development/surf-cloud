@@ -1,27 +1,34 @@
 package dev.slne.surf.cloud.standalone
 
-import dev.slne.surf.cloud.api.common.exceptions.FatalSurfError
+import dev.slne.surf.cloud.api.common.util.logger
 import dev.slne.surf.cloud.core.common.SurfCloudCoreInstance.BootstrapData
+import dev.slne.surf.cloud.core.common.handleEventuallyFatalError
 import dev.slne.surf.cloud.standalone.spring.config.logback.CloudLogbackConfigurator
 import dev.slne.surf.surfapi.standalone.SurfApiStandaloneBootstrap
 import kotlinx.coroutines.runBlocking
 import org.springframework.boot.SpringApplication
-import org.springframework.core.NestedRuntimeException
 import kotlin.concurrent.thread
 import kotlin.io.path.Path
 import kotlin.system.exitProcess
 
 object Bootstrap {
+    val log = logger()
+
     @JvmStatic
     fun main(args: Array<String>) = runBlocking {
         try {
-            System.err.println("Classloader: " + Bootstrap::class.java.classLoader)
+            log.atInfo()
+                .log("Classloader: " + Bootstrap::class.java.classLoader)
 
             SurfApiStandaloneBootstrap.bootstrap()
             SurfApiStandaloneBootstrap.enable()
             CloudLogbackConfigurator.configure()
 
-            independentCloudInstance.bootstrap(BootstrapData(Path("")))
+            independentCloudInstance.bootstrap(
+                BootstrapData(
+                    dataFolder = Path("")
+                )
+            )
             independentCloudInstance.onLoad()
             independentCloudInstance.onEnable()
 
@@ -31,27 +38,15 @@ object Bootstrap {
                     SurfApiStandaloneBootstrap.shutdown()
                 }
             })
-        } catch (e: NestedRuntimeException) {
-            System.err.println("Root cause " + e.rootCause)
-            if (e.rootCause is FatalSurfError) {
-                handleFatalError(e.rootCause as FatalSurfError)
-            } else {
-                throw e
+        } catch (e: Throwable) {
+            e.handleEventuallyFatalError {
+                val context = independentCloudInstance.dataContext
+                if (context.isActive) {
+                    SpringApplication.exit(context, it)
+                } else {
+                    exitProcess(it.exitCode)
+                }
             }
-        } catch (error: FatalSurfError) {
-            handleFatalError(error)
-        }
-    }
-
-    private fun handleFatalError(error: FatalSurfError) {
-        System.err.println(error.buildMessage())
-        error.cause?.printStackTrace()
-
-        val context = independentCloudInstance.dataContext
-        if (context.isActive) {
-            SpringApplication.exit(context, error)
-        } else {
-            exitProcess(error.exitCode)
         }
     }
 }

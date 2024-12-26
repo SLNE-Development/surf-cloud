@@ -12,6 +12,7 @@ import dev.slne.surf.cloud.core.common.netty.NettyManager
 import dev.slne.surf.cloud.core.common.processors.NettyPacketProcessor
 import dev.slne.surf.cloud.core.common.spring.SurfSpringBanner
 import dev.slne.surf.cloud.core.common.spring.event.RootSpringContextInitialized
+import dev.slne.surf.cloud.core.common.util.getCallerClass
 import dev.slne.surf.cloud.core.common.util.tempChangeSystemClassLoader
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.withTimeout
@@ -34,15 +35,21 @@ abstract class SurfCloudCoreInstance(private val nettyManager: NettyManager) : S
     protected open val springProfile = "client"
 
     @MustBeInvokedByOverriders
-    open suspend fun bootstrap(data: BootstrapData) = withTimeout(1.minutes) {
+    open suspend fun bootstrap(data: BootstrapData) {
         log.atInfo().log("Bootstrapping SurfCloudCoreInstance...")
-
         setupDefaultUncaughtExceptionHandler()
         initBootstrapData(data)
-        startSpringApplication()
-        nettyManager.bootstrap()
 
-        log.atInfo().log("SurfCloudCoreInstance bootstrapped.")
+        preBootstrap()
+        withTimeout(1.minutes) {
+            startSpringApplication()
+            nettyManager.bootstrap()
+
+            log.atInfo().log("SurfCloudCoreInstance bootstrapped.")
+        }
+    }
+    open suspend fun preBootstrap() {
+
     }
 
     private fun setupDefaultUncaughtExceptionHandler() {
@@ -193,7 +200,7 @@ inline fun Throwable.handleEventuallyFatalError(additionalHandling: (FatalSurfEr
             simpleErrorMessage("An operation timed out")
             detailedErrorMessage("An operation timed out")
             cause(this@handleEventuallyFatalError)
-            additionalInformation("Error occurred in: " + javaClass.name)
+            additionalInformation("Error occurred in: " + getCallerClass()?.simpleName)
             exitCode(ExitCodes.TIMEOUT)
         }
         fatalError.handle(additionalHandling)

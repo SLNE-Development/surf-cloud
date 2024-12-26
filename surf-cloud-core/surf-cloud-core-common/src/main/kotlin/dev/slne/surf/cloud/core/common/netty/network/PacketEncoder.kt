@@ -37,10 +37,6 @@ class PacketEncoder<T : PacketListener>(private val protocolInfo: ProtocolInfo<T
             if (msg is ResponseNettyPacket) {
                 msg.extraEncode(out)
             }
-
-            if (protocolInfo.id == ConnectionProtocol.LOGIN) {
-                log.atInfo().log("Encoding packet ${msg.javaClass.name} (skippable? ${msg.skippable})")
-            }
         } catch (e: Throwable) {
             log.atSevere()
                 .withCause(e)

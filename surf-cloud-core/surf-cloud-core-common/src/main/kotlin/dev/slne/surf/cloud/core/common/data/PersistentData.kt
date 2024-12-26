@@ -11,6 +11,9 @@ interface PersistentData<T> {
     operator fun contains(key: String): Boolean
     fun nonNull(): NonNullPersistentData<T> = NonNullPersistentData.of(this)
 
+    operator fun getValue(thisRef: Any?, property: Any?): T? = value()
+    operator fun setValue(thisRef: Any?, property: Any?, value: T?) = setValue(value)
+
     companion object {
         @JvmStatic
         fun <T : Tag<D>, D> data(
@@ -38,6 +41,9 @@ interface NonNullPersistentData<T> {
     fun setValue(value: T)
 
     operator fun contains(key: String): Boolean
+
+    operator fun getValue(thisRef: Any?, property: Any?): T = value()
+    operator fun setValue(thisRef: Any?, property: Any?, value: T) = setValue(value)
 
     companion object {
         fun <T> of(data: PersistentData<T>) = object : NonNullPersistentData<T> {

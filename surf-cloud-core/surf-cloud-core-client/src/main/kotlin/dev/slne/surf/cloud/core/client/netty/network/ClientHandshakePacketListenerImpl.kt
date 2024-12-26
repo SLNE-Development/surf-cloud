@@ -39,24 +39,24 @@ class ClientHandshakePacketListenerImpl(
     }
 
     override suspend fun handleKey(packet: ClientboundKeyPacket) {
-        switchState(State.AUTHORIZING)
-
-        val secretKey = Crypt.generateSecretKey()
-        val publicKey = packet.decryptPublicKey()
-
-        val responsePacket = ServerboundKeyPacket(secretKey, publicKey, packet.challenge)
-
-        setEncryption(responsePacket, secretKey)
+//        switchState(State.AUTHORIZING)
+//
+//        val secretKey = Crypt.generateSecretKey()
+//        val publicKey = packet.decryptPublicKey()
+//
+//        val responsePacket = ServerboundKeyPacket(secretKey, publicKey, packet.challenge)
+//
+//        setEncryption(responsePacket, secretKey)
     }
 
-    private suspend fun setEncryption(
-        responsePacket: ServerboundKeyPacket,
-        secretKey: SecretKey,
-    ) {
-        switchState(State.ENCRYPTING)
-        connection.send(responsePacket)
-        connection.setupEncryption(secretKey)
-    }
+//    private suspend fun setEncryption(
+//        keyPacket: ServerboundKeyPacket,
+//        secretKey: SecretKey,
+//    ) {
+//        switchState(State.ENCRYPTING)
+//        connection.sendWithIndication(keyPacket)
+//        connection.setupEncryption(secretKey)
+//    }
 
     override fun onDisconnect(details: DisconnectionDetails) {
 

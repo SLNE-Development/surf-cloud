@@ -1,6 +1,5 @@
 @file:Suppress("UnstableApiUsage")
 
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons.requested
 import org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension
 
 plugins {
@@ -73,6 +72,8 @@ tasks {
             setPath("META-INF")
             exclude("META-INF/MANIFEST.MF")
         }
+
+        isZip64 = true
     }
 
     jar {

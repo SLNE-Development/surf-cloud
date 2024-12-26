@@ -8,7 +8,7 @@ repositories {
 }
 
 dependencies {
-    val kotlinVersion = "2.0.21"
+    val kotlinVersion = "2.1.0"
 //    val dokkaVersion = "2.0.0-Beta"
 
     implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion")

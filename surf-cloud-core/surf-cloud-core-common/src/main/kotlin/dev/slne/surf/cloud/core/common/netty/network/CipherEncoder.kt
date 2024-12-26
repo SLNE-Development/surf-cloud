@@ -9,12 +9,13 @@ import io.netty.handler.codec.MessageToMessageDecoder
 class CipherEncoder(private val cipher: VelocityCipher) : MessageToMessageDecoder<ByteBuf>() {
     override fun decode(ctx: ChannelHandlerContext, msg: ByteBuf, out: MutableList<Any>) {
         val compatible = MoreByteBufUtils.ensureCompatible(ctx.alloc(), cipher, msg)
-        runCatching {
+
+        try {
             cipher.process(compatible)
             out.add(compatible)
-        }.onFailure {
+        } catch (e: Exception) {
             compatible.release()
-            throw it
+            throw e
         }
     }
 

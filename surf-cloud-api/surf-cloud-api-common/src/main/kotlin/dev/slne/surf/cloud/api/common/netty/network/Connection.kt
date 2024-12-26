@@ -3,7 +3,6 @@ package dev.slne.surf.cloud.api.common.netty.network
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
 import kotlinx.coroutines.CompletableDeferred
 import java.net.InetSocketAddress
-import java.util.concurrent.CompletableFuture
 
 interface Connection {
     val receivedPackets: Int

@@ -4,12 +4,13 @@ import com.google.auto.service.AutoService
 import dev.slne.surf.cloud.api.common.SurfCloudInstance
 import dev.slne.surf.cloud.bukkit.listener.ListenerManager
 import dev.slne.surf.cloud.bukkit.netty.BukkitNettyManager
+import dev.slne.surf.cloud.core.client.ClientCommonCloudInstance
 import dev.slne.surf.cloud.core.common.SurfCloudCoreInstance
 import dev.slne.surf.cloud.core.common.coreCloudInstance
 import dev.slne.surf.cloud.core.common.util.checkInstantiationByServiceLoader
 
 @AutoService(SurfCloudInstance::class)
-class SurfCloudBukkitInstance : SurfCloudCoreInstance(BukkitNettyManager) {
+class SurfCloudBukkitInstance : ClientCommonCloudInstance(BukkitNettyManager) {
     init {
         checkInstantiationByServiceLoader()
     }

@@ -20,7 +20,7 @@ object ConnectionListener: Listener {
 
         PlayerConnectToServerPacket(
             uniqueId,
-            CloudPersistentData.SERVER_ID.value(),
+            CloudPersistentData.SERVER_ID,
             false
         ).fireAndForget()
     }
@@ -29,7 +29,7 @@ object ConnectionListener: Listener {
     fun PlayerQuitEvent.onPlayerQuit() {
         PlayerDisconnectFromServerPacket(
             player.uniqueId,
-            CloudPersistentData.SERVER_ID.value(),
+            CloudPersistentData.SERVER_ID,
             false
         ).fireAndForget()
     }

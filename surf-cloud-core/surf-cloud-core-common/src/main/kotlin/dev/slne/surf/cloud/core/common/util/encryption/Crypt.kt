@@ -4,8 +4,9 @@ import com.google.common.primitives.Longs
 import dev.slne.surf.cloud.api.common.netty.protocol.buffer.SurfByteBuf
 import dev.slne.surf.cloud.api.common.util.getOrMapAndThrow
 import dev.slne.surf.cloud.core.common.util.random
-import net.kyori.adventure.chat.SignedMessage.signature
+import java.io.File
 import java.security.*
+import java.security.cert.X509Certificate
 import java.security.spec.PKCS8EncodedKeySpec
 import java.security.spec.X509EncodedKeySpec
 import java.util.*
@@ -26,9 +27,44 @@ object Crypt {
     private const val PEM_RSA_PRIVATE_KEY_HEADER = "-----BEGIN RSA PRIVATE KEY-----"
     private const val PEM_RSA_PRIVATE_KEY_FOOTER = "-----END RSA PRIVATE KEY-----"
     const val RSA_PUBLIC_KEY_HEADER = "-----BEGIN RSA PUBLIC KEY-----"
-    private const val RSA_PUBLIC_KEY_FOOTER = "-----END RSA PUBLIC KEY-----"
+    const val RSA_PUBLIC_KEY_FOOTER = "-----END RSA PUBLIC KEY-----"
+    const val CERTIFICATE_HEADER = "-----BEGIN CERTIFICATE-----"
+    const val CERTIFICATE_FOOTER = "-----END CERTIFICATE-----"
     const val MIME_LINE_SEPARATOR = "\n"
-    val mimeEncoder = Base64.getMimeEncoder(76, MIME_LINE_SEPARATOR.toByteArray(Charsets.UTF_8))
+    val mimeEncoder: Base64.Encoder = Base64.getMimeEncoder(76, MIME_LINE_SEPARATOR.toByteArray(Charsets.UTF_8))
+
+    fun writeCertificate(file: File, certificate: X509Certificate) {
+//        file.writeText(
+//            """
+//            $CERTIFICATE_HEADER
+//            ${mimeEncoder.encodeToString(certificate.encoded)}
+//            $CERTIFICATE_FOOTER
+//            """.trimIndent()
+//        )
+
+        file.writeText(buildString {
+            append(CERTIFICATE_HEADER)
+            append(MIME_LINE_SEPARATOR)
+            append(mimeEncoder.encodeToString(certificate.encoded))
+            append(MIME_LINE_SEPARATOR)
+            append(CERTIFICATE_FOOTER)
+        })
+    }
+
+    fun writePrivateKey(file: File, key: PrivateKey) {
+        file.writeText(buildString {
+            append(PEM_RSA_PRIVATE_KEY_HEADER)
+            append(MIME_LINE_SEPARATOR)
+            append(mimeEncoder.encodeToString(key.encoded))
+            append(MIME_LINE_SEPARATOR)
+            append(PEM_RSA_PRIVATE_KEY_FOOTER)
+        })
+    }
+
+    fun readPrivateKey(file: File): PrivateKey = safeCrypto {
+        val key = file.readText()
+        stringToPemRsaPrivateKey(key)
+    }
 
     fun generateSecretKey(): SecretKey = safeCrypto {
         val keyGenerator = KeyGenerator.getInstance(SYMMETRIC_ALGORITHM)
@@ -110,14 +146,6 @@ object Crypt {
         keyFactory.generatePublic(encodedKeySpec)
     }
 
-    //     public static SecretKey decryptByteToSecretKey(PrivateKey privateKey, byte[] encryptedSecretKey) throws CryptException {
-    //        byte[] bs = decryptUsingKey(privateKey, encryptedSecretKey);
-    //
-    //        try {
-    //            return new SecretKeySpec(bs, "AES");
-    //        } catch (Exception var4) {
-    //            throw new CryptException(var4);
-    //        }
     //    }
 
     fun decryptByteToSecretKey(privateKey: PrivateKey, encryptedSecretKey: ByteArray): SecretKey =
@@ -153,7 +181,6 @@ object Crypt {
     private inline fun <R> safeCrypto(crypto: () -> R): R =
         runCatching(crypto).getOrMapAndThrow { CryptException(it) }
 
-    @JvmRecord
     data class SaltSignaturePair(val salt: Long, val signature: ByteArray) {
         companion object {
             val EMPTY = SaltSignaturePair(0L, byteArrayOf())

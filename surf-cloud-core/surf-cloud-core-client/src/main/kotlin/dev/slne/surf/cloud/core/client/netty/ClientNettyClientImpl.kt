@@ -6,25 +6,26 @@ import dev.slne.surf.cloud.api.common.exceptions.FatalSurfError
 import dev.slne.surf.cloud.api.common.netty.network.protocol.PacketFlow
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
 import dev.slne.surf.cloud.api.common.util.logger
-import dev.slne.surf.cloud.core.client.netty.network.ClientHandshakePacketListenerImpl
-import dev.slne.surf.cloud.core.client.netty.network.ClientRunningPacketListenerImpl
-import dev.slne.surf.cloud.core.client.netty.network.PlatformSpecificPacketListenerExtension
-import dev.slne.surf.cloud.core.client.netty.network.StatusUpdate
+import dev.slne.surf.cloud.api.common.util.mutableObjectListOf
+import dev.slne.surf.cloud.core.client.netty.network.*
 import dev.slne.surf.cloud.core.common.config.cloudConfig
 import dev.slne.surf.cloud.core.common.coroutines.ConnectionTickScope
 import dev.slne.surf.cloud.core.common.data.CloudPersistentData
 import dev.slne.surf.cloud.core.common.netty.CommonNettyClientImpl
 import dev.slne.surf.cloud.core.common.netty.network.ConnectionImpl
 import dev.slne.surf.cloud.core.common.netty.network.DisconnectionDetails
+import dev.slne.surf.cloud.core.common.netty.network.protocol.common.ServerboundBundlePacket
 import dev.slne.surf.cloud.core.common.netty.network.protocol.initialize.ClientInitializePacketListener
 import dev.slne.surf.cloud.core.common.netty.network.protocol.initialize.ClientboundInitializeIdResponsePacket
 import dev.slne.surf.cloud.core.common.netty.network.protocol.initialize.ServerboundInitializeRequestIdPacket
 import dev.slne.surf.cloud.core.common.netty.network.protocol.login.LoginProtocols
 import dev.slne.surf.cloud.core.common.netty.network.protocol.login.ServerboundLoginStartPacket
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ServerboundBroadcastPacket
-import dev.slne.surf.cloud.core.common.netty.network.protocol.common.ServerboundBundlePacket
+import dev.slne.surf.cloud.core.common.util.InetSocketAddress
 import dev.slne.surf.cloud.core.common.util.ServerAddress
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.net.InetSocketAddress
 import kotlin.time.Duration.Companion.seconds
 
@@ -32,7 +33,7 @@ class ClientNettyClientImpl(
     val proxy: Boolean,
     val platformExtension: PlatformSpecificPacketListenerExtension
 ) : CommonNettyClientImpl(
-    CloudPersistentData.SERVER_ID.value(),
+    CloudPersistentData.SERVER_ID,
     CloudProperties.SERVER_CATEGORY,
     CloudProperties.SERVER_NAME
 ) {
@@ -48,8 +49,8 @@ class ClientNettyClientImpl(
 
     val listener get() = _listener ?: error("listener not yet set")
 
-    private val finalizeJob = Job()
     private val awaitPreRunning = CompletableDeferred<Unit>()
+    private val finalizeHandler = mutableObjectListOf<suspend () -> Unit>()
 
     private val statusUpdate: StatusUpdate = {
         log.atInfo().log(it)
@@ -70,13 +71,11 @@ class ClientNettyClientImpl(
      * Switches to the Running state.
      */
     suspend fun finalize() {
-        finalizeJob.complete()
-        finalizeJob.join()
+        finalizeHandler.forEach { finalize -> finalize() }
+        finalizeHandler.clear()
     }
 
-    fun finalizeHandler(handler: suspend () -> Unit) =
-        CoroutineScope(finalizeJob).plus(CoroutineName("netty-client-finalize-handler"))
-            .launch(start = CoroutineStart.LAZY) { handler() }
+    fun finalizeHandler(handler: suspend () -> Unit) = finalizeHandler.add(handler)
 
     fun stop() {
         connection.disconnect(DisconnectionDetails("Client stopped"))
@@ -85,12 +84,12 @@ class ClientNettyClientImpl(
     suspend fun connectToServer(serverAddress: ServerAddress) {
         fetchAndUpdateData(InetSocketAddress(serverAddress.host, serverAddress.port))
 
-        log.atInfo().log("Connecting to server at ${serverAddress.host}:${serverAddress.port}")
-        val inetSocketAddress: InetSocketAddress
+        log.atInfo()
+            .log("Connecting to server at ${serverAddress.host}:${serverAddress.port}")
 
         try {
-            inetSocketAddress = InetSocketAddress(serverAddress.host, serverAddress.port)
-            val connection = ConnectionImpl(PacketFlow.CLIENTBOUND)
+            val inetSocketAddress = InetSocketAddress(serverAddress)
+            val connection = ConnectionImpl(PacketFlow.CLIENTBOUND, ClientEncryptionManager)
             ConnectionImpl.connect(
                 inetSocketAddress,
                 cloudConfig.connectionConfig.nettyConfig.useEpoll,
@@ -138,8 +137,9 @@ class ClientNettyClientImpl(
 
     private suspend fun fetchAndUpdateData(address: InetSocketAddress) {
         if (serverId == CloudPersistentData.SERVER_ID_NOT_SET) {
-            val connection = ConnectionImpl.connectToServer(address, false)
-            log.atInfo().log("Generating server ID...")
+            val connection = connectToServer(address, false)
+            log.atInfo()
+                .log("Generating server ID...")
             val responseId = CompletableDeferred<Long>()
 
             val listener = object : ClientInitializePacketListener {
@@ -171,7 +171,7 @@ class ClientNettyClientImpl(
                 )
                 connection.sendWithIndication(ServerboundInitializeRequestIdPacket)
                 internalServerId = responseId.await()
-                CloudPersistentData.SERVER_ID.setValue(internalServerId)
+                CloudPersistentData.SERVER_ID = (internalServerId)
                 connection.disconnect("Server ID fetched")
             } catch (e: Throwable) {
                 throw FatalSurfError {
@@ -196,5 +196,14 @@ class ClientNettyClientImpl(
         finalPackets.add(0, ServerboundBroadcastPacket)
 
         listener.connection.send(ServerboundBundlePacket(finalPackets))
+    }
+
+    private suspend fun connectToServer(
+        address: InetSocketAddress,
+        useEpoll: Boolean,
+    ): ConnectionImpl {
+        val connection = ConnectionImpl(PacketFlow.CLIENTBOUND, ClientEncryptionManager)
+        ConnectionImpl.connect(address, useEpoll, connection)
+        return connection
     }
 }

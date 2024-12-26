@@ -34,7 +34,7 @@ class ServerboundClientInformationPacket : NettyPacket {
 
     constructor(information: ClientInformation) {
         this.information = information
-        this.serverId = CloudPersistentData.SERVER_ID.value()
+        this.serverId = CloudPersistentData.SERVER_ID
     }
 
     private constructor(buffer: SurfByteBuf) {

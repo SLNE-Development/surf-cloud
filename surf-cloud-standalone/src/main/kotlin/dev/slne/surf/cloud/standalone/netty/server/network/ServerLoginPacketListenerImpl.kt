@@ -47,10 +47,11 @@ class ServerLoginPacketListenerImpl(val server: NettyServerImpl, val connection:
         this.client = ServerClientImpl(server, packet.serverId, packet.serverCategory, packet.serverName)
         this.proxy = packet.proxy
 
-        state = State.KEY
-        val publicKey = server.keyPair.public.encoded
+        state = State.AUTHENTICATING
+//        val publicKey = server.keyPair.public.encoded
 
-        connection.send(ClientboundKeyPacket(publicKey, challenge))
+//        connection.send(ClientboundKeyPacket(publicKey, challenge))
+        startClientVerification()
     }
 
     private fun startClientVerification() {
@@ -58,29 +59,34 @@ class ServerLoginPacketListenerImpl(val server: NettyServerImpl, val connection:
     }
 
     private fun verifyLoginAndFinishConnectionSetup() {
+        // compression would go here
+
         finishLoginAndWaitForClient()
     }
 
     private fun finishLoginAndWaitForClient() {
         state = State.PROTOCOL_SWITCHING
-        connection.send(ClientboundLoginFinishedPacket)
+        connection.send(ClientboundLoginFinishedPacket())
     }
 
     override fun handleKey(packet: ServerboundKeyPacket) {
-        check(state == State.KEY) { "Unexpected key packet" }
-
-        try {
-            val privateKey = server.keyPair.private
-            check(packet.isChallengeValid(challenge, privateKey)) { "Protocol error: Invalid key" }
-
-            val secretkey = packet.getSecretKey(privateKey)
-            state = State.AUTHENTICATING
-            connection.setupEncryption(secretkey)
-        } catch (e: CryptException) {
-            throw IllegalStateException("Failed to handle key packet", e)
-        }
-
-        startClientVerification()
+//        check(state == State.KEY) { "Unexpected key packet" }
+//
+//        try {
+//            val serverKeyPair = server.keyPair
+//
+//
+//            val privateKey = serverKeyPair.private
+//            check(packet.isChallengeValid(challenge, privateKey)) { "Protocol error: Invalid key" }
+//
+//            val secretkey = packet.getSecretKey(privateKey)
+//            state = State.AUTHENTICATING
+//            connection.setupEncryption(secretkey)
+//        } catch (e: CryptException) {
+//            throw IllegalStateException("Failed to handle key packet", e)
+//        }
+//
+//        startClientVerification()
     }
 
     override suspend fun handleLoginAcknowledgement(packet: ServerboundLoginAcknowledgedPacket) {
@@ -90,6 +96,7 @@ class ServerLoginPacketListenerImpl(val server: NettyServerImpl, val connection:
         connection.setupOutboundProtocol(PreRunningProtocols.CLIENTBOUND)
         val listener = ServerPreRunningPacketListener(server, connection, client, proxy)
         connection.setupInboundProtocol(PreRunningProtocols.SERVERBOUND, listener)
+        state = State.ACCEPTED
     }
 
     override fun onDisconnect(details: DisconnectionDetails) {

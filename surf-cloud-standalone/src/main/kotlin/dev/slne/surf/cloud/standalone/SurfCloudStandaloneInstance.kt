@@ -6,6 +6,7 @@ import dev.slne.surf.cloud.core.common.SurfCloudCoreInstance
 import dev.slne.surf.cloud.core.common.util.checkInstantiationByServiceLoader
 import dev.slne.surf.cloud.core.common.util.random
 import dev.slne.surf.cloud.standalone.netty.server.StandaloneNettyManager
+import dev.slne.surf.cloud.standalone.netty.server.network.ServerEncryptionManager
 import dev.slne.surf.cloud.standalone.plugin.StandalonePluginManager
 import dev.slne.surf.cloud.standalone.redis.RedisEvent
 import kotlinx.coroutines.delay
@@ -24,6 +25,11 @@ class SurfCloudStandaloneInstance : SurfCloudCoreInstance(StandaloneNettyManager
 
     init {
         checkInstantiationByServiceLoader()
+    }
+
+    override suspend fun preBootstrap() {
+        super.preBootstrap()
+        ServerEncryptionManager.init()
     }
 
     fun callRedisEvent(event: RedisEvent) {

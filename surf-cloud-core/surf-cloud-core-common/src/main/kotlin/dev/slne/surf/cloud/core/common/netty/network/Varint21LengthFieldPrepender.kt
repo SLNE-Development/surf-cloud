@@ -8,7 +8,7 @@ import io.netty.handler.codec.EncoderException
 import io.netty.handler.codec.MessageToByteEncoder
 
 @Sharable
-class Varint21LengthFieldPrepender: MessageToByteEncoder<ByteBuf>() {
+class Varint21LengthFieldPrepender : MessageToByteEncoder<ByteBuf>() {
     override fun encode(ctx: ChannelHandlerContext, msg: ByteBuf, out: ByteBuf) {
         val readableBytes = msg.readableBytes()
         val size = VarInt.getEncodedSize(readableBytes)

@@ -32,6 +32,7 @@ class IdDispatchCodec<B : ByteBuf, V, T> private constructor(
 
     override fun decode(buf: B): V {
         val id = buf.readVarInt()
+        println("Decoding packet with id $id")
         val entry = byId.get(id)
 
         if (id >= 0 && entry != null) {

@@ -11,6 +11,7 @@ import dev.slne.surf.cloud.core.common.netty.network.HandlerNames
 import dev.slne.surf.cloud.core.common.netty.network.protocol.common.ClientboundBundlePacket
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ClientboundDisconnectPacket
 import dev.slne.surf.cloud.standalone.netty.server.NettyServerImpl
+import dev.slne.surf.cloud.standalone.netty.server.network.ServerEncryptionManager
 import dev.slne.surf.cloud.standalone.netty.server.network.ServerHandshakePacketListenerImpl
 import io.netty.bootstrap.ServerBootstrap
 import io.netty.channel.*
@@ -97,7 +98,7 @@ class ServerConnectionListener(val server: NettyServerImpl) {
                             )
 
                             val connection =
-                                ConnectionImpl(PacketFlow.SERVERBOUND) // TODO: rate limit
+                                ConnectionImpl(PacketFlow.SERVERBOUND, ServerEncryptionManager)
 
                             pending.add(connection)
                             connection.configurePacketHandler(channel, pipeline)

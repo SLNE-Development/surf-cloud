@@ -1,7 +1,6 @@
 package dev.slne.surf.cloud.core.common.netty.network
 
 import com.velocitypowered.natives.encryption.VelocityCipher
-import com.velocitypowered.natives.util.Natives
 import dev.slne.surf.cloud.api.common.exceptions.SkipPacketException
 import dev.slne.surf.cloud.api.common.netty.network.Connection
 import dev.slne.surf.cloud.api.common.netty.network.ConnectionProtocol
@@ -11,14 +10,7 @@ import dev.slne.surf.cloud.api.common.util.*
 import dev.slne.surf.cloud.core.common.config.cloudConfig
 import dev.slne.surf.cloud.core.common.coroutines.ConnectionManagementScope
 import dev.slne.surf.cloud.core.common.coroutines.PacketHandlerScope
-import dev.slne.surf.cloud.core.common.netty.network.protocol.common.ClientCommonPacketListener
-import dev.slne.surf.cloud.core.common.netty.network.protocol.common.ClientboundBundlePacket
-import dev.slne.surf.cloud.core.common.netty.network.protocol.common.ClientboundKeepAlivePacket
-import dev.slne.surf.cloud.core.common.netty.network.protocol.common.ClientboundPongResponsePacket
-import dev.slne.surf.cloud.core.common.netty.network.protocol.common.ServerCommonPacketListener
-import dev.slne.surf.cloud.core.common.netty.network.protocol.common.ServerboundBundlePacket
-import dev.slne.surf.cloud.core.common.netty.network.protocol.common.ServerboundKeepAlivePacket
-import dev.slne.surf.cloud.core.common.netty.network.protocol.common.ServerboundPingRequestPacket
+import dev.slne.surf.cloud.core.common.netty.network.protocol.common.*
 import dev.slne.surf.cloud.core.common.netty.network.protocol.handshake.ClientIntent
 import dev.slne.surf.cloud.core.common.netty.network.protocol.handshake.HandshakeProtocols
 import dev.slne.surf.cloud.core.common.netty.network.protocol.handshake.ServerHandshakePacketListener
@@ -26,7 +18,6 @@ import dev.slne.surf.cloud.core.common.netty.network.protocol.handshake.Serverbo
 import dev.slne.surf.cloud.core.common.netty.network.protocol.initialize.*
 import dev.slne.surf.cloud.core.common.netty.network.protocol.login.*
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.*
-import dev.slne.surf.cloud.core.common.util.encryption.CryptException
 import io.netty.bootstrap.Bootstrap
 import io.netty.channel.*
 import io.netty.channel.epoll.Epoll
@@ -46,22 +37,22 @@ import kotlinx.coroutines.withContext
 import java.net.InetSocketAddress
 import java.net.SocketAddress
 import java.nio.channels.ClosedChannelException
-import java.security.GeneralSecurityException
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.atomic.AtomicBoolean
-import javax.crypto.SecretKey
 
-class ConnectionImpl(val receiving: PacketFlow) : SimpleChannelInboundHandler<NettyPacket>(),
-    Connection {
+class ConnectionImpl(
+    val receiving: PacketFlow,
+    val encryptionManager: EncryptionManager
+) : SimpleChannelInboundHandler<NettyPacket>(), Connection {
     val log = logger()
 
     private val pendingActions = ConcurrentLinkedQueue<WrappedConsumer>()
 
     private var _channel: Channel? = null
-    val channel get() = _channel ?: throw IllegalStateException("Channel is not initialized")
+    val channel get() = _channel ?: error("Channel is not initialized")
 
     private var _address: SocketAddress? = null
-    val address get() = _address ?: throw IllegalStateException("Address is not initialized")
+    val address get() = _address ?: error("Address is not initialized")
 
     @Volatile
     private var _packetListener: PacketListener? = null
@@ -129,6 +120,8 @@ class ConnectionImpl(val receiving: PacketFlow) : SimpleChannelInboundHandler<Ne
         preparing = false
 
         delayedDisconnect?.let { disconnect(it) }
+
+        setupEncryption()
     }
 
     override fun channelInactive(ctx: ChannelHandlerContext) {
@@ -226,7 +219,7 @@ class ConnectionImpl(val receiving: PacketFlow) : SimpleChannelInboundHandler<Ne
         when (listener) {
             is ServerboundPacketListener -> {
                 if (listener is ServerCommonPacketListener) {
-                    val handled = when(msg) {
+                    val handled = when (msg) {
                         is ServerboundBundlePacket -> listener.handleBundlePacket(msg)
                         is ServerboundKeepAlivePacket -> listener.handleKeepAlivePacket(msg)
                         is ServerboundPingRequestPacket -> listener.handlePingRequest(msg)
@@ -321,7 +314,7 @@ class ConnectionImpl(val receiving: PacketFlow) : SimpleChannelInboundHandler<Ne
 
             is ClientboundPacketListener -> {
                 if (listener is ClientCommonPacketListener) {
-                    val handled = when(msg) {
+                    val handled = when (msg) {
                         is ClientboundBundlePacket -> listener.handleBundlePacket(msg)
                         is ClientboundKeepAlivePacket -> listener.handleKeepAlive(msg)
                         is ClientboundPingPacket -> listener.handlePing(msg)
@@ -811,27 +804,39 @@ class ConnectionImpl(val receiving: PacketFlow) : SimpleChannelInboundHandler<Ne
         channel.attr(CHANNEL_ATTRIBUTE_KEY).set(this)
     }
 
-    fun setupEncryption(key: SecretKey) {
-        if (encrypted) return
-        try {
-            val decryption = Natives.cipher.get().forDecryption(key)
-            val encryption = Natives.cipher.get().forEncryption(key)
-
-            this.encrypted = true
-            channel.pipeline()
-                .addBefore(HandlerNames.SPLITTER, HandlerNames.DECRYPT, CipherDecoder(decryption))
-            channel.pipeline().addBefore(HandlerNames.PREPENDER, HandlerNames.ENCRYPT, CipherEncoder(encryption))
-        } catch (e: GeneralSecurityException) {
-            throw CryptException(e)
-        }
+    fun setupEncryption() {
+        encryptionManager.setupEncryption(channel)
     }
 
-    fun setEncryptionKey(decryptionCipher: VelocityCipher, encryptionCipher: VelocityCipher) {
-        encrypted = true
-        this.channel.pipeline()
-            .addBefore(HandlerNames.SPLITTER, HandlerNames.DECRYPT, CipherDecoder(decryptionCipher))
-            .addBefore(HandlerNames.PREPENDER, HandlerNames.ENCRYPT, CipherEncoder(encryptionCipher))
-    }
+//    fun setupEncryption(key: SecretKey) {
+//        if (encrypted) return
+//        try {
+//            val decryption = Natives.cipher.get().forDecryption(key)
+//            val encryption = Natives.cipher.get().forEncryption(key)
+//
+//            this.encrypted = true
+//            channel.pipeline()
+//                .addBefore(HandlerNames.SPLITTER, HandlerNames.DECRYPT, CipherDecoder(decryption))
+//            channel.pipeline()
+//                .addBefore(HandlerNames.PREPENDER, HandlerNames.ENCRYPT, CipherEncoder(encryption))
+//
+//            println("Encryption set")
+//            println("key: ${key.encoded.contentToString()}")
+//        } catch (e: GeneralSecurityException) {
+//            throw CryptException(e)
+//        }
+//    }
+
+//    fun setEncryptionKey(decryptionCipher: VelocityCipher, encryptionCipher: VelocityCipher) {
+//        encrypted = true
+//        this.channel.pipeline()
+//            .addBefore(HandlerNames.SPLITTER, HandlerNames.DECRYPT, CipherDecoder(decryptionCipher))
+//            .addBefore(
+//                HandlerNames.PREPENDER,
+//                HandlerNames.ENCRYPT,
+//                CipherEncoder(encryptionCipher)
+//            )
+//    }
 
     fun setReadOnly() {
         _channel?.config()?.isAutoRead = false
@@ -965,15 +970,6 @@ class ConnectionImpl(val receiving: PacketFlow) : SimpleChannelInboundHandler<Ne
         private val INITIAL_PROTOCOL = HandshakeProtocols.SERVERBOUND
         val CHANNEL_ATTRIBUTE_KEY: AttributeKey<ConnectionImpl> =
             AttributeKey.newInstance("connection")
-
-        suspend fun connectToServer(
-            address: InetSocketAddress,
-            useEpoll: Boolean,
-        ): ConnectionImpl {
-            val connection = ConnectionImpl(PacketFlow.CLIENTBOUND)
-            connect(address, useEpoll, connection)
-            return connection
-        }
 
         suspend fun connect(
             address: InetSocketAddress,

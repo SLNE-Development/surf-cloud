@@ -39,3 +39,46 @@ Docs: [https://surf-cloud-docs.netlify.app/](https://surf-cloud-docs.netlify.app
 
 ## Cloud
 - [ ] Fragwürdiges timeout bei bootstrap auf client
+
+
+
+# Setup
+
+## First time:
+1. start standalone and let the server generate the keys
+2. start the client and let the client generate the folders (it will fail because the keys are not there)
+3. Go back to the standalone and copy the `ca.pem`
+4. Go back to the client and copy the `ca.pem` to the `certificates` folder
+5. start the client again
+
+
+
+## Generate certificates
+````shell
+wsl --install
+````
+````shell
+sudo apt update
+sudo apt install openssl
+````
+````shell
+mkdir certificates
+````
+
+### Server Certificate
+````shell
+openssl genrsa -out certificates/server.key 2048
+openssl req -new -x509 -key certificates/server.key -out certificates/server.crt -days 365 \
+  -subj "/C=DE/ST=Berlin/L=Berlin/O=MyServer/OU=IT/CN=server.local"
+````
+
+### Client Certificate
+Replace `{client-name}` with the name of the client
+
+````shell
+openssl genrsa -out certificates/{client-name}.key 2048
+openssl req -new -key certificates/{client-name}.key -out certificates/{client-name}.csr \
+  -subj "/C=DE/ST=Berlin/L=Berlin/O=MyClient/OU=IT/CN={client-name}.local"
+openssl x509 -req -in certificates/{client-name}.csr -CA certificates/server.crt -CAkey certificates/server.key \
+  -CAcreateserial -out certificates/{client-name}.crt -days 365
+````

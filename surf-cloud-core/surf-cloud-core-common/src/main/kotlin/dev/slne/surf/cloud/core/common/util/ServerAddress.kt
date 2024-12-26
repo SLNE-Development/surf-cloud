@@ -2,6 +2,7 @@ package dev.slne.surf.cloud.core.common.util
 
 import com.google.common.net.HostAndPort
 import java.net.IDN
+import java.net.InetSocketAddress
 
 class ServerAddress(private val hostAndPort: HostAndPort) {
 
@@ -18,3 +19,6 @@ fun String.toServerAddress(): ServerAddress {
         throw IllegalArgumentException("Invalid server address: $this")
     }
 }
+
+fun InetSocketAddress(serverAddress: ServerAddress) =
+    InetSocketAddress(serverAddress.host, serverAddress.port)

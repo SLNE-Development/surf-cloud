@@ -6,7 +6,7 @@ import io.netty.channel.ChannelHandlerContext
 object ProtocolSwapHandler {
     fun handleInboundTerminalPacket(context: ChannelHandlerContext, packet: NettyPacket) {
         if (packet.terminal) {
-            context.channel().config().setAutoRead(false)
+            context.channel().config().isAutoRead = false
             context.pipeline()
                 .addBefore(
                     context.name(),

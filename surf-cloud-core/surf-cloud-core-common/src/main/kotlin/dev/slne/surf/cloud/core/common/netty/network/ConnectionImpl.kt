@@ -255,6 +255,7 @@ class ConnectionImpl(
                         is ServerboundPreRunningAcknowledgedPacket -> listener.handlePreRunningAcknowledged(
                             msg
                         )
+                        is ServerboundRequestContinuation -> listener.handleRequestContinuation(msg)
 
                         else -> error("Unexpected packet $msg")
                     }
@@ -344,6 +345,7 @@ class ConnectionImpl(
                         is ClientboundPreRunningFinishedPacket -> listener.handlePreRunningFinished(
                             msg
                         )
+                        is ClientboundReadyToRunPacket -> listener.handleReadyToRun(msg)
 
                         else -> error("Unexpected packet $msg")
                     }
@@ -800,8 +802,7 @@ class ConnectionImpl(
             ) {
                 super.write(ctx, msg, promise)
             }
-        })
-            .addLast(HandlerNames.PACKET_HANDLER, this)
+        }).addLast(HandlerNames.PACKET_HANDLER, this)
 
         channel.attr(CHANNEL_ATTRIBUTE_KEY).set(this)
     }

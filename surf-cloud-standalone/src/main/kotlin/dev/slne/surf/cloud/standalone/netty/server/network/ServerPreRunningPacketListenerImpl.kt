@@ -2,9 +2,11 @@ package dev.slne.surf.cloud.standalone.netty.server.network
 
 import dev.slne.surf.cloud.core.common.netty.network.ConnectionImpl
 import dev.slne.surf.cloud.core.common.netty.network.protocol.prerunning.ClientboundPreRunningFinishedPacket
+import dev.slne.surf.cloud.core.common.netty.network.protocol.prerunning.ClientboundReadyToRunPacket
 import dev.slne.surf.cloud.core.common.netty.network.protocol.prerunning.ServerPreRunningPacketListener
 import dev.slne.surf.cloud.core.common.netty.network.protocol.prerunning.ServerboundPreRunningAcknowledgedPacket
 import dev.slne.surf.cloud.core.common.netty.network.protocol.prerunning.ServerboundReadyToRunPacket
+import dev.slne.surf.cloud.core.common.netty.network.protocol.prerunning.ServerboundRequestContinuation
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.RunningProtocols
 import dev.slne.surf.cloud.standalone.netty.server.NettyServerImpl
 import dev.slne.surf.cloud.standalone.netty.server.ServerClientImpl
@@ -34,6 +36,12 @@ class ServerPreRunningPacketListenerImpl(
         state = State.PRE_RUNNING_ACKNOWLEDGED
 
         // Everything is done on both sides. Now the server waits for the client to be ready to run.
+    }
+
+    override fun handleRequestContinuation(packet: ServerboundRequestContinuation) {
+        check(state == State.PRE_RUNNING_ACKNOWLEDGED) { "Cannot proceed to running state from $state" }
+
+        send(ClientboundReadyToRunPacket)
     }
 
     override suspend fun handleReadyToRun(packet: ServerboundReadyToRunPacket) {

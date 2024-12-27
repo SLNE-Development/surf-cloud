@@ -7,4 +7,6 @@ interface ClientPreRunningPacketListener : ClientCommonPacketListener {
     override val protocol get() = ConnectionProtocol.PRE_RUNNING
 
     suspend fun handlePreRunningFinished(packet: ClientboundPreRunningFinishedPacket)
+
+    suspend fun handleReadyToRun(packet: ClientboundReadyToRunPacket)
 }

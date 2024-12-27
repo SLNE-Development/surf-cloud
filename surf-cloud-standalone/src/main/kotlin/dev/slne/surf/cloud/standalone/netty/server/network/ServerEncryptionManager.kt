@@ -21,6 +21,7 @@ object ServerEncryptionManager : EncryptionManager() {
 
     override fun setupEncryption(ch: Channel) {
         ch.pipeline().addFirst(
+//            HandlerNames.SPLITTER,
             HandlerNames.SSL_HANDLER,
             buildSslContext().newHandler(ch.alloc())
         )

@@ -15,6 +15,7 @@ object PreRunningProtocols {
             builder.addPacket(ClientboundKeepAlivePacket.STREAM_CODEC)
                 .addPacket(ClientboundPongResponsePacket.STREAM_CODEC)
                 .addPacket(ClientboundPreRunningFinishedPacket.STREAM_CODEC)
+                .addPacket(ClientboundReadyToRunPacket.STREAM_CODEC)
         }
 
     val CLIENTBOUND = CLIENTBOUND_TEMPLATE.bind(::SurfByteBuf)
@@ -28,6 +29,7 @@ object PreRunningProtocols {
                 .addPacket(ServerboundPingRequestPacket.STREAM_CODEC)
                 .addPacket(ServerboundPreRunningAcknowledgedPacket.STREAM_CODEC)
                 .addPacket(ServerboundReadyToRunPacket.STREAM_CODEC)
+                .addPacket(ServerboundRequestContinuation.STREAM_CODEC)
         }
 
     val SERVERBOUND = SERVERBOUND_TEMPLATE.bind(::SurfByteBuf)

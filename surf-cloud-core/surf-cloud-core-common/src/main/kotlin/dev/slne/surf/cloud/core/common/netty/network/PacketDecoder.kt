@@ -16,7 +16,6 @@ class PacketDecoder<T : PacketListener>(val protocolInfo: ProtocolInfo<T>) :
         if (readableBytes == 0) return
 
         val packet = protocolInfo.codec.decode(buf)
-        println("Decoded packet: ${packet.javaClass.simpleName}")
 
         if (packet is RespondingNettyPacket<*>) {
             packet.extraDecode(buf)

@@ -52,8 +52,9 @@ object UnconfiguredPipelineHandler {
                 }
 
                 channelPromise.setSuccess()
+
             } else {
-                channelHandlerContext.write(msg, channelPromise)
+                super.write(channelHandlerContext, msg, channelPromise)
             }
         }
     }

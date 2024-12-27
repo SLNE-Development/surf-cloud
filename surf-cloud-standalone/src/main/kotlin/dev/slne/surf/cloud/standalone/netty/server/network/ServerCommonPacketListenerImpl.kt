@@ -55,9 +55,13 @@ abstract class ServerCommonPacketListenerImpl(
     var latency = 0
         private set
 
+    var keepConnectionAlive = true
+
     @OverridingMethodsMustInvokeSuper
     override suspend fun tick0() {
-        keepConnectionAlive()
+        if (keepConnectionAlive) {
+            keepConnectionAlive()
+        }
     }
 
     override fun handleBundlePacket(packet: ServerboundBundlePacket) {

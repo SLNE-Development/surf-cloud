@@ -36,7 +36,12 @@ configurations {
 tasks {
     runServer {
         minecraftVersion("1.21.4")
-        jvmArgs("-Dsurf.cloud.serverName=test")
+        jvmArgs("-Dsurf.cloud.serverName=test-server01")
+
+        downloadPlugins {
+            hangar("CommandAPI", "9.7.0")
+            modrinth("luckperms", "v5.4.145-bukkit")
+        }
     }
     assemble {
         dependsOn(reobfJar)

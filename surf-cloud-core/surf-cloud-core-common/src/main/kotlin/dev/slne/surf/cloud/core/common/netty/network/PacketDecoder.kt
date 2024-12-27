@@ -13,10 +13,7 @@ class PacketDecoder<T : PacketListener>(val protocolInfo: ProtocolInfo<T>) :
     @Suppress("DEPRECATION")
     override fun decode(ctx: ChannelHandlerContext, buf: ByteBuf, out: MutableList<Any>) {
         val readableBytes = buf.readableBytes()
-        if (readableBytes == 0) {
-            println("No readable bytes")
-            return
-        }
+        if (readableBytes == 0) return
 
         val packet = protocolInfo.codec.decode(buf)
         println("Decoded packet: ${packet.javaClass.simpleName}")

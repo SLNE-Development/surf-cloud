@@ -29,6 +29,7 @@ class PacketEncoder<T : PacketListener>(private val protocolInfo: ProtocolInfo<T
     override fun encode(ctx: ChannelHandlerContext, msg: NettyPacket, out: ByteBuf) {
         try {
             protocolInfo.codec.encode(out, msg)
+            println("Encoded packet: ${msg.javaClass.simpleName}")
 
             if (msg is RespondingNettyPacket<*>) {
                 msg.extraEncode(out)

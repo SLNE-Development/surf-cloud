@@ -49,9 +49,9 @@ abstract class NettyPacket {
     /**
      * Custom logic to handle when the packet is too large.
      * Should return true if the method handled the packet, false otherwise.
+     * No Exception should be thrown in this method.
      */
     open fun packetTooLarge(connection: Any): Boolean = false
-
 
     open fun isReady(): Boolean = true
 

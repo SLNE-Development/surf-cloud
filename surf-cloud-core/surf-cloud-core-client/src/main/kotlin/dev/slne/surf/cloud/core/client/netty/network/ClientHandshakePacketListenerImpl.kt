@@ -5,9 +5,7 @@ import dev.slne.surf.cloud.core.common.netty.network.ConnectionImpl
 import dev.slne.surf.cloud.core.common.netty.network.DisconnectionDetails
 import dev.slne.surf.cloud.core.common.netty.network.protocol.login.*
 import dev.slne.surf.cloud.core.common.netty.network.protocol.prerunning.PreRunningProtocols
-import dev.slne.surf.cloud.core.common.util.encryption.Crypt
 import kotlinx.coroutines.CompletableDeferred
-import javax.crypto.SecretKey
 
 
 class ClientHandshakePacketListenerImpl(
@@ -34,29 +32,8 @@ class ClientHandshakePacketListenerImpl(
         )
         connection.send(ServerboundLoginAcknowledgedPacket)
         connection.setupOutboundProtocol(PreRunningProtocols.SERVERBOUND)
-
-        switchState(State.PRE_RUNNING)
+        switchState(State.PRE_PRE_RUNNING)
     }
-
-    override suspend fun handleKey(packet: ClientboundKeyPacket) {
-//        switchState(State.AUTHORIZING)
-//
-//        val secretKey = Crypt.generateSecretKey()
-//        val publicKey = packet.decryptPublicKey()
-//
-//        val responsePacket = ServerboundKeyPacket(secretKey, publicKey, packet.challenge)
-//
-//        setEncryption(responsePacket, secretKey)
-    }
-
-//    private suspend fun setEncryption(
-//        keyPacket: ServerboundKeyPacket,
-//        secretKey: SecretKey,
-//    ) {
-//        switchState(State.ENCRYPTING)
-//        connection.sendWithIndication(keyPacket)
-//        connection.setupEncryption(secretKey)
-//    }
 
     override fun onDisconnect(details: DisconnectionDetails) {
 

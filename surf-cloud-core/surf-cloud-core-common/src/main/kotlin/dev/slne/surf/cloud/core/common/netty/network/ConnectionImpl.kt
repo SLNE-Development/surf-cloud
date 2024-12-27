@@ -1,6 +1,5 @@
 package dev.slne.surf.cloud.core.common.netty.network
 
-import com.velocitypowered.natives.encryption.VelocityCipher
 import dev.slne.surf.cloud.api.common.exceptions.SkipPacketException
 import dev.slne.surf.cloud.api.common.netty.network.Connection
 import dev.slne.surf.cloud.api.common.netty.network.ConnectionProtocol
@@ -17,6 +16,7 @@ import dev.slne.surf.cloud.core.common.netty.network.protocol.handshake.ServerHa
 import dev.slne.surf.cloud.core.common.netty.network.protocol.handshake.ServerboundHandshakePacket
 import dev.slne.surf.cloud.core.common.netty.network.protocol.initialize.*
 import dev.slne.surf.cloud.core.common.netty.network.protocol.login.*
+import dev.slne.surf.cloud.core.common.netty.network.protocol.prerunning.*
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.*
 import io.netty.bootstrap.Bootstrap
 import io.netty.channel.*
@@ -230,85 +230,86 @@ class ConnectionImpl(
                 }
 
                 when (listener) {
-                    is ServerHandshakePacketListener -> {
-                        when (msg) {
-                            is ServerboundHandshakePacket -> listener.handleHandshake(msg)
-                            else -> error("Unexpected packet $msg")
-                        }
+                    is ServerHandshakePacketListener -> when (msg) {
+                        is ServerboundHandshakePacket -> listener.handleHandshake(msg)
+                        else -> error("Unexpected packet $msg")
                     }
 
-                    is ServerInitializePacketListener -> {
-                        when (msg) {
-                            is ServerboundInitializeRequestIdPacket -> listener.handleIdRequest(msg)
+                    is ServerInitializePacketListener -> when (msg) {
+                        is ServerboundInitializeRequestIdPacket -> listener.handleIdRequest(msg)
 
-                            else -> error("Unexpected packet $msg")
-                        }
+                        else -> error("Unexpected packet $msg")
                     }
 
-                    is ServerLoginPacketListener -> {
-                        when (msg) {
-                            is ServerboundLoginStartPacket -> listener.handleLoginStart(msg)
-                            is ServerboundKeyPacket -> listener.handleKey(msg)
-                            is ServerboundLoginAcknowledgedPacket -> listener.handleLoginAcknowledgement(
-                                msg
-                            )
+                    is ServerLoginPacketListener -> when (msg) {
+                        is ServerboundLoginStartPacket -> listener.handleLoginStart(msg)
+                        is ServerboundLoginAcknowledgedPacket -> listener.handleLoginAcknowledgement(
+                            msg
+                        )
 
-                            else -> error("Unexpected packet $msg")
-                        }
+                        else -> error("Unexpected packet $msg")
                     }
 
-                    is RunningServerPacketListener -> {
-                        when (msg) {
-                            is PlayerConnectToServerPacket -> listener.handlePlayerConnectToServer(
-                                msg
-                            )
+                    is ServerPreRunningPacketListener -> when (msg) {
+                        is ServerboundReadyToRunPacket -> listener.handleReadyToRun(msg)
+                        is ServerboundPreRunningAcknowledgedPacket -> listener.handlePreRunningAcknowledged(
+                            msg
+                        )
 
-                            is PlayerDisconnectFromServerPacket -> listener.handlePlayerDisconnectFromServer(
-                                msg
-                            )
-
-                            is ServerboundSendResourcePacksPacket -> listener.handleSendResourcePacks(
-                                msg
-                            )
-
-                            is ServerboundClearResourcePacksPacket -> listener.handleClearResourcePacks(
-                                msg
-                            )
-
-                            is ServerboundRemoveResourcePacksPacket -> listener.handleRemoveResourcePacks(
-                                msg
-                            )
-
-                            is ServerboundShowTitlePacket -> listener.handleShowTitle(msg)
-                            is ServerboundSendTitlePartPacket -> listener.handleSendTitlePart(msg)
-                            is ServerboundClearTitlePacket -> listener.handleClearTitle(msg)
-                            is ServerboundResetTitlePacket -> listener.handleResetTitle(msg)
-                            is ServerboundShowBossBarPacket -> listener.handleShowBossBar(msg)
-                            is ServerboundHideBossBarPacket -> listener.handleHideBossBar(msg)
-                            is ServerboundOpenBookPacket -> listener.handleOpenBook(msg)
-                            is ServerboundPlaySoundPacket -> listener.handlePlaySound(msg)
-                            is ServerboundStopSoundPacket -> listener.handleStopSound(msg)
-                            is ServerboundSendMessagePacket -> listener.handleSendMessage(msg)
-                            is ServerboundSendActionBarPacket -> listener.handleSendActionBar(msg)
-                            is ServerboundSendPlayerListHeaderAndFooterPacket -> listener.handleSendPlayerListHeaderAndFooter(
-                                msg
-                            )
-
-                            is ServerboundRequestDisplayNamePacket -> listener.handleRequestDisplayName(
-                                msg
-                            )
-
-                            is ServerboundClientInformationPacket -> listener.handleClientInformation(
-                                msg
-                            )
-
-                            is RequestLuckpermsMetaDataPacket -> listener.handleRequestLuckpermsMetaData(
-                                msg
-                            )
-
-                            else -> listener.handlePacket(msg) // handle other packets
-                        }
+                        else -> error("Unexpected packet $msg")
                     }
+
+                    is RunningServerPacketListener -> when (msg) {
+                        is PlayerConnectToServerPacket -> listener.handlePlayerConnectToServer(
+                            msg
+                        )
+
+                        is PlayerDisconnectFromServerPacket -> listener.handlePlayerDisconnectFromServer(
+                            msg
+                        )
+
+                        is ServerboundSendResourcePacksPacket -> listener.handleSendResourcePacks(
+                            msg
+                        )
+
+                        is ServerboundClearResourcePacksPacket -> listener.handleClearResourcePacks(
+                            msg
+                        )
+
+                        is ServerboundRemoveResourcePacksPacket -> listener.handleRemoveResourcePacks(
+                            msg
+                        )
+
+                        is ServerboundShowTitlePacket -> listener.handleShowTitle(msg)
+                        is ServerboundSendTitlePartPacket -> listener.handleSendTitlePart(msg)
+                        is ServerboundClearTitlePacket -> listener.handleClearTitle(msg)
+                        is ServerboundResetTitlePacket -> listener.handleResetTitle(msg)
+                        is ServerboundShowBossBarPacket -> listener.handleShowBossBar(msg)
+                        is ServerboundHideBossBarPacket -> listener.handleHideBossBar(msg)
+                        is ServerboundOpenBookPacket -> listener.handleOpenBook(msg)
+                        is ServerboundPlaySoundPacket -> listener.handlePlaySound(msg)
+                        is ServerboundStopSoundPacket -> listener.handleStopSound(msg)
+                        is ServerboundSendMessagePacket -> listener.handleSendMessage(msg)
+                        is ServerboundSendActionBarPacket -> listener.handleSendActionBar(msg)
+                        is ServerboundSendPlayerListHeaderAndFooterPacket -> listener.handleSendPlayerListHeaderAndFooter(
+                            msg
+                        )
+
+                        is ServerboundRequestDisplayNamePacket -> listener.handleRequestDisplayName(
+                            msg
+                        )
+
+                        is ServerboundClientInformationPacket -> listener.handleClientInformation(
+                            msg
+                        )
+
+                        is RequestLuckpermsMetaDataPacket -> listener.handleRequestLuckpermsMetaData(
+                            msg
+                        )
+
+                        else -> listener.handlePacket(msg) // handle other packets
+                    }
+
                 }
             }
 
@@ -325,97 +326,98 @@ class ConnectionImpl(
                 }
 
                 when (listener) {
-                    is ClientInitializePacketListener -> {
-                        when (msg) {
-                            is ClientboundInitializeIdResponsePacket -> listener.handleIdResponse(
-                                msg
-                            )
+                    is ClientInitializePacketListener -> when (msg) {
+                        is ClientboundInitializeIdResponsePacket -> listener.handleIdResponse(
+                            msg
+                        )
 
-                            else -> error("Unexpected packet $msg")
-                        }
+                        else -> error("Unexpected packet $msg")
                     }
 
-                    is ClientLoginPacketListener -> {
-                        when (msg) {
-                            is ClientboundLoginFinishedPacket -> listener.handleLoginFinished(msg)
-                            is ClientboundKeyPacket -> listener.handleKey(msg)
+                    is ClientLoginPacketListener -> when (msg) {
+                        is ClientboundLoginFinishedPacket -> listener.handleLoginFinished(msg)
 
-                            else -> error("Unexpected packet $msg")
-                        }
+                        else -> error("Unexpected packet $msg")
                     }
 
-                    is RunningClientPacketListener -> {
-                        when (msg) {
-                            is PlayerConnectToServerPacket -> listener.handlePlayerConnectToServer(
-                                msg
-                            )
+                    is ClientPreRunningPacketListener -> when (msg) {
+                        is ClientboundPreRunningFinishedPacket -> listener.handlePreRunningFinished(
+                            msg
+                        )
 
-                            is PlayerDisconnectFromServerPacket -> listener.handlePlayerDisconnectFromServer(
-                                msg
-                            )
+                        else -> error("Unexpected packet $msg")
+                    }
 
-                            is ClientboundSendResourcePacksPacket -> listener.handleSendResourcePacks(
-                                msg
-                            )
+                    is RunningClientPacketListener -> when (msg) {
+                        is PlayerConnectToServerPacket -> listener.handlePlayerConnectToServer(
+                            msg
+                        )
 
-                            is ClientboundClearResourcePacksPacket -> listener.handleClearResourcePacks(
-                                msg
-                            )
+                        is PlayerDisconnectFromServerPacket -> listener.handlePlayerDisconnectFromServer(
+                            msg
+                        )
 
-                            is ClientboundRemoveResourcePacksPacket -> listener.handleRemoveResourcePacks(
-                                msg
-                            )
+                        is ClientboundSendResourcePacksPacket -> listener.handleSendResourcePacks(
+                            msg
+                        )
 
-                            is ClientboundShowTitlePacket -> listener.handleShowTitle(msg)
-                            is ClientboundSendTitlePartPacket -> listener.handleSendTitlePart(msg)
-                            is ClientboundClearTitlePacket -> listener.handleClearTitle(msg)
-                            is ClientboundResetTitlePacket -> listener.handleResetTitle(msg)
-                            is ClientboundShowBossBarPacket -> listener.handleShowBossBar(msg)
-                            is ClientboundHideBossBarPacket -> listener.handleHideBossBar(msg)
-                            is ClientboundOpenBookPacket -> listener.handleOpenBook(msg)
-                            is ClientboundPlaySoundPacket -> listener.handlePlaySound(msg)
-                            is ClientboundStopSoundPacket -> listener.handleStopSound(msg)
-                            is ClientboundSendMessagePacket -> listener.handleSendMessage(msg)
-                            is ClientboundSendActionBarPacket -> listener.handleSendActionBar(msg)
-                            is ClientboundSendPlayerListHeaderAndFooterPacket -> listener.handleSendPlayerListHeaderAndFooter(
-                                msg
-                            )
+                        is ClientboundClearResourcePacksPacket -> listener.handleClearResourcePacks(
+                            msg
+                        )
 
-                            is ClientboundRequestDisplayNamePacket -> listener.handleRequestDisplayName(
-                                msg
-                            )
+                        is ClientboundRemoveResourcePacksPacket -> listener.handleRemoveResourcePacks(
+                            msg
+                        )
 
-                            is ClientboundRegisterServerPacket -> listener.handleRegisterServerPacket(
-                                msg
-                            )
+                        is ClientboundShowTitlePacket -> listener.handleShowTitle(msg)
+                        is ClientboundSendTitlePartPacket -> listener.handleSendTitlePart(msg)
+                        is ClientboundClearTitlePacket -> listener.handleClearTitle(msg)
+                        is ClientboundResetTitlePacket -> listener.handleResetTitle(msg)
+                        is ClientboundShowBossBarPacket -> listener.handleShowBossBar(msg)
+                        is ClientboundHideBossBarPacket -> listener.handleHideBossBar(msg)
+                        is ClientboundOpenBookPacket -> listener.handleOpenBook(msg)
+                        is ClientboundPlaySoundPacket -> listener.handlePlaySound(msg)
+                        is ClientboundStopSoundPacket -> listener.handleStopSound(msg)
+                        is ClientboundSendMessagePacket -> listener.handleSendMessage(msg)
+                        is ClientboundSendActionBarPacket -> listener.handleSendActionBar(msg)
+                        is ClientboundSendPlayerListHeaderAndFooterPacket -> listener.handleSendPlayerListHeaderAndFooter(
+                            msg
+                        )
 
-                            is ClientboundUnregisterServerPacket -> listener.handleUnregisterServerPacket(
-                                msg
-                            )
+                        is ClientboundRequestDisplayNamePacket -> listener.handleRequestDisplayName(
+                            msg
+                        )
 
-                            is ClientboundAddPlayerToServerPacket -> listener.handleAddPlayerToServer(
-                                msg
-                            )
+                        is ClientboundRegisterServerPacket -> listener.handleRegisterServerPacket(
+                            msg
+                        )
 
-                            is ClientboundRemovePlayerFromServerPacket -> listener.handleRemovePlayerFromServer(
-                                msg
-                            )
+                        is ClientboundUnregisterServerPacket -> listener.handleUnregisterServerPacket(
+                            msg
+                        )
 
-                            is ClientboundUpdateServerInformationPacket -> listener.handleUpdateServerInformation(
-                                msg
-                            )
+                        is ClientboundAddPlayerToServerPacket -> listener.handleAddPlayerToServer(
+                            msg
+                        )
 
-                            is ClientboundIsServerManagedByThisProxyPacket -> listener.handleIsServerManagedByThisProxy(
-                                msg
-                            )
+                        is ClientboundRemovePlayerFromServerPacket -> listener.handleRemovePlayerFromServer(
+                            msg
+                        )
 
-                            is ClientboundTransferPlayerPacket -> listener.handleTransferPlayer(msg)
-                            is RequestLuckpermsMetaDataPacket -> listener.handleRequestLuckpermsMetaData(
-                                msg
-                            )
+                        is ClientboundUpdateServerInformationPacket -> listener.handleUpdateServerInformation(
+                            msg
+                        )
 
-                            else -> listener.handlePacket(msg)
-                        }
+                        is ClientboundIsServerManagedByThisProxyPacket -> listener.handleIsServerManagedByThisProxy(
+                            msg
+                        )
+
+                        is ClientboundTransferPlayerPacket -> listener.handleTransferPlayer(msg)
+                        is RequestLuckpermsMetaDataPacket -> listener.handleRequestLuckpermsMetaData(
+                            msg
+                        )
+
+                        else -> listener.handlePacket(msg)
                     }
                 }
             }
@@ -807,36 +809,6 @@ class ConnectionImpl(
     fun setupEncryption() {
         encryptionManager.setupEncryption(channel)
     }
-
-//    fun setupEncryption(key: SecretKey) {
-//        if (encrypted) return
-//        try {
-//            val decryption = Natives.cipher.get().forDecryption(key)
-//            val encryption = Natives.cipher.get().forEncryption(key)
-//
-//            this.encrypted = true
-//            channel.pipeline()
-//                .addBefore(HandlerNames.SPLITTER, HandlerNames.DECRYPT, CipherDecoder(decryption))
-//            channel.pipeline()
-//                .addBefore(HandlerNames.PREPENDER, HandlerNames.ENCRYPT, CipherEncoder(encryption))
-//
-//            println("Encryption set")
-//            println("key: ${key.encoded.contentToString()}")
-//        } catch (e: GeneralSecurityException) {
-//            throw CryptException(e)
-//        }
-//    }
-
-//    fun setEncryptionKey(decryptionCipher: VelocityCipher, encryptionCipher: VelocityCipher) {
-//        encrypted = true
-//        this.channel.pipeline()
-//            .addBefore(HandlerNames.SPLITTER, HandlerNames.DECRYPT, CipherDecoder(decryptionCipher))
-//            .addBefore(
-//                HandlerNames.PREPENDER,
-//                HandlerNames.ENCRYPT,
-//                CipherEncoder(encryptionCipher)
-//            )
-//    }
 
     fun setReadOnly() {
         _channel?.config()?.isAutoRead = false

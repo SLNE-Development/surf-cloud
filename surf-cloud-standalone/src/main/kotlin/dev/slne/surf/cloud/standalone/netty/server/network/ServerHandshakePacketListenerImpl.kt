@@ -44,7 +44,7 @@ class ServerHandshakePacketListenerImpl(val server: NettyServerImpl, val connect
         )
     }
 
-    private suspend fun initialize(packet: ServerboundHandshakePacket) {
+    private suspend fun initialize(unused: ServerboundHandshakePacket) {
         connection.setupOutboundProtocol(InitializeProtocols.CLIENTBOUND)
         connection.setupInboundProtocol(
             InitializeProtocols.SERVERBOUND,

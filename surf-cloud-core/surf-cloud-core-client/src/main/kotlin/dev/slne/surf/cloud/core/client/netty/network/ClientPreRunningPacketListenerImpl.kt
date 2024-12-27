@@ -26,7 +26,9 @@ class ClientPreRunningPacketListenerImpl(
 
     private fun finishPreRunning() {
         statusUpdater.switchState(State.PRE_RUNNING)
+        println("Pre-running finished")
         awaitFinishPreRunning.complete(Unit)
+        println("Pre-running completed")
     }
 
     override suspend fun handlePreRunningFinished(packet: ClientboundPreRunningFinishedPacket) {

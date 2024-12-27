@@ -1,15 +1,11 @@
 package dev.slne.surf.cloud.standalone.netty.server.network
 
-import com.google.common.primitives.Ints
 import dev.slne.surf.cloud.api.common.util.logger
 import dev.slne.surf.cloud.core.common.netty.network.CommonTickablePacketListener
 import dev.slne.surf.cloud.core.common.netty.network.ConnectionImpl
 import dev.slne.surf.cloud.core.common.netty.network.DisconnectionDetails
 import dev.slne.surf.cloud.core.common.netty.network.protocol.login.*
 import dev.slne.surf.cloud.core.common.netty.network.protocol.prerunning.PreRunningProtocols
-import dev.slne.surf.cloud.core.common.netty.network.protocol.running.RunningProtocols
-import dev.slne.surf.cloud.core.common.util.encryption.CryptException
-import dev.slne.surf.cloud.core.common.util.random
 import dev.slne.surf.cloud.standalone.netty.server.NettyServerImpl
 import dev.slne.surf.cloud.standalone.netty.server.ServerClientImpl
 
@@ -22,7 +18,6 @@ class ServerLoginPacketListenerImpl(val server: NettyServerImpl, val connection:
     private var client: ServerClientImpl? = null
     private var proxy: Boolean = false
 
-    private val challenge = Ints.toByteArray(random.nextInt())
 
     @Volatile
     var state: State = State.HELLO
@@ -44,13 +39,10 @@ class ServerLoginPacketListenerImpl(val server: NettyServerImpl, val connection:
 
     override fun handleLoginStart(packet: ServerboundLoginStartPacket) {
         check(state == State.HELLO) { "Unexpected login start packet" }
-        this.client = ServerClientImpl(server, packet.serverId, packet.serverCategory, packet.serverName)
+
+        this.client = ServerClientImpl.fromPacket(server, packet)
         this.proxy = packet.proxy
 
-        state = State.AUTHENTICATING
-//        val publicKey = server.keyPair.public.encoded
-
-//        connection.send(ClientboundKeyPacket(publicKey, challenge))
         startClientVerification()
     }
 
@@ -66,35 +58,14 @@ class ServerLoginPacketListenerImpl(val server: NettyServerImpl, val connection:
 
     private fun finishLoginAndWaitForClient() {
         state = State.PROTOCOL_SWITCHING
-        connection.send(ClientboundLoginFinishedPacket())
-    }
-
-    override fun handleKey(packet: ServerboundKeyPacket) {
-//        check(state == State.KEY) { "Unexpected key packet" }
-//
-//        try {
-//            val serverKeyPair = server.keyPair
-//
-//
-//            val privateKey = serverKeyPair.private
-//            check(packet.isChallengeValid(challenge, privateKey)) { "Protocol error: Invalid key" }
-//
-//            val secretkey = packet.getSecretKey(privateKey)
-//            state = State.AUTHENTICATING
-//            connection.setupEncryption(secretkey)
-//        } catch (e: CryptException) {
-//            throw IllegalStateException("Failed to handle key packet", e)
-//        }
-//
-//        startClientVerification()
+        connection.send(ClientboundLoginFinishedPacket)
     }
 
     override suspend fun handleLoginAcknowledgement(packet: ServerboundLoginAcknowledgedPacket) {
         check(state == State.PROTOCOL_SWITCHING) { "Unexpected login acknowledgement packet" }
-        val client = client ?: error("Client not yet set")
 
         connection.setupOutboundProtocol(PreRunningProtocols.CLIENTBOUND)
-        val listener = ServerPreRunningPacketListener(server, connection, client, proxy)
+        val listener = ServerPreRunningPacketListenerImpl(server, connection, client!!, proxy)
         connection.setupInboundProtocol(PreRunningProtocols.SERVERBOUND, listener)
         state = State.ACCEPTED
     }
@@ -119,8 +90,6 @@ class ServerLoginPacketListenerImpl(val server: NettyServerImpl, val connection:
 
     enum class State {
         HELLO,
-        KEY,
-        AUTHENTICATING,
         NEGOTIATING,
         VERIFYING,
         PROTOCOL_SWITCHING,

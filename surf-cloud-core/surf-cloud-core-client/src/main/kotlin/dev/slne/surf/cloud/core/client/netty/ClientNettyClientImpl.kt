@@ -71,7 +71,7 @@ class ClientNettyClientImpl(
      * Switches to the Running state.
      */
     suspend fun finalize() {
-        finalizeHandler.forEach { finalize -> finalize() }
+        finalizeHandler.forEach { it() }
         finalizeHandler.clear()
     }
 

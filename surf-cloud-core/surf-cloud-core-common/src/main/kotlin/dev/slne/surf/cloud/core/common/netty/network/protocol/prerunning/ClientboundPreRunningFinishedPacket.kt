@@ -14,5 +14,4 @@ import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
 )
 object ClientboundPreRunningFinishedPacket : NettyPacket() {
     val STREAM_CODEC = streamCodecUnitSimple(ClientboundPreRunningFinishedPacket)
-    override val terminal = true
 }

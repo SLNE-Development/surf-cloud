@@ -20,7 +20,7 @@ object PreRunningProtocols {
     val CLIENTBOUND = CLIENTBOUND_TEMPLATE.bind(::SurfByteBuf)
 
     val SERVERBOUND_TEMPLATE =
-        ProtocolInfoBuilder.serverboundProtocol<ServerPreLoginPacketListener, SurfByteBuf>(
+        ProtocolInfoBuilder.serverboundProtocol<ServerPreRunningPacketListener, SurfByteBuf>(
             ConnectionProtocol.PRE_RUNNING
         ) { builder ->
             builder.withBundlePacket(::ServerboundBundlePacket, ServerboundBundleDelimiterPacket())

@@ -1,22 +1,24 @@
 package dev.slne.surf.cloud.standalone.netty.server.network
 
 import dev.slne.surf.cloud.core.common.netty.network.ConnectionImpl
-import dev.slne.surf.cloud.core.common.netty.network.protocol.prerunning.ServerPreLoginPacketListener
+import dev.slne.surf.cloud.core.common.netty.network.protocol.prerunning.ClientboundPreRunningFinishedPacket
+import dev.slne.surf.cloud.core.common.netty.network.protocol.prerunning.ServerPreRunningPacketListener
 import dev.slne.surf.cloud.core.common.netty.network.protocol.prerunning.ServerboundPreRunningAcknowledgedPacket
 import dev.slne.surf.cloud.core.common.netty.network.protocol.prerunning.ServerboundReadyToRunPacket
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.RunningProtocols
 import dev.slne.surf.cloud.standalone.netty.server.NettyServerImpl
 import dev.slne.surf.cloud.standalone.netty.server.ServerClientImpl
 
-class ServerPreRunningPacketListener(
+class ServerPreRunningPacketListenerImpl(
     server: NettyServerImpl,
     connection: ConnectionImpl,
     client: ServerClientImpl,
     val proxy: Boolean
-) : ServerCommonPacketListenerImpl(server, client, connection), ServerPreLoginPacketListener {
+) : ServerCommonPacketListenerImpl(server, client, connection), ServerPreRunningPacketListener {
     private var state = State.PRE_RUNNING
 
     init {
+        // currently no work to do here
         finishPreRunning()
     }
 
@@ -24,7 +26,7 @@ class ServerPreRunningPacketListener(
         check(state == State.PRE_RUNNING) { "Cannot finish pre-running from $state" }
         state = State.FINISHING_PRE_RUNNING
 
-        connection.send(ServerboundPreRunningAcknowledgedPacket)
+        connection.send(ClientboundPreRunningFinishedPacket)
     }
 
     override suspend fun handlePreRunningAcknowledged(packet: ServerboundPreRunningAcknowledgedPacket) {

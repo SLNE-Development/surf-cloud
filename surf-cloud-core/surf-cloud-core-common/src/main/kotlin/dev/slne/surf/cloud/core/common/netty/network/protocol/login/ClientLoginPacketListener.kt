@@ -8,6 +8,4 @@ interface ClientLoginPacketListener : ClientboundPacketListener {
         get() = ConnectionProtocol.LOGIN
 
     suspend fun handleLoginFinished(packet: ClientboundLoginFinishedPacket)
-
-    suspend fun handleKey(packet: ClientboundKeyPacket)
 }

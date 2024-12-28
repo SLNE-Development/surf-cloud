@@ -3,9 +3,13 @@ package dev.slne.surf.cloud.standalone.test
 import dev.slne.surf.cloud.api.common.event.player.connection.CloudPlayerConnectToNetworkEvent
 import dev.slne.surf.cloud.standalone.player.StandaloneCloudPlayerImpl
 import dev.slne.surf.surfapi.core.api.messages.Colors
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger
 import org.springframework.context.event.EventListener
+import kotlin.time.Duration.Companion.seconds
 import org.springframework.stereotype.Component as SpringComponent
 
 @SpringComponent
@@ -28,6 +32,13 @@ class TestPdc {
             )
         )
 
-        (event.player as StandaloneCloudPlayerImpl).writeTestToPdc()
+        event.player as StandaloneCloudPlayerImpl
+
+//        GlobalScope.launch {
+//            while (player.connected) {
+//                delay(1.seconds)
+//                logger.info("pdc: ${player.getPersistentData()}")
+//            }
+//        }
     }
 }

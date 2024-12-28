@@ -2,10 +2,8 @@ package dev.slne.surf.cloud.core.common.netty.network.protocol.running
 
 import dev.slne.surf.cloud.api.common.netty.network.ConnectionProtocol
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
-import dev.slne.surf.cloud.core.common.netty.network.ServerboundPacketListener
 import dev.slne.surf.cloud.core.common.netty.network.TickablePacketListener
 import dev.slne.surf.cloud.core.common.netty.network.protocol.common.ServerCommonPacketListener
-import dev.slne.surf.cloud.core.common.netty.network.protocol.common.ServerboundKeepAlivePacket
 
 interface RunningServerPacketListener : ServerCommonPacketListener, TickablePacketListener {
     override val protocol get() = ConnectionProtocol.RUNNING
@@ -49,6 +47,10 @@ interface RunningServerPacketListener : ServerCommonPacketListener, TickablePack
     suspend fun handleClientInformation(packet: ServerboundClientInformationPacket)
 
     suspend fun handleRequestLuckpermsMetaData(packet: RequestLuckpermsMetaDataPacket)
+
+    suspend fun handleRequestPlayerPersistentDataContainer(packet: ServerboundRequestPlayerPersistentDataContainer)
+
+    suspend fun handlePlayerPersistentDataContainerUpdate(packet: ServerboundPlayerPersistentDataContainerUpdatePacket)
 
     fun handlePacket(packet: NettyPacket)
 }

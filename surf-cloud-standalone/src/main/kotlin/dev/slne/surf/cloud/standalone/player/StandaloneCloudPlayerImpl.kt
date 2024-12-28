@@ -3,6 +3,7 @@ package dev.slne.surf.cloud.standalone.player
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
 import dev.slne.surf.cloud.api.common.player.ConnectionResult
 import dev.slne.surf.cloud.api.common.player.ConnectionResultEnum
+import dev.slne.surf.cloud.api.common.player.ppdc.PersistentPlayerDataContainer
 import dev.slne.surf.cloud.api.common.server.CloudServer
 import dev.slne.surf.cloud.api.server.server.ServerCommonCloudServer
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.*
@@ -12,11 +13,12 @@ import dev.slne.surf.cloud.core.common.player.ppdc.PersistentPlayerDataContainer
 import dev.slne.surf.cloud.standalone.server.StandaloneCloudServerImpl
 import dev.slne.surf.cloud.standalone.server.StandaloneProxyCloudServerImpl
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import net.kyori.adventure.audience.MessageType
 import net.kyori.adventure.bossbar.BossBar
 import net.kyori.adventure.identity.Identity
 import net.kyori.adventure.inventory.Book
-import net.kyori.adventure.key.Key
 import net.kyori.adventure.resource.ResourcePackRequest
 import net.kyori.adventure.sound.Sound
 import net.kyori.adventure.sound.Sound.Emitter
@@ -52,6 +54,7 @@ class StandaloneCloudPlayerImpl(uuid: UUID) : CommonCloudPlayerImpl(uuid) {
         private set
 
     private val ppdc = PersistentPlayerDataContainerImpl()
+    private val ppdcMutex = Mutex()
 
     fun savePlayerData(tag: CompoundTag) {
         if (!ppdc.empty) {
@@ -66,10 +69,13 @@ class StandaloneCloudPlayerImpl(uuid: UUID) : CommonCloudPlayerImpl(uuid) {
         }
     }
 
-    fun writeTestToPdc() {
-        ppdc.putInt(Key.key("test"), 123)
-        ppdc.putString(Key.key("test2"), "test")
-    }
+    override suspend fun <R> withPersistentData(block: PersistentPlayerDataContainer.() -> R): R =
+        ppdcMutex.withLock {
+            ppdc.block()
+        }
+
+    suspend fun getPersistentData() = ppdcMutex.withLock { ppdc.toTagCompound() }
+    suspend fun updatePersistentData(tag: CompoundTag) = ppdcMutex.withLock { ppdc.fromTagCompound(tag) }
 
     override suspend fun displayName(): Component = ClientboundRequestDisplayNamePacket(uuid)
         .fireAndAwaitUrgent(anyServer.connection)?.displayName
@@ -205,7 +211,7 @@ class StandaloneCloudPlayerImpl(uuid: UUID) : CommonCloudPlayerImpl(uuid) {
     }
 
     override fun <T : Any> sendTitlePart(
-        part: TitlePart<T?>,
+        part: TitlePart<T>,
         value: T
     ) {
         send(ClientboundSendTitlePartPacket(uuid, part, value))

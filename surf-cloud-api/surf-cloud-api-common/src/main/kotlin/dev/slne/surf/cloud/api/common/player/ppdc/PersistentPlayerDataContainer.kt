@@ -25,17 +25,17 @@ interface PersistentPlayerDataContainer: PersistentPlayerDataContainerView {
      */
     fun <P : Any, C> set(key: Key, type: PersistentPlayerDataType<P, C>, value: C)
 
-    fun putBoolean(key: Key, value: Boolean)
-    fun putByte(key: Key, value: Byte)
-    fun putShort(key: Key, value: Short)
-    fun putInt(key: Key, value: Int)
-    fun putLong(key: Key, value: Long)
-    fun putFloat(key: Key, value: Float)
-    fun putDouble(key: Key, value: Double)
-    fun putString(key: Key, value: String)
-    fun putByteArray(key: Key, value: ByteArray)
-    fun putIntArray(key: Key, value: IntArray)
-    fun putLongArray(key: Key, value: LongArray)
+    fun setBoolean(key: Key, value: Boolean)
+    fun setByte(key: Key, value: Byte)
+    fun setShort(key: Key, value: Short)
+    fun setInt(key: Key, value: Int)
+    fun setLong(key: Key, value: Long)
+    fun setFloat(key: Key, value: Float)
+    fun setDouble(key: Key, value: Double)
+    fun setString(key: Key, value: String)
+    fun setByteArray(key: Key, value: ByteArray)
+    fun setIntArray(key: Key, value: IntArray)
+    fun setLongArray(key: Key, value: LongArray)
 
     fun getBoolean(key: Key): Boolean?
     fun getNumber(key: Key): Number?

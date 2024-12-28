@@ -3,6 +3,9 @@ package dev.slne.surf.cloud.api.common.util
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap
 import it.unimi.dsi.fastutil.ints.Int2ObjectMaps
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet
+import it.unimi.dsi.fastutil.ints.IntSet
+import it.unimi.dsi.fastutil.ints.IntSets
 import it.unimi.dsi.fastutil.longs.*
 import it.unimi.dsi.fastutil.objects.*
 import org.jetbrains.annotations.Unmodifiable
@@ -131,6 +134,17 @@ fun Sequence<Long>.toMutableLongSet() = LongOpenHashSet(toList())
 fun Sequence<Long>.toLongSet() = toMutableLongSet().freeze()
 // endregion
 
+// region IntSet
+fun mutableIntSetOf(vararg elements: Int) = IntOpenHashSet(elements)
+fun mutableIntSetOf() = IntOpenHashSet()
+fun intSetOf(vararg elements: Int) = mutableIntSetOf(*elements).freeze()
+fun intSetOf() = emptyIntSet()
+fun emptyIntSet(): @Unmodifiable IntSet = IntSets.EMPTY_SET
+fun IntSet.synchronize(): IntSet = IntSets.synchronize(this)
+fun IntSet.freeze(): @UnmodifiableView IntSet = IntSets.unmodifiable(this)
+fun Sequence<Int>.toMutableIntSet() = IntOpenHashSet(toList())
+fun Sequence<Int>.toIntSet() = toMutableIntSet().freeze()
+// endregion
 // region IntMap
 // region Int2ObjectMap
 fun <V> mutableInt2ObjectMapOf(vararg pairs: Pair<Int, V>) =

@@ -12,9 +12,7 @@ import java.io.ByteArrayInputStream
 
 class PersistentPlayerDataContainerImpl(
     private val tag: CompoundTag = CompoundTag()
-) : PersistentPlayerDataContainerViewImpl(),
-    PersistentPlayerDataContainer {
-
+) : PersistentPlayerDataContainerViewImpl(), PersistentPlayerDataContainer {
     override fun getTag(key: String): Tag<*>? = tag[key]
 
     override fun <P : Any, C> set(
@@ -35,47 +33,47 @@ class PersistentPlayerDataContainerImpl(
         tag[key] = value
     }
 
-    override fun putBoolean(key: Key, value: Boolean) {
+    override fun setBoolean(key: Key, value: Boolean) {
         tag[key.asString()] = value
     }
 
-    override fun putByte(key: Key, value: Byte) {
+    override fun setByte(key: Key, value: Byte) {
         tag[key.asString()] = value
     }
 
-    override fun putShort(key: Key, value: Short) {
+    override fun setShort(key: Key, value: Short) {
         tag[key.asString()] = value
     }
 
-    override fun putInt(key: Key, value: Int) {
+    override fun setInt(key: Key, value: Int) {
         tag[key.asString()] = value
     }
 
-    override fun putLong(key: Key, value: Long) {
+    override fun setLong(key: Key, value: Long) {
         tag[key.asString()] = value
     }
 
-    override fun putFloat(key: Key, value: Float) {
+    override fun setFloat(key: Key, value: Float) {
         tag[key.asString()] = value
     }
 
-    override fun putDouble(key: Key, value: Double) {
+    override fun setDouble(key: Key, value: Double) {
         tag[key.asString()] = value
     }
 
-    override fun putString(key: Key, value: String) {
+    override fun setString(key: Key, value: String) {
         tag[key.asString()] = value
     }
 
-    override fun putByteArray(key: Key, value: ByteArray) {
+    override fun setByteArray(key: Key, value: ByteArray) {
         tag[key.asString()] = value
     }
 
-    override fun putIntArray(key: Key, value: IntArray) {
+    override fun setIntArray(key: Key, value: IntArray) {
         tag[key.asString()] = value
     }
 
-    override fun putLongArray(key: Key, value: LongArray) {
+    override fun setLongArray(key: Key, value: LongArray) {
         tag[key.asString()] = value
     }
 

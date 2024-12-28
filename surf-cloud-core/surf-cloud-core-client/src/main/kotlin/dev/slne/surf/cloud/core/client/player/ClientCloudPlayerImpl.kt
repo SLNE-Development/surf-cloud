@@ -1,13 +1,16 @@
 package dev.slne.surf.cloud.core.client.player
 
 import dev.slne.surf.cloud.api.client.netty.packet.fireAndAwait
+import dev.slne.surf.cloud.api.client.netty.packet.fireAndAwaitOrThrow
 import dev.slne.surf.cloud.api.client.netty.packet.fireAndForget
 import dev.slne.surf.cloud.api.common.netty.packet.DEFAULT_URGENT_TIMEOUT
 import dev.slne.surf.cloud.api.common.player.ConnectionResult
+import dev.slne.surf.cloud.api.common.player.ppdc.PersistentPlayerDataContainer
 import dev.slne.surf.cloud.api.common.server.CloudServer
 import dev.slne.surf.cloud.core.client.util.luckperms
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.*
 import dev.slne.surf.cloud.core.common.player.CommonCloudPlayerImpl
+import dev.slne.surf.cloud.core.common.player.ppdc.PersistentPlayerDataContainerImpl
 import net.kyori.adventure.audience.Audience
 import net.kyori.adventure.audience.MessageType
 import net.kyori.adventure.bossbar.BossBar
@@ -35,6 +38,7 @@ abstract class ClientCloudPlayerImpl<PlatformPlayer : Audience>(uuid: UUID) :
     override val connectedToProxy get() = proxyServerUid != null
 
     override val connectedToServer get() = serverUid != null
+
     /**
      * The audience for this player. If the player is on this server, this will point to
      * the bukkit / velocity player. Otherwise packets will be sent to the player via the network.
@@ -42,6 +46,23 @@ abstract class ClientCloudPlayerImpl<PlatformPlayer : Audience>(uuid: UUID) :
     protected abstract val player: PlatformPlayer?
 
     protected abstract val platformClass: Class<PlatformPlayer>
+
+    override suspend fun <R> withPersistentData(block: PersistentPlayerDataContainer.() -> R): R {
+        val response = ServerboundRequestPlayerPersistentDataContainer(uuid).fireAndAwaitOrThrow()
+
+        val nbt = response.nbt
+        val container = PersistentPlayerDataContainerImpl(nbt)
+        val result = container.block()
+
+        ServerboundPlayerPersistentDataContainerUpdatePacket(
+            uuid,
+            response.verificationId,
+            container.toTagCompound()
+        ).fireAndForget()
+
+        return result
+    }
+
     override suspend fun displayName(): Component {
         val localName =
             player?.pointers()?.get(Identity.DISPLAY_NAME)?.orElse(null)
@@ -64,7 +85,7 @@ abstract class ClientCloudPlayerImpl<PlatformPlayer : Audience>(uuid: UUID) :
     override suspend fun getLuckpermsMetaData(key: String): String? {
         val player = player
         if (player != null) {
-            return withLuckpermsAdapter { it.getMetaData(player).getMetaValue(key)  }
+            return withLuckpermsAdapter { it.getMetaData(player).getMetaValue(key) }
         }
 
         return RequestLuckpermsMetaDataPacket(uuid, key).fireAndAwait()?.data
@@ -253,6 +274,6 @@ abstract class ClientCloudPlayerImpl<PlatformPlayer : Audience>(uuid: UUID) :
     }
 
     protected fun <R> withLuckpermsAdapter(block: (PlayerAdapter<PlatformPlayer>) -> R): R {
-       return block(luckperms.getPlayerAdapter(platformClass))
+        return block(luckperms.getPlayerAdapter(platformClass))
     }
 }

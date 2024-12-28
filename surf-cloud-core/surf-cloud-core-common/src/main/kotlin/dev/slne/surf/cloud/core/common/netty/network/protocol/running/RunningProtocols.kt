@@ -47,6 +47,7 @@ object RunningProtocols {
                 .addPacket(RequestLuckpermsMetaDataPacket.STREAM_CODEC)
                 .addPacket(LuckpermsMetaDataResponsePacket.STREAM_CODEC)
                 .addPacket(ClientboundPlayerPersistentDataContainerResponse.STREAM_CODEC)
+                .addPacket(ClientboundConnectPlayerToServerResponse.STREAM_CODEC)
         }
 
     val CLIENTBOUND by lazy { CLIENTBOUND_TEMPLATE.freeze().bind(::SurfByteBuf) }
@@ -84,6 +85,7 @@ object RunningProtocols {
                 .addPacket(LuckpermsMetaDataResponsePacket.STREAM_CODEC)
                 .addPacket(ServerboundRequestPlayerPersistentDataContainer.STREAM_CODEC)
                 .addPacket(ServerboundPlayerPersistentDataContainerUpdatePacket.STREAM_CODEC)
+                .addPacket(ServerboundConnectPlayerToServerPacket.STREAM_CODEC)
         }
 
     val SERVERBOUND by lazy { SERVERBOUND_TEMPLATE.freeze().bind(::SurfByteBuf) }

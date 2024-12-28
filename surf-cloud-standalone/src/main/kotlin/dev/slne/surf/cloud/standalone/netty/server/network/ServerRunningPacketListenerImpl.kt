@@ -1,6 +1,10 @@
 package dev.slne.surf.cloud.standalone.netty.server.network
 
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
+import dev.slne.surf.cloud.api.common.player.ConnectionResultEnum
+import dev.slne.surf.cloud.api.common.server.CloudServer
+import dev.slne.surf.cloud.api.common.server.CloudServerManager
+import dev.slne.surf.cloud.api.common.server.serverManager
 import dev.slne.surf.cloud.api.common.util.logger
 import dev.slne.surf.cloud.api.common.util.mutableIntSetOf
 import dev.slne.surf.cloud.api.common.util.mutableObject2ObjectMapOf
@@ -203,6 +207,30 @@ class ServerRunningPacketListenerImpl(
             log.atInfo()
                 .log("Updating persistent data for %s with data %s", packet.uuid, packet.nbt)
             updatePersistentData(packet.nbt)
+        }
+    }
+
+    override suspend fun handleConnectPlayerToServer(packet: ServerboundConnectPlayerToServerPacket) {
+        withPlayer(packet.uuid) {
+            val server = serverManager.retrieveServerById(packet.serverId)
+
+            if (server == null) {
+                packet.respond(ClientboundConnectPlayerToServerResponse(ConnectionResultEnum.SERVER_NOT_FOUND to null))
+                return
+            }
+
+            if (server !is CloudServer) {
+                packet.respond(ClientboundConnectPlayerToServerResponse(ConnectionResultEnum.CANNOT_CONNECT_TO_PROXY to null))
+                return
+            }
+
+            val result = if (packet.queue) {
+                connectToServerOrQueue(server)
+            } else {
+                connectToServer(server)
+            }
+
+            packet.respond(ClientboundConnectPlayerToServerResponse(result))
         }
     }
 

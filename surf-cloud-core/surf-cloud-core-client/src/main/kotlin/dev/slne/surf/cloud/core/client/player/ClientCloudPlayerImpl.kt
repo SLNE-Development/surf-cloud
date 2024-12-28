@@ -26,6 +26,7 @@ import net.kyori.adventure.title.TitlePart
 import net.luckperms.api.model.user.User
 import net.luckperms.api.platform.PlayerAdapter
 import java.util.*
+import kotlin.time.Duration
 
 abstract class ClientCloudPlayerImpl<PlatformPlayer : Audience>(uuid: UUID) :
     CommonCloudPlayerImpl(uuid) {
@@ -75,11 +76,11 @@ abstract class ClientCloudPlayerImpl<PlatformPlayer : Audience>(uuid: UUID) :
     }
 
     override suspend fun connectToServer(server: CloudServer): ConnectionResult {
-        TODO("Not yet implemented")
+        return ServerboundConnectPlayerToServerPacket(uuid, server.uid, false).fireAndAwaitOrThrow(Duration.INFINITE).result
     }
 
     override suspend fun connectToServerOrQueue(server: CloudServer): ConnectionResult {
-        TODO("Not yet implemented")
+        return ServerboundConnectPlayerToServerPacket(uuid, server.uid, true).fireAndAwaitOrThrow(Duration.INFINITE).result
     }
 
     override suspend fun getLuckpermsMetaData(key: String): String? {

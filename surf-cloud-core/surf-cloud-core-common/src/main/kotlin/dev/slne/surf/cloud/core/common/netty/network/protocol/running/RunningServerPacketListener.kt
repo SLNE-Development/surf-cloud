@@ -52,5 +52,7 @@ interface RunningServerPacketListener : ServerCommonPacketListener, TickablePack
 
     suspend fun handlePlayerPersistentDataContainerUpdate(packet: ServerboundPlayerPersistentDataContainerUpdatePacket)
 
+    suspend fun handleConnectPlayerToServer(packet: ServerboundConnectPlayerToServerPacket)
+
     fun handlePacket(packet: NettyPacket)
 }

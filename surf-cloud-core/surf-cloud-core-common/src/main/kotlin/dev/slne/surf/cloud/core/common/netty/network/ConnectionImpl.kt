@@ -323,6 +323,8 @@ class ConnectionImpl(
 
                         is DisconnectPlayerPacket -> listener.handleDisconnectPlayer(msg)
 
+                        is TeleportPlayerPacket -> listener.handleTeleportPlayer(msg)
+
                         else -> listener.handlePacket(msg) // handle other packets
                     }
 
@@ -436,6 +438,8 @@ class ConnectionImpl(
                         )
 
                         is DisconnectPlayerPacket -> listener.handleDisconnectPlayer(msg)
+
+                        is TeleportPlayerPacket -> listener.handleTeleportPlayer(msg)
 
                         else -> listener.handlePacket(msg)
                     }

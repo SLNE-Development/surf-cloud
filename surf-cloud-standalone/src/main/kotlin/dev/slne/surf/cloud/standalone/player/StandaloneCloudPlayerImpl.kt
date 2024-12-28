@@ -5,6 +5,9 @@ import dev.slne.surf.cloud.api.common.player.ConnectionResult
 import dev.slne.surf.cloud.api.common.player.ConnectionResultEnum
 import dev.slne.surf.cloud.api.common.player.ppdc.PersistentPlayerDataContainer
 import dev.slne.surf.cloud.api.common.server.CloudServer
+import dev.slne.surf.cloud.api.common.util.position.FineLocation
+import dev.slne.surf.cloud.api.common.util.position.FineTeleportCause
+import dev.slne.surf.cloud.api.common.util.position.FineTeleportFlag
 import dev.slne.surf.cloud.api.server.server.ServerCommonCloudServer
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.*
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ServerboundTransferPlayerPacketResponse.Status
@@ -280,6 +283,21 @@ class StandaloneCloudPlayerImpl(uuid: UUID) : CommonCloudPlayerImpl(uuid) {
 
     override fun clearResourcePacks() {
         send(ClientboundClearResourcePacksPacket(uuid))
+    }
+
+    override suspend fun teleport(
+        location: FineLocation,
+        teleportCause: FineTeleportCause,
+        vararg flags: FineTeleportFlag
+    ): Boolean {
+        val server = server ?: return false
+
+        return TeleportPlayerPacket(
+            uuid,
+            location,
+            teleportCause,
+            *flags
+        ).fireAndAwait(server.connection)?.result ?: false
     }
 
     private fun send(packet: NettyPacket) {

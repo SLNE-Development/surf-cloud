@@ -191,6 +191,17 @@ class ClientRunningPacketListenerImpl(
         platformExtension.disconnectPlayer(packet.uuid, packet.reason)
     }
 
+    override suspend fun handleTeleportPlayer(packet: TeleportPlayerPacket) {
+        val result = platformExtension.teleportPlayer(
+            packet.uuid,
+            packet.location,
+            packet.teleportCause,
+            packet.flags
+        )
+
+        packet.respond(TeleportPlayerResultPacket(result))
+    }
+
     override fun handlePacket(packet: NettyPacket) {
         val listeners = NettyListenerRegistry.getListeners(packet.javaClass) ?: return
         if (listeners.isEmpty()) return

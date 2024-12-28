@@ -2,6 +2,9 @@ package dev.slne.surf.cloud.api.common.player
 
 import dev.slne.surf.cloud.api.common.player.ppdc.PersistentPlayerDataContainer
 import dev.slne.surf.cloud.api.common.server.CloudServer
+import dev.slne.surf.cloud.api.common.util.position.FineLocation
+import dev.slne.surf.cloud.api.common.util.position.FineTeleportCause
+import dev.slne.surf.cloud.api.common.util.position.FineTeleportFlag
 import net.kyori.adventure.audience.Audience
 import net.kyori.adventure.text.Component
 import java.util.*
@@ -139,6 +142,55 @@ interface CloudPlayer : Audience { // TODO: conversation but done correctly?, te
      * @param reason The reason for the disconnection.
      */
     fun disconnect(reason: Component)
+
+    /**
+     * Teleports the player to a specified location.
+     *
+     * This method suspends until the player is teleported to the target location.
+     *
+     * @param location The target location to teleport the player to.
+     * @param teleportCause The cause of the teleportation.
+     * @param flags An array of [FineTeleportFlag] to apply during the teleportation.
+     *
+     * @throws IllegalArgumentException if the player is teleported to a location in a different world.
+     * @throws IllegalStateException if the player is not connected to a bukkit server and thus cannot be teleported.
+     */
+    suspend fun teleport(
+        location: FineLocation,
+        teleportCause: FineTeleportCause = FineTeleportCause.PLUGIN,
+        vararg flags: FineTeleportFlag
+    ): Boolean
+
+    /**
+     * Teleports the player to a specified location.
+     *
+     * This method suspends until the player is teleported to the target location.
+     * Proxies everything to [teleport].
+     *
+     * @param world The UUID of the world to teleport the player to.
+     * @param x The x-coordinate of the target location.
+     * @param y The y-coordinate of the target location.
+     * @param z The z-coordinate of the target location.
+     * @param yaw The yaw rotation of the player.
+     * @param pitch The pitch rotation of the player.
+     * @param teleportCause The cause of the teleportation.
+     * @param flags An array of [FineTeleportFlag] to apply during the teleportation.
+     *
+     * @throws IllegalArgumentException if the player is teleported to a location in a different world.
+     * @throws IllegalStateException if the player is not connected to a bukkit server and thus cannot be teleported.
+     *
+     * @see teleport(FineLocation)
+     */
+    suspend fun teleport(
+        world: UUID,
+        x: Double,
+        y: Double,
+        z: Double,
+        yaw: Float = 0.0f,
+        pitch: Float = 0.0f,
+        teleportCause: FineTeleportCause = FineTeleportCause.PLUGIN,
+        vararg flags: FineTeleportFlag,
+    ) = teleport(FineLocation(world, x, y, z, yaw, pitch), teleportCause, *flags)
 
     suspend fun <R> getLuckpermsMetaData(key: String, transformer: (String) -> R): R?
     suspend fun getLuckpermsMetaData(key: String): String?

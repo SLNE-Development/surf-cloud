@@ -1,6 +1,9 @@
 package dev.slne.surf.cloud.velocity.netty.network
 
 import com.velocitypowered.api.proxy.ConnectionRequestBuilder
+import dev.slne.surf.cloud.api.common.util.position.FineLocation
+import dev.slne.surf.cloud.api.common.util.position.FineTeleportCause
+import dev.slne.surf.cloud.api.common.util.position.FineTeleportFlag
 import dev.slne.surf.cloud.core.client.netty.network.PlatformSpecificPacketListenerExtension
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ServerboundTransferPlayerPacketResponse.Status
 import dev.slne.surf.cloud.velocity.proxy
@@ -36,5 +39,14 @@ object VelocitySpecificPacketListenerExtension : PlatformSpecificPacketListenerE
         val player =
             proxy.getPlayer(playerUuid).orElseThrow { error("Player $playerUuid not found") }
         player.disconnect(reason)
+    }
+
+    override suspend fun teleportPlayer(
+        uuid: UUID,
+        location: FineLocation,
+        teleportCause: FineTeleportCause,
+        flags: Array<out FineTeleportFlag>
+    ): Boolean {
+        error("Teleporting players is not supported on Velocity")
     }
 }

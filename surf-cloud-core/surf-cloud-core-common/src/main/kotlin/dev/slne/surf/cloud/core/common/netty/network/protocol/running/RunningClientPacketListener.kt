@@ -61,5 +61,7 @@ interface RunningClientPacketListener : ClientCommonPacketListener {
 
     fun handleDisconnectPlayer(packet: DisconnectPlayerPacket)
 
+    suspend fun handleTeleportPlayer(packet: TeleportPlayerPacket)
+
     fun handlePacket(packet: NettyPacket)
 }

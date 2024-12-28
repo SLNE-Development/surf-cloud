@@ -1,9 +1,14 @@
 package dev.slne.surf.cloud.core.common.player
 
+import dev.slne.surf.cloud.api.common.event.player.connection.CloudPlayerConnectToNetworkEvent
 import dev.slne.surf.cloud.api.common.player.CloudPlayerManager
 import dev.slne.surf.cloud.api.common.util.mutableObject2ObjectMapOf
 import dev.slne.surf.cloud.api.common.util.synchronize
+import dev.slne.surf.cloud.core.common.util.bean
+import dev.slne.surf.cloud.core.common.util.publish
+import it.unimi.dsi.fastutil.objects.Object2ObjectArrayMap
 import org.jetbrains.annotations.ApiStatus
+import org.jetbrains.annotations.MustBeInvokedByOverriders
 import java.util.*
 
 abstract class CloudPlayerManagerImpl<P : CommonCloudPlayerImpl> : CloudPlayerManager {
@@ -28,6 +33,12 @@ abstract class CloudPlayerManagerImpl<P : CommonCloudPlayerImpl> : CloudPlayerMa
         players[player.uuid] = player
     }
 
+    protected fun forEachPlayer(action: (P) -> Unit) {
+        val tempPlayers = Object2ObjectArrayMap(players)
+        tempPlayers.values.forEach(action)
+        tempPlayers.clear()
+    }
+
     /**
      * Updates the server or proxy information of an existing player,
      * or creates a new player if one does not exist.
@@ -42,16 +53,16 @@ abstract class CloudPlayerManagerImpl<P : CommonCloudPlayerImpl> : CloudPlayerMa
         if (proxy) {
             if (player == null) {
                 val createPlayer = createPlayer(uuid, serverUid, true)
-                addPlayer(createPlayer)
                 onConnect(uuid, createPlayer)
+                addPlayer(createPlayer)
             } else {
                 updateProxyServer(player, serverUid)
             }
         } else {
             if (player == null) {
                 val createPlayer = createPlayer(uuid, serverUid, false)
-                addPlayer(createPlayer)
                 onConnect(uuid, createPlayer)
+                addPlayer(createPlayer)
             } else {
                 updateServer(player, serverUid)
             }
@@ -84,18 +95,20 @@ abstract class CloudPlayerManagerImpl<P : CommonCloudPlayerImpl> : CloudPlayerMa
         }
     }
 
+    @MustBeInvokedByOverriders
     @ApiStatus.OverrideOnly
     open suspend fun onServerDisconnect(uuid: UUID, player: P, serverUid: Long) {
-        // May be overridden
     }
 
+    @MustBeInvokedByOverriders
+    @ApiStatus.OverrideOnly
     open suspend fun onNetworkDisconnect(uuid: UUID, player: P, oldProxy: Long?, oldServer: Long?) {
-        // May be overridden
     }
 
+    @MustBeInvokedByOverriders
     @ApiStatus.OverrideOnly
     open suspend fun onConnect(uuid: UUID, player: P) {
-        // May be overridden
+        CloudPlayerConnectToNetworkEvent(this, player).publish()
     }
 }
 

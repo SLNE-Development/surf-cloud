@@ -40,7 +40,8 @@ abstract class ClientCommonPacketListenerImpl(
         }
     }
 
-    override fun onDisconnect(details: DisconnectionDetails) {
+
+    override suspend fun onDisconnect(details: DisconnectionDetails) {
         log.atInfo().log("Client disconnected with reason: ${details.reason}")
         // TODO: shutdown server if not already shutting down
         exitProcess(0)

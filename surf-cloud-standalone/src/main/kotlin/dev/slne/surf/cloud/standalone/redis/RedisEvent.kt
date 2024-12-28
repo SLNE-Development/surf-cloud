@@ -1,7 +1,7 @@
 package dev.slne.surf.cloud.standalone.redis
 
 import com.fasterxml.jackson.annotation.JsonIgnore
-import dev.slne.surf.cloud.standalone.independentCloudInstance
+import dev.slne.surf.cloud.standalone.standaloneCloudInstance
 import org.apache.commons.lang3.ArrayUtils
 import org.apache.commons.lang3.builder.ToStringBuilder
 import java.util.*
@@ -28,7 +28,7 @@ abstract class RedisEvent {
     }
 
     fun send() {
-        independentCloudInstance.callRedisEvent(this)
+        standaloneCloudInstance.callRedisEvent(this)
     }
 
     override fun toString(): String {

@@ -25,6 +25,31 @@ interface PersistentPlayerDataContainer: PersistentPlayerDataContainerView {
      */
     fun <P : Any, C> set(key: Key, type: PersistentPlayerDataType<P, C>, value: C)
 
+    fun putBoolean(key: Key, value: Boolean)
+    fun putByte(key: Key, value: Byte)
+    fun putShort(key: Key, value: Short)
+    fun putInt(key: Key, value: Int)
+    fun putLong(key: Key, value: Long)
+    fun putFloat(key: Key, value: Float)
+    fun putDouble(key: Key, value: Double)
+    fun putString(key: Key, value: String)
+    fun putByteArray(key: Key, value: ByteArray)
+    fun putIntArray(key: Key, value: IntArray)
+    fun putLongArray(key: Key, value: LongArray)
+
+    fun getBoolean(key: Key): Boolean?
+    fun getNumber(key: Key): Number?
+    fun getByte(key: Key): Byte?
+    fun getShort(key: Key): Short?
+    fun getInt(key: Key): Int?
+    fun getLong(key: Key): Long?
+    fun getFloat(key: Key): Float?
+    fun getDouble(key: Key): Double?
+    fun getString(key: Key): String?
+    fun getByteArray(key: Key): ByteArray?
+    fun getIntArray(key: Key): IntArray?
+    fun getLongArray(key: Key): LongArray?
+
     /**
      * Removes a metadata value from the [dev.slne.surf.cloud.api.common.player.CloudPlayer] instance.
      *

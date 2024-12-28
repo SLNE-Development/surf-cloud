@@ -3,13 +3,20 @@ package dev.slne.surf.cloud.standalone.player
 import com.google.auto.service.AutoService
 import dev.slne.surf.cloud.api.common.player.CloudPlayerManager
 import dev.slne.surf.cloud.api.common.util.logger
+import dev.slne.surf.cloud.core.common.coroutines.PlayerDataSaveScope
 import dev.slne.surf.cloud.core.common.player.CloudPlayerManagerImpl
 import dev.slne.surf.cloud.core.common.util.checkInstantiationByServiceLoader
+import dev.slne.surf.cloud.standalone.persistent.PlayerDataStorage
 import dev.slne.surf.cloud.standalone.server.StandaloneCloudServerImpl
 import dev.slne.surf.cloud.standalone.server.StandaloneProxyCloudServerImpl
 import dev.slne.surf.cloud.standalone.server.asStandaloneServer
 import dev.slne.surf.cloud.standalone.server.serverManagerImpl
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.util.*
+import kotlin.time.Duration.Companion.minutes
 
 @AutoService(CloudPlayerManager::class)
 class StandaloneCloudPlayerManagerImpl : CloudPlayerManagerImpl<StandaloneCloudPlayerImpl>() {
@@ -17,6 +24,14 @@ class StandaloneCloudPlayerManagerImpl : CloudPlayerManagerImpl<StandaloneCloudP
 
     init {
         checkInstantiationByServiceLoader()
+        PlayerDataSaveScope.launch { createPlayerDataSaveTask() }
+    }
+
+    private suspend fun createPlayerDataSaveTask() {
+        while (true) {
+            delay(3.minutes)
+            forEachPlayer { PlayerDataStorage.save(it) }
+        }
     }
 
     override suspend fun createPlayer(
@@ -92,6 +107,8 @@ class StandaloneCloudPlayerManagerImpl : CloudPlayerManagerImpl<StandaloneCloudP
         uuid: UUID,
         player: StandaloneCloudPlayerImpl
     ) {
+        withContext(Dispatchers.IO) { PlayerDataStorage.load(player) }
+        super.onConnect(uuid, player)
     }
 
     override suspend fun onNetworkDisconnect(
@@ -100,7 +117,10 @@ class StandaloneCloudPlayerManagerImpl : CloudPlayerManagerImpl<StandaloneCloudP
         oldProxy: Long?,
         oldServer: Long?
     ) {
+        super.onNetworkDisconnect(uuid, player, oldProxy, oldServer)
+
         oldServer?.toServer()?.asStandaloneServer()?.queue?.handlePlayerLeave(player)
+        withContext(Dispatchers.IO) { PlayerDataStorage.save(player) }
     }
 
     private suspend fun Long.toServer() = serverManagerImpl.retrieveServerById(this)

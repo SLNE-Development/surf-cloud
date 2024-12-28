@@ -24,23 +24,23 @@ object Bootstrap {
             SurfApiStandaloneBootstrap.enable()
             CloudLogbackConfigurator.configure()
 
-            independentCloudInstance.bootstrap(
+            standaloneCloudInstance.bootstrap(
                 BootstrapData(
                     dataFolder = Path("")
                 )
             )
-            independentCloudInstance.onLoad()
-            independentCloudInstance.onEnable()
+            standaloneCloudInstance.onLoad()
+            standaloneCloudInstance.onEnable()
 
             Runtime.getRuntime().addShutdownHook(thread(start = false) {
                 runBlocking {
-                    independentCloudInstance.onDisable()
+                    standaloneCloudInstance.onDisable()
                     SurfApiStandaloneBootstrap.shutdown()
                 }
             })
         } catch (e: Throwable) {
             e.handleEventuallyFatalError {
-                val context = independentCloudInstance.dataContext
+                val context = standaloneCloudInstance.dataContext
                 if (context.isActive) {
                     SpringApplication.exit(context, it)
                 } else {

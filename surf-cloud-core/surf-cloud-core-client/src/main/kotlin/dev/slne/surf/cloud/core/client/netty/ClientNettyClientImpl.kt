@@ -147,7 +147,7 @@ class ClientNettyClientImpl(
                     responseId.complete(packet.generatedId)
                 }
 
-                override fun onDisconnect(details: DisconnectionDetails) {
+                override suspend fun onDisconnect(details: DisconnectionDetails) {
                     if (!responseId.isCompleted) {
                         responseId.completeExceptionally(IllegalStateException("The connection was closed before the server ID could be fetched."))
                     }

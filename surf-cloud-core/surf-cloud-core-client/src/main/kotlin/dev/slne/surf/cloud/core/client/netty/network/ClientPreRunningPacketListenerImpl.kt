@@ -58,7 +58,7 @@ class ClientPreRunningPacketListenerImpl(
         completion.await()
     }
 
-    override fun onDisconnect(details: DisconnectionDetails) {
+    override suspend fun onDisconnect(details: DisconnectionDetails) {
         throw FatalSurfError {
             simpleErrorMessage("Client disconnected from the server before the connection was fully established.")
             detailedErrorMessage("Reason: ${details.reason}")

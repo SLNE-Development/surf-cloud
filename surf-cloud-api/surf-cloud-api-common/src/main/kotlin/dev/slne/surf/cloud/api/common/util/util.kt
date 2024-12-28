@@ -1,7 +1,15 @@
 package dev.slne.surf.cloud.api.common.util
 
+import net.kyori.adventure.text.logger.slf4j.ComponentLogger
+import java.nio.file.Path
 import java.util.*
 import java.util.function.ToIntFunction
+import kotlin.io.path.deleteIfExists
+import kotlin.io.path.exists
+import kotlin.io.path.fileVisitor
+import kotlin.io.path.isRegularFile
+import kotlin.io.path.moveTo
+import kotlin.io.path.visitFileTree
 
 const val LINEAR_LOOKUP_THRESHOLD = 8
 
@@ -36,4 +44,99 @@ private fun leastMostToIntArray(uuidMost: Long, uuidLeast: Long): IntArray {
         (uuidLeast shr 32).toInt(),
         uuidLeast.toInt()
     )
+}
+
+fun Byte.toUnsignedInt(): Int = java.lang.Byte.toUnsignedInt(this)
+
+fun safeReplaceFile(current: Path, newPath: Path, backup: Path) {
+    safeReplaceOrMoveFile(current, newPath, backup, false)
+}
+
+private val fileOperationLogger = ComponentLogger.logger("FileOperations")
+
+fun safeReplaceOrMoveFile(current: Path, newPath: Path, backup: Path, noRestoreOnFail: Boolean): Boolean {
+    if (current.exists() &&
+        !runWithRetries(
+            10,
+            "create backup $backup",
+            createDeleter(backup),
+            createRenamer(current, backup),
+            createFileCreatedCheck(backup)
+        )
+    ) {
+        return false
+    } else if (!runWithRetries(
+            10,
+            "remove old $current",
+            createDeleter(current),
+            createFileDeletedCheck(current)
+        )
+    ) {
+        return false
+    } else if (!runWithRetries(
+            10,
+            "replace $current with $newPath",
+            createRenamer(newPath, current),
+            createFileCreatedCheck(current)
+        ) && !noRestoreOnFail
+    ) {
+        runWithRetries(
+            10,
+            "restore $current from $backup",
+            createRenamer(backup, current),
+            createFileCreatedCheck(current)
+        )
+        return false
+    } else {
+        return true
+    }
+}
+
+private fun runWithRetries(retries: Int, taskName: String, vararg tasks: () -> Boolean): Boolean {
+    repeat(retries) { attempt ->
+        if (executeInSequence(*tasks)) {
+            return true
+        }
+        fileOperationLogger.error("Failed to {}, retrying {}/{}", taskName, attempt + 1, retries)
+    }
+    fileOperationLogger.error("Failed to {}, aborting, progress might be lost", taskName)
+    return false
+}
+
+private fun executeInSequence(vararg tasks: () -> Boolean): Boolean {
+    for (task in tasks) {
+        if (!task()) {
+            fileOperationLogger.warn("Failed to execute task")
+            return false
+        }
+    }
+    return true
+}
+
+private fun createDeleter(path: Path): () -> Boolean = {
+    try {
+        path.deleteIfExists()
+        true
+    } catch (e: Exception) {
+        fileOperationLogger.warn("Failed to delete $path", e)
+        false
+    }
+}
+
+private fun createRenamer(src: Path, dest: Path): () -> Boolean = {
+    try {
+        src.moveTo(dest)
+        true
+    } catch (e: Exception) {
+        fileOperationLogger.error("Failed to rename $src to $dest", e)
+        false
+    }
+}
+
+private fun createFileCreatedCheck(path: Path): () -> Boolean = {
+    path.isRegularFile()
+}
+
+private fun createFileDeletedCheck(path: Path): () -> Boolean = {
+    !path.exists()
 }

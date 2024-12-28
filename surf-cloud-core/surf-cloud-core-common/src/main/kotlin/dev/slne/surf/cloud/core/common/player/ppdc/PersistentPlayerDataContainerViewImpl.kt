@@ -1,6 +1,9 @@
-package dev.slne.surf.cloud.api.common.player.ppdc
+package dev.slne.surf.cloud.core.common.player.ppdc
 
 import dev.slne.surf.cloud.api.common.netty.protocol.buffer.SurfByteBuf
+import dev.slne.surf.cloud.api.common.player.ppdc.PersistentPlayerDataAdapterContext
+import dev.slne.surf.cloud.api.common.player.ppdc.PersistentPlayerDataContainerView
+import dev.slne.surf.cloud.api.common.player.ppdc.PersistentPlayerDataType
 import dev.slne.surf.cloud.api.common.util.toObjectSet
 import it.unimi.dsi.fastutil.objects.ObjectSet
 import net.kyori.adventure.key.Key
@@ -11,7 +14,7 @@ import okio.use
 import org.jetbrains.annotations.Unmodifiable
 import java.io.ByteArrayOutputStream
 
-internal abstract class PersistentPlayerDataContainerViewImpl : PersistentPlayerDataContainerView {
+abstract class PersistentPlayerDataContainerViewImpl : PersistentPlayerDataContainerView {
 
     abstract fun toTagCompound(): CompoundTag
     abstract fun getTag(key: String): Tag<*>?

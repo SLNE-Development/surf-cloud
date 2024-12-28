@@ -176,9 +176,11 @@ abstract class ServerCommonPacketListenerImpl(
         schedule { connection.handleDisconnection() }
     }
 
-    override fun onDisconnect(details: DisconnectionDetails) {
+    override suspend fun onDisconnect(details: DisconnectionDetails) {
         if (processedDisconnect) return
         processedDisconnect = true
+
+        server.unregisterClient(client)
 
         log.atInfo()
             .log("${client.displayName} lost connection: ${details.reason}")

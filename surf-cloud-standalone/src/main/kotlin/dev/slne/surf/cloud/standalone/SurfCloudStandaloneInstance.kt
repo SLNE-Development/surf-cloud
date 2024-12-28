@@ -14,7 +14,6 @@ import kotlinx.coroutines.runBlocking
 import org.springframework.boot.SpringApplication
 import org.springframework.data.redis.core.ReactiveRedisTemplate
 import reactor.util.Loggers
-import java.nio.file.Path
 import kotlin.concurrent.thread
 import kotlin.time.Duration.Companion.seconds
 
@@ -64,5 +63,5 @@ class SurfCloudStandaloneInstance : SurfCloudCoreInstance(StandaloneNettyManager
     }
 }
 
-val independentCloudInstance
+val standaloneCloudInstance
     get() = SurfCloudStandaloneInstance.get()

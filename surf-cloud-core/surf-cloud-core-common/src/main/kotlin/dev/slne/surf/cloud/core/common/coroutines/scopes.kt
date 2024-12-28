@@ -57,3 +57,11 @@ object QueueDisplayScope : BaseScope(
     }).asCoroutineDispatcher(),
     name = "queue-display"
 )
+
+object PlayerDataSaveScope : BaseScope(
+    dispatcher = Executors.newSingleThreadExecutor(threadFactory {
+        nameFormat("player-data-save-thread-%d")
+        daemon(false)
+    }).asCoroutineDispatcher(),
+    name = "player-data-save"
+)

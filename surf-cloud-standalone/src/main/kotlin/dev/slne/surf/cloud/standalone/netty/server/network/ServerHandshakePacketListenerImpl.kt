@@ -52,7 +52,7 @@ class ServerHandshakePacketListenerImpl(val server: NettyServerImpl, val connect
         )
     }
 
-    override fun onDisconnect(details: DisconnectionDetails) = Unit
+    override suspend fun onDisconnect(details: DisconnectionDetails) = Unit
 
     private fun prepareVirtualHost(host: String, port: Int): InetSocketAddress {
         var len = host.length

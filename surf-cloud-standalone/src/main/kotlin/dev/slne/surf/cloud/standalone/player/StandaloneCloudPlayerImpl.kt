@@ -8,6 +8,7 @@ import dev.slne.surf.cloud.api.server.server.ServerCommonCloudServer
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.*
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ServerboundTransferPlayerPacketResponse.Status
 import dev.slne.surf.cloud.core.common.player.CommonCloudPlayerImpl
+import dev.slne.surf.cloud.core.common.player.ppdc.PersistentPlayerDataContainerImpl
 import dev.slne.surf.cloud.standalone.server.StandaloneCloudServerImpl
 import dev.slne.surf.cloud.standalone.server.StandaloneProxyCloudServerImpl
 import kotlinx.coroutines.CompletableDeferred
@@ -15,6 +16,7 @@ import net.kyori.adventure.audience.MessageType
 import net.kyori.adventure.bossbar.BossBar
 import net.kyori.adventure.identity.Identity
 import net.kyori.adventure.inventory.Book
+import net.kyori.adventure.key.Key
 import net.kyori.adventure.resource.ResourcePackRequest
 import net.kyori.adventure.sound.Sound
 import net.kyori.adventure.sound.Sound.Emitter
@@ -22,6 +24,7 @@ import net.kyori.adventure.sound.SoundStop
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.title.Title
 import net.kyori.adventure.title.TitlePart
+import net.querz.nbt.tag.CompoundTag
 import java.util.*
 import kotlin.time.Duration
 
@@ -47,6 +50,26 @@ class StandaloneCloudPlayerImpl(uuid: UUID) : CommonCloudPlayerImpl(uuid) {
     @Volatile
     var connectingToServer: StandaloneCloudServerImpl? = null
         private set
+
+    private val ppdc = PersistentPlayerDataContainerImpl()
+
+    fun savePlayerData(tag: CompoundTag) {
+        if (!ppdc.empty) {
+            tag.put("ppdc", ppdc.toTagCompound())
+        }
+    }
+
+    fun readPlayerData(tag: CompoundTag) {
+        val ppdcTag = tag.get("ppdc")
+        if (ppdcTag is CompoundTag) {
+            ppdc.fromTagCompound(ppdcTag)
+        }
+    }
+
+    fun writeTestToPdc() {
+        ppdc.putInt(Key.key("test"), 123)
+        ppdc.putString(Key.key("test2"), "test")
+    }
 
     override suspend fun displayName(): Component = ClientboundRequestDisplayNamePacket(uuid)
         .fireAndAwaitUrgent(anyServer.connection)?.displayName

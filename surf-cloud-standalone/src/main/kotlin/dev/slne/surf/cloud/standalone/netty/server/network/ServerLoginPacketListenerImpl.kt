@@ -70,7 +70,7 @@ class ServerLoginPacketListenerImpl(val server: NettyServerImpl, val connection:
         state = State.ACCEPTED
     }
 
-    override fun onDisconnect(details: DisconnectionDetails) {
+    override suspend fun onDisconnect(details: DisconnectionDetails) {
         log.atInfo().log("${client?.displayName} lost connection: ${details.reason}")
     }
 

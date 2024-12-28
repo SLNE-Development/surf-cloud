@@ -159,6 +159,16 @@ class NettyServerImpl {
         serverManagerImpl.registerServer(server)
     }
 
+    suspend fun unregisterClient(client: ServerClientImpl) {
+        clientsLock.withLock {
+            clients.remove(client)
+        }
+
+        log.atInfo().log("Unregistered client ${client.displayName}")
+
+        serverManagerImpl.unregisterServer(client.serverId)
+    }
+
     suspend fun forEachClient(action: suspend (ServerClientImpl) -> Unit) {
         clientsLock.withLock {
             clients.forEach { action(it) }

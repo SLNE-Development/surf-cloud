@@ -16,7 +16,7 @@ class ServerInitializePacketListenerImpl(val connection: ConnectionImpl) :
         connection.send(ClientboundInitializeIdResponsePacket(id))
     }
 
-    override fun onDisconnect(details: DisconnectionDetails) {
+    override suspend fun onDisconnect(details: DisconnectionDetails) {
         // Do nothing
     }
 }

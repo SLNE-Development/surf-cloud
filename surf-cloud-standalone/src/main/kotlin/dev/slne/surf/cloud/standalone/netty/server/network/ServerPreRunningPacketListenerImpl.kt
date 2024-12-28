@@ -1,6 +1,7 @@
 package dev.slne.surf.cloud.standalone.netty.server.network
 
 import dev.slne.surf.cloud.core.common.netty.network.ConnectionImpl
+import dev.slne.surf.cloud.core.common.netty.network.DisconnectionDetails
 import dev.slne.surf.cloud.core.common.netty.network.protocol.prerunning.ClientboundPreRunningFinishedPacket
 import dev.slne.surf.cloud.core.common.netty.network.protocol.prerunning.ClientboundReadyToRunPacket
 import dev.slne.surf.cloud.core.common.netty.network.protocol.prerunning.ServerPreRunningPacketListener

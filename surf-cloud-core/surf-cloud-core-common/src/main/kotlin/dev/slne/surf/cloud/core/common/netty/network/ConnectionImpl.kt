@@ -819,7 +819,7 @@ class ConnectionImpl(
         _channel?.config()?.isAutoRead = true
     }
 
-    fun handleDisconnection() {
+    suspend fun handleDisconnection() {
         val channel = _channel ?: return
         if (channel.isOpen) return
         if (disconnectionHandled) return

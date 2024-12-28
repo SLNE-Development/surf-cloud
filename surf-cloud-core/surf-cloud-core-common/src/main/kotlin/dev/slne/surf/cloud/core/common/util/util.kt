@@ -5,6 +5,7 @@ package dev.slne.surf.cloud.core.common.util
 import dev.slne.surf.cloud.api.common.util.logger
 import dev.slne.surf.cloud.core.common.coreCloudInstance
 import org.jetbrains.annotations.ApiStatus
+import org.springframework.context.ApplicationEvent
 import java.security.SecureRandom
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
@@ -61,3 +62,7 @@ fun checkInstantiationByServiceLoader() {
 
 @ApiStatus.Internal
 inline fun <reified T : Any> bean(): T = coreCloudInstance.dataContext.getBean(T::class.java)
+
+fun ApplicationEvent.publish() {
+    coreCloudInstance.dataContext.publishEvent(this)
+}

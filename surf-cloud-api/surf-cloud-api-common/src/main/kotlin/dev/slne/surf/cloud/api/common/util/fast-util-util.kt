@@ -69,7 +69,7 @@ fun <K, V> emptyObject2ObjectMap(): @Unmodifiable Object2ObjectMap<K, V> =
 fun <K, V> Object2ObjectOpenHashMap<K, V>.synchronize(): Object2ObjectMap<K, V> =
     Object2ObjectMaps.synchronize(this)
 
-fun <K, V> Object2ObjectOpenHashMap<K, V>.freeze(): @UnmodifiableView Object2ObjectMap<K, V> =
+fun <K, V> Object2ObjectMap<K, V>.freeze(): @UnmodifiableView Object2ObjectMap<K, V> =
     Object2ObjectMaps.unmodifiable(this)
 
 fun <K, V> mutableObject2MultiObjectsMapOf(vararg pairs: Pair<K, ObjectSet<V>>) =

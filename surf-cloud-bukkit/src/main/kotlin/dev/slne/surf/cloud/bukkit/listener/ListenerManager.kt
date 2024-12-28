@@ -1,6 +1,5 @@
 package dev.slne.surf.cloud.bukkit.listener
 
-import dev.slne.surf.cloud.bukkit.BukkitMain
 import dev.slne.surf.cloud.bukkit.listener.player.ConnectionListener
 import dev.slne.surf.cloud.bukkit.plugin
 import dev.slne.surf.surfapi.bukkit.api.event.register

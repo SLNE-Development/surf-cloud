@@ -12,6 +12,7 @@ import dev.slne.surf.cloud.core.common.handleEventuallyFatalError
 import dev.slne.surf.surfapi.bukkit.api.event.listen
 import kotlinx.coroutines.delay
 import org.bukkit.Bukkit
+import org.bukkit.NamespacedKey
 import org.bukkit.event.server.ServerLoadEvent
 
 class BukkitMain : SuspendingJavaPlugin() {
@@ -111,6 +112,22 @@ class BukkitMain : SuspendingJavaPlugin() {
             anyExecutor { sender, args ->
                 val amount: Int by args
                 Bukkit.setMaxPlayers(amount)
+            }
+        }
+
+        commandAPICommand("setPdc") {
+            namespacedKeyArgument("key")
+            stringArgument("value")
+
+            playerExecutor { player, args ->
+                val key: NamespacedKey by args
+                val value: String by args
+
+                launch {
+                    player.toCloudPlayer()!!.withPersistentData {
+                        setString(key, value)
+                    }
+                }
             }
         }
     }

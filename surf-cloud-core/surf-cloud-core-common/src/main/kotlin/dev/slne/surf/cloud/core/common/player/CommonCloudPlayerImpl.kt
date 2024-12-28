@@ -11,13 +11,6 @@ import java.util.*
 
 abstract class CommonCloudPlayerImpl(override val uuid: UUID) : CloudPlayer {
 
-    override val persistentDataView: PersistentPlayerDataContainerView
-        get() = TODO("Not yet implemented")
-
-    override suspend fun editPersistentData(block: suspend PersistentPlayerDataContainer.() -> Unit) {
-        TODO("Not yet implemented")
-    }
-
     override suspend fun connectToServer(
         group: String,
         server: String

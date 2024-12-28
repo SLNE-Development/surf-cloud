@@ -26,6 +26,14 @@ import net.kyori.adventure.text.TextComponent
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer
 import net.kyori.adventure.title.Title
 import net.kyori.adventure.title.TitlePart
+import net.querz.nbt.io.NBTDeserializer
+import net.querz.nbt.io.NBTInputStream
+import net.querz.nbt.io.NBTOutputStream
+import net.querz.nbt.io.NBTSerializer
+import net.querz.nbt.io.NamedTag
+import net.querz.nbt.tag.CompoundTag
+import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
 import java.time.Duration
 import java.util.*
 import java.util.function.Function
@@ -336,7 +344,7 @@ object ExtraCodecs {
         )
     })
 
-    val STREAM_RESOURCE_PACK_INFO = streamCodec<ByteBuf, ResourcePackInfo>({buf, info ->
+    val STREAM_RESOURCE_PACK_INFO = streamCodec<ByteBuf, ResourcePackInfo>({ buf, info ->
         buf.writeUuid(info.id())
         buf.writeURI(info.uri())
         buf.writeUtf(info.hash())
@@ -348,23 +356,25 @@ object ExtraCodecs {
         )
     })
 
-    val STREAM_RESOURCE_PACK_REQUEST_CODEC = streamCodec<ByteBuf, ResourcePackRequest>({ buf, request ->
-        buf.writeCollection(request.packs(), STREAM_RESOURCE_PACK_INFO::encode)
-        buf.writeBoolean(request.replace())
-        buf.writeBoolean(request.required())
-        buf.writeNullable(request.prompt(), COMPONENT_STREAM::encode)
-    }, { buf ->
-        ResourcePackRequest.resourcePackRequest()
-            .packs(buf.readList(STREAM_RESOURCE_PACK_INFO::decode))
-            .replace(buf.readBoolean())
-            .required(buf.readBoolean())
-            .prompt(buf.readNullable(COMPONENT_STREAM::decode))
-            .build()
-    })
+    val STREAM_RESOURCE_PACK_REQUEST_CODEC =
+        streamCodec<ByteBuf, ResourcePackRequest>({ buf, request ->
+            buf.writeCollection(request.packs(), STREAM_RESOURCE_PACK_INFO::encode)
+            buf.writeBoolean(request.replace())
+            buf.writeBoolean(request.required())
+            buf.writeNullable(request.prompt(), COMPONENT_STREAM::encode)
+        }, { buf ->
+            ResourcePackRequest.resourcePackRequest()
+                .packs(buf.readList(STREAM_RESOURCE_PACK_INFO::decode))
+                .replace(buf.readBoolean())
+                .required(buf.readBoolean())
+                .prompt(buf.readNullable(COMPONENT_STREAM::decode))
+                .build()
+        })
 
 
     val KEY_CODEC: Codec<Key> =
-        Codec.STRING.comapFlatMap({ if (Key.parseable(it)) DataResult.success(Key.key(it)) else DataResult.error { "Cannot convert $it to adventure Key" } },
+        Codec.STRING.comapFlatMap(
+            { if (Key.parseable(it)) DataResult.success(Key.key(it)) else DataResult.error { "Cannot convert $it to adventure Key" } },
             { it.asString() })
 
     val STREAM_KEY_CODEC = streamCodec<ByteBuf, Key>({ buf, key ->
@@ -373,6 +383,14 @@ object ExtraCodecs {
         Key.key(buf.readUtf())
     })
 
+    // endregion
+    // region nbt
+    val COMPOUND_TAG_CODEC = streamCodec<ByteBuf, CompoundTag>({ buf, tag ->
+        val bytes = NBTSerializer(true).toBytes(NamedTag("", tag))
+        buf.writeByteArray(bytes)
+    }, { buf ->
+        NBTDeserializer(true).fromBytes(buf.readByteArray()).tag as CompoundTag
+    })
     // endregion
 
 }

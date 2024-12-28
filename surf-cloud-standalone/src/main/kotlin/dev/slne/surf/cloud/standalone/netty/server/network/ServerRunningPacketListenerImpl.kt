@@ -1,17 +1,19 @@
 package dev.slne.surf.cloud.standalone.netty.server.network
 
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
-import dev.slne.surf.cloud.api.common.player.CloudPlayer
 import dev.slne.surf.cloud.api.common.util.logger
-import dev.slne.surf.cloud.core.common.coroutines.ConnectionManagementScope
+import dev.slne.surf.cloud.api.common.util.mutableIntSetOf
+import dev.slne.surf.cloud.api.common.util.mutableObject2ObjectMapOf
 import dev.slne.surf.cloud.core.common.coroutines.PacketHandlerScope
 import dev.slne.surf.cloud.core.common.netty.network.ConnectionImpl
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.*
 import dev.slne.surf.cloud.core.common.netty.protocol.packet.NettyPacketInfo
 import dev.slne.surf.cloud.core.common.netty.registry.listener.NettyListenerRegistry
 import dev.slne.surf.cloud.core.common.player.playerManagerImpl
+import dev.slne.surf.cloud.core.common.util.random
 import dev.slne.surf.cloud.standalone.netty.server.NettyServerImpl
 import dev.slne.surf.cloud.standalone.netty.server.ServerClientImpl
+import dev.slne.surf.cloud.standalone.player.StandaloneCloudPlayerImpl
 import dev.slne.surf.cloud.standalone.server.StandaloneCloudServerImpl
 import dev.slne.surf.cloud.standalone.server.StandaloneProxyCloudServerImpl
 import dev.slne.surf.cloud.standalone.server.serverManagerImpl
@@ -179,6 +181,31 @@ class ServerRunningPacketListenerImpl(
         packet.respond(LuckpermsMetaDataResponsePacket(data))
     }
 
+    private val pendingVerificationIds = mutableIntSetOf()
+    override suspend fun handleRequestPlayerPersistentDataContainer(packet: ServerboundRequestPlayerPersistentDataContainer) {
+        withPlayer(packet.uuid) {
+            val data = getPersistentData()
+            val id = random.nextInt()
+            pendingVerificationIds.add(id)
+
+            packet.respond(ClientboundPlayerPersistentDataContainerResponse(id, data))
+        }
+    }
+
+    override suspend fun handlePlayerPersistentDataContainerUpdate(packet: ServerboundPlayerPersistentDataContainerUpdatePacket) {
+        if (!pendingVerificationIds.remove(packet.verificationId)) {
+            log.atWarning()
+                .log("Received invalid persistent data container update id %s", packet.verificationId)
+            return
+        }
+
+        withPlayer(packet.uuid) {
+            log.atInfo()
+                .log("Updating persistent data for %s with data %s", packet.uuid, packet.nbt)
+            updatePersistentData(packet.nbt)
+        }
+    }
+
     override fun handlePacket(packet: NettyPacket) {
         val listeners = NettyListenerRegistry.getListeners(packet.javaClass) ?: return
         if (listeners.isEmpty()) return
@@ -208,12 +235,12 @@ class ServerRunningPacketListenerImpl(
     }
 
     @OptIn(ExperimentalContracts::class)
-    private inline fun withPlayer(uuid: UUID, block: CloudPlayer.() -> Unit) {
+    private inline fun withPlayer(uuid: UUID, block: StandaloneCloudPlayerImpl.() -> Unit) {
         contract {
             callsInPlace(block, InvocationKind.AT_MOST_ONCE)
         }
 
-        val player = playerManagerImpl.getPlayer(uuid) ?: return
+        val player = playerManagerImpl.getPlayer(uuid) as? StandaloneCloudPlayerImpl ?: return
         player.block()
     }
 }

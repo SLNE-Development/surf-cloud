@@ -1,9 +1,9 @@
 package dev.slne.surf.cloud.api.common.player
 
 import dev.slne.surf.cloud.api.common.player.ppdc.PersistentPlayerDataContainer
-import dev.slne.surf.cloud.api.common.player.ppdc.PersistentPlayerDataContainerView
 import dev.slne.surf.cloud.api.common.server.CloudServer
 import net.kyori.adventure.audience.Audience
+import net.kyori.adventure.key.Key
 import net.kyori.adventure.text.Component
 import java.util.*
 
@@ -19,16 +19,6 @@ interface CloudPlayer : Audience { // TODO: conversation but done correctly?, te
      * The unique identifier (UUID) of the player.
      */
     val uuid: UUID
-
-    /**
-     * A read-only view of the player's persistent data container.
-     *
-     * This view provides access to the player's metadata, enabling operations such as:
-     * - Checking for specific metadata keys.
-     * - Retrieving values associated with metadata keys.
-     * - Listing all metadata keys present in the container.
-     */
-    val persistentDataView: PersistentPlayerDataContainerView
 
     /**
      * Indicates whether the player is currently connected to a proxy server.
@@ -70,7 +60,7 @@ interface CloudPlayer : Audience { // TODO: conversation but done correctly?, te
      *
      * @param block A suspending lambda function defining the modifications to the data container.
      */
-    suspend fun editPersistentData(block: suspend PersistentPlayerDataContainer.() -> Unit)
+    suspend fun <R> withPersistentData(block: PersistentPlayerDataContainer.() -> R): R
 
     /**
      * Connects the player to a specified server.

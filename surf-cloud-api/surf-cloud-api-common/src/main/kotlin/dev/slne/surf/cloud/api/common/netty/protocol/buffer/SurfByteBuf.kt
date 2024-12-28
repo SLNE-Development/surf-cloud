@@ -25,6 +25,7 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList
 import net.kyori.adventure.key.Key
 import net.kyori.adventure.sound.Sound
 import net.kyori.adventure.text.Component
+import net.querz.nbt.tag.CompoundTag
 import java.io.*
 import java.net.InetSocketAddress
 import java.net.URI
@@ -583,6 +584,12 @@ class SurfByteBuf(source: ByteBuf) : WrappedByteBuf(source) {
 
         fun <B : ByteBuf> readInetSocketAddress(buf: B) =
             createUnresolvedInetSocketAddress(readUtf(buf), buf.readVarInt())
+
+        fun <B: ByteBuf> writeCompoundTag(buf: B, tag: CompoundTag) {
+            ExtraCodecs.COMPOUND_TAG_CODEC.encode(buf, tag)
+        }
+
+        fun <B: ByteBuf> readCompoundTag(buf: B) = ExtraCodecs.COMPOUND_TAG_CODEC.decode(buf)
     }
 
 
@@ -750,6 +757,8 @@ class SurfByteBuf(source: ByteBuf) : WrappedByteBuf(source) {
     fun readWithCount(reader: Consumer<SurfByteBuf>) = readWithCount(this, reader)
     fun writeInetSocketAddress(address: InetSocketAddress) = writeInetSocketAddress(this, address)
     fun readInetSocketAddress() = readInetSocketAddress(this)
+    fun writeCompoundTag(tag: CompoundTag) = writeCompoundTag(this, tag)
+    fun readCompoundTag() = readCompoundTag(this)
     // @formatter:on
 // endregion
 
@@ -969,6 +978,9 @@ fun <B : ByteBuf> B.writeURI(uri: URI) = SurfByteBuf.writeURI(this, uri)
 fun <B : ByteBuf> B.readInetSocketAddress() = SurfByteBuf.readInetSocketAddress(this)
 fun <B : ByteBuf> B.writeInetSocketAddress(address: InetSocketAddress) =
     SurfByteBuf.writeInetSocketAddress(this, address)
+
+fun <B : ByteBuf> B.readCompoundTag() = SurfByteBuf.readCompoundTag(this)
+fun <B : ByteBuf> B.writeCompoundTag(tag: CompoundTag) = SurfByteBuf.writeCompoundTag(this, tag)
 
 fun ByteBuf.wrap() = SurfByteBuf(this)
 // endregion

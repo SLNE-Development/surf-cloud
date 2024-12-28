@@ -307,6 +307,12 @@ class ConnectionImpl(
                         is RequestLuckpermsMetaDataPacket -> listener.handleRequestLuckpermsMetaData(
                             msg
                         )
+                        is ServerboundRequestPlayerPersistentDataContainer -> listener.handleRequestPlayerPersistentDataContainer(
+                            msg
+                        )
+                        is ServerboundPlayerPersistentDataContainerUpdatePacket -> listener.handlePlayerPersistentDataContainerUpdate(
+                            msg
+                        )
 
                         else -> listener.handlePacket(msg) // handle other packets
                     }

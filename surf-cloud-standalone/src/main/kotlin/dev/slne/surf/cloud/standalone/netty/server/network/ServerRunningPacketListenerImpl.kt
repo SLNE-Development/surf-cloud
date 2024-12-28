@@ -3,11 +3,9 @@ package dev.slne.surf.cloud.standalone.netty.server.network
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
 import dev.slne.surf.cloud.api.common.player.ConnectionResultEnum
 import dev.slne.surf.cloud.api.common.server.CloudServer
-import dev.slne.surf.cloud.api.common.server.CloudServerManager
 import dev.slne.surf.cloud.api.common.server.serverManager
 import dev.slne.surf.cloud.api.common.util.logger
 import dev.slne.surf.cloud.api.common.util.mutableIntSetOf
-import dev.slne.surf.cloud.api.common.util.mutableObject2ObjectMapOf
 import dev.slne.surf.cloud.core.common.coroutines.PacketHandlerScope
 import dev.slne.surf.cloud.core.common.netty.network.ConnectionImpl
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.*
@@ -199,7 +197,10 @@ class ServerRunningPacketListenerImpl(
     override suspend fun handlePlayerPersistentDataContainerUpdate(packet: ServerboundPlayerPersistentDataContainerUpdatePacket) {
         if (!pendingVerificationIds.remove(packet.verificationId)) {
             log.atWarning()
-                .log("Received invalid persistent data container update id %s", packet.verificationId)
+                .log(
+                    "Received invalid persistent data container update id %s",
+                    packet.verificationId
+                )
             return
         }
 
@@ -231,6 +232,22 @@ class ServerRunningPacketListenerImpl(
             }
 
             packet.respond(ClientboundConnectPlayerToServerResponse(result))
+        }
+    }
+
+    override fun handleDisconnectPlayer(packet: DisconnectPlayerPacket) {
+        withPlayer(packet.uuid) { disconnect(packet.reason) }
+    }
+
+    override suspend fun handleTeleportPlayer(packet: TeleportPlayerPacket) {
+        withPlayer(packet.uuid) {
+            val result = teleport(
+                location = packet.location,
+                teleportCause = packet.teleportCause,
+                flags = packet.flags
+            )
+
+            packet.respond(TeleportPlayerResultPacket(result))
         }
     }
 

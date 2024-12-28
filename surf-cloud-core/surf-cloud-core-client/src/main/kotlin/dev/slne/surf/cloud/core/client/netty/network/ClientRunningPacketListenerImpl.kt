@@ -7,13 +7,8 @@ import dev.slne.surf.cloud.core.client.player.commonPlayerManagerImpl
 import dev.slne.surf.cloud.core.client.server.serverManagerImpl
 import dev.slne.surf.cloud.core.client.util.getOrLoadUser
 import dev.slne.surf.cloud.core.client.util.luckperms
-import dev.slne.surf.cloud.core.common.coroutines.ConnectionManagementScope
 import dev.slne.surf.cloud.core.common.coroutines.PacketHandlerScope
-import dev.slne.surf.cloud.core.common.netty.network.CommonTickablePacketListener
 import dev.slne.surf.cloud.core.common.netty.network.ConnectionImpl
-import dev.slne.surf.cloud.core.common.netty.network.DisconnectionDetails
-import dev.slne.surf.cloud.core.common.netty.network.protocol.common.ClientboundKeepAlivePacket
-import dev.slne.surf.cloud.core.common.netty.network.protocol.common.ServerboundKeepAlivePacket
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.*
 import dev.slne.surf.cloud.core.common.netty.protocol.packet.NettyPacketInfo
 import dev.slne.surf.cloud.core.common.netty.registry.listener.NettyListenerRegistry
@@ -190,6 +185,21 @@ class ClientRunningPacketListenerImpl(
         val metaValue =
             luckperms.userManager.getOrLoadUser(packet.uuid).cachedData.metaData.getMetaValue(packet.key)
         packet.respond(LuckpermsMetaDataResponsePacket(metaValue))
+    }
+
+    override fun handleDisconnectPlayer(packet: DisconnectPlayerPacket) {
+        platformExtension.disconnectPlayer(packet.uuid, packet.reason)
+    }
+
+    override suspend fun handleTeleportPlayer(packet: TeleportPlayerPacket) {
+        val result = platformExtension.teleportPlayer(
+            packet.uuid,
+            packet.location,
+            packet.teleportCause,
+            packet.flags
+        )
+
+        packet.respond(TeleportPlayerResultPacket(result))
     }
 
     override fun handlePacket(packet: NettyPacket) {

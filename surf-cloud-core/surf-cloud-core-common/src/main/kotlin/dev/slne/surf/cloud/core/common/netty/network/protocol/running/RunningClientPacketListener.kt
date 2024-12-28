@@ -2,7 +2,6 @@ package dev.slne.surf.cloud.core.common.netty.network.protocol.running
 
 import dev.slne.surf.cloud.api.common.netty.network.ConnectionProtocol
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
-import dev.slne.surf.cloud.core.common.netty.network.TickablePacketListener
 import dev.slne.surf.cloud.core.common.netty.network.protocol.common.ClientCommonPacketListener
 
 interface RunningClientPacketListener : ClientCommonPacketListener {
@@ -59,6 +58,10 @@ interface RunningClientPacketListener : ClientCommonPacketListener {
     suspend fun handleTransferPlayer(packet: ClientboundTransferPlayerPacket)
 
     suspend fun handleRequestLuckpermsMetaData(packet: RequestLuckpermsMetaDataPacket)
+
+    fun handleDisconnectPlayer(packet: DisconnectPlayerPacket)
+
+    suspend fun handleTeleportPlayer(packet: TeleportPlayerPacket)
 
     fun handlePacket(packet: NettyPacket)
 }

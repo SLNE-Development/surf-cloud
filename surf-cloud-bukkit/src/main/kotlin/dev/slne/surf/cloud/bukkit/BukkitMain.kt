@@ -7,12 +7,18 @@ import com.github.shynixn.mccoroutine.folia.ticks
 import dev.jorel.commandapi.kotlindsl.*
 import dev.slne.surf.cloud.api.common.player.toCloudPlayer
 import dev.slne.surf.cloud.api.common.server.serverManager
+import dev.slne.surf.cloud.api.common.util.position.FineTeleportCause
+import dev.slne.surf.cloud.api.common.util.position.fineLocation
 import dev.slne.surf.cloud.bukkit.player.BukkitClientCloudPlayerImpl
 import dev.slne.surf.cloud.core.common.handleEventuallyFatalError
 import dev.slne.surf.surfapi.bukkit.api.event.listen
 import kotlinx.coroutines.delay
+import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.format.NamedTextColor
 import org.bukkit.Bukkit
+import org.bukkit.Location
 import org.bukkit.NamespacedKey
+import org.bukkit.entity.Player
 import org.bukkit.event.server.ServerLoadEvent
 
 class BukkitMain : SuspendingJavaPlugin() {
@@ -127,6 +133,55 @@ class BukkitMain : SuspendingJavaPlugin() {
                     player.toCloudPlayer()!!.withPersistentData {
                         setString(key, value)
                     }
+                }
+            }
+        }
+
+        commandAPICommand("disconnect") {
+            entitySelectorArgumentOnePlayer("target")
+            adventureChatComponentArgument("reason", optional = true)
+
+            playerExecutor { player, args ->
+                val target: Player by args
+                val reason =
+                    args.getOptionalUnchecked<Component>("reason").orElse(Component.empty())
+
+                target.toCloudPlayer()?.disconnect(reason)
+                player.sendMessage(
+                    Component.text(
+                        "Disconnected player ${target.name}",
+                        NamedTextColor.GREEN
+                    )
+                )
+            }
+        }
+
+        commandAPICommand("deport") {
+            entitySelectorArgumentOnePlayer("target")
+            locationArgument("location")
+
+            playerExecutor { player, args ->
+                val target: Player by args
+                val location: Location by args
+
+                val fineLocation = fineLocation(
+                    location.world.uid,
+                    location.x,
+                    location.y,
+                    location.z,
+                    location.yaw,
+                    location.pitch
+                )
+
+                plugin.launch {
+                    target.toCloudPlayer()?.teleport(fineLocation, FineTeleportCause.COMMAND)
+
+                    player.sendMessage(
+                        Component.text(
+                            "Deported player ${target.name} to ${location}",
+                            NamedTextColor.GREEN
+                        )
+                    )
                 }
             }
         }

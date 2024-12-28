@@ -3,12 +3,7 @@ package dev.slne.surf.cloud.core.common.netty.network.protocol.running
 import dev.slne.surf.cloud.api.common.netty.network.ConnectionProtocol
 import dev.slne.surf.cloud.api.common.netty.protocol.buffer.SurfByteBuf
 import dev.slne.surf.cloud.core.common.netty.network.protocol.ProtocolInfoBuilder
-import dev.slne.surf.cloud.core.common.netty.network.protocol.common.ClientboundBundleDelimiterPacket
-import dev.slne.surf.cloud.core.common.netty.network.protocol.common.ClientboundBundlePacket
-import dev.slne.surf.cloud.core.common.netty.network.protocol.common.ClientboundKeepAlivePacket
-import dev.slne.surf.cloud.core.common.netty.network.protocol.common.ClientboundPongResponsePacket
-import dev.slne.surf.cloud.core.common.netty.network.protocol.common.ServerboundKeepAlivePacket
-import dev.slne.surf.cloud.core.common.netty.network.protocol.common.ServerboundPingRequestPacket
+import dev.slne.surf.cloud.core.common.netty.network.protocol.common.*
 
 object RunningProtocols {
     val CLIENTBOUND_TEMPLATE =
@@ -48,6 +43,9 @@ object RunningProtocols {
                 .addPacket(LuckpermsMetaDataResponsePacket.STREAM_CODEC)
                 .addPacket(ClientboundPlayerPersistentDataContainerResponse.STREAM_CODEC)
                 .addPacket(ClientboundConnectPlayerToServerResponse.STREAM_CODEC)
+                .addPacket(DisconnectPlayerPacket.STREAM_CODEC)
+                .addPacket(TeleportPlayerPacket.STREAM_CODEC)
+                .addPacket(TeleportPlayerResultPacket.STREAM_CODEC)
         }
 
     val CLIENTBOUND by lazy { CLIENTBOUND_TEMPLATE.freeze().bind(::SurfByteBuf) }
@@ -86,6 +84,9 @@ object RunningProtocols {
                 .addPacket(ServerboundRequestPlayerPersistentDataContainer.STREAM_CODEC)
                 .addPacket(ServerboundPlayerPersistentDataContainerUpdatePacket.STREAM_CODEC)
                 .addPacket(ServerboundConnectPlayerToServerPacket.STREAM_CODEC)
+                .addPacket(DisconnectPlayerPacket.STREAM_CODEC)
+                .addPacket(TeleportPlayerPacket.STREAM_CODEC)
+                .addPacket(TeleportPlayerResultPacket.STREAM_CODEC)
         }
 
     val SERVERBOUND by lazy { SERVERBOUND_TEMPLATE.freeze().bind(::SurfByteBuf) }

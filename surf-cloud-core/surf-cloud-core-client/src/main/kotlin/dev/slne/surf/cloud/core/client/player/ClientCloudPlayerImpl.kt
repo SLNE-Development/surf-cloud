@@ -7,6 +7,9 @@ import dev.slne.surf.cloud.api.common.netty.packet.DEFAULT_URGENT_TIMEOUT
 import dev.slne.surf.cloud.api.common.player.ConnectionResult
 import dev.slne.surf.cloud.api.common.player.ppdc.PersistentPlayerDataContainer
 import dev.slne.surf.cloud.api.common.server.CloudServer
+import dev.slne.surf.cloud.api.common.util.position.FineLocation
+import dev.slne.surf.cloud.api.common.util.position.FineTeleportCause
+import dev.slne.surf.cloud.api.common.util.position.FineTeleportFlag
 import dev.slne.surf.cloud.core.client.util.luckperms
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.*
 import dev.slne.surf.cloud.core.common.player.CommonCloudPlayerImpl
@@ -76,11 +79,15 @@ abstract class ClientCloudPlayerImpl<PlatformPlayer : Audience>(uuid: UUID) :
     }
 
     override suspend fun connectToServer(server: CloudServer): ConnectionResult {
-        return ServerboundConnectPlayerToServerPacket(uuid, server.uid, false).fireAndAwaitOrThrow(Duration.INFINITE).result
+        return ServerboundConnectPlayerToServerPacket(uuid, server.uid, false).fireAndAwaitOrThrow(
+            Duration.INFINITE
+        ).result
     }
 
     override suspend fun connectToServerOrQueue(server: CloudServer): ConnectionResult {
-        return ServerboundConnectPlayerToServerPacket(uuid, server.uid, true).fireAndAwaitOrThrow(Duration.INFINITE).result
+        return ServerboundConnectPlayerToServerPacket(uuid, server.uid, true).fireAndAwaitOrThrow(
+            Duration.INFINITE
+        ).result
     }
 
     override suspend fun getLuckpermsMetaData(key: String): String? {
@@ -267,6 +274,12 @@ abstract class ClientCloudPlayerImpl<PlatformPlayer : Audience>(uuid: UUID) :
 
         ServerboundClearResourcePacksPacket(uuid).fireAndForget()
     }
+
+    override suspend fun teleport(
+        location: FineLocation,
+        teleportCause: FineTeleportCause,
+        vararg flags: FineTeleportFlag
+    ) = TeleportPlayerPacket(uuid, location, teleportCause, *flags).fireAndAwaitOrThrow().result
 
     protected fun <R> withLuckpermsOrThrow(block: (User) -> R): R {
         val user = luckperms.userManager.getUser(uuid)

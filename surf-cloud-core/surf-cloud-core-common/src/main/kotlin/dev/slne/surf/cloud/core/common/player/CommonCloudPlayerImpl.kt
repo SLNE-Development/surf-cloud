@@ -3,8 +3,6 @@ package dev.slne.surf.cloud.core.common.player
 import dev.slne.surf.cloud.api.common.player.CloudPlayer
 import dev.slne.surf.cloud.api.common.player.ConnectionResult
 import dev.slne.surf.cloud.api.common.player.ConnectionResultEnum
-import dev.slne.surf.cloud.api.common.player.ppdc.PersistentPlayerDataContainer
-import dev.slne.surf.cloud.api.common.player.ppdc.PersistentPlayerDataContainerView
 import dev.slne.surf.cloud.api.common.server.CloudServer
 import dev.slne.surf.cloud.api.common.server.serverManager
 import java.util.*
@@ -24,7 +22,7 @@ abstract class CommonCloudPlayerImpl(override val uuid: UUID) : CloudPlayer {
     override suspend fun connectToServer(group: String): ConnectionResult =
         serverManager.retrieveServersByCategory(group).asSequence()
             .filterIsInstance<CloudServer>()
-            .filter { it.hasEmptySlots()}
+            .filter { it.hasEmptySlots() }
             .also { if (it.none()) return (ConnectionResultEnum.CATEGORY_FULL to null) }
             .minBy { it.currentPlayerCount }
             .let { connectToServer(it) }

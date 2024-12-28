@@ -255,6 +255,7 @@ class ConnectionImpl(
                         is ServerboundPreRunningAcknowledgedPacket -> listener.handlePreRunningAcknowledged(
                             msg
                         )
+
                         is ServerboundRequestContinuation -> listener.handleRequestContinuation(msg)
 
                         else -> error("Unexpected packet $msg")
@@ -354,6 +355,7 @@ class ConnectionImpl(
                         is ClientboundPreRunningFinishedPacket -> listener.handlePreRunningFinished(
                             msg
                         )
+
                         is ClientboundReadyToRunPacket -> listener.handleReadyToRun(msg)
 
                         else -> error("Unexpected packet $msg")
@@ -796,6 +798,17 @@ class ConnectionImpl(
             channel.close()
             this.disconnectionDetails = reason
         }
+    }
+
+    suspend fun reconnect(reason: DisconnectionDetails) {
+        val host = cloudConfig.connectionConfig.nettyConfig.host
+        val port = cloudConfig.connectionConfig.nettyConfig.port
+        val epoll = Epoll.isAvailable()
+
+        val address = InetSocketAddress(host, port)
+
+        disconnect(reason)
+        connect(address, epoll, this)
     }
 
     fun clearPacketQueue() {

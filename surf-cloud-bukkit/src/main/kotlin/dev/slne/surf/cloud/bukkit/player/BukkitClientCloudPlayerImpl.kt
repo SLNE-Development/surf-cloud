@@ -1,8 +1,10 @@
 package dev.slne.surf.cloud.bukkit.player
 
+import dev.slne.surf.cloud.api.client.netty.packet.fireAndForget
 import dev.slne.surf.cloud.bukkit.plugin
 import dev.slne.surf.cloud.core.client.player.ClientCloudPlayerImpl
-import net.kyori.adventure.audience.Audience.audience
+import dev.slne.surf.cloud.core.common.netty.network.protocol.running.DisconnectPlayerPacket
+import net.kyori.adventure.text.Component
 import org.bukkit.Bukkit
 import org.bukkit.conversations.*
 import org.bukkit.entity.Player
@@ -11,6 +13,10 @@ import java.util.*
 class BukkitClientCloudPlayerImpl(uuid: UUID) : ClientCloudPlayerImpl<Player>(uuid) {
     override val player: Player? get() = Bukkit.getPlayer(uuid)
     override val platformClass: Class<Player> = Player::class.java
+
+    override fun disconnect(reason: Component) {
+        DisconnectPlayerPacket(uuid, reason).fireAndForget()
+    }
 
     fun test() {
         val player = player ?: return

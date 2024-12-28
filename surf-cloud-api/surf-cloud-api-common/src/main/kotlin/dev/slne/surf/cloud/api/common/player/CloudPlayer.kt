@@ -3,7 +3,6 @@ package dev.slne.surf.cloud.api.common.player
 import dev.slne.surf.cloud.api.common.player.ppdc.PersistentPlayerDataContainer
 import dev.slne.surf.cloud.api.common.server.CloudServer
 import net.kyori.adventure.audience.Audience
-import net.kyori.adventure.key.Key
 import net.kyori.adventure.text.Component
 import java.util.*
 
@@ -133,6 +132,13 @@ interface CloudPlayer : Audience { // TODO: conversation but done correctly?, te
      * @return A [ConnectionResultEnum] indicating the result of the connection attempt.
      */
     suspend fun connectToServerOrQueue(group: String): ConnectionResult
+
+    /**
+     * Disconnects the player from the network.
+     *
+     * @param reason The reason for the disconnection.
+     */
+    fun disconnect(reason: Component)
 
     suspend fun <R> getLuckpermsMetaData(key: String, transformer: (String) -> R): R?
     suspend fun getLuckpermsMetaData(key: String): String?

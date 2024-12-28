@@ -74,8 +74,13 @@ class StandaloneCloudPlayerImpl(uuid: UUID) : CommonCloudPlayerImpl(uuid) {
             ppdc.block()
         }
 
+    override fun disconnect(reason: Component) {
+        proxyServer?.connection?.send(DisconnectPlayerPacket(uuid, reason))
+    }
+
     suspend fun getPersistentData() = ppdcMutex.withLock { ppdc.toTagCompound() }
-    suspend fun updatePersistentData(tag: CompoundTag) = ppdcMutex.withLock { ppdc.fromTagCompound(tag) }
+    suspend fun updatePersistentData(tag: CompoundTag) =
+        ppdcMutex.withLock { ppdc.fromTagCompound(tag) }
 
     override suspend fun displayName(): Component = ClientboundRequestDisplayNamePacket(uuid)
         .fireAndAwaitUrgent(anyServer.connection)?.displayName

@@ -1,11 +1,7 @@
 package dev.slne.surf.cloud.velocity.netty.network
 
 import com.velocitypowered.api.proxy.ConnectionRequestBuilder
-import com.velocitypowered.api.proxy.server.PingOptions
-import dev.slne.surf.cloud.api.common.player.ConnectionResult
-import dev.slne.surf.cloud.api.common.player.ConnectionResultEnum
 import dev.slne.surf.cloud.core.client.netty.network.PlatformSpecificPacketListenerExtension
-import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ServerboundTransferPlayerPacketResponse
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ServerboundTransferPlayerPacketResponse.Status
 import dev.slne.surf.cloud.velocity.proxy
 import kotlinx.coroutines.future.await
@@ -27,12 +23,18 @@ object VelocitySpecificPacketListenerExtension : PlatformSpecificPacketListenerE
             proxy.getPlayer(playerUuid).orElseThrow { error("Player $playerUuid not found") }
 
         val result = player.createConnectionRequest(server).connect().await()
-        return when(result.status) {
+        return when (result.status) {
             ConnectionRequestBuilder.Status.SUCCESS -> Status.SUCCESS
             ConnectionRequestBuilder.Status.ALREADY_CONNECTED -> Status.ALREADY_CONNECTED
             ConnectionRequestBuilder.Status.CONNECTION_IN_PROGRESS -> Status.CONNECTION_IN_PROGRESS
             ConnectionRequestBuilder.Status.CONNECTION_CANCELLED -> Status.CONNECTION_CANCELLED
             ConnectionRequestBuilder.Status.SERVER_DISCONNECTED -> Status.SERVER_DISCONNECTED
         } to result.reasonComponent.orElse(null)
+    }
+
+    override fun disconnectPlayer(playerUuid: UUID, reason: Component) {
+        val player =
+            proxy.getPlayer(playerUuid).orElseThrow { error("Player $playerUuid not found") }
+        player.disconnect(reason)
     }
 }

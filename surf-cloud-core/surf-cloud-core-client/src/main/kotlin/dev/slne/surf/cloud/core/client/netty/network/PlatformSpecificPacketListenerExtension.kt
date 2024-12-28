@@ -13,4 +13,6 @@ interface PlatformSpecificPacketListenerExtension {
         playerUuid: UUID,
         serverAddress: InetSocketAddress
     ): Pair<ServerboundTransferPlayerPacketResponse.Status, Component?>
+
+    fun disconnectPlayer(playerUuid: UUID, reason: Component)
 }

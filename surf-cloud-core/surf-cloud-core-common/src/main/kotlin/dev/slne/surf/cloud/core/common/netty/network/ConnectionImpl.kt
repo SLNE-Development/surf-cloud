@@ -308,15 +308,20 @@ class ConnectionImpl(
                         is RequestLuckpermsMetaDataPacket -> listener.handleRequestLuckpermsMetaData(
                             msg
                         )
+
                         is ServerboundRequestPlayerPersistentDataContainer -> listener.handleRequestPlayerPersistentDataContainer(
                             msg
                         )
+
                         is ServerboundPlayerPersistentDataContainerUpdatePacket -> listener.handlePlayerPersistentDataContainerUpdate(
                             msg
                         )
+
                         is ServerboundConnectPlayerToServerPacket -> listener.handleConnectPlayerToServer(
                             msg
                         )
+
+                        is DisconnectPlayerPacket -> listener.handleDisconnectPlayer(msg)
 
                         else -> listener.handlePacket(msg) // handle other packets
                     }
@@ -429,6 +434,8 @@ class ConnectionImpl(
                         is RequestLuckpermsMetaDataPacket -> listener.handleRequestLuckpermsMetaData(
                             msg
                         )
+
+                        is DisconnectPlayerPacket -> listener.handleDisconnectPlayer(msg)
 
                         else -> listener.handlePacket(msg)
                     }

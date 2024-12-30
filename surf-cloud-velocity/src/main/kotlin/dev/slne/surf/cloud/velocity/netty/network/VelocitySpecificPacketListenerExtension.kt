@@ -1,10 +1,12 @@
 package dev.slne.surf.cloud.velocity.netty.network
 
 import com.velocitypowered.api.proxy.ConnectionRequestBuilder
+import com.velocitypowered.api.proxy.server.ServerInfo
 import dev.slne.surf.cloud.api.common.util.position.FineLocation
 import dev.slne.surf.cloud.api.common.util.position.FineTeleportCause
 import dev.slne.surf.cloud.api.common.util.position.FineTeleportFlag
 import dev.slne.surf.cloud.core.client.netty.network.PlatformSpecificPacketListenerExtension
+import dev.slne.surf.cloud.core.common.netty.network.protocol.running.RegistrationInfo
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ServerboundTransferPlayerPacketResponse.Status
 import dev.slne.surf.cloud.velocity.proxy
 import kotlinx.coroutines.future.await
@@ -48,5 +50,10 @@ object VelocitySpecificPacketListenerExtension : PlatformSpecificPacketListenerE
         flags: Array<out FineTeleportFlag>
     ): Boolean {
         error("Teleporting players is not supported on Velocity")
+    }
+
+    override fun registerCloudServersToProxy(servers: Array<RegistrationInfo>) {
+        servers.map { (name, address) -> ServerInfo(name, address) }
+            .forEach { proxy.registerServer(it) }
     }
 }

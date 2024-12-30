@@ -46,6 +46,7 @@ object RunningProtocols {
                 .addPacket(DisconnectPlayerPacket.STREAM_CODEC)
                 .addPacket(TeleportPlayerPacket.STREAM_CODEC)
                 .addPacket(TeleportPlayerResultPacket.STREAM_CODEC)
+                .addPacket(ClientboundRegisterCloudServersToProxyPacket.STREAM_CODEC)
         }
 
     val CLIENTBOUND by lazy { CLIENTBOUND_TEMPLATE.freeze().bind(::SurfByteBuf) }

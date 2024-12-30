@@ -6,7 +6,9 @@ import dev.slne.surf.cloud.core.common.netty.network.ConnectionImpl
 import dev.slne.surf.cloud.core.common.netty.network.DisconnectionDetails
 import dev.slne.surf.cloud.core.common.netty.network.protocol.login.*
 import dev.slne.surf.cloud.core.common.netty.network.protocol.prerunning.PreRunningProtocols
+import dev.slne.surf.cloud.standalone.config.standaloneConfig
 import dev.slne.surf.cloud.standalone.netty.server.NettyServerImpl
+import dev.slne.surf.cloud.standalone.netty.server.ProxyServerAutoregistration
 import dev.slne.surf.cloud.standalone.netty.server.ServerClientImpl
 
 private const val MAX_LOGIN_TIME = 30
@@ -48,6 +50,10 @@ class ServerLoginPacketListenerImpl(val server: NettyServerImpl, val connection:
 
     private fun startClientVerification() {
         state = State.VERIFYING
+
+        if (proxy && standaloneConfig.useSingleProxySetup && ProxyServerAutoregistration.hasProxy) {
+            disconnect("Proxy already connected")
+        }
     }
 
     private fun verifyLoginAndFinishConnectionSetup() {

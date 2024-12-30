@@ -10,7 +10,10 @@ import dev.slne.surf.cloud.core.common.netty.network.protocol.running.Clientboun
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ClientboundUnregisterServerPacket
 import dev.slne.surf.cloud.core.common.server.CommonCloudServerManagerImpl
 import dev.slne.surf.cloud.core.common.util.bean
+import dev.slne.surf.cloud.standalone.config.standaloneConfig
 import dev.slne.surf.cloud.standalone.netty.server.NettyServerImpl
+import dev.slne.surf.cloud.standalone.netty.server.ProxyServerAutoregistration
+import dev.slne.surf.cloud.standalone.netty.server.ServerClientImpl
 
 @AutoService(CloudServerManager::class)
 class StandaloneCloudServerManagerImpl : CommonCloudServerManagerImpl<ServerCommonCloudServer>(),
@@ -30,11 +33,25 @@ class StandaloneCloudServerManagerImpl : CommonCloudServerManagerImpl<ServerComm
                 cloudServer.name
             )
         )
+
+        if (standaloneConfig.useSingleProxySetup) {
+            if (cloudServer is StandaloneProxyCloudServerImpl) {
+                ProxyServerAutoregistration.setProxy(cloudServer)
+            } else {
+                ProxyServerAutoregistration.registerClient(cloudServer as StandaloneCloudServerImpl)
+            }
+        }
     }
 
     override suspend fun unregisterServer(uid: Long) {
         super.unregisterServer(uid)
         broadcast(ClientboundUnregisterServerPacket(uid))
+
+        if (standaloneConfig.useSingleProxySetup) {
+            if (serverManagerImpl.getCommonStandaloneServerByUid(uid) is StandaloneProxyCloudServerImpl) {
+                ProxyServerAutoregistration.clearProxy()
+            }
+        }
     }
 
     private fun broadcast(packet: NettyPacket) {

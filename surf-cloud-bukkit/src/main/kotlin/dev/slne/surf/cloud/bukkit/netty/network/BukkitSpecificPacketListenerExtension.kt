@@ -5,6 +5,7 @@ import dev.slne.surf.cloud.api.common.util.position.FineLocation
 import dev.slne.surf.cloud.api.common.util.position.FineTeleportCause
 import dev.slne.surf.cloud.api.common.util.position.FineTeleportFlag
 import dev.slne.surf.cloud.core.client.netty.network.PlatformSpecificPacketListenerExtension
+import dev.slne.surf.cloud.core.common.netty.network.protocol.running.RegistrationInfo
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ServerboundTransferPlayerPacketResponse
 import net.kyori.adventure.text.Component
 import org.bukkit.Bukkit
@@ -37,5 +38,9 @@ object BukkitSpecificPacketListenerExtension : PlatformSpecificPacketListenerExt
         val cloudPlayer = player.toCloudPlayer() ?: return false
 
         return cloudPlayer.teleport(location, teleportCause, *flags)
+    }
+
+    override fun registerCloudServersToProxy(packets: Array<RegistrationInfo>) {
+        error("Requested wrong server! This packet can only be acknowledged on a proxy!")
     }
 }

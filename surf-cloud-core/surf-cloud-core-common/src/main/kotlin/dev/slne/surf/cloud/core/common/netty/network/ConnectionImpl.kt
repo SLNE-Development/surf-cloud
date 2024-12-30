@@ -438,8 +438,10 @@ class ConnectionImpl(
                         )
 
                         is DisconnectPlayerPacket -> listener.handleDisconnectPlayer(msg)
-
                         is TeleportPlayerPacket -> listener.handleTeleportPlayer(msg)
+                        is ClientboundRegisterCloudServersToProxyPacket -> listener.handleRegisterCloudServersToProxy(
+                            msg
+                        )
 
                         else -> listener.handlePacket(msg)
                     }

@@ -63,5 +63,7 @@ interface RunningClientPacketListener : ClientCommonPacketListener {
 
     suspend fun handleTeleportPlayer(packet: TeleportPlayerPacket)
 
+    fun handleRegisterCloudServersToProxy(packet: ClientboundRegisterCloudServersToProxyPacket)
+
     fun handlePacket(packet: NettyPacket)
 }

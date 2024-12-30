@@ -202,6 +202,10 @@ class ClientRunningPacketListenerImpl(
         packet.respond(TeleportPlayerResultPacket(result))
     }
 
+    override fun handleRegisterCloudServersToProxy(packet: ClientboundRegisterCloudServersToProxyPacket) {
+        platformExtension.registerCloudServersToProxy(packet.servers)
+    }
+
     override fun handlePacket(packet: NettyPacket) {
         val listeners = NettyListenerRegistry.getListeners(packet.javaClass) ?: return
         if (listeners.isEmpty()) return

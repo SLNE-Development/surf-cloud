@@ -12,7 +12,7 @@ data class FineLocation(
     val z: Double,
     val yaw: Float = 0.0f,
     val pitch: Float = 0.0f
-) {
+) { // TODO: 30.12.2024 15:30 - replace with Vector3d or merge into api with platform extensions
 
     companion object {
         val STREAM_CODEC = streamCodec<SurfByteBuf, FineLocation>({ buf, value ->

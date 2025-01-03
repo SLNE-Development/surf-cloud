@@ -22,7 +22,7 @@ build:
   only:
     - master
   script:
-    - ./gradlew --build-cache --gradle-user-home cache/ assemble
+    - ./gradlew --build-cache --gradle-user-home cache/ build
   cache:
     key:
       files:

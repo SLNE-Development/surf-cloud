@@ -4,15 +4,15 @@ variables:
   JAVA_IMAGE: 'eclipse-temurin:21-jdk-alpine'
 
 before_script:
+  - chmod +x gradlew
   - export GRADLE_USER_HOME=`pwd`/.gradle
+  - echo "$MAVEN_SETTINGS_XML" > "~/.m2/settings.xml"
+  - echo "Echoed MAVEN_SETTINGS_XML > ~/.m2/settings.xml"
 
-.cache:
-  before_script:
-    - cp $MAVEN_SETTINGS_XML /root/.m2/settings.xml
-  cache:
-    paths:
-      - .gradle/wrapper
-      - .gradle/caches
+cache:
+  paths:
+    - .gradle/wrapper
+    - .gradle/caches
 
 stages:
   - build
@@ -23,18 +23,14 @@ stages:
   - deploy_docs
 
 build:
-  extends: .cache
   stage: build
   image: $JAVA_IMAGE
-  before_script:
-    - chmod +x gradlew
   only:
     - master
   script:
     - ./gradlew build
 
 test:
-  extends: .cache
   stage: test
   image: $JAVA_IMAGE
   only:
@@ -43,7 +39,6 @@ test:
     - ./gradlew test
 
 deploy:
-  extends: .cache
   stage: deploy
   image: $JAVA_IMAGE
   only:

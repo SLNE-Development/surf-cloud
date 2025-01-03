@@ -15,6 +15,8 @@ operator fun <T> ObjectFactory<T>.getValue(thisRef: Any?, property: Any?, value:
 fun Any.ultimateTargetClass() = AopProxyUtils.ultimateTargetClass(this).kotlin
 inline fun <reified A : Annotation> KClass<*>.isCandidateFor() =
     AnnotationUtils.isCandidateClass(this.java, A::class.java)
+inline fun <reified A: Annotation> KClass<*>.containsMethodWithAnnotation() =
+    selectFunctions { it.isAnnotated<A>() }.isNotEmpty()
 
 fun KClass<*>.selectFunctions(predicate: (Method) -> Boolean): MutableSet<Method> =
     MethodIntrospector.selectMethods(java, predicate)

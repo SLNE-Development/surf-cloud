@@ -1,6 +1,5 @@
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-
 plugins {
+    id("dev.slne.surf.surfapi.gradle.core")
     `core-convention`
 }
 
@@ -27,11 +26,4 @@ dependencies {
     api("org.bouncycastle:bcprov-jdk18on:1.79")
     // https://mvnrepository.com/artifact/org.bouncycastle/bcpkix-jdk18on
     api("org.bouncycastle:bcpkix-jdk18on:1.79")
-
-}
-
-tasks {
-    withType<KotlinCompile> {
-        friendPaths = files(project(":surf-cloud-core:surf-cloud-core-common").buildDir)
-    }
 }

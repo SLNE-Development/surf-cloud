@@ -1,15 +1,23 @@
 plugins {
+    id("dev.slne.surf.surfapi.gradle.velocity")
     `core-convention`
 }
 
 dependencies {
     api(project(":surf-cloud-core:surf-cloud-core-client"))
-    compileOnly("com.velocitypowered:velocity-api:3.4.0-SNAPSHOT")
-    kapt("com.velocitypowered:velocity-api:3.4.0-SNAPSHOT")
 
     api("org.springframework.boot:spring-boot-starter-data-jpa")
     api("org.springframework.boot:spring-boot-starter-data-redis")
     api("org.springframework.boot:spring-boot-starter-jooq")
     api("com.fasterxml.jackson.core:jackson-core")
     api("com.fasterxml.jackson.core:jackson-databind")
+}
+
+configurations {
+    all {
+        exclude(group = "ch.qos.logback", module = "logback-classic")
+    }
+    runtimeClasspath {
+        exclude(group = "org.reactivestreams", module = "reactive-streams")
+    }
 }

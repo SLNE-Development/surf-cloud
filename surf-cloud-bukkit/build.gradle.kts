@@ -1,18 +1,27 @@
-import net.minecrell.pluginyml.paper.PaperPluginDescription
-
+import dev.slne.surf.surfapi.gradle.util.registerRequired
 
 plugins {
+    id("dev.slne.surf.surfapi.gradle.paper-plugin")
     `core-convention`
-    java
-    id("xyz.jpenilla.run-paper") version "2.3.1"
-    id("net.minecrell.plugin-yml.paper") version "0.6.0"
-    id("io.papermc.paperweight.userdev") version "2.0.0-beta.8"
 }
+
+surfPaperPluginApi {
+    mainClass("dev.slne.surf.cloud.bukkit.BukkitMain")
+    bootstrapper("dev.slne.surf.cloud.bukkit.BukkitBootstrap")
+    authors.add("twisti")
+
+    serverDependencies {
+        registerRequired("LuckPerms")
+    }
+
+    runServer {
+        jvmArgs("-Dsurf.cloud.serverName=test-server01")
+    }
+}
+
 
 dependencies {
     api(project(":surf-cloud-core:surf-cloud-core-client"))
-    paperweight.paperDevBundle("1.21.4-R0.1-SNAPSHOT")
-    compileOnly("dev.slne.surf:surf-api-bukkit-api:1.21+")
 
     api("org.springframework.boot:spring-boot-starter-data-jpa")
     api("org.springframework.boot:spring-boot-starter-data-redis")
@@ -30,48 +39,5 @@ configurations {
     }
     runtimeClasspath {
         exclude(group = "org.reactivestreams", module = "reactive-streams")
-    }
-}
-
-tasks {
-    runServer {
-        minecraftVersion("1.21.4")
-        jvmArgs("-Dsurf.cloud.serverName=test-server01")
-
-        downloadPlugins {
-            hangar("CommandAPI", "9.7.0")
-            modrinth("luckperms", "v5.4.145-bukkit")
-        }
-    }
-    assemble {
-        dependsOn(reobfJar)
-    }
-}
-
-paper {
-    main = "dev.slne.surf.cloud.bukkit.BukkitMain"
-    loader = "dev.slne.surf.cloud.bukkit.BukkitLoader"
-    bootstrapper = "dev.slne.surf.cloud.bukkit.BukkitBootstrap"
-    apiVersion = "1.21"
-    authors = listOf("twisti", "SLNE Development")
-
-    generateLibrariesJson = true
-
-    bootstrapDependencies {
-        register("surf-bukkit-api") {
-            load = PaperPluginDescription.RelativeLoadOrder.BEFORE
-            required = true
-        }
-    }
-
-    serverDependencies {
-        register("surf-bukkit-api") {
-            load = PaperPluginDescription.RelativeLoadOrder.BEFORE
-            required = true
-        }
-        register("LuckPerms") {
-            load = PaperPluginDescription.RelativeLoadOrder.BEFORE
-            required = true
-        }
     }
 }

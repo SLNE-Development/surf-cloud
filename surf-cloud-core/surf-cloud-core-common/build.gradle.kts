@@ -1,4 +1,5 @@
 plugins {
+    id("dev.slne.surf.surfapi.gradle.core")
     `core-convention`
 }
 

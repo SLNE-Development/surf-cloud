@@ -18,11 +18,11 @@ import kotlin.system.exitProcess
 
 @Plugin(
     id = "surf-cloud-velocity",
-    name = "Surf Data Velocity",
+    name = "Surf Cloud Velocity",
     version = "1.21.4-1.0.0-SNAPSHOT",
     description = "A cloud plugin for Velocity",
     authors = ["twisti"],
-    dependencies = [Dependency("surf-velocity-api"), Dependency("luckperms")]
+    dependencies = [Dependency("surf-api-velocity"), Dependency("luckperms")]
 )
 class VelocityMain @Inject constructor(
     val server: ProxyServer,
@@ -33,7 +33,6 @@ class VelocityMain @Inject constructor(
     init {
         try {
             instance = this
-            eventManager.register(this, this)
             runBlocking {
                 velocityCloudInstance.bootstrap(
                     SurfCloudCoreInstance.BootstrapData(

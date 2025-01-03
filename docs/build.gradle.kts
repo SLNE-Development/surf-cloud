@@ -1,5 +1,5 @@
 plugins {
-    kotlin("jvm") apply false
+//    kotlin("jvm") apply false
 //    `dokka-convention`
 }
 

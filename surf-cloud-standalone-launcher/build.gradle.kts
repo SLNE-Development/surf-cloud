@@ -1,8 +1,14 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
 plugins {
+    id("dev.slne.surf.surfapi.gradle.standalone")
+
     application
     `core-convention`
+}
+
+surfStandaloneApi {
+    addSurfApiToClasspath(false)
 }
 
 application {
@@ -44,9 +50,9 @@ tasks {
         }
     }
 
-//    named<JavaExec>("run") {
-//        dependsOn(shadowJar)
-//    }
+    named<JavaExec>("run") {
+        dependsOn(shadowJar)
+    }
 }
 
 private val Project.buildDirectory: File

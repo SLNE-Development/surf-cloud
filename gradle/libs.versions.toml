@@ -1,5 +1,8 @@
 [versions]
 velocity-version = "3.4.0-SNAPSHOT"
+auto-service = "1.1.1"
 
 [libraries]
 velocity-native = { module = "com.velocitypowered:velocity-native", version.ref = "velocity-version" }
+auto-service-annotations = { module = "com.google.auto.service:auto-service-annotations", version.ref = "auto-service" }
+auto-service = { module = "com.google.auto.service:auto-service", version.ref = "auto-service" }

@@ -7,8 +7,10 @@ import com.velocitypowered.api.event.connection.LoginEvent
 import dev.slne.surf.cloud.api.client.netty.packet.fireAndForget
 import dev.slne.surf.cloud.core.common.data.CloudPersistentData
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.PlayerConnectToServerPacket
+import org.springframework.stereotype.Component
 
-object ConnectionListener {
+@Component
+class ConnectionListener {
 
     @Subscribe(order = PostOrder.CUSTOM)
     fun onLogin(event: LoginEvent) {

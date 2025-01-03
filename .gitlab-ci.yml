@@ -9,6 +9,8 @@ before_script:
   - mkdir -p ~/.m2
   - echo "Created ~/.m2"
   - touch ~/.m2/settings.xml
+  - echo "Created ~/.m2/settings.xml"
+  - echo "MAVEN_SETTINGS_XML: $MAVEN_SETTINGS_XML"
   - echo "$MAVEN_SETTINGS_XML" > "~/.m2/settings.xml"
   - echo "Echoed MAVEN_SETTINGS_XML > ~/.m2/settings.xml"
 

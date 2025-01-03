@@ -1,15 +1,62 @@
 variables:
   INSTANCE: 'Writerside/scd'
   DOCKER_VERSION: '243.21565'
+  JAVA_IMAGE: 'eclipse-temurin:21-jdk-alpine'
+
+before_script:
+  - chmod +x gradlew
+  - mkdir -p /root/.m2
+  - echo "$MAVEN_SETTINGS_XML" > "/root/.m2/settings.xml"
 
 stages:
+  - build
+  - test
+  - deploy
   - build_docs
   - test_docs
   - deploy_docs
 
+build:
+  stage: build
+  image: $JAVA_IMAGE
+  only:
+    - master
+  script:
+    - ./gradlew --build-cache --gradle-user-home cache/ build
+  cache:
+    key:
+      files:
+        - gradle/wrapper/gradle-wrapper.properties
+    paths:
+      - cache/caches/
+      - cache/wrapper/
+      - cache/notifications/
+
+test:
+  stage: test
+  image: $JAVA_IMAGE
+  only:
+    - master
+  script:
+    - ./gradlew test
+
+deploy:
+  stage: deploy
+  image: $JAVA_IMAGE
+  only:
+    - master
+  script:
+    - ./gradlew publish
+  artifacts:
+    paths:
+      - build/libs/*.jar
+    expire_in: 1 week
+
 build_docs:
   stage: build_docs
   image: registry.jetbrains.team/p/writerside/builder/writerside-builder:$DOCKER_VERSION
+  only:
+    - master
   script:
     - set -e
     - export DISPLAY=:99
@@ -30,6 +77,8 @@ build_docs:
 test_docs:
   stage: test_docs
   image: openjdk:18-jdk-alpine
+  only:
+    - master
   before_script:
     - apk add curl
   script:
@@ -42,6 +91,8 @@ test_docs:
 pages:
   stage: deploy_docs
   image: ubuntu:latest
+  only:
+    - master
   before_script:
     - apt-get update -y && apt-get install unzip -y
 

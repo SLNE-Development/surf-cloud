@@ -5,7 +5,7 @@ variables:
 
 before_script:
   - export GRADLE_USER_HOME=`pwd`/.gradle
-  - cp $MAVEN_SETTINGS_XML ~/.m2/settings.xml
+  - cp $MAVEN_SETTINGS_XML /root/.m2/settings.xml
 
 cache:
   paths:

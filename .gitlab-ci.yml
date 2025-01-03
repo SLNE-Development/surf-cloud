@@ -10,6 +10,8 @@ stages:
 build_docs:
   stage: build_docs
   image: registry.jetbrains.team/p/writerside/builder/writerside-builder:$DOCKER_VERSION
+  only:
+    - master
   script:
     - set -e
     - export DISPLAY=:99
@@ -30,6 +32,8 @@ build_docs:
 test_docs:
   stage: test_docs
   image: openjdk:18-jdk-alpine
+  only:
+    - master
   before_script:
     - apk add curl
   script:
@@ -42,6 +46,8 @@ test_docs:
 pages:
   stage: deploy_docs
   image: ubuntu:latest
+  only:
+    - master
   before_script:
     - apt-get update -y && apt-get install unzip -y
 

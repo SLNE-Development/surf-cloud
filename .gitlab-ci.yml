@@ -14,10 +14,12 @@ stages:
 build:
   stage: build
   image: $JAVA_IMAGE
+  before_script:
+    - chmod +x gradlew
   only:
     - master
   script:
-    - ./gradlew build
+    - gradlew build
 
 test:
   stage: test

@@ -19,7 +19,7 @@ build:
   only:
     - master
   script:
-    - gradlew build
+    - ./gradlew build
 
 test:
   stage: test

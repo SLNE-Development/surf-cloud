@@ -3,6 +3,15 @@ variables:
   DOCKER_VERSION: '243.21565'
   JAVA_IMAGE: 'eclipse-temurin:21-jdk-alpine'
 
+before_script:
+  - export GRADLE_USER_HOME=`pwd`/.gradle
+  - cp $MAVEN_SETTINGS_XML ~/.m2/settings.xml
+
+cache:
+  paths:
+    - .gradle/wrapper
+    - .gradle/caches
+
 stages:
   - build
   - test

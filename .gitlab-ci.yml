@@ -5,12 +5,14 @@ variables:
 
 before_script:
   - export GRADLE_USER_HOME=`pwd`/.gradle
-  - cp $MAVEN_SETTINGS_XML /root/.m2/settings.xml
 
-cache:
-  paths:
-    - .gradle/wrapper
-    - .gradle/caches
+.cache:
+  before_script:
+    - cp $MAVEN_SETTINGS_XML /root/.m2/settings.xml
+  cache:
+    paths:
+      - .gradle/wrapper
+      - .gradle/caches
 
 stages:
   - build
@@ -21,6 +23,7 @@ stages:
   - deploy_docs
 
 build:
+  extends: .cache
   stage: build
   image: $JAVA_IMAGE
   before_script:
@@ -31,6 +34,7 @@ build:
     - ./gradlew build
 
 test:
+  extends: .cache
   stage: test
   image: $JAVA_IMAGE
   only:
@@ -39,6 +43,7 @@ test:
     - ./gradlew test
 
 deploy:
+  extends: .cache
   stage: deploy
   image: $JAVA_IMAGE
   only:

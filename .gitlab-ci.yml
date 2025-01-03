@@ -3,9 +3,40 @@ variables:
   DOCKER_VERSION: '243.21565'
 
 stages:
+  - build
+  - test
+  - deploy
   - build_docs
   - test_docs
   - deploy_docs
+
+build:
+  stage: build
+  image: openjdk:21-jdk-alpine
+  only:
+    - master
+  script:
+    - ./gradlew build
+
+test:
+  stage: test
+  image: openjdk:21-jdk-alpine
+  only:
+    - master
+  script:
+    - ./gradlew test
+
+deploy:
+  stage: deploy
+  image: openjdk:21-jdk-alpine
+  only:
+    - master
+  script:
+    - ./gradlew publish
+  artifacts:
+    paths:
+      - build/libs/*.jar
+    expire_in: 1 week
 
 build_docs:
   stage: build_docs

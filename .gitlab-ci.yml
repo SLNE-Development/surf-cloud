@@ -1,6 +1,7 @@
 variables:
   INSTANCE: 'Writerside/scd'
   DOCKER_VERSION: '243.21565'
+  JAVA_IMAGE: 'eclipse-temurin:21-jdk-alpine'
 
 stages:
   - build
@@ -12,7 +13,7 @@ stages:
 
 build:
   stage: build
-  image: openjdk:21-jdk-alpine
+  image: $JAVA_IMAGE
   only:
     - master
   script:
@@ -20,7 +21,7 @@ build:
 
 test:
   stage: test
-  image: openjdk:21-jdk-alpine
+  image: $JAVA_IMAGE
   only:
     - master
   script:
@@ -28,7 +29,7 @@ test:
 
 deploy:
   stage: deploy
-  image: openjdk:21-jdk-alpine
+  image: $JAVA_IMAGE
   only:
     - master
   script:

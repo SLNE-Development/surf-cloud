@@ -28,9 +28,6 @@ dependencies {
     api("org.springframework.boot:spring-boot-starter-jooq")
     api("com.fasterxml.jackson.core:jackson-core")
     api("com.fasterxml.jackson.core:jackson-databind")
-
-    paperLibrary("org.bouncycastle:bcprov-jdk18on:1.79")
-    paperLibrary("org.bouncycastle:bcpkix-jdk18on:1.79")
 }
 
 configurations {

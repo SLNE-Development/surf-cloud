@@ -19,11 +19,8 @@ dependencies {
 //    api("org.springframework:spring-jdbc")
     // https://mvnrepository.com/artifact/org.springframework.data/spring-data-jpa
     api("org.springframework.data:spring-data-jpa")
-    api("com.mojang:datafixerupper:8.0.16")
+    api("com.mojang:datafixerupper:8.0.16") {
+        isTransitive = false
+    }
     api("net.bytebuddy:byte-buddy:1.15.10")
-
-    // https://mvnrepository.com/artifact/org.bouncycastle/bcprov-jdk18on
-    api("org.bouncycastle:bcprov-jdk18on:1.79")
-    // https://mvnrepository.com/artifact/org.bouncycastle/bcpkix-jdk18on
-    api("org.bouncycastle:bcpkix-jdk18on:1.79")
 }

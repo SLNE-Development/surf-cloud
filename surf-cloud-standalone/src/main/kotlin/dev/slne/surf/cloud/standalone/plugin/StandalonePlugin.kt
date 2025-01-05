@@ -1,18 +1,11 @@
 package dev.slne.surf.cloud.standalone.plugin
 
-import dev.slne.surf.cloud.api.common.util.findAnnotation
-import dev.slne.surf.cloud.api.common.util.getValue
-import dev.slne.surf.cloud.api.common.util.ultimateTargetClass
+import org.pf4j.PluginWrapper
+import org.pf4j.spring.SpringPlugin
+import kotlin.io.path.Path
 
-abstract class StandalonePlugin protected constructor() {
+abstract class StandalonePlugin protected constructor(wrapper: PluginWrapper) :
+    SpringPlugin(wrapper) {
 
-    val meta = ultimateTargetClass().findAnnotation<StandalonePluginMeta>()
-        ?: error("Plugin class must be annotated with @StandalonePluginMeta")
-
-    val id: String by meta
-    val dataFolder by lazy { StandalonePluginManager.PLUGIN_DIRECTORY.resolve(id) }
-
-    abstract fun start()
-
-    abstract fun stop()
+    val dataFolder = Path("plugins")
 }

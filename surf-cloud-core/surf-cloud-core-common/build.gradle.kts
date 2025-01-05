@@ -10,4 +10,7 @@ dependencies {
 
     runtimeOnly("org.aspectj:aspectjweaver:1.9.22.1")
     compileOnlyApi(libs.velocity.native)
+
+    // https://mvnrepository.com/artifact/com.github.luben/zstd-jni
+    api("com.github.luben:zstd-jni:1.5.6-9")
 }

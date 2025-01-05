@@ -17,5 +17,5 @@ dependencies {
 //    implementation("org.jetbrains.kotlin:kotlin-noarg:$kotlinVersion")
 //    implementation("org.jetbrains.dokka:dokka-gradle-plugin:$dokkaVersion")
 //    implementation("org.hibernate.build:gradle-maven-publish-auth:3.0.4")
-//    implementation("com.gradleup.shadow:shadow-gradle-plugin:8.3.5")
+//    compileOnly("com.gradleup.shadow:shadow-gradle-plugin:8.3.5")
 }

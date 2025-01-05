@@ -3,6 +3,8 @@ plugins {
 }
 rootProject.name = "surf-cloud"
 
+val ci = System.getenv("CI")?.toBoolean() == true
+
 include(":docs")
 
 include("surf-cloud-core")
@@ -24,10 +26,4 @@ include("surf-cloud-core:surf-cloud-core-common")
 findProject(":surf-cloud-core:surf-cloud-core-common")?.name = "surf-cloud-core-common"
 
 include("surf-cloud-core:surf-cloud-core-client")
-
-// Test Plugin
-include("surf-cloud-test-plugin:surf-cloud-test-plugin-api")
-include("surf-cloud-test-plugin:surf-cloud-test-plugin-core")
-include("surf-cloud-test-plugin:surf-cloud-test-plugin-bukkit")
-include("surf-cloud-test-plugin:surf-cloud-test-plugin-velocity")
-include("surf-cloud-test-plugin:surf-cloud-test-plugin-standalone")
+findProject(":surf-cloud-core:surf-cloud-core-client")?.name = "surf-cloud-core-client"

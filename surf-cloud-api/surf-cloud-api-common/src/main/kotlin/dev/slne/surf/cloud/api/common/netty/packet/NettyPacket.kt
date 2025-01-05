@@ -6,6 +6,7 @@ import dev.slne.surf.cloud.api.common.netty.network.codec.StreamMemberEncoder
 import io.netty.buffer.ByteBuf
 import org.apache.commons.lang3.builder.ToStringBuilder
 import org.jetbrains.annotations.ApiStatus.Internal
+import java.util.*
 import java.util.concurrent.ThreadLocalRandom
 
 
@@ -75,7 +76,7 @@ abstract class NettyPacket {
     }
 
     override fun hashCode(): Int {
-        var result = id
+        var result = Objects.hash(id)
         result = 31 * result + sessionId.hashCode()
         result = 31 * result + flow.hashCode()
         return result

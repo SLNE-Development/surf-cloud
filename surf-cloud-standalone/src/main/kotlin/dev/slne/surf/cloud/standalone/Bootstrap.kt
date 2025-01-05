@@ -17,6 +17,9 @@ object Bootstrap {
     @JvmStatic
     fun main(args: Array<String>) = runBlocking {
         try {
+            log.atInfo()
+                .log("Classloader: " + Bootstrap::class.java.classLoader)
+
             SurfApiStandaloneBootstrap.bootstrap()
             SurfApiStandaloneBootstrap.enable()
             CloudLogbackConfigurator.configure()

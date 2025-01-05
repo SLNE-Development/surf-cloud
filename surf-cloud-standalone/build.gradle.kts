@@ -16,9 +16,6 @@ dependencies {
     api("org.reactivestreams:reactive-streams:1.0.4")
     api("io.lettuce:lettuce-core")
     api(libs.velocity.native)
-
-    api("org.pf4j:pf4j:3.13.0")
-    api("org.pf4j:pf4j-spring:0.6.0")
 }
 
 //dependencyManagement {
@@ -34,8 +31,4 @@ tasks {
             attributes["Real-Main-Class"] = "dev.slne.surf.cloud.standalone.Bootstrap"
         }
     }
-}
-
-tasks.shadowJar {
-    isZip64 = true
 }

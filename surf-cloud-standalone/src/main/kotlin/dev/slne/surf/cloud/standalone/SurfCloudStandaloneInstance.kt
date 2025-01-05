@@ -7,9 +7,11 @@ import dev.slne.surf.cloud.core.common.util.checkInstantiationByServiceLoader
 import dev.slne.surf.cloud.core.common.util.random
 import dev.slne.surf.cloud.standalone.netty.server.StandaloneNettyManager
 import dev.slne.surf.cloud.standalone.netty.server.network.ServerEncryptionManager
+import dev.slne.surf.cloud.standalone.plugin.StandalonePluginManager
 import dev.slne.surf.cloud.standalone.redis.RedisEvent
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
+import org.springframework.boot.SpringApplication
 import org.springframework.data.redis.core.ReactiveRedisTemplate
 import reactor.util.Loggers
 import kotlin.concurrent.thread
@@ -40,6 +42,7 @@ class SurfCloudStandaloneInstance : SurfCloudCoreInstance(StandaloneNettyManager
     }
 
     override suspend fun onLoad() {
+        SpringApplication.getShutdownHandlers().add(StandalonePluginManager)
         thread(name = "KeepAlive") { while (true) runBlocking { delay(5.seconds) } }
         super.onLoad()
         random

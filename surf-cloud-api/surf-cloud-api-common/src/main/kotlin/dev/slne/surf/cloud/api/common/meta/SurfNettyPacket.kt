@@ -7,7 +7,7 @@ import org.jetbrains.annotations.ApiStatus.Internal
 @Target(AnnotationTarget.CLASS)
 @Retention(AnnotationRetention.RUNTIME)
 annotation class SurfNettyPacket(
-    val id: Int,
+    val id: String,
     val flow: PacketFlow,
     @Internal vararg val protocols: ConnectionProtocol = [ConnectionProtocol.RUNNING]
 )
@@ -17,134 +17,147 @@ annotation class SurfNettyPacket(
 annotation class PacketCodec
 
 object DefaultIds {
-    const val PROXIED_NETTY_PACKET = 0x00
+
+    const val PROXIED_NETTY_PACKET = "cloud:proxied"
 
     // Handshake
-    const val SERVERBOUND_HANDSHAKE_PACKET = 0x01
-
+    const val SERVERBOUND_HANDSHAKE_PACKET = "cloud:serverbound:handshake"
 
     // Initialize
-    const val CLIENTBOUND_INITIALIZE_CLIENT_PACKET = 0x02
-
-    const val SERVERBOUND_INITIALIZE_REQUEST_ID_PACKET = 0x03
-    const val CLIENTBOUND_INITIALIZE_ID_RESPONSE = 0x04
+    const val CLIENTBOUND_INITIALIZE_CLIENT_PACKET = "cloud:clientbound:initialize_client"
+    const val SERVERBOUND_INITIALIZE_REQUEST_ID_PACKET = "cloud:serverbound:initialize_request_id"
+    const val CLIENTBOUND_INITIALIZE_ID_RESPONSE = "cloud:clientbound:initialize_id_response"
 
     // Login
-    const val SERVERBOUND_LOGIN_START_PACKET = 0x05
-    const val CLIENTBOUND_LOGIN_FINISHED_PACKET = 0x06
-    const val SERVERBOUND_LOGIN_ACKNOWLEDGED_PACKET = 0x07
-    const val CLIENTBOUND_LOGIN_DISCONNECT_PACKET = 0x08
+    const val SERVERBOUND_LOGIN_START_PACKET = "cloud:serverbound:login_start"
+    const val CLIENTBOUND_LOGIN_FINISHED_PACKET = "cloud:clientbound:login_finished"
+    const val SERVERBOUND_LOGIN_ACKNOWLEDGED_PACKET = "cloud:serverbound:login_acknowledged"
+    const val CLIENTBOUND_LOGIN_DISCONNECT_PACKET = "cloud:clientbound:login_disconnect"
     const val SERVERBOUND_KEY_PACKET =
-        0x09 // Different protocol state so the ids can be overlapping
-    const val CLIENTBOUND_KEY_PACKET = 0x0A
+        "cloud:serverbound:key" // Different protocol state so the ids can be overlapping
+    const val CLIENTBOUND_KEY_PACKET = "cloud:clientbound:key"
 
     // Pre-Running
-    const val SERVERBOUND_READY_TO_RUN_PACKET = 0x00
-    const val CLIENTBOUND_PRE_RUNNING_FINISHED_PACKET = 0x01
-    const val SERVERBOUND_PRE_RUNNING_ACKNOWLEDGED_PACKET = 0x02
-    const val SERVERBOUND_REQUEST_CONTINUATION = 0x03
-    const val CLIENTBOUND_READY_TO_RUN_PACKET = 0x04
+    const val SERVERBOUND_READY_TO_RUN_PACKET = "cloud:serverbound:ready_to_run"
+    const val CLIENTBOUND_PRE_RUNNING_FINISHED_PACKET = "cloud:clientbound:pre_running_finished"
+    const val SERVERBOUND_PRE_RUNNING_ACKNOWLEDGED_PACKET =
+        "cloud:serverbound:pre_running_acknowledged"
+    const val SERVERBOUND_REQUEST_CONTINUATION = "cloud:serverbound:request_continuation"
+    const val CLIENTBOUND_READY_TO_RUN_PACKET = "cloud:clientbound:ready_to_run"
 
     // Running
-    const val CLIENTBOUND_KEEP_ALIVE_PACKET = 0x09
-    const val SERVERBOUND_KEEP_ALIVE_PACKET = 0x0A
+    const val CLIENTBOUND_KEEP_ALIVE_PACKET = "cloud:clientbound:keep_alive"
+    const val SERVERBOUND_KEEP_ALIVE_PACKET = "cloud:serverbound:keep_alive"
 
-    const val CLIENTBOUND_PING_PACKET = 0x0B
-    const val SERVERBOUND_PONG_PACKET = 0x0C
+    const val CLIENTBOUND_PING_PACKET = "cloud:clientbound:ping"
+    const val SERVERBOUND_PONG_PACKET = "cloud:serverbound:pong"
 
-    const val SERVERBOUND_PING_REQUEST_PACKET = 0x0D
-    const val CLIENTBOUND_PING_REQUEST_RESPONSE_PACKET = 0x0E
+    const val SERVERBOUND_PING_REQUEST_PACKET = "cloud:serverbound:ping_request"
+    const val CLIENTBOUND_PING_REQUEST_RESPONSE_PACKET = "cloud:clientbound:ping_request_response"
 
-    const val SERVERBOUND_BROADCAST_PACKET = 0x0F
-    const val CLIENTBOUND_DISCONNECT_PACKET = 0x10
+    const val SERVERBOUND_BROADCAST_PACKET = "cloud:serverbound:broadcast"
+    const val CLIENTBOUND_DISCONNECT_PACKET = "cloud:clientbound:disconnect"
 
-    const val SERVERBOUND_CLIENT_INFORMATION_PACKET = 0x11
+    const val SERVERBOUND_CLIENT_INFORMATION_PACKET = "cloud:serverbound:client_information"
 
-    const val CLIENTBOUND_BUNDLE_DELIMITER_PACKET = 0x12
-    const val CLIENTBOUND_BUNDLE_PACKET = 0x13
-    const val SERVERBOUND_BUNDLE_DELIMITER_PACKET = 0x14
-    const val SERVERBOUND_BUNDLE_PACKET = 0x15
+    const val CLIENTBOUND_BUNDLE_DELIMITER_PACKET = "cloud:clientbound:bundle_delimiter"
+    const val CLIENTBOUND_BUNDLE_PACKET = "cloud:clientbound:bundle"
+    const val SERVERBOUND_BUNDLE_DELIMITER_PACKET = "cloud:serverbound:bundle_delimiter"
+    const val SERVERBOUND_BUNDLE_PACKET = "cloud:serverbound:bundle"
 
-    const val SERVERBOUND_SEND_MESSAGE_PACKET = 0x16
-    const val CLIENTBOUND_SEND_MESSAGE_PACKET = 0x17
+    const val SERVERBOUND_SEND_MESSAGE_PACKET = "cloud:serverbound:send_message"
+    const val CLIENTBOUND_SEND_MESSAGE_PACKET = "cloud:clientbound:send_message"
 
-    const val SERVERBOUND_SEND_ACTION_BAR_PACKET = 0x18
-    const val CLIENTBOUND_ACTION_BAR_PACKET = 0x19
+    const val SERVERBOUND_SEND_ACTION_BAR_PACKET = "cloud:serverbound:send_action_bar"
+    const val CLIENTBOUND_ACTION_BAR_PACKET = "cloud:clientbound:action_bar"
 
-    const val SERVERBOUND_SEND_PLAYER_LIST_HEADER_AND_FOOTER = 0x1A
-    const val CLIENTBOUND_PLAYER_LIST_HEADER_AND_FOOTER = 0x1B
+    const val SERVERBOUND_SEND_PLAYER_LIST_HEADER_AND_FOOTER =
+        "cloud:serverbound:send_player_list_header_and_footer"
+    const val CLIENTBOUND_PLAYER_LIST_HEADER_AND_FOOTER =
+        "cloud:clientbound:player_list_header_and_footer"
 
-    const val SERVERBOUND_SEND_TITLE_PACKET = 0x1C
-    const val CLIENTBOUND_TITLE_PACKET = 0x1D
+    const val SERVERBOUND_SEND_TITLE_PACKET = "cloud:serverbound:send_title"
+    const val CLIENTBOUND_TITLE_PACKET = "cloud:clientbound:title"
 
-    const val SERVERBOUND_SEND_TITLE_PART_PACKET = 0x1E
-    const val CLIENTBOUND_TITLE_PART_PACKET = 0x1F
+    const val SERVERBOUND_SEND_TITLE_PART_PACKET = "cloud:serverbound:send_title_part"
+    const val CLIENTBOUND_TITLE_PART_PACKET = "cloud:clientbound:title_part"
 
-    const val SERVERBOUND_CLEAR_TITLE_PACKET = 0x20
-    const val CLIENTBOUND_CLEAR_TITLE_PACKET = 0x21
+    const val SERVERBOUND_CLEAR_TITLE_PACKET = "cloud:serverbound:clear_title"
+    const val CLIENTBOUND_CLEAR_TITLE_PACKET = "cloud:clientbound:clear_title"
 
-    const val SERVERBOUND_RESET_TITLE_PACKET = 0x22
-    const val CLIENTBOUND_RESET_TITLE_PACKET = 0x23
+    const val SERVERBOUND_RESET_TITLE_PACKET = "cloud:serverbound:reset_title"
+    const val CLIENTBOUND_RESET_TITLE_PACKET = "cloud:clientbound:reset_title"
 
-    const val SERVERBOUND_SHOW_BOSS_BAR_PACKET = 0x24
-    const val CLIENTBOUND_SHOW_BOSS_BAR_PACKET = 0x25
+    const val SERVERBOUND_SHOW_BOSS_BAR_PACKET = "cloud:serverbound:show_boss_bar"
+    const val CLIENTBOUND_SHOW_BOSS_BAR_PACKET = "cloud:clientbound:show_boss_bar"
 
-    const val SERVERBOUND_HIDE_BOSS_BAR_PACKET = 0x26
-    const val CLIENTBOUND_HIDE_BOSS_BAR_PACKET = 0x27
+    const val SERVERBOUND_HIDE_BOSS_BAR_PACKET = "cloud:serverbound:hide_boss_bar"
+    const val CLIENTBOUND_HIDE_BOSS_BAR_PACKET = "cloud:clientbound:hide_boss_bar"
 
-    const val SERVERBOUND_PLAY_SOUND_PACKET = 0x28
-    const val CLIENTBOUND_PLAY_SOUND_PACKET = 0x29
+    const val SERVERBOUND_PLAY_SOUND_PACKET = "cloud:serverbound:play_sound"
+    const val CLIENTBOUND_PLAY_SOUND_PACKET = "cloud:clientbound:play_sound"
 
-    const val SERVERBOUND_STOP_SOUND_PACKET = 0x2A
-    const val CLIENTBOUND_STOP_SOUND_PACKET = 0x2B
+    const val SERVERBOUND_STOP_SOUND_PACKET = "cloud:serverbound:stop_sound"
+    const val CLIENTBOUND_STOP_SOUND_PACKET = "cloud:clientbound:stop_sound"
 
-    const val SERVERBOUND_OPEN_BOOK_PACKET = 0x2C
-    const val CLIENTBOUND_OPEN_BOOK_PACKET = 0x2D
+    const val SERVERBOUND_OPEN_BOOK_PACKET = "cloud:serverbound:open_book"
+    const val CLIENTBOUND_OPEN_BOOK_PACKET = "cloud:clientbound:open_book"
 
-    const val SERVERBOUND_SEND_RESOURCE_PACKS_PACKET = 0x2E
-    const val CLIENTBOUND_SEND_RESOURCE_PACKS_PACKET = 0x2F
+    const val SERVERBOUND_SEND_RESOURCE_PACKS_PACKET = "cloud:serverbound:send_resource_packs"
+    const val CLIENTBOUND_SEND_RESOURCE_PACKS_PACKET = "cloud:clientbound:send_resource_packs"
 
-    const val SERVERBOUND_REMOVE_RESOURCE_PACKS_PACKET = 0x30
-    const val CLIENTBOUND_REMOVE_RESOURCE_PACKS_PACKET = 0x31
+    const val SERVERBOUND_REMOVE_RESOURCE_PACKS_PACKET = "cloud:serverbound:remove_resource_packs"
+    const val CLIENTBOUND_REMOVE_RESOURCE_PACKS_PACKET = "cloud:clientbound:remove_resource_packs"
 
-    const val SERVERBOUND_CLEAR_RESOURCE_PACKS_PACKET = 0x32
-    const val CLIENTBOUND_CLEAR_RESOURCE_PACKS_PACKET = 0x33
+    const val SERVERBOUND_CLEAR_RESOURCE_PACKS_PACKET = "cloud:serverbound:clear_resource_packs"
+    const val CLIENTBOUND_CLEAR_RESOURCE_PACKS_PACKET = "cloud:clientbound:clear_resource_packs"
 
-    const val PLAYER_CONNECT_TO_SERVER_PACKET = 0x34
-    const val PLAYER_DISCONNECT_FROM_SERVER_PACKET = 0x35
+    const val PLAYER_CONNECT_TO_SERVER_PACKET = "cloud:player:connect_to_server"
+    const val PLAYER_DISCONNECT_FROM_SERVER_PACKET = "cloud:player:disconnect_from_server"
 
-    const val SERVERBOUND_REQUEST_DISPLAY_NAME_PACKET = 0x36
-    const val CLIENTBOUND_REQUEST_DISPLAY_NAME_PACKET = 0x37
-    const val RESPONSE_DISPLAY_NAME_PACKET_REQUEST_PACKET = 0x38
+    const val SERVERBOUND_REQUEST_DISPLAY_NAME_PACKET = "cloud:serverbound:request_display_name"
+    const val CLIENTBOUND_REQUEST_DISPLAY_NAME_PACKET = "cloud:clientbound:request_display_name"
+    const val RESPONSE_DISPLAY_NAME_PACKET_REQUEST_PACKET =
+        "cloud:response:display_name_packet_request"
 
-    const val CLIENTBOUND_REGISTER_SERVER_PACKET = 0x39
-    const val CLIENTBOUND_UNREGISTER_SERVER_PACKET = 0x3A
+    const val CLIENTBOUND_REGISTER_SERVER_PACKET = "cloud:clientbound:register_server"
+    const val CLIENTBOUND_UNREGISTER_SERVER_PACKET = "cloud:clientbound:unregister_server"
 
-    const val CLIENTBOUND_UPDATE_SERVER_INFORMATION_PACKET = 0x3B
+    const val CLIENTBOUND_UPDATE_SERVER_INFORMATION_PACKET =
+        "cloud:clientbound:update_server_information"
 
-    const val CLIENTBOUND_ADD_PLAYER_TO_SERVER = 0x3C
-    const val CLIENTBOUND_REMOVE_PLAYER_FROM_SERVER = 0x3D
+    const val CLIENTBOUND_ADD_PLAYER_TO_SERVER = "cloud:clientbound:add_player_to_server"
+    const val CLIENTBOUND_REMOVE_PLAYER_FROM_SERVER = "cloud:clientbound:remove_player_from_server"
 
-    const val SERVERBOUND_IS_SERVER_MANAGED_BY_THIS_PROXY_REQUEST = 0x3E
-    const val CLIENTBOUND_IS_SERVER_MANAGED_BY_THIS_PROXY_RESPONSE = 0x3F
+    const val SERVERBOUND_IS_SERVER_MANAGED_BY_THIS_PROXY_REQUEST =
+        "cloud:serverbound:is_server_managed_by_this_proxy_request"
+    const val CLIENTBOUND_IS_SERVER_MANAGED_BY_THIS_PROXY_RESPONSE =
+        "cloud:clientbound:is_server_managed_by_this_proxy_response"
 
-    const val CLIENTBOUND_TRANSFER_PLAYER_PACKET = 0x40
-    const val SERVERBOUND_TRANSFER_PLAYER_PACKET_RESPONSE_PACKET = 0x41
+    const val CLIENTBOUND_TRANSFER_PLAYER_PACKET = "cloud:clientbound:transfer_player"
+    const val SERVERBOUND_TRANSFER_PLAYER_PACKET_RESPONSE_PACKET =
+        "cloud:serverbound:transfer_player_packet_response"
 
-    const val REQUEST_LUCKPERMS_META_DATA_PACKET = 0x42
-    const val LUCKPERMS_META_DATA_RESPONSE_PACKET = 0x43
+    const val REQUEST_LUCKPERMS_META_DATA_PACKET = "cloud:request:luckperms_meta_data"
+    const val LUCKPERMS_META_DATA_RESPONSE_PACKET = "cloud:response:luckperms_meta_data"
 
-    const val SERVERBOUND_REQUEST_PLAYER_PERSISTENT_DATA_CONTAINER = 0x44
-    const val CLIENTBOUND_PLAYER_PERSISTENT_DATA_CONTAINER_RESPONSE = 0x45
-    const val SERVERBOUND_PLAYER_PERSISTENT_DATA_CONTAINER_UPDATE = 0x46
+    const val SERVERBOUND_REQUEST_PLAYER_PERSISTENT_DATA_CONTAINER =
+        "cloud:serverbound:request_player_persistent_data_container"
+    const val CLIENTBOUND_PLAYER_PERSISTENT_DATA_CONTAINER_RESPONSE =
+        "cloud:clientbound:player_persistent_data_container_response"
+    const val SERVERBOUND_PLAYER_PERSISTENT_DATA_CONTAINER_UPDATE =
+        "cloud:serverbound:player_persistent_data_container_update"
 
-    const val SERVERBOUND_CONNECT_PLAYER_TO_SERVER = 0x47
-    const val CLIENTBOUND_CONNECT_PLAYER_TO_SERVER_RESPONSE = 0x48
+    const val SERVERBOUND_CONNECT_PLAYER_TO_SERVER = "cloud:serverbound:connect_player_to_server"
+    const val CLIENTBOUND_CONNECT_PLAYER_TO_SERVER_RESPONSE =
+        "cloud:clientbound:connect_player_to_server_response"
 
-    const val BIDIRECTIONAL_DISCONNECT_PLAYER = 0x49
+    const val BIDIRECTIONAL_DISCONNECT_PLAYER = "cloud:bidirectional:disconnect_player"
 
-    const val BIDIRECTIONAL_TELEPORT_PLAYER = 0x4A
-    const val BIDIRECTIONAL_TELEPORT_PLAYER_RESULT = 0x4B
+    const val BIDIRECTIONAL_TELEPORT_PLAYER = "cloud:bidirectional:teleport_player"
+    const val BIDIRECTIONAL_TELEPORT_PLAYER_RESULT = "cloud:bidirectional:teleport_player_result"
 
-    const val CLIENTBOUND_REGISTER_CLOUD_SERVERS_TO_PROXY = 0x4C
+    const val CLIENTBOUND_REGISTER_CLOUD_SERVERS_TO_PROXY =
+        "cloud:clientbound:register_cloud_servers_to_proxy"
+
 }

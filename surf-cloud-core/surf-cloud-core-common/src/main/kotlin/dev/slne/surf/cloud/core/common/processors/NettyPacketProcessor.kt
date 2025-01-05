@@ -104,8 +104,8 @@ object NettyPacketProcessor : ApplicationContextInitializer<ConfigurableApplicat
             .log(buildString {
                 append("Registered packet: ")
                 append(packet.simpleName)
-                append(" (id: 0x$")
-                append(packetMeta.id.toString(16))
+                append(" (id: ")
+                append(packetMeta.id)
                 append(") ")
                 append(packetMeta.flow.displayName())
             })

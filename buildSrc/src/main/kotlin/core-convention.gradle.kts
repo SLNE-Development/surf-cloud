@@ -1,5 +1,8 @@
 @file:Suppress("UnstableApiUsage")
 
+import org.gradle.internal.impldep.org.junit.experimental.categories.Categories.CategoryFilter.exclude
+
+
 plugins {
     java
 //    `java-library`
@@ -41,7 +44,7 @@ dependencies {
 //    compileOnly("dev.slne.surf:surf-api-core-api:1.21+")
 //    compileOnly("com.google.auto.service:auto-service-annotations:1.1.1")
 
-    implementation("org.springframework.boot:spring-boot-configuration-processor:3.3.6")
+    compileOnly("org.springframework.boot:spring-boot-configuration-processor:3.3.6")
     "kapt"("org.springframework.boot:spring-boot-configuration-processor:3.3.6")
 //
 //    implementation("com.google.auto.service:auto-service:1.1.1")

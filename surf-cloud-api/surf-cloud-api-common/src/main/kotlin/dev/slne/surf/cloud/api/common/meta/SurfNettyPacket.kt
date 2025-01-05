@@ -17,6 +17,9 @@ annotation class SurfNettyPacket(
 annotation class PacketCodec
 
 object DefaultIds {
+
+    const val PROXIED_NETTY_PACKET = "cloud:proxied"
+
     // Handshake
     const val SERVERBOUND_HANDSHAKE_PACKET = "cloud:serverbound:handshake"
 

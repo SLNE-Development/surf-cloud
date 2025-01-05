@@ -27,6 +27,8 @@ import io.netty.channel.nio.NioEventLoopGroup
 import io.netty.channel.socket.SocketChannel
 import io.netty.channel.socket.nio.NioSocketChannel
 import io.netty.handler.codec.EncoderException
+import io.netty.handler.codec.compression.ZstdDecoder
+import io.netty.handler.codec.compression.ZstdEncoder
 import io.netty.handler.flow.FlowControlHandler
 import io.netty.handler.timeout.ReadTimeoutHandler
 import io.netty.handler.timeout.TimeoutException
@@ -1022,7 +1024,9 @@ class ConnectionImpl(
             val receivingSide = side == PacketFlow.SERVERBOUND
             val sendingSide = opposite == PacketFlow.SERVERBOUND
 
-            pipeline.addLast(HandlerNames.SPLITTER, createFrameDecoder(local))
+            pipeline.addLast(HandlerNames.COMPRESS, ZstdEncoder(8))
+                .addLast(HandlerNames.DECODER, ZstdDecoder())
+                .addLast(HandlerNames.SPLITTER, createFrameDecoder(local))
                 .addLast(FlowControlHandler())
                 .addLast(
                     inboundHandlerName(receivingSide),

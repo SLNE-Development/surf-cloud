@@ -9,7 +9,6 @@ plugins {
 
 surfStandaloneApi {
     addSurfApiToClasspath(false)
-    shadeKotlin(false)
 }
 
 application {

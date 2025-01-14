@@ -2,6 +2,8 @@ package dev.slne.surf.cloud.api.common
 
 import dev.slne.surf.cloud.api.common.util.requiredService
 import org.jetbrains.annotations.ApiStatus
+import org.springframework.context.ApplicationContextInitializer
+import org.springframework.context.ApplicationListener
 import org.springframework.context.ConfigurableApplicationContext
 import kotlin.reflect.KClass
 
@@ -15,6 +17,9 @@ interface SurfCloudInstance {
         classLoader: ClassLoader,
         vararg parentClassLoader: ClassLoader
     ): ConfigurableApplicationContext
+
+    @get:ApiStatus.Internal
+    val nettyPacketProcessorListener: ApplicationListener<*>
 
     companion object {
         private val INSTANCE = requiredService<SurfCloudInstance>()

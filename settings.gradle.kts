@@ -27,3 +27,7 @@ findProject(":surf-cloud-core:surf-cloud-core-common")?.name = "surf-cloud-core-
 
 include("surf-cloud-core:surf-cloud-core-client")
 findProject(":surf-cloud-core:surf-cloud-core-client")?.name = "surf-cloud-core-client"
+
+if (!ci) {
+    include(":surf-cloud-test-plugin:surf-cloud-test-standalone")
+}

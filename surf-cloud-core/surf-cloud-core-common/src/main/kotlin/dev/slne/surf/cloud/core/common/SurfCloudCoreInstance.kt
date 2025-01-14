@@ -28,6 +28,7 @@ import kotlin.time.Duration.Companion.minutes
 
 abstract class SurfCloudCoreInstance(private val nettyManager: NettyManager) : SurfCloudInstance {
     protected val log = logger()
+    override val nettyPacketProcessorListener get() = NettyPacketProcessor
 
     val dataContext get() = internalContext ?: error("Data context is not initialized yet.")
 
@@ -48,6 +49,7 @@ abstract class SurfCloudCoreInstance(private val nettyManager: NettyManager) : S
             log.atInfo().log("SurfCloudCoreInstance bootstrapped.")
         }
     }
+
     open suspend fun preBootstrap() {
 
     }
@@ -155,7 +157,7 @@ abstract class SurfCloudCoreInstance(private val nettyManager: NettyManager) : S
                 .bannerMode(Banner.Mode.CONSOLE)
                 .banner(SurfSpringBanner())
                 .profiles(springProfile)
-                .initializers(NettyPacketProcessor)
+                .listeners(NettyPacketProcessor)
 
             if (internalContext != null) {
                 builder.parent(internalContext)

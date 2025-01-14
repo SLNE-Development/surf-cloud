@@ -32,3 +32,9 @@ tasks {
         }
     }
 }
+
+kotlin {
+    compilerOptions {
+        optIn.add("dev.slne.surf.cloud.api.server.server.plugin.InternalPluginApi")
+    }
+}

@@ -61,7 +61,11 @@ fun checkInstantiationByServiceLoader() {
 }
 
 @ApiStatus.Internal
-inline fun <reified T : Any> bean(): T = coreCloudInstance.dataContext.getBean(T::class.java)
+inline fun <reified T : Any> bean(name: String? = null): T = if (name == null) {
+    coreCloudInstance.dataContext.getBean(T::class.java)
+} else {
+    coreCloudInstance.dataContext.getBean(name, T::class.java)
+}
 
 fun ApplicationEvent.publish() {
     coreCloudInstance.dataContext.publishEvent(this)

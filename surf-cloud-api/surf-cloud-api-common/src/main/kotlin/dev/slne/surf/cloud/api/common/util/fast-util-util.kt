@@ -171,4 +171,17 @@ fun <K> Object2IntOpenHashMap<K>.synchronize(): Object2IntMap<K> = Object2IntMap
 fun <K> Object2IntOpenHashMap<K>.freeze(): @UnmodifiableView Object2IntMap<K> =
     Object2IntMaps.unmodifiable(this)
 // endregion
+// region Object2BooleanMap
+fun <K> mutableObject2BooleanMapOf(vararg pairs: Pair<K, Boolean>) =
+    Object2BooleanOpenHashMap<K>(pairs.size).apply { putAll(pairs) }
+
+fun <K> mutableObject2BooleanMapOf() = Object2BooleanOpenHashMap<K>()
+fun <K> object2BooleanMapOf(vararg pairs: Pair<K, Boolean>) = mutableObject2BooleanMapOf(*pairs).freeze()
+fun <K> object2BooleanMapOf() = emptyObject2BooleanMap<K>()
+fun <K> emptyObject2BooleanMap(): @Unmodifiable Object2BooleanMap<K> = Object2BooleanMaps.emptyMap()
+fun <K> Object2BooleanOpenHashMap<K>.synchronize(): Object2BooleanMap<K> =
+    Object2BooleanMaps.synchronize(this)
+
+fun <K> Object2BooleanOpenHashMap<K>.freeze(): @UnmodifiableView Object2BooleanMap<K> =
+    Object2BooleanMaps.unmodifiable(this)
 // endregion

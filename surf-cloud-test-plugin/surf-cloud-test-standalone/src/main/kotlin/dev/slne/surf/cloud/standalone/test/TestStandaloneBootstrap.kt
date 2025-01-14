@@ -1,0 +1,12 @@
+package dev.slne.surf.cloud.standalone.test
+
+import dev.slne.surf.cloud.api.server.server.plugin.bootstrap.BootstrapContext
+import dev.slne.surf.cloud.api.server.server.plugin.bootstrap.StandalonePluginBootstrap
+
+class TestStandaloneBootstrap: StandalonePluginBootstrap {
+    override suspend fun bootstrap(context: BootstrapContext) {
+        repeat(20) {
+            println("# Bootstrapping $it")
+        }
+    }
+}

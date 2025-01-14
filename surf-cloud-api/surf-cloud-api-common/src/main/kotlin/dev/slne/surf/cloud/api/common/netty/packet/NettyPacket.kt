@@ -68,16 +68,16 @@ abstract class NettyPacket {
         if (this === other) return true
         if (other !is NettyPacket) return false
 
-        if (id != other.id) return false
         if (sessionId != other.sessionId) return false
+        if (id != other.id) return false
         if (flow != other.flow) return false
 
         return true
     }
 
     override fun hashCode(): Int {
-        var result = Objects.hash(id)
-        result = 31 * result + sessionId.hashCode()
+        var result = sessionId.hashCode()
+        result = 31 * result + id.hashCode()
         result = 31 * result + flow.hashCode()
         return result
     }

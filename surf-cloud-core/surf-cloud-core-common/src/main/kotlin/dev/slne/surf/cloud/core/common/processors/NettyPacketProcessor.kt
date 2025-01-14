@@ -12,9 +12,7 @@ import dev.slne.surf.cloud.api.common.util.logger
 import dev.slne.surf.cloud.core.common.netty.network.protocol.ProtocolInfoBuilder
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.RunningProtocols
 import org.springframework.boot.autoconfigure.AutoConfigurationPackages
-import org.springframework.context.ApplicationContextInitializer
 import org.springframework.context.ApplicationListener
-import org.springframework.context.ConfigurableApplicationContext
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider
 import org.springframework.context.annotation.ScannedGenericBeanDefinition
 import org.springframework.context.event.ContextRefreshedEvent
@@ -23,80 +21,73 @@ import kotlin.reflect.KClass
 
 private val internalPackage = ProtocolInfoBuilder::class.java.packageName
 
-object NettyPacketProcessor : ApplicationContextInitializer<ConfigurableApplicationContext> {
+object NettyPacketProcessor : ApplicationListener<ContextRefreshedEvent> {
     private val log = logger()
 
-    override fun initialize(cxt: ConfigurableApplicationContext) {
-        @Suppress("ObjectLiteralToLambda")
-        cxt.addApplicationListener(object : ApplicationListener<ContextRefreshedEvent> {
-            @Suppress("UNCHECKED_CAST")
-            override fun onApplicationEvent(event: ContextRefreshedEvent) {
+    override fun onApplicationEvent(event: ContextRefreshedEvent) {
 //                val basePackages = findBasePackages(event.applicationContext as ConfigurableApplicationContext)
 //                println("Base packages: ${basePackages.toList()}")
 
-                val context = event.applicationContext
-                val autoConfigurationPackages =
-                    AutoConfigurationPackages.get(context)
+        val context = event.applicationContext
+        val autoConfigurationPackages = AutoConfigurationPackages.get(context)
+        log.atInfo()
+            .log("Eligible packets for NettyPackets: $autoConfigurationPackages")
+
+        val scanner = ClassPathScanningCandidateComponentProvider(false)
+        scanner.resourceLoader = context
+        scanner.addIncludeFilter(AnnotationTypeFilter(SurfNettyPacket::class.java))
+
+        val packets = autoConfigurationPackages
+            .asSequence()
+            .map { scanner.findCandidateComponents(it) }
+            .flatten()
+            .mapNotNull { it as? ScannedGenericBeanDefinition }
+            .mapNotNull { it.resolveBeanClass(context.classLoader) }
+            .mapNotNull { (it as? Class<out NettyPacket>)?.kotlin }
+            .filter { it.qualifiedName?.startsWith(internalPackage) == false }
+
+        for (packet in packets) {
+            val packetMeta = packet.getPacketMetaOrNull()
+            if (packetMeta == null) {
                 log.atInfo()
-                    .log("Eligible packets for NettyPackets: $autoConfigurationPackages")
+                    .log("Packet $packet does not have a @SurfNettyPacket annotation")
+                continue
+            }
 
-                val scanner = ClassPathScanningCandidateComponentProvider(false)
-                scanner.resourceLoader = context
-                scanner.addIncludeFilter(AnnotationTypeFilter(SurfNettyPacket::class.java))
+            if (!packetMeta.protocols.contains(ConnectionProtocol.RUNNING)) continue
+            val codec = packet.findPacketCodec<SurfByteBuf, NettyPacket>()
 
-                val packets = autoConfigurationPackages
-                    .asSequence()
-                    .map { scanner.findCandidateComponents(it) }
-                    .flatten()
-                    .mapNotNull { it as? ScannedGenericBeanDefinition }
-                    .mapNotNull { it.resolveBeanClass(context.classLoader) }
-                    .mapNotNull { (it as? Class<out NettyPacket>)?.kotlin }
-                    .filter { it.qualifiedName?.startsWith(internalPackage) == false }
+            if (codec == null) {
+                log.atWarning()
+                    .log("Packet $packet does not have a findable codec")
+                continue
+            }
 
-                for (packet in packets) {
-                    val packetMeta = packet.getPacketMetaOrNull()
-                    if (packetMeta == null) {
-                        log.atInfo()
-                            .log("Packet $packet does not have a @SurfNettyPacket annotation")
-                        continue
-                    }
+            when (packetMeta.flow) {
+                PacketFlow.CLIENTBOUND -> RunningProtocols.CLIENTBOUND_TEMPLATE.addPacket(
+                    packet.java as Class<NettyPacket>,
+                    codec as StreamCodec<in SurfByteBuf, NettyPacket>
+                )
 
-                    if (!packetMeta.protocols.contains(ConnectionProtocol.RUNNING)) continue
-                    val codec = packet.findPacketCodec<SurfByteBuf, NettyPacket>()
+                PacketFlow.SERVERBOUND -> RunningProtocols.SERVERBOUND_TEMPLATE.addPacket(
+                    packet.java as Class<NettyPacket>,
+                    codec as StreamCodec<in SurfByteBuf, NettyPacket>
+                )
 
-                    if (codec == null) {
-                        log.atWarning()
-                            .log("Packet $packet does not have a findable codec")
-                        continue
-                    }
-
-                    when (packetMeta.flow) {
-                        PacketFlow.CLIENTBOUND -> RunningProtocols.CLIENTBOUND_TEMPLATE.addPacket(
-                            packet.java as Class<NettyPacket>,
-                            codec as StreamCodec<in SurfByteBuf, NettyPacket>
-                        )
-
-                        PacketFlow.SERVERBOUND -> RunningProtocols.SERVERBOUND_TEMPLATE.addPacket(
-                            packet.java as Class<NettyPacket>,
-                            codec as StreamCodec<in SurfByteBuf, NettyPacket>
-                        )
-
-                        PacketFlow.BIDIRECTIONAL -> {
-                            RunningProtocols.CLIENTBOUND_TEMPLATE.addPacket(
-                                packet.java as Class<NettyPacket>,
-                                codec as StreamCodec<in SurfByteBuf, NettyPacket>
-                            )
-                            RunningProtocols.SERVERBOUND_TEMPLATE.addPacket(
-                                packet.java as Class<NettyPacket>,
-                                codec
-                            )
-                        }
-                    }
-
-                    logRegistration(packet, packetMeta)
+                PacketFlow.BIDIRECTIONAL -> {
+                    RunningProtocols.CLIENTBOUND_TEMPLATE.addPacket(
+                        packet.java as Class<NettyPacket>,
+                        codec as StreamCodec<in SurfByteBuf, NettyPacket>
+                    )
+                    RunningProtocols.SERVERBOUND_TEMPLATE.addPacket(
+                        packet.java as Class<NettyPacket>,
+                        codec
+                    )
                 }
             }
-        })
+
+            logRegistration(packet, packetMeta)
+        }
     }
 
     private fun logRegistration(packet: KClass<out NettyPacket>, packetMeta: SurfNettyPacket) {

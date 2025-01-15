@@ -1,9 +1,9 @@
 package dev.slne.surf.cloud.api.server.plugin.loader.library
 
-import dev.slne.surf.cloud.api.server.server.plugin.InternalPluginApi
+import dev.slne.surf.cloud.api.common.util.InternalApi
 import java.nio.file.Path
 
-@InternalPluginApi
+@InternalApi
 interface LibraryStore {
     fun addLibrary(library: Path)
 }

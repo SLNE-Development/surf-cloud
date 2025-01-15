@@ -1,10 +1,10 @@
 package dev.slne.surf.cloud.standalone.plugin.manager
 
 import com.google.auto.service.AutoService
-import dev.slne.surf.cloud.api.server.server.plugin.PluginManager
-import dev.slne.surf.cloud.api.server.server.plugin.StandalonePlugin
-import dev.slne.surf.cloud.api.server.server.plugin.configuration.PluginMeta
-import dev.slne.surf.cloud.api.server.server.plugin.dependency.DependencyContext
+import dev.slne.surf.cloud.api.server.plugin.PluginManager
+import dev.slne.surf.cloud.api.server.plugin.StandalonePlugin
+import dev.slne.surf.cloud.api.server.plugin.configuration.PluginMeta
+import dev.slne.surf.cloud.api.server.plugin.dependency.DependencyContext
 import dev.slne.surf.cloud.core.common.util.checkInstantiationByServiceLoader
 
 @AutoService(PluginManager::class)

@@ -1,8 +1,8 @@
 package dev.slne.surf.cloud.standalone.plugin.entrypoint.classloader.group
 
 import dev.slne.surf.cloud.api.common.util.mutableObject2ObjectMapOf
-import dev.slne.surf.cloud.api.server.server.plugin.provider.classloader.SpringPluginClassloader
-import dev.slne.surf.cloud.api.server.server.plugin.provider.classloader.SpringPluginClassloaderGroup
+import dev.slne.surf.cloud.api.server.plugin.provider.classloader.SpringPluginClassloader
+import dev.slne.surf.cloud.api.server.plugin.provider.classloader.SpringPluginClassloaderGroup
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.locks.ReentrantReadWriteLock
 

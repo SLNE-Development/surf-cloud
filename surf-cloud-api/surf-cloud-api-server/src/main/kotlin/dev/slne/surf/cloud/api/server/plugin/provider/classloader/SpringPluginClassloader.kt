@@ -1,11 +1,11 @@
 package dev.slne.surf.cloud.api.server.plugin.provider.classloader
 
-import dev.slne.surf.cloud.api.server.server.plugin.InternalPluginApi
-import dev.slne.surf.cloud.api.server.server.plugin.StandalonePlugin
-import dev.slne.surf.cloud.api.server.server.plugin.configuration.PluginMeta
+import dev.slne.surf.cloud.api.common.util.InternalApi
+import dev.slne.surf.cloud.api.server.plugin.StandalonePlugin
+import dev.slne.surf.cloud.api.server.plugin.configuration.PluginMeta
 import java.io.Closeable
 
-@InternalPluginApi
+@InternalApi
 interface SpringPluginClassloader : Closeable {
     val meta: PluginMeta
     val plugin: StandalonePlugin?

@@ -1,6 +1,6 @@
 package dev.slne.surf.cloud.standalone.plugin.provider.type
 
-import dev.slne.surf.cloud.api.server.server.plugin.configuration.PluginMeta
+import dev.slne.surf.cloud.api.server.plugin.configuration.PluginMeta
 import java.nio.file.Path
 import java.util.jar.JarEntry
 import java.util.jar.JarFile

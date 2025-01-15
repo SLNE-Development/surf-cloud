@@ -1,3 +1,5 @@
+@file:OptIn(InternalApi::class)
+
 package dev.slne.surf.cloud.api.server.plugin
 
 import dev.slne.surf.cloud.api.common.util.InternalApi

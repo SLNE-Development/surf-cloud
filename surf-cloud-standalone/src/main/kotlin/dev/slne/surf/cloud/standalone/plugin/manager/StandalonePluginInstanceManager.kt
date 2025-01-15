@@ -3,6 +3,7 @@ package dev.slne.surf.cloud.standalone.plugin.manager
 import dev.slne.surf.cloud.api.common.util.logger
 import dev.slne.surf.cloud.api.common.util.mutableObject2ObjectMapOf
 import dev.slne.surf.cloud.api.common.util.mutableObjectListOf
+import dev.slne.surf.cloud.api.server.plugin.PluginManager
 import dev.slne.surf.cloud.api.server.plugin.StandalonePlugin
 import dev.slne.surf.cloud.api.server.plugin.configuration.PluginMeta
 import dev.slne.surf.cloud.api.server.plugin.provider.classloader.SpringPluginClassloader

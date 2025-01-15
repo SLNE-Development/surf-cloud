@@ -1,6 +1,6 @@
 package dev.slne.surf.cloud.standalone.test
 
-import dev.slne.surf.cloud.api.server.server.plugin.StandalonePlugin
+import dev.slne.surf.cloud.api.server.plugin.StandalonePlugin
 import org.apache.commons.io.FileSystemUtils
 
 class TestSTandalonmeÜöugon : StandalonePlugin() {

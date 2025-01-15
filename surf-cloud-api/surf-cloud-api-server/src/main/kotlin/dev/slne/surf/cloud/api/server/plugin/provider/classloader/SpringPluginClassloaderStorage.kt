@@ -1,9 +1,9 @@
 package dev.slne.surf.cloud.api.server.plugin.provider.classloader
 
+import dev.slne.surf.cloud.api.common.util.InternalApi
 import dev.slne.surf.cloud.api.common.util.requiredService
-import dev.slne.surf.cloud.api.server.server.plugin.InternalPluginApi
 
-@InternalPluginApi
+@InternalApi
 interface SpringPluginClassloaderStorage {
 
     companion object {
@@ -11,7 +11,11 @@ interface SpringPluginClassloaderStorage {
     }
 
     fun registerOpenGroup(classloader: SpringPluginClassloader): SpringPluginClassloaderGroup
-    fun registerAccessBackedGroup(classloader: SpringPluginClassloader, access: ClassloaderAccess): SpringPluginClassloaderGroup
+    fun registerAccessBackedGroup(
+        classloader: SpringPluginClassloader,
+        access: ClassloaderAccess
+    ): SpringPluginClassloaderGroup
+
     fun unregisterClassloader(classloader: SpringPluginClassloader)
     fun registerUnsafePlugin(classloader: SpringPluginClassloader): Boolean
 }

@@ -9,3 +9,9 @@ dependencies {
 
     compileOnly("net.luckperms:api:5.4")
 }
+
+kotlin {
+    compilerOptions {
+        optIn.add("dev.slne.surf.cloud.api.common.util.InternalApi")
+    }
+}

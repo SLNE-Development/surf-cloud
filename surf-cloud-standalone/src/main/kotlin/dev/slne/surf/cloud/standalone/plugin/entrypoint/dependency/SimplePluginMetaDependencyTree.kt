@@ -1,10 +1,11 @@
+@file:Suppress("UnstableApiUsage")
+
 package dev.slne.surf.cloud.standalone.plugin.entrypoint.dependency
 
 import com.google.common.graph.MutableGraph
-import dev.slne.surf.cloud.api.server.server.plugin.configuration.PluginMeta
+import dev.slne.surf.cloud.api.server.plugin.configuration.PluginMeta
 
-@Suppress("UnstableApiUsage")
-class SimplePluginMetaDependencyTree: PluginMetaDependencyTree {
+class SimplePluginMetaDependencyTree : PluginMetaDependencyTree {
     constructor() : super()
     constructor(graph: MutableGraph<String>) : super(graph)
 

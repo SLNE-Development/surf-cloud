@@ -1,8 +1,8 @@
 package dev.slne.surf.cloud.api.server.plugin.provider.classloader
 
-import dev.slne.surf.cloud.api.server.server.plugin.InternalPluginApi
+import dev.slne.surf.cloud.api.common.util.InternalApi
 
-@InternalPluginApi
+@InternalApi
 fun interface ClassloaderAccess {
 
     fun canAccess(plugin: SpringPluginClassloader): Boolean

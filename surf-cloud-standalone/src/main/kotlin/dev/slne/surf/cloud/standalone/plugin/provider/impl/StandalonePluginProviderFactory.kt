@@ -1,7 +1,7 @@
 package dev.slne.surf.cloud.standalone.plugin.provider.impl
 
-import dev.slne.surf.cloud.api.server.server.plugin.loader.StandalonePluginLoader
-import dev.slne.surf.cloud.api.server.server.plugin.provider.ProviderLoader
+import dev.slne.surf.cloud.api.server.plugin.loader.StandalonePluginLoader
+import dev.slne.surf.cloud.api.server.plugin.provider.ProviderLoader
 import dev.slne.surf.cloud.standalone.plugin.bootstrap.PluginProviderContextImpl
 import dev.slne.surf.cloud.standalone.plugin.entrypoint.classloader.SimpleSpringPluginClassloader
 import dev.slne.surf.cloud.standalone.plugin.loader.StandaloneClasspathBuilder
@@ -18,13 +18,14 @@ class StandalonePluginProviderFactory :
         meta: StandalonePluginMeta,
         source: Path
     ): StandalonePluginParent {
-        val context = PluginProviderContextImpl.Companion.create(meta, source)
+        val context = PluginProviderContextImpl.create(meta, source)
         val builder = StandaloneClasspathBuilder(context)
 
         val loader = meta.loader
         if (loader != null) {
             SimpleSpringPluginClassloader(source, file, meta, javaClass.classLoader).use {
-                ProviderLoader.loadClass(loader, StandalonePluginLoader::class.java, it).classloader(builder)
+                ProviderLoader.loadClass(loader, StandalonePluginLoader::class.java, it)
+                    .classloader(builder)
             }
         }
 

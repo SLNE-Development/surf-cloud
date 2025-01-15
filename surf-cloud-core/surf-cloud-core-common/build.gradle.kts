@@ -14,3 +14,9 @@ dependencies {
     // https://mvnrepository.com/artifact/com.github.luben/zstd-jni
     api("com.github.luben:zstd-jni:1.5.6-9")
 }
+
+kotlin {
+    compilerOptions {
+        optIn.add("dev.slne.surf.cloud.api.common.util.InternalApi")
+    }
+}

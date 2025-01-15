@@ -1,6 +1,6 @@
 package dev.slne.surf.cloud.standalone.plugin.entrypoint.classloader.group
 
-import dev.slne.surf.cloud.api.server.server.plugin.provider.classloader.ClassloaderAccess
+import dev.slne.surf.cloud.api.server.plugin.provider.classloader.ClassloaderAccess
 
 class DependencyBasedPluginClassLoaderGroup(
     private val globalPluginClassLoaderGroup: GlobalPluginClassLoaderGroup,

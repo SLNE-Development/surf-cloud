@@ -1,6 +1,6 @@
 package dev.slne.surf.cloud.standalone.plugin.manager
 
-import dev.slne.surf.cloud.api.server.server.plugin.StandalonePlugin
+import dev.slne.surf.cloud.api.server.plugin.StandalonePlugin
 import dev.slne.surf.cloud.standalone.plugin.entrypoint.Entrypoint
 import dev.slne.surf.cloud.standalone.plugin.entrypoint.EntrypointHandler
 import dev.slne.surf.cloud.standalone.plugin.provider.PluginProvider

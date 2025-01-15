@@ -1,7 +1,8 @@
 package dev.slne.surf.cloud.api.server.plugin.bootstrap
 
-import dev.slne.surf.cloud.api.server.server.plugin.StandalonePlugin
-import dev.slne.surf.cloud.api.server.server.plugin.provider.ProviderLoader
+import dev.slne.surf.cloud.api.server.plugin.StandalonePlugin
+import dev.slne.surf.cloud.api.server.plugin.provider.ProviderLoader
+
 
 interface StandalonePluginBootstrap {
     suspend fun bootstrap(context: BootstrapContext)

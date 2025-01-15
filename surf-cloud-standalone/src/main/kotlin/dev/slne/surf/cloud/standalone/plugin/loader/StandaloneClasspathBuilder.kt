@@ -1,9 +1,9 @@
 package dev.slne.surf.cloud.standalone.plugin.loader
 
 import dev.slne.surf.cloud.api.common.util.mutableObjectListOf
-import dev.slne.surf.cloud.api.server.server.plugin.bootstrap.StandalonePluginProviderContext
-import dev.slne.surf.cloud.api.server.server.plugin.loader.PluginClasspathBuilder
-import dev.slne.surf.cloud.api.server.server.plugin.loader.library.ClassPathLibrary
+import dev.slne.surf.cloud.api.server.plugin.bootstrap.StandalonePluginProviderContext
+import dev.slne.surf.cloud.api.server.plugin.loader.PluginClasspathBuilder
+import dev.slne.surf.cloud.api.server.plugin.loader.library.ClassPathLibrary
 import dev.slne.surf.cloud.standalone.plugin.entrypoint.classloader.ByteCodeModifyingURLClassloader
 import dev.slne.surf.cloud.standalone.plugin.entrypoint.classloader.SpringPluginClassloaderImpl
 import dev.slne.surf.cloud.standalone.plugin.loader.library.StandaloneLibraryStore

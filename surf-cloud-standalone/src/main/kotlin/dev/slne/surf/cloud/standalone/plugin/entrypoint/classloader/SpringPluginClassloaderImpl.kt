@@ -1,16 +1,12 @@
-@file:OptIn(InternalPluginApi::class)
-
 package dev.slne.surf.cloud.standalone.plugin.entrypoint.classloader
 
-import dev.slne.surf.cloud.api.server.server.plugin.InternalPluginApi
-import dev.slne.surf.cloud.api.server.server.plugin.StandalonePlugin
-import dev.slne.surf.cloud.api.server.server.plugin.provider.classloader.SpringPluginClassloader
-import dev.slne.surf.cloud.api.server.server.plugin.provider.classloader.SpringPluginClassloaderGroup
-import dev.slne.surf.cloud.api.server.server.plugin.provider.classloader.SpringPluginClassloaderStorage
-import dev.slne.surf.cloud.api.server.server.plugin.configuration.PluginMeta
-import dev.slne.surf.cloud.api.server.server.plugin.dependency.DependencyContext
+import dev.slne.surf.cloud.api.server.plugin.StandalonePlugin
+import dev.slne.surf.cloud.api.server.plugin.configuration.PluginMeta
+import dev.slne.surf.cloud.api.server.plugin.dependency.DependencyContext
+import dev.slne.surf.cloud.api.server.plugin.provider.classloader.SpringPluginClassloader
+import dev.slne.surf.cloud.api.server.plugin.provider.classloader.SpringPluginClassloaderGroup
+import dev.slne.surf.cloud.api.server.plugin.provider.classloader.SpringPluginClassloaderStorage
 import dev.slne.surf.cloud.standalone.plugin.PluginInitializerManager
-import dev.slne.surf.cloud.standalone.plugin.manager.SpringPluginManagerImpl
 import dev.slne.surf.surfapi.core.api.util.toEnumeration
 import java.net.URL
 import java.net.URLClassLoader

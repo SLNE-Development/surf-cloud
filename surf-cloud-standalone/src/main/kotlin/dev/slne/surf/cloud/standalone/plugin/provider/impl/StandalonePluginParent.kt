@@ -1,11 +1,11 @@
 package dev.slne.surf.cloud.standalone.plugin.provider.impl
 
 import dev.slne.surf.cloud.api.common.util.logger
-import dev.slne.surf.cloud.api.server.server.plugin.StandalonePlugin
-import dev.slne.surf.cloud.api.server.server.plugin.bootstrap.StandalonePluginBootstrap
-import dev.slne.surf.cloud.api.server.server.plugin.bootstrap.StandalonePluginProviderContext
-import dev.slne.surf.cloud.api.server.server.plugin.dependency.DependencyContext
-import dev.slne.surf.cloud.api.server.server.plugin.provider.ProviderLoader
+import dev.slne.surf.cloud.api.server.plugin.StandalonePlugin
+import dev.slne.surf.cloud.api.server.plugin.bootstrap.StandalonePluginBootstrap
+import dev.slne.surf.cloud.api.server.plugin.bootstrap.StandalonePluginProviderContext
+import dev.slne.surf.cloud.api.server.plugin.dependency.DependencyContext
+import dev.slne.surf.cloud.api.server.plugin.provider.ProviderLoader
 import dev.slne.surf.cloud.standalone.plugin.entrypoint.classloader.SpringPluginClassloaderImpl
 import dev.slne.surf.cloud.standalone.plugin.entrypoint.dependency.DependencyContextHolder
 import dev.slne.surf.cloud.standalone.plugin.provider.PluginProvider
@@ -13,9 +13,9 @@ import dev.slne.surf.cloud.standalone.plugin.provider.ProviderStatus
 import dev.slne.surf.cloud.standalone.plugin.provider.ProviderStatusHolder
 import dev.slne.surf.cloud.standalone.plugin.provider.configuration.LoadOrderConfiguration
 import dev.slne.surf.cloud.standalone.plugin.provider.configuration.StandalonePluginMeta
-import dev.slne.surf.cloud.standalone.plugin.provider.impl.StandalonePluginProviderFactory
 import java.nio.file.Path
 import java.util.jar.JarFile
+import kotlin.jvm.java
 
 class StandalonePluginParent(
     private val path: Path,

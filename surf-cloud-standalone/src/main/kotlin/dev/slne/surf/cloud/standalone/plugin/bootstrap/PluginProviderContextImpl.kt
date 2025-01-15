@@ -1,9 +1,8 @@
 package dev.slne.surf.cloud.standalone.plugin.bootstrap
 
-import dev.slne.surf.cloud.api.server.server.plugin.bootstrap.StandalonePluginProviderContext
-import dev.slne.surf.cloud.api.server.server.plugin.configuration.PluginMeta
+import dev.slne.surf.cloud.api.server.plugin.bootstrap.StandalonePluginProviderContext
+import dev.slne.surf.cloud.api.server.plugin.configuration.PluginMeta
 import dev.slne.surf.cloud.standalone.plugin.PluginInitializerManager
-import dev.slne.surf.cloud.standalone.plugin.provider.PluginProvider
 import java.nio.file.Path
 import kotlin.io.path.div
 

@@ -1,9 +1,9 @@
 package dev.slne.surf.cloud.standalone.plugin.manager
 
-import dev.slne.surf.cloud.api.server.server.plugin.StandalonePlugin
-import dev.slne.surf.cloud.standalone.plugin.entrypoint.dependency.PluginMetaDependencyTree
+import dev.slne.surf.cloud.api.server.plugin.StandalonePlugin
 import dev.slne.surf.cloud.standalone.plugin.entrypoint.Entrypoint
 import dev.slne.surf.cloud.standalone.plugin.entrypoint.LaunchEntryPointHandler
+import dev.slne.surf.cloud.standalone.plugin.entrypoint.dependency.PluginMetaDependencyTree
 import dev.slne.surf.cloud.standalone.plugin.provider.PluginProvider
 import dev.slne.surf.cloud.standalone.plugin.provider.impl.StandalonePluginParent
 import dev.slne.surf.cloud.standalone.plugin.storage.ServerSpringPluginProviderStorage

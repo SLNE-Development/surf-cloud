@@ -1,10 +1,7 @@
-@file:OptIn(InternalPluginApi::class)
-
 package dev.slne.surf.cloud.standalone.plugin.provider
 
-import dev.slne.surf.cloud.api.server.server.plugin.InternalPluginApi
-import dev.slne.surf.cloud.api.server.server.plugin.configuration.PluginMeta
-import dev.slne.surf.cloud.api.server.server.plugin.dependency.DependencyContext
+import dev.slne.surf.cloud.api.server.plugin.configuration.PluginMeta
+import dev.slne.surf.cloud.api.server.plugin.dependency.DependencyContext
 import dev.slne.surf.cloud.standalone.plugin.provider.configuration.LoadOrderConfiguration
 import java.nio.file.Path
 import java.util.jar.JarFile

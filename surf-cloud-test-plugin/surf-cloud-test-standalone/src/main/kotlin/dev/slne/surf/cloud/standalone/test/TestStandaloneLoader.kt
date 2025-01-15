@@ -1,8 +1,8 @@
 package dev.slne.surf.cloud.standalone.test
 
-import dev.slne.surf.cloud.api.server.server.plugin.loader.PluginClasspathBuilder
-import dev.slne.surf.cloud.api.server.server.plugin.loader.StandalonePluginLoader
-import dev.slne.surf.cloud.api.server.server.plugin.loader.library.impl.MavenLibraryResolver
+import dev.slne.surf.cloud.api.server.plugin.loader.PluginClasspathBuilder
+import dev.slne.surf.cloud.api.server.plugin.loader.StandalonePluginLoader
+import dev.slne.surf.cloud.api.server.plugin.loader.library.impl.MavenLibraryResolver
 
 class TestStandaloneLoader : StandalonePluginLoader {
     override fun classloader(classpathBuilder: PluginClasspathBuilder) {

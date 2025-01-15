@@ -1,7 +1,7 @@
 package dev.slne.surf.cloud.standalone.plugin.entrypoint.classloader
 
 import dev.slne.surf.cloud.api.common.util.getOrMapAndThrow
-import dev.slne.surf.cloud.api.server.server.plugin.configuration.PluginMeta
+import dev.slne.surf.cloud.api.server.plugin.configuration.PluginMeta
 import java.net.URL
 import java.net.URLClassLoader
 import java.nio.file.Path

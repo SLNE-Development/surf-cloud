@@ -1,9 +1,9 @@
 package dev.slne.surf.cloud.standalone.plugin.storage
 
 import dev.slne.surf.cloud.api.common.util.logger
-import dev.slne.surf.cloud.api.server.server.plugin.PluginManager
-import dev.slne.surf.cloud.api.server.server.plugin.StandalonePlugin
-import dev.slne.surf.cloud.api.server.server.plugin.dependency.DependencyContext
+import dev.slne.surf.cloud.api.server.plugin.PluginManager
+import dev.slne.surf.cloud.api.server.plugin.StandalonePlugin
+import dev.slne.surf.cloud.api.server.plugin.dependency.DependencyContext
 import dev.slne.surf.cloud.standalone.plugin.entrypoint.dependency.DependencyContextHolder
 import dev.slne.surf.cloud.standalone.plugin.entrypoint.strategy.ProviderConfiguration
 import dev.slne.surf.cloud.standalone.plugin.manager.SpringPluginManagerImpl

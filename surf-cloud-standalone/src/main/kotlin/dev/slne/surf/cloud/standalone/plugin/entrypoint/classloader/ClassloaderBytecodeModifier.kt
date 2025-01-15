@@ -1,6 +1,6 @@
 package dev.slne.surf.cloud.standalone.plugin.entrypoint.classloader
 
-import dev.slne.surf.cloud.api.server.server.plugin.configuration.PluginMeta
+import dev.slne.surf.cloud.api.server.plugin.configuration.PluginMeta
 
 interface ClassloaderBytecodeModifier {
     companion object {

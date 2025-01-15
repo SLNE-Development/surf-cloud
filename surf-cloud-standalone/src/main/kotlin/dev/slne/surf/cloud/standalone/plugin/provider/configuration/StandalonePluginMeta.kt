@@ -1,6 +1,6 @@
 package dev.slne.surf.cloud.standalone.plugin.provider.configuration
 
-import dev.slne.surf.cloud.api.server.server.plugin.configuration.PluginMeta
+import dev.slne.surf.cloud.api.server.plugin.configuration.PluginMeta
 import dev.slne.surf.cloud.standalone.plugin.provider.configuration.serializer.ComponentSerializer
 import dev.slne.surf.cloud.standalone.plugin.provider.configuration.serializer.EnumValueSerializer
 import dev.slne.surf.cloud.standalone.plugin.provider.configuration.serializer.constraints.PluginMetaConstraints

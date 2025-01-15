@@ -2,10 +2,10 @@
 
 package dev.slne.surf.cloud.standalone.plugin.entrypoint.dependency
 
-import dev.slne.surf.cloud.api.server.server.plugin.configuration.PluginMeta
+import dev.slne.surf.cloud.api.server.plugin.configuration.PluginMeta
 import dev.slne.surf.cloud.standalone.plugin.provider.configuration.StandalonePluginMeta
 
-class BootstrapMetaDependencyTree: PluginMetaDependencyTree() {
+class BootstrapMetaDependencyTree : PluginMetaDependencyTree() {
     override fun registerDependencies(
         name: String,
         meta: PluginMeta

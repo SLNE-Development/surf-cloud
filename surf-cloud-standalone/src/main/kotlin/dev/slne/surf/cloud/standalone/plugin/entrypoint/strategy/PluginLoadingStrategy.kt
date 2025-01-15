@@ -1,4 +1,3 @@
-@file:OptIn(InternalPluginApi::class)
 @file:Suppress("UnstableApiUsage")
 
 package dev.slne.surf.cloud.standalone.plugin.entrypoint.strategy
@@ -8,7 +7,6 @@ import com.google.common.graph.GraphBuilder
 import dev.slne.surf.cloud.api.common.util.logger
 import dev.slne.surf.cloud.api.common.util.mutableObject2ObjectMapOf
 import dev.slne.surf.cloud.api.common.util.mutableObjectListOf
-import dev.slne.surf.cloud.api.server.server.plugin.InternalPluginApi
 import dev.slne.surf.cloud.standalone.plugin.entrypoint.dependency.PluginMetaDependencyTree
 import dev.slne.surf.cloud.standalone.plugin.exception.UnknownDependencyException
 import dev.slne.surf.cloud.standalone.plugin.provider.PluginProvider
@@ -106,7 +104,11 @@ class PluginLoadingStrategy<T>(private val configuration: ProviderConfiguration<
             } catch (e: Throwable) {
                 log.atSevere()
                     .withCause(e)
-                    .log("Could not load plugin '%s' in folder '%s'", retrievedProvider.fileName, retrievedProvider.parentSource)
+                    .log(
+                        "Could not load plugin '%s' in folder '%s'",
+                        retrievedProvider.fileName,
+                        retrievedProvider.parentSource
+                    )
             }
         }
 

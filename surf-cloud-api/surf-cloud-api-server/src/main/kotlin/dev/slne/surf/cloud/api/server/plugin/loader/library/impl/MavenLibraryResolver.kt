@@ -1,13 +1,13 @@
-@file:OptIn(InternalPluginApi::class)
+@file:OptIn(InternalApi::class)
 
 package dev.slne.surf.cloud.api.server.plugin.loader.library.impl
 
+import dev.slne.surf.cloud.api.common.util.InternalApi
 import dev.slne.surf.cloud.api.common.util.logger
 import dev.slne.surf.cloud.api.common.util.mutableObjectListOf
-import dev.slne.surf.cloud.api.server.server.plugin.InternalPluginApi
-import dev.slne.surf.cloud.api.server.server.plugin.loader.library.ClassPathLibrary
-import dev.slne.surf.cloud.api.server.server.plugin.loader.library.LibraryLoadingException
-import dev.slne.surf.cloud.api.server.server.plugin.loader.library.LibraryStore
+import dev.slne.surf.cloud.api.server.plugin.loader.library.ClassPathLibrary
+import dev.slne.surf.cloud.api.server.plugin.loader.library.LibraryLoadingException
+import dev.slne.surf.cloud.api.server.plugin.loader.library.LibraryStore
 import org.apache.maven.repository.internal.MavenRepositorySystemUtils
 import org.eclipse.aether.RepositorySystem
 import org.eclipse.aether.artifact.DefaultArtifact

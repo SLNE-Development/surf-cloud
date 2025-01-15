@@ -1,46 +1,20 @@
-import org.jetbrains.kotlin.gradle.utils.COMPILE_ONLY
-
 plugins {
     id("dev.slne.surf.surfapi.gradle.standalone")
     `core-convention`
+    `library-conventions`
 }
-
-//val library by configurations.creating {
-//    description = "Dependencies that are compile-only"
-//    extendsFrom(configurations.compileOnly.get())
-//}
-//
-//val libraryApi by configurations.creating {
-//    description = "Dependencies that are compile-only but exposed as API"
-//    extendsFrom(configurations.api.get())
-//}
-
-val library = configurations.maybeCreate("library")
-val libraryApi = configurations.maybeCreate("libraryApi")
-
-configurations.getByName(COMPILE_ONLY).extendsFrom(library)
-configurations.getByName("compileOnlyApi").extendsFrom(libraryApi)
 
 dependencies {
     api(project(":surf-cloud-core:surf-cloud-core-common"))
     api(project(":surf-cloud-api:surf-cloud-api-server"))
 
-//    implementation(platform("org.springframework.shell:spring-shell-dependencies:3.3.3"))
-
     runtimeOnly("org.mariadb.jdbc:mariadb-java-client")
     libraryApi("org.springframework.boot:spring-boot-starter-data-jpa")
     libraryApi("org.springframework.boot:spring-boot-starter-data-redis")
-//    api("org.springframework.shell:spring-shell-starter")
     libraryApi("org.reactivestreams:reactive-streams:1.0.4")
     libraryApi("io.lettuce:lettuce-core")
     libraryApi(libs.velocity.native)
 }
-
-//dependencyManagement {
-//    imports {
-//        mavenBom("org.springframework.shell:spring-shell-dependencies:3.3.2")
-//    }
-//}
 
 tasks {
     jar {
@@ -57,64 +31,65 @@ kotlin {
     }
 }
 
-tasks.register("generateDependenciesFile") {
-    group = "reporting"
-    description = "Generates a file listing all dependencies in the library and libraryApi scopes."
 
-    val outputFile = layout.buildDirectory.file("dependencies")
-
-    inputs.files(library, libraryApi) // track input changes for up-to-date checks
-    outputs.file(outputFile)
-
-    doLast {
-        val dependenciesFile = outputFile.get().asFile
-        dependenciesFile.bufferedWriter().use { writer ->
-            // Library dependencies
-            library.resolve().forEach { dependency ->
-                writer.write(dependency.toString())
-                writer.newLine()
-            }
-
-            // LibraryApi dependencies
-            libraryApi.resolve().forEach { dependency ->
-                writer.write(dependency.toString())
-                writer.newLine()
-            }
-        }
-        logger.lifecycle("Dependencies file generated at: ${dependenciesFile.absolutePath}")
-    }
-}
-
-tasks.register("generateReposFile") {
-    group = "reporting"
-    description = "Generates a file listing all repository URLs."
-
-    val outputFile = layout.buildDirectory.file("repos")
-
-    outputs.file(outputFile)
-
-    doLast {
-        val reposFile = outputFile.get().asFile
-        reposFile.bufferedWriter().use { writer ->
-            repositories.forEach { repo ->
-                when (repo) {
-                    is MavenArtifactRepository -> {
-                        writer.write(repo.url.toString())
-                        writer.newLine()
-                    }
-                }
-            }
-        }
-        logger.lifecycle("Repos file generated at: ${reposFile.absolutePath}")
-    }
-}
-
-tasks.register("generateAll") {
-    group = "reporting"
-    description = "Generates both dependencies and repos files."
-
-    dependsOn("generateDependenciesFile", "generateReposFile")
-}
+//tasks.register("generateDependenciesFile") {
+//    group = "reporting"
+//    description = "Generates a file listing all dependencies in the library and libraryApi scopes."
+//
+//    val outputFile = layout.buildDirectory.file("dependencies")
+//
+//    inputs.files(library, libraryApi) // track input changes for up-to-date checks
+//    outputs.file(outputFile)
+//
+//    doLast {
+//        val dependenciesFile = outputFile.get().asFile
+//        dependenciesFile.bufferedWriter().use { writer ->
+//            // Library dependencies
+//            library.resolve().forEach { dependency ->
+//                writer.write(dependency.toString())
+//                writer.newLine()
+//            }
+//
+//            // LibraryApi dependencies
+//            libraryApi.resolve().forEach { dependency ->
+//                writer.write(dependency.toString())
+//                writer.newLine()
+//            }
+//        }
+//        logger.lifecycle("Dependencies file generated at: ${dependenciesFile.absolutePath}")
+//    }
+//}
+//
+//tasks.register("generateReposFile") {
+//    group = "reporting"
+//    description = "Generates a file listing all repository URLs."
+//
+//    val outputFile = layout.buildDirectory.file("repos")
+//
+//    outputs.file(outputFile)
+//
+//    doLast {
+//        val reposFile = outputFile.get().asFile
+//        reposFile.bufferedWriter().use { writer ->
+//            repositories.forEach { repo ->
+//                when (repo) {
+//                    is MavenArtifactRepository -> {
+//                        writer.write(repo.url.toString())
+//                        writer.newLine()
+//                    }
+//                }
+//            }
+//        }
+//        logger.lifecycle("Repos file generated at: ${reposFile.absolutePath}")
+//    }
+//}
+//
+//tasks.register("generateAll") {
+//    group = "reporting"
+//    description = "Generates both dependencies and repos files."
+//
+//    dependsOn("generateDependenciesFile", "generateReposFile")
+//}
 
 tasks.shadowJar {
     dependsOn("generateAll")

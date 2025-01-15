@@ -1,10 +1,9 @@
 @file:Suppress("UnstableApiUsage")
 
-import org.gradle.internal.impldep.org.junit.experimental.categories.Categories.CategoryFilter.exclude
-
 
 plugins {
     java
+//    id("io.spring.dependency-management")
 }
 
 group = "dev.slne.surf.cloud"

@@ -18,7 +18,6 @@ import org.eclipse.aether.repository.RemoteRepository
 import org.eclipse.aether.repository.RepositoryPolicy
 import org.eclipse.aether.resolution.DependencyRequest
 import org.eclipse.aether.resolution.DependencyResolutionException
-import org.eclipse.aether.spi.connector.transport.http.HttpTransporterFactory
 import org.eclipse.aether.supplier.RepositorySystemSupplier
 import org.eclipse.aether.transfer.AbstractTransferListener
 import org.eclipse.aether.transfer.TransferEvent
@@ -53,7 +52,12 @@ class MavenLibraryResolver : ClassPathLibrary {
     private val session = MavenRepositorySystemUtils.newSession().apply {
         setSystemProperties(System.getProperties())
         setChecksumPolicy(RepositoryPolicy.CHECKSUM_POLICY_FAIL)
-        setLocalRepositoryManager(repository.newLocalRepositoryManager(this, LocalRepository("libraries")))
+        setLocalRepositoryManager(
+            repository.newLocalRepositoryManager(
+                this,
+                LocalRepository("libraries")
+            )
+        )
         setTransferListener(object : AbstractTransferListener() {
             override fun transferInitiated(event: TransferEvent) {
                 log.atInfo()
@@ -159,11 +163,6 @@ class MavenLibraryResolver : ClassPathLibrary {
                 DependencyRequest(CollectRequest(null as Dependency?, dependencies, repos), null)
             )
         } catch (e: DependencyResolutionException) {
-            println("Error resolving libraries")
-            println(e.result.collectExceptions)
-            println(e.result.artifactResults)
-            println(e.result.request)
-
             throw LibraryLoadingException("Error resolving libraries", e)
         }
 

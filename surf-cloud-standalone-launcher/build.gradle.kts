@@ -53,6 +53,17 @@ tasks {
         doLast {
             file("${buildDirectory}/libs/surf-cloud-standalone.jara").delete()
         }
+
+        val relocations = listOf(
+            "com.ctc.wstx",
+            "com.google",
+            "org.apache",
+            "org.codehaus",
+            "org.eclipse",
+            "org.slf4j",
+        )
+
+        relocations.forEach { relocate(it, "dev.slne.surf.cloud.launcher.libs.$it") }
     }
 
     named<JavaExec>("run") {

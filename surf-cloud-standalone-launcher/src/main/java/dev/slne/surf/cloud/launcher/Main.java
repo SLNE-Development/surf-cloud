@@ -11,13 +11,14 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.util.List;
 import java.util.Objects;
+import java.util.jar.JarFile;
 import java.util.stream.Stream;
+import java.util.zip.ZipEntry;
+import org.eclipse.aether.resolution.DependencyResolutionException;
 
 public class Main {
-
-  public static final Path PLUGIN_DIRECTORY = Path.of("plugins");
-
   public static void main(String[] args) {
     if (Path.of("").toAbsolutePath().toString().contains("!")) {
       System.err.println(
@@ -68,9 +69,18 @@ public class Main {
   }
 
   private static URL[] setupClasspath() {
+    final URL standaloneUrl = getStandaloneUrl();
+    final JarFile standaloneJar;
+
+    try {
+      standaloneJar = new JarFile(new File(standaloneUrl.getFile()));
+    } catch (IOException e) {
+      throw new RuntimeException("Failed to load standalone jar", e);
+    }
+
     final URL[][] urls = {
-        {getStandaloneUrl()},
-        getPluginUrls()
+        {standaloneUrl},
+        getLibraries(standaloneJar)
     };
 
     return Stream.of(urls)
@@ -99,34 +109,25 @@ public class Main {
     }
   }
 
-  @SuppressWarnings("CallToPrintStackTrace")
-  private static URL[] getPluginUrls() {
-    final File pluginDir = PLUGIN_DIRECTORY.toFile();
-    if (!pluginDir.exists()) {
-      if (!pluginDir.mkdirs()) {
-        System.err.println("Failed to create plugin directory");
-      }
-      return new URL[0];
+  private static URL[] getLibraries(JarFile file) {
+    final ZipEntry reposEntry = file.getEntry("repos");
+    final ZipEntry dependenciesEntry = file.getEntry("dependencies");
+    final LibraryLoader loader = new LibraryLoader();
+
+    try {
+      return loader.loadLibraries(file, reposEntry, dependenciesEntry).stream()
+          .map(Path::toUri)
+          .map(uri -> {
+            try {
+              return uri.toURL();
+            } catch (MalformedURLException e) {
+              throw new RuntimeException("Failed to convert path to URL", e);
+            }
+          })
+          .toArray(URL[]::new);
+    } catch (DependencyResolutionException e) {
+      throw new RuntimeException("Failed to load libraries", e);
     }
-
-    final File[] files = pluginDir.listFiles((dir, name) -> dir.isFile() && name.endsWith(".jar"));
-
-    if (files == null) {
-      return new URL[0];
-    }
-
-    return Stream.of(files)
-        .map(file -> {
-          try {
-            return file.toURI().toURL();
-          } catch (MalformedURLException e) {
-            System.err.println("Failed to convert file to URL");
-            e.printStackTrace();
-            return null;
-          }
-        })
-        .filter(Objects::nonNull)
-        .toArray(URL[]::new);
   }
 
   private static String findMainClass() {

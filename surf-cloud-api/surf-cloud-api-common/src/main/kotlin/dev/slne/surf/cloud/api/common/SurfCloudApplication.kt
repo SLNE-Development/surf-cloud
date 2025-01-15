@@ -10,6 +10,16 @@ import org.springframework.scheduling.annotation.EnableAsync
 import org.springframework.scheduling.annotation.EnableScheduling
 import org.springframework.transaction.annotation.EnableTransactionManagement
 
+/**
+ * Annotation for defining Surf Cloud applications with specific configurations.
+ *
+ * Combines multiple Spring features such as scheduling, async processing,
+ * transaction management, and entity scanning, with options for JPA and Redis base packages.
+ *
+ * @property basePackages Base packages to scan for Spring components.
+ * @property jpaBasePackages Base packages for JPA entities.
+ * @property redisBasePackages Base packages for Redis repositories.
+ */
 @Target(AnnotationTarget.CLASS)
 @Retention(AnnotationRetention.RUNTIME)
 @SpringBootApplication(

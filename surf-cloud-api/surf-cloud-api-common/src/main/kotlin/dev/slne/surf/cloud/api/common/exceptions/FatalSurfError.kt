@@ -5,10 +5,22 @@ import org.apache.commons.text.WordUtils
 import org.springframework.boot.ExitCodeGenerator
 import java.io.Serial
 import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
 
 private const val LINE_WIDTH = 80
 
+/**
+ * Represents a fatal error in the Surf Cloud application. Provides detailed error messages,
+ * additional information, possible solutions, and an associated exit code.
+ *
+ * @property simpleErrorMessage A brief description of the error.
+ * @property detailedErrorMessage A detailed explanation of the error.
+ * @property cause The root cause of the error, if any.
+ * @property additionalInformation Additional information about the error.
+ * @property possibleSolutions Suggestions for resolving the error.
+ * @property exitCode The exit code to return when terminating the application.
+ */
 class FatalSurfError private constructor(
     private val simpleErrorMessage: String?,
     private val detailedErrorMessage: String?,
@@ -76,16 +88,29 @@ class FatalSurfError private constructor(
         }
     }
 
+    /**
+     * Retrieves the exit code associated with the error.
+     *
+     * @return The exit code.
+     */
     override fun getExitCode() = exitCode
 
     companion object {
         @Serial
         private val serialVersionUID = -5282893569683975781L
 
+        /**
+         * Creates a new [Builder] instance for constructing [FatalSurfError] objects.
+         *
+         * @return A new [Builder].
+         */
         @JvmStatic
         fun builder() = Builder()
     }
 
+    /**
+     * Builder class for constructing [FatalSurfError] instances.
+     */
     class Builder {
         private var simpleErrorMessage: String? = null
         private var detailedErrorMessage: String? = null
@@ -126,6 +151,11 @@ class FatalSurfError private constructor(
             this.exitCode = exitCode
         }
 
+        /**
+         * Builds a new [FatalSurfError] instance with the configured properties.
+         *
+         * @return A new [FatalSurfError].
+         */
         fun build(): FatalSurfError {
             return FatalSurfError(
                 simpleErrorMessage,
@@ -139,12 +169,21 @@ class FatalSurfError private constructor(
     }
 }
 
+/**
+ * DSL function for creating a [FatalSurfError] using a builder.
+ *
+ * @param builder A lambda to configure the [FatalSurfError.Builder].
+ * @return A new [FatalSurfError].
+ */
 @OptIn(ExperimentalContracts::class)
 fun FatalSurfError(builder: FatalSurfError.Builder.() -> Unit): FatalSurfError {
-    contract { callsInPlace(builder, kotlin.contracts.InvocationKind.EXACTLY_ONCE) }
+    contract { callsInPlace(builder, InvocationKind.EXACTLY_ONCE) }
     return FatalSurfError.Builder().apply(builder).build()
 }
 
+/**
+ * Contains predefined exit codes for the Surf Cloud application.
+ */
 object ExitCodes {
     const val NORMAL = 0
     const val UNKNOWN_ERROR = 1

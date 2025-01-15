@@ -2,7 +2,9 @@ package dev.slne.surf.cloud.api.common.netty.exception
 
 import java.io.Serial
 
-
+/**
+ * Exception indicating that a Netty packet is not registered.
+ */
 class SurfNettyPacketNotRegisteredException : SurfNettyPacketException {
     constructor() : super()
     constructor(cause: Throwable?) : super(cause)

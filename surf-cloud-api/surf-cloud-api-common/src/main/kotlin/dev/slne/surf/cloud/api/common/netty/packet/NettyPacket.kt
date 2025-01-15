@@ -3,60 +3,96 @@ package dev.slne.surf.cloud.api.common.netty.packet
 import dev.slne.surf.cloud.api.common.netty.network.codec.StreamCodec
 import dev.slne.surf.cloud.api.common.netty.network.codec.StreamDecoder
 import dev.slne.surf.cloud.api.common.netty.network.codec.StreamMemberEncoder
+import dev.slne.surf.cloud.api.common.util.InternalApi
 import io.netty.buffer.ByteBuf
 import org.apache.commons.lang3.builder.ToStringBuilder
-import org.jetbrains.annotations.ApiStatus.Internal
-import java.util.*
 import java.util.concurrent.ThreadLocalRandom
 
 
 abstract class NettyPacket {
 
     // region Internal
-    @Deprecated("internal use only")
-    @Internal
+    /**
+     * Indicates whether this packet has been handled.
+     * This is for internal use and is not intended to be modified externally.
+     */
+    @InternalApi
     var handled = false
         private set
 
-    @Deprecated("internal use only")
-    @Internal
-    @Suppress("DEPRECATION")
+    /**
+     * Marks the packet as handled. For internal use only.
+     */
+    @InternalApi
     fun handled() {
         handled = true
     }
 
-    @Internal
+    /**
+     * Indicates whether the packet is terminal, meaning no further processing
+     * is required after this packet and the protocol switches to the next state.
+     */
+    @InternalApi
     open val terminal: Boolean = false
     // endregion
 
     private val meta = this::class.getPacketMeta()
+
+    /**
+     * The unique identifier of this packet.
+     */
     val id = meta.id
+
+    /**
+     * The flow direction of this packet (e.g., client-to-server or server-to-client).
+     */
     val flow = meta.flow
+
+    /**
+     * Supported protocols for this packet.
+     */
     val protocols = meta.protocols
 
+    /**
+     * A session identifier for the packet, generated randomly for each instance.
+     */
     val sessionId = ThreadLocalRandom.current().nextLong()
 
     /**
-     * Whether the packet is skippable or not.
-     * If the packet is skippable, it will be ignored if the packet is too large.
+     * Indicates whether the packet is skippable.
+     * If true, the packet will be ignored if its size exceeds the allowed limit.
      */
     open val skippable = false
 
     /**
-     * Extra packets that should be sent after this packet.
+     * Additional packets that should be sent after this packet, if any.
      */
     open val extraPackets: List<NettyPacket>? = null
 
     /**
-     * Custom logic to handle when the packet is too large.
-     * Should return true if the method handled the packet, false otherwise.
-     * No Exception should be thrown in this method.
+     * Custom logic to handle situations where the packet size exceeds limits.
+     *
+     * @param connection The connection associated with the packet.
+     * @return `true` if the situation was handled, `false` otherwise.
      */
     open fun packetTooLarge(connection: Any): Boolean = false
 
+    /**
+     * Determines if the packet is ready for processing.
+     *
+     * @return `true` if the packet is ready; `false` otherwise.
+     */
     open fun isReady(): Boolean = true
 
     companion object {
+
+        /**
+         * Creates a codec for encoding and decoding a specific type of packet.
+         *
+         * @param encoder The encoder for the packet.
+         * @param decoder The decoder for the packet.
+         * @return A [StreamCodec] for the specified packet type.
+         */
         @JvmStatic
         fun <B : ByteBuf, T : NettyPacket> codec(
             encoder: StreamMemberEncoder<B, T>,
@@ -82,7 +118,7 @@ abstract class NettyPacket {
         return result
     }
 
-    @Suppress("DEPRECATION")
+    @OptIn(InternalApi::class)
     override fun toString(): String = runCatching {
         ToStringBuilder.reflectionToString(this).toString()
     }.getOrElse { "NettyPacket(id=$id, flow=$flow, skippable=$skippable, extraPackets=$extraPackets, terminal=$terminal, sessionId=$sessionId, handled=$handled)" }

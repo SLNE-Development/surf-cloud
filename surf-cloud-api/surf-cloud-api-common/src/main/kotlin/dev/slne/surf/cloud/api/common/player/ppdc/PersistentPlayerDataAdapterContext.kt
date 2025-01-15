@@ -1,14 +1,13 @@
 package dev.slne.surf.cloud.api.common.player.ppdc
 
 /**
- * This interface represents the context in which the [PersistentPlayerDataType] can
- * serialize and deserialize the passed values.
+ * Represents the context for serializing and deserializing data types.
  */
 interface PersistentPlayerDataAdapterContext {
     /**
-     * Creates a new and empty meta-container instance.
+     * Creates a new, empty instance of a persistent data container.
      *
-     * @return the fresh container instance
+     * @return A new [PersistentPlayerDataContainer].
      */
     fun newPersistentDataContainer(): PersistentPlayerDataContainer
 }

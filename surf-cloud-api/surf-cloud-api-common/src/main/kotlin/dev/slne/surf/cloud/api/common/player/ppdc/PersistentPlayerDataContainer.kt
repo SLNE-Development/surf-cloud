@@ -4,27 +4,26 @@ import dev.slne.surf.cloud.api.common.netty.protocol.buffer.SurfByteBuf
 import net.kyori.adventure.key.Key
 import org.jetbrains.annotations.ApiStatus
 
+/**
+ * Represents a modifiable persistent player data container.
+ *
+ * Extends [PersistentPlayerDataContainerView] to include methods for modifying
+ * metadata entries and managing the stored data.
+ */
 @ApiStatus.NonExtendable
 interface PersistentPlayerDataContainer: PersistentPlayerDataContainerView {
 
     /**
-     * Stores a metadata value on the [dev.slne.surf.cloud.api.common.player.CloudPlayer] instance.
+     * Stores a metadata value in the container.
      *
-     * This method will override any existing
-     * value the [dev.slne.surf.cloud.api.common.player.CloudPlayer] may have stored under the provided
-     * key.
-     *
-     * @param key the key this value will be stored under
-     * @param type the type this tag uses
-     * @param value the value to store in the tag
-     * @param <P> the generic java type of the tag value
-     * @param <C> the generic type of the object to store
-     *
-     * @throws IllegalArgumentException if no suitable adapter was found for
-     * the [PersistentPlayerDataType.primitiveType]
+     * @param key The key to store the value under.
+     * @param type The data type of the value.
+     * @param value The value to store.
+     * @throws IllegalArgumentException If no suitable adapter is found for the type.
      */
     fun <P : Any, C> set(key: Key, type: PersistentPlayerDataType<P, C>, value: C)
 
+    // region Primitive-specific set methods.
     fun setBoolean(key: Key, value: Boolean)
     fun setByte(key: Key, value: Byte)
     fun setShort(key: Key, value: Short)
@@ -36,7 +35,9 @@ interface PersistentPlayerDataContainer: PersistentPlayerDataContainerView {
     fun setByteArray(key: Key, value: ByteArray)
     fun setIntArray(key: Key, value: IntArray)
     fun setLongArray(key: Key, value: LongArray)
+    // endregion
 
+    // region Primitive-specific get methods.
     fun getBoolean(key: Key): Boolean?
     fun getNumber(key: Key): Number?
     fun getByte(key: Key): Byte?
@@ -49,18 +50,19 @@ interface PersistentPlayerDataContainer: PersistentPlayerDataContainerView {
     fun getByteArray(key: Key): ByteArray?
     fun getIntArray(key: Key): IntArray?
     fun getLongArray(key: Key): LongArray?
+    // endregion
 
     /**
-     * Removes a metadata value from the [dev.slne.surf.cloud.api.common.player.CloudPlayer] instance.
+     * Removes metadata associated with the given key.
      *
-     * @param key the key to remove from the custom tag map
+     * @param key The key to remove.
      */
     fun remove(key: Key)
 
     /**
-     * Reads the data from the provided [SurfByteBuf] and stores it in the container.
+     * Deserializes data from a [SurfByteBuf] and stores it in the container.
      *
-     * @param buf the buffer to read the data from
+     * @param buf The buffer to read from.
      */
     fun readFromBuf(buf: SurfByteBuf)
 }

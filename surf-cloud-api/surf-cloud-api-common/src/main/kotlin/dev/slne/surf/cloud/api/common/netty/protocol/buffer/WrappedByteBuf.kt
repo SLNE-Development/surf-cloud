@@ -14,10 +14,32 @@ import java.nio.channels.ScatteringByteChannel
 import java.nio.charset.Charset
 
 /**
- * A wrapper class for Netty's ByteBuf that delegates all operations to the underlying ByteBuf instance.
- * This class is used to add additional functionality or to monitor/intercept ByteBuf operations.
+ * A wrapper class for Netty's [ByteBuf] that delegates all operations to the underlying instance.
  *
- * @property buf The underlying ByteBuf instance.
+ * This class provides an abstraction over the [ByteBuf] to allow monitoring, interception, or
+ * extension of its functionality without altering the original buffer's behavior.
+ *
+ * ### Key Features
+ * - Delegates all standard [ByteBuf] operations to the underlying [ByteBuf] instance.
+ * - Allows for customization or additional behavior by subclassing and overriding methods.
+ * - Fully compatible with Netty's ecosystem and extensions.
+ *
+ * ### Example Use Case
+ * #### Adding Monitoring
+ * ```kotlin
+ * class MonitoringByteBuf(buf: ByteBuf) : WrappedByteBuf(buf) {
+ *     override fun writeByte(value: Int): ByteBuf {
+ *         println("Writing byte: $value")
+ *         return super.writeByte(value)
+ *     }
+ * }
+ * ```
+ *
+ * ### Important Notes
+ * - This class is open for extension, allowing custom behaviors to be added.
+ * - All operations are delegated to the wrapped buffer, ensuring consistent behavior.
+ *
+ * @property buf The underlying [ByteBuf] instance.
  */
 open class WrappedByteBuf(private val buf: ByteBuf) : ByteBuf() {
     override fun alloc(): ByteBufAllocator = buf.alloc()

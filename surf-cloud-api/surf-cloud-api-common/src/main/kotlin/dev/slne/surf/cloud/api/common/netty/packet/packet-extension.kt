@@ -14,24 +14,61 @@ import kotlin.reflect.full.declaredMemberProperties
 import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.jvm.isAccessible
 
+/**
+ * Creates a [StreamCodec] for encoding and decoding Netty packets.
+ *
+ * @param encoder The encoder for the packet type.
+ * @param decoder The decoder for the packet type.
+ * @return A [StreamCodec] that handles the specified packet type.
+ */
 fun <B : ByteBuf, T : NettyPacket> packetCodec(
     encoder: StreamMemberEncoder<B, T>,
     decoder: StreamDecoder<B, T>
 ): StreamCodec<B, T> = NettyPacket.codec(encoder, decoder)
 
-
+// Internal cache for packet metadata and codecs.
 private val metaCache = mutableObject2ObjectMapOf<KClass<out NettyPacket>, SurfNettyPacket>(512)
+
+/**
+ * Retrieves the metadata for a [NettyPacket] class if available.
+ *
+ * @return The [SurfNettyPacket] metadata annotation or `null` if not found.
+ */
 fun KClass<out NettyPacket>.getPacketMetaOrNull() =
     metaCache[this] ?: findAnnotation<SurfNettyPacket>()?.also { metaCache[this] = it }
 
+/**
+ * Retrieves the metadata for a [NettyPacket] class.
+ *
+ * @throws IllegalStateException If the [SurfNettyPacket] annotation is missing.
+ * @return The [SurfNettyPacket] metadata annotation.
+ */
 fun KClass<out NettyPacket>.getPacketMeta() = getPacketMetaOrNull()
     ?: error("NettyPacket class must be annotated with SurfNettyPacket")
 
+/**
+ * Retrieves the metadata for a [NettyPacket] class from a [Class] reference.
+ *
+ * @throws IllegalStateException If the [SurfNettyPacket] annotation is missing.
+ * @return The [SurfNettyPacket] metadata annotation.
+ */
 fun Class<out NettyPacket>.getPacketMeta() = kotlin.getPacketMeta()
 
-const val DEFAULT_STREAM_CODEC_NAME = "STREAM_CODEC"
+// Default property name for locating stream codecs in packet classes.
+private const val DEFAULT_STREAM_CODEC_NAME = "STREAM_CODEC"
+
+// Internal cache for codecs associated with packet classes.
 private val codecCache = mutableObject2ObjectMapOf<KClass<out NettyPacket>, StreamCodec<*, *>>()
 
+
+/**
+ * Finds a [StreamCodec] for the specified packet type if available.
+ *
+ * The function searches for a codec property in the class or its companion object,
+ * looking for annotations like [PacketCodec] or default property names.
+ *
+ * @return The [StreamCodec] for the packet type, or `null` if not found.
+ */
 @Suppress("UNCHECKED_CAST")
 fun <B : Any, V : Any> KClass<out NettyPacket>.findPacketCodec(): StreamCodec<in B, out V>? {
     codecCache[this]?.let { return it as? StreamCodec<in B, out V> }

@@ -8,18 +8,29 @@ import io.netty.buffer.ByteBuf
 import io.netty.buffer.ByteBufUtil
 import java.nio.charset.StandardCharsets
 
-/** Utility object for reading and writing UTF-8 encoded strings to a ByteBuf. **/
+/**
+ * Utility object for handling UTF-8 encoded strings in a [ByteBuf].
+ *
+ * This utility provides methods for reading and writing UTF-8 strings, ensuring that string lengths
+ * and encoding constraints are enforced to prevent errors or buffer overflows.
+ */
 object Utf8String {
 
     /**
-     * Reads a UTF-8 encoded string from the provided ByteBuf.
+     * Reads a UTF-8 encoded string from the specified [ByteBuf].
      *
-     * @param buf The ByteBuf to read the string from.
-     * @param maxLength The maximum allowed length of the decoded string.
+     * The string is preceded by its length, encoded as a VarInt.
+     * The method ensures that the
+     * length does not exceed the maximum allowable length
+     * and that the buffer contains sufficient
+     * data to decode the string.
+     *
+     * @param buf The [ByteBuf] to read the string from.
+     * @param maxLength The maximum allowable character length of the decoded string.
      * @return The decoded string.
-     * @throws IllegalArgumentException if the UTF-8 length exceeds the allowed maximum or if it is negative.
+     * @throws IllegalArgumentException If the string's UTF-8 length exceeds the maximum allowed length
+     *                                  or is inconsistent with the buffer's readable bytes.
      */
-    @JvmStatic
     fun read(buf: ByteBuf, maxLength: Int): String {
         val utf8MaxLength = ByteBufUtil.utf8MaxBytes(maxLength)
         val utf8Length = buf.readVarInt()
@@ -40,14 +51,16 @@ object Utf8String {
     }
 
     /**
-     * Writes a UTF-8 encoded string to the provided ByteBuf.
+     * Writes a UTF-8 encoded string to the specified [ByteBuf].
      *
-     * @param buf The ByteBuf to write the string to.
-     * @param string The string to be written.
-     * @param maxLength The maximum allowed length of the string.
-     * @throws IllegalArgumentException if the string length exceeds the allowed maximum.
+     * The string's length is written first as a VarInt, followed by the UTF-8 encoded bytes of the string.
+     * The method validates that the string length does not exceed the specified maximum length.
+     *
+     * @param buf The [ByteBuf] to write the string to.
+     * @param string The string to encode and write.
+     * @param maxLength The maximum allowable character length of the string.
+     * @throws IllegalArgumentException If the string's length exceeds the specified maximum length.
      */
-    @JvmStatic
     fun write(buf: ByteBuf, string: CharSequence, maxLength: Int) {
         checkEncoded(string.length <= maxLength) { "String too long (max $maxLength): ${string.length}" }
 

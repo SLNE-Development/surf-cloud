@@ -5,8 +5,10 @@ import io.netty.buffer.ByteBuf
 import kotlin.math.ceil
 
 /**
- * Utility object for encoding and decoding VarInt values from a ByteBuf.
- * VarInt is a variable-length integer representation commonly used in network protocols to save space.
+ * Utility object for encoding and decoding VarInt values using a space-efficient variable-length representation.
+ *
+ * VarInt is a common format in network protocols to represent integers compactly, with smaller values
+ * consuming fewer bytes. This implementation supports reading and writing VarInts to [ByteBuf].
  */
 object VarInt {
     private const val MAX_VARINT_SIZE = 5
@@ -18,28 +20,28 @@ object VarInt {
         IntArray(33) { if (it == 32) 1 else ceil((31.0 - (it - 1)) / DATA_BITS_PER_BYTE).toInt() }
 
     /**
-     * Gets the exact byte size needed to encode the given value as a VarInt.
+     * Calculates the number of bytes required to encode the given integer as a VarInt.
      *
      * @param value The integer value to encode.
-     * @return The number of bytes required to encode the given value as a VarInt.
+     * @return The number of bytes needed to represent the value as a VarInt.
      */
     fun getEncodedSize(value: Int): Int = varIntByteLengths[Integer.numberOfLeadingZeros(value)]
 
     /**
-     * Checks if the given byte has the continuation bit set.
+     * Determines if the given byte has the continuation bit set.
      *
      * @param byte The byte to check.
-     * @return True if the continuation bit is set, otherwise false.
+     * @return `true` if the continuation bit is set, otherwise `false`.
      */
     fun hasContinuationBit(byte: Byte): Boolean =
         (byte.toInt() and CONTINUATION_BIT_MASK) == CONTINUATION_BIT_MASK
 
     /**
-     * Reads a VarInt value from the given [ByteBuf].
+     * Decodes a VarInt from the specified [ByteBuf].
      *
-     * @param buf The [ByteBuf] to read the value from.
-     * @return The decoded VarInt value.
-     * @throws RuntimeException if the VarInt is too large to fit in an integer.
+     * @param buf The [ByteBuf] to read from.
+     * @return The decoded integer value.
+     * @throws RuntimeException If the VarInt exceeds the maximum size.
      */
     fun readVarInt(buf: ByteBuf): Int {
         var result = 0
@@ -57,10 +59,11 @@ object VarInt {
     }
 
     /**
-     * Writes the given value as a VarInt to the specified [ByteBuf].
+     * Encodes the given integer as a VarInt and writes it to the specified [ByteBuf].
      *
-     * @param buffer The [ByteBuf] to which the value will be written.
+     * @param buffer The [ByteBuf] to write to.
      * @param value The integer value to encode.
+     * @return The same [ByteBuf] instance for chaining.
      */
     fun writeVarInt(buffer: ByteBuf, value: Int): ByteBuf {
         // Handle one and two byte cases explicitly for improved performance in common cases.
@@ -78,11 +81,12 @@ object VarInt {
     }
 
     /**
-     * Writes the given value as a VarInt to the specified [ByteBuf] using the standard method.
-     * This method is used for values that cannot be encoded in one or two bytes.
+     * Encodes a larger integer value as a VarInt and writes it to the [ByteBuf].
+     * This method handles cases where more than two bytes are required for encoding.
      *
-     * @param buffer The [ByteBuf] to write the value to.
+     * @param buffer The [ByteBuf] to write to.
      * @param value The integer value to encode.
+     * @return The same [ByteBuf] instance for chaining.
      */
     private fun writeComplexVarInt(buffer: ByteBuf, value: Int): ByteBuf {
         var value = value

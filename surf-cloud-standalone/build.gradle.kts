@@ -35,6 +35,6 @@ tasks {
 
 kotlin {
     compilerOptions {
-        optIn.add("dev.slne.surf.cloud.api.server.server.plugin.InternalPluginApi")
+        optIn.add("dev.slne.surf.cloud.api.common.util.InternalApi")
     }
 }

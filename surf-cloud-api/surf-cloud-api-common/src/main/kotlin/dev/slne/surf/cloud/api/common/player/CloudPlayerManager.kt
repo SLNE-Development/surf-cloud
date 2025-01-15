@@ -6,34 +6,35 @@ import net.kyori.adventure.identity.Identity
 import org.jetbrains.annotations.ApiStatus
 import java.util.*
 
+/**
+ * Manages online players within the cloud infrastructure.
+ *
+ * This interface provides methods for retrieving player information by their UUID
+ * and integrates with the [CloudPlayer] system.
+ */
 @ApiStatus.NonExtendable
 interface CloudPlayerManager {
 
     /**
-     * Retrieves a player by their UUID. Returns `null` if the player is not online or if the provided UUID is `null`.
+     * Retrieves a player by their UUID.
      *
-     * @param uuid The UUID of the player to retrieve.
+     * @param uuid The UUID of the player to retrieve. If `null`, the operation will return `null`.
      * @return The [CloudPlayer] instance if the player is online, or `null` otherwise.
      */
     fun getPlayer(uuid: UUID?): CloudPlayer?
 
     companion object {
-        /**
-         * The singleton instance of the [CloudPlayerManager].
-         */
         val instance = requiredService<CloudPlayerManager>()
     }
 }
 
-/**
- * A global reference to the singleton [CloudPlayerManager] instance.
- */
 val playerManager get() = CloudPlayerManager.instance
 
 /**
- * Converts an [Audience] to its corresponding [CloudPlayer].
+ * Attempts to convert an [Audience] to its corresponding [CloudPlayer].
  *
- * @return The [CloudPlayer] if the [Audience] is a player,
+ * @receiver The [Audience] to convert.
+ * @return The [CloudPlayer] if the [Audience] represents a player,
  * or `null` if the [Audience] is not a player or cannot be resolved.
  */
 fun Audience?.toCloudPlayer(): CloudPlayer? {

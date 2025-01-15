@@ -34,11 +34,11 @@ class SurfCloudStandaloneInstance : SurfCloudCoreInstance(StandaloneNettyManager
         ServerEncryptionManager.init()
 
         PluginInitializerManager.load()
-        LaunchEntryPointHandler.enterBootstrappers()
     }
 
     override suspend fun bootstrap(data: BootstrapData) {
         super.bootstrap(data)
+        LaunchEntryPointHandler.enterBootstrappers()
     }
 
     override suspend fun onLoad() {
@@ -104,7 +104,7 @@ class SurfCloudStandaloneInstance : SurfCloudCoreInstance(StandaloneNettyManager
     }
 
     companion object {
-        fun get() = SurfCloudInstance.get() as SurfCloudStandaloneInstance
+        fun get() = SurfCloudInstance.instance as SurfCloudStandaloneInstance
     }
 }
 

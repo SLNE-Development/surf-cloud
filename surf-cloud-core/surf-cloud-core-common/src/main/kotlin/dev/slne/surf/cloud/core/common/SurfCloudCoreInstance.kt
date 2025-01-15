@@ -77,7 +77,9 @@ abstract class SurfCloudCoreInstance(private val nettyManager: NettyManager) : S
     private fun startSpringApplication() {
         log.atInfo().log("Starting Spring application...")
         try {
-            internalContext = startSpringApplication(SurfCloudMainApplication::class)
+            internalContext = startSpringApplication(SurfCloudMainApplication::class) {
+                listeners(NettyPacketProcessor)
+            }
         } catch (e: Throwable) {
             if (e is FatalSurfError || e is OutOfMemoryError) {
                 // Re-throw FatalSurfError and OutOfMemoryError immediately
@@ -148,7 +150,8 @@ abstract class SurfCloudCoreInstance(private val nettyManager: NettyManager) : S
     override fun startSpringApplication(
         applicationClass: Class<*>,
         classLoader: ClassLoader,
-        vararg parentClassLoader: ClassLoader
+        vararg parentClassLoader: ClassLoader,
+        customizer: SpringApplicationBuilder.() -> Unit
     ): ConfigurableApplicationContext {
         val joinClassLoader = JoinClassLoader(classLoader, parentClassLoader)
         return tempChangeSystemClassLoader(joinClassLoader) {
@@ -157,11 +160,12 @@ abstract class SurfCloudCoreInstance(private val nettyManager: NettyManager) : S
                 .bannerMode(Banner.Mode.CONSOLE)
                 .banner(SurfSpringBanner())
                 .profiles(springProfile)
-                .listeners(NettyPacketProcessor)
 
             if (internalContext != null) {
                 builder.parent(internalContext)
             }
+
+            customizer(builder)
 
             log.atInfo().log("Starting Spring application...")
             builder.run()

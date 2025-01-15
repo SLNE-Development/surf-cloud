@@ -4,11 +4,13 @@ import dev.slne.surf.cloud.api.common.netty.network.codec.streamCodec
 import dev.slne.surf.cloud.api.common.netty.protocol.buffer.SurfByteBuf
 import dev.slne.surf.cloud.api.common.player.CloudPlayer
 import dev.slne.surf.cloud.api.common.player.playerManager
+import dev.slne.surf.cloud.api.common.util.InternalApi
 import dev.slne.surf.cloud.api.common.util.mutableObjectSetOf
 import dev.slne.surf.cloud.api.common.util.synchronize
 import it.unimi.dsi.fastutil.objects.ObjectSet
 import java.util.*
 
+@InternalApi
 open class UserListImpl : UserList {
     companion object {
         val STREAM_CODEC = streamCodec<SurfByteBuf, UserListImpl>({ buf, list ->
@@ -63,6 +65,7 @@ open class UserListImpl : UserList {
     }
 }
 
+@InternalApi
 class MutableUserListImpl : UserListImpl(), MutableUserList {
     override fun add(element: CloudPlayer): Boolean {
         return add(element.uuid)

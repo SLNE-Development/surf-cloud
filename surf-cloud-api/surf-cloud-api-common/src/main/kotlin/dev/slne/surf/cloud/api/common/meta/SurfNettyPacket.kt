@@ -4,6 +4,13 @@ import dev.slne.surf.cloud.api.common.netty.network.ConnectionProtocol
 import dev.slne.surf.cloud.api.common.netty.network.protocol.PacketFlow
 import org.jetbrains.annotations.ApiStatus.Internal
 
+/**
+ * Annotation for marking a class as a Netty packet in the Surf Cloud application.
+ *
+ * @property id The unique identifier of the packet.
+ * @property flow The direction of the packet flow (e.g., client-to-server or server-to-client).
+ * @property protocols The supported connection protocols for the packet. Defaults to [ConnectionProtocol.RUNNING].
+ */
 @Target(AnnotationTarget.CLASS)
 @Retention(AnnotationRetention.RUNTIME)
 annotation class SurfNettyPacket(
@@ -12,10 +19,16 @@ annotation class SurfNettyPacket(
     @Internal vararg val protocols: ConnectionProtocol = [ConnectionProtocol.RUNNING]
 )
 
+/**
+ * Annotation for marking properties for packet codec handling in the Surf Cloud application.
+ */
 @Target(AnnotationTarget.PROPERTY)
 @Retention(AnnotationRetention.RUNTIME)
 annotation class PacketCodec
 
+/**
+ * Object containing default packet IDs for various operations in the Surf Cloud application.
+ */
 object DefaultIds {
 
     const val PROXIED_NETTY_PACKET = "cloud:proxied"

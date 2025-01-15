@@ -4,10 +4,16 @@ import dev.slne.surf.cloud.api.common.util.requiredService
 import it.unimi.dsi.fastutil.objects.ObjectList
 import org.jetbrains.annotations.ApiStatus.NonExtendable
 
+
 /**
- * Manages interactions with cloud servers within the infrastructure.
+ * Provides management and retrieval operations for cloud servers within the infrastructure.
  *
- * Provides methods for retrieving servers by various identifiers or categories.
+ * The `CloudServerManager` acts as a centralized interface for interacting with both backend servers
+ * (e.g., Paper) and proxy servers (e.g., Velocity). It enables querying servers by their identifiers,
+ * categories, or names and supports retrieving lists of servers grouped by category.
+ *
+ * @see CloudServer
+ * @see ProxyCloudServer
  */
 @NonExtendable
 interface CloudServerManager {

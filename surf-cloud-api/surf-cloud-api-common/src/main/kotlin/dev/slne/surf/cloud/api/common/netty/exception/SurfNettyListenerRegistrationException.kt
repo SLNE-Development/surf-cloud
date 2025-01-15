@@ -2,7 +2,9 @@ package dev.slne.surf.cloud.api.common.netty.exception
 
 import java.io.Serial
 
-
+/**
+ * Exception indicating a failure to register a Netty listener.
+ */
 class SurfNettyListenerRegistrationException : SurfNettyListenerException {
     constructor() : super()
     constructor(cause: Throwable?) : super(cause)

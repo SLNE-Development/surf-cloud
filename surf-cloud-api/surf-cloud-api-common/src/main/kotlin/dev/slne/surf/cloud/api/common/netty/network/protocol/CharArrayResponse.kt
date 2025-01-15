@@ -7,6 +7,11 @@ import dev.slne.surf.cloud.api.common.netty.packet.packetCodec
 import dev.slne.surf.cloud.api.common.netty.protocol.buffer.SurfByteBuf
 import it.unimi.dsi.fastutil.chars.CharCollection
 
+/**
+ * A Netty packet that represents a response containing a character array.
+ *
+ * @property value The character array being transmitted in the response.
+ */
 @SurfNettyPacket("char_array_response", PacketFlow.BIDIRECTIONAL)
 class CharArrayResponse(val value: CharArray) : ResponseNettyPacket() {
     companion object {

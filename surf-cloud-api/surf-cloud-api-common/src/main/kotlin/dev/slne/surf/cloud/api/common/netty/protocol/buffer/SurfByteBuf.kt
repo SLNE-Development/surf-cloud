@@ -44,7 +44,45 @@ private const val NUMBER_LONG: Byte = 3
 private const val NUMBER_FLOAT: Byte = 4
 private const val NUMBER_DOUBLE: Byte = 5
 
-class SurfByteBuf(source: ByteBuf) : WrappedByteBuf(source) {
+/**
+ * Provides utilities for encoding and decoding data into a [ByteBuf] for network communication.
+ *
+ * ### Overview
+ * The `SurfByteBuf` and its companion object offer a wide range of functionality to serialize and deserialize
+ * primitives, collections, enums, and complex objects. These utilities are tailored for the Surf Cloud application
+ * to ensure efficient and reliable data transmission.
+ *
+ * ### Key Features
+ * - **Primitive Encoding/Decoding**: Supports all standard primitives and unsigned variants.
+ * - **Collection Support**: Read and write lists, maps, arrays, and custom collections.
+ * - **Custom Serialization**: Read and write custom objects, including JSON-encoded structures.
+ * - **Enum Handling**: Specialized methods for working with enums and enum sets.
+ * - **Optional and Nullable Support**: Methods for handling `Optional` and nullable values.
+ * - **Integration with Netty**: Extensions for Netty's [ByteBuf] provide a seamless interface.
+ *
+ * ### Example Usage
+ * #### Encoding and Decoding a String
+ * ```kotlin
+ * val buffer = Unpooled.buffer()
+ * SurfByteBuf.writeUtf(buffer, "Hello, Surf Cloud!")
+ * val result = SurfByteBuf.readUtf(buffer)
+ * println(result) // Output: "Hello, Surf Cloud!"
+ * ```
+ *
+ * #### Working with Collections
+ * ```kotlin
+ * val buffer = Unpooled.buffer()
+ * val numbers = listOf(1, 2, 3, 4, 5)
+ * SurfByteBuf.writeCollection(buffer, numbers) { buf, value -> buf.writeVarInt(value) }
+ * val decodedNumbers = SurfByteBuf.readCollection(buffer, { ArrayList(it) }) { buf -> buf.readVarInt() }
+ * println(decodedNumbers) // Output: [1, 2, 3, 4, 5]
+ * ```
+ *
+ * ### Extensibility
+ * Developers can extend the functionality by using the provided codecs or integrating new types.
+ * Custom objects can leverage `ExtraCodecs` or implement their serialization logic within the framework.
+ */
+open class SurfByteBuf(source: ByteBuf) : WrappedByteBuf(source) {
     companion object {
         private val GSON = Gson()
 

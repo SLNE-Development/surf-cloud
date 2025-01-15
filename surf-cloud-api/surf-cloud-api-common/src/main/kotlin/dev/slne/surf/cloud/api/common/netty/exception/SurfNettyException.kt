@@ -2,7 +2,9 @@ package dev.slne.surf.cloud.api.common.netty.exception
 
 import java.io.Serial
 
-
+/**
+ * Base exception for Netty-related errors in the Surf Cloud application.
+ */
 abstract class SurfNettyException : RuntimeException {
     constructor() : super()
     constructor(cause: Throwable?) : super(cause)

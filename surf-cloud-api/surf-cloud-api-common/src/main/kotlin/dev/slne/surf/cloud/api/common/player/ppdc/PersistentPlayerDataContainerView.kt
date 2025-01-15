@@ -7,100 +7,67 @@ import org.jetbrains.annotations.ApiStatus
 import org.jetbrains.annotations.Unmodifiable
 
 /**
- * This represents a view of a persistent data container. No
- * methods on this interface mutate the container.
+ * Represents a read-only view of a persistent player data container.
  *
- * @see PersistentDataContainer
+ * Provides methods to access metadata associated with a [dev.slne.surf.cloud.api.common.player.CloudPlayer],
+ * check for the existence of data, and retrieve data using defined types.
+ * The container does not support modifications directly through this interface.
  */
 @ApiStatus.NonExtendable
 interface PersistentPlayerDataContainerView {
 
     /**
-     * Returns if the persistent metadata provider has metadata registered
-     * matching the provided parameters.
+     * Checks if metadata exists for the given key and type.
      *
-     * This method will only return true if the found value has the same primitive
-     * data type as the provided key.
-     *
-     * Storing a value using a custom [PersistentPlayerDataType] implementation
-     * will not store the complex data type. Therefore, storing a UUID (by
-     * storing a [ByteArray] will match `has("key" ,
-     * [PersistentPlayerDataType.BYTE_ARRAY])`. Likewise, a stored [ByteArray] will
-     * always match your UUID [PersistentPlayerDataType] even if it is not 16
-     * bytes long.
-     *
-     * @param key the key the value is stored under
-     * @param type the type the primitive stored value has to match
-     * @param <P> the generic type of the stored primitive
-     * @param <C> the generic type of the eventually created complex object
-     * @return if a value with the provided key and type exists
-     * @throws IllegalArgumentException if the key to look up is null
-     * @throws IllegalArgumentException if the type to cast the found object to is null
+     * @param key The key under which the metadata is stored.
+     * @param type The data type to match against the stored primitive.
+     * @return `true` if metadata exists with the given key and type, otherwise `false`.
      */
-    fun <P: Any, C> has(key: Key, type: PersistentPlayerDataType<P, C>): Boolean
+
+    fun <P : Any, C> has(key: Key, type: PersistentPlayerDataType<P, C>): Boolean
 
     /**
-     * Returns if the persistent metadata provider has metadata registered matching
-     * the provided parameters.
+     * Checks if metadata exists for the given key, regardless of type.
      *
-     * This method will return true as long as a value with the given key exists,
-     * regardless of its type.
-     *
-     * This method is only usable for custom object keys. Overwriting existing tags,
-     * like the display name, will not work as the values are stored using your
-     * namespace.
-     *
-     * @param key the key the value is stored under
-     * @return if a value with the provided key exists
-     * @throws IllegalArgumentException if the key to look up is null
+     * @param key The key under which the metadata is stored.
+     * @return `true` if metadata exists with the given key, otherwise `false`.
      */
     fun has(key: Key): Boolean
 
     /**
-     * Returns the metadata value that is stored on the
-     * [dev.slne.surf.cloud.api.common.player.CloudPlayer] instance.
+     * Retrieves metadata stored under the given key and type.
      *
-     * @param key the key to look up in the custom tag map
-     * @param type the type the value must have and will be casted to
-     * @param <P> the generic type of the stored primitive
-     * @param <C> the generic type of the eventually created complex object
-     * @return the value or `null` if no value was mapped under the given
-     * value
-     * @throws IllegalArgumentException if the key to look up is null
-     * @throws IllegalArgumentException if the type to cast the found object to is
-     * null
-     * @throws IllegalArgumentException if a value exists under the given key,
-     * but cannot be accessed using the given type
-     * @throws IllegalArgumentException if no suitable adapter was found for
-     * the [PersistentPlayerDataType.complexType] of the provided
+     * @param key The key under which the metadata is stored.
+     * @param type The data type to cast the stored value to.
+     * @return The metadata value, or `null` if no matching data exists.
      */
-    fun <P: Any, C> get(key: Key, type: PersistentPlayerDataType<P, C>): C?
+    fun <P : Any, C> get(key: Key, type: PersistentPlayerDataType<P, C>): C?
 
     /**
-     * Get the set of keys present on this [PersistentPlayerDataContainerView]
-     * instance.
+     * Retrieves all keys present in this container.
      *
-     * Any changes made to the returned set will not be reflected on the
-     * instance.
-     *
-     * @return the key set
+     * @return An unmodifiable set of keys.
      */
     val keys: @Unmodifiable ObjectSet<Key>
 
     /**
-     * Returns if the container instance is empty, therefore, has no entries
-     * inside it.
+     * Checks if the container is empty.
      *
-     * @return the boolean
+     * @return `true` if the container has no entries, otherwise `false`.
      */
     val empty: Boolean
 
     /**
-     * Returns the adapter context this tag container uses.
+     * Retrieves the adapter context used by this container.
      *
-     * @return the tag context
+     * @return The [PersistentPlayerDataAdapterContext] associated with this container.
      */
     val adapterContext: PersistentPlayerDataAdapterContext
 
+    /**
+     * Serializes the container's contents into a [SurfByteBuf].
+     *
+     * @param buf The buffer to write to.
+     */
     fun writeToBuf(buf: SurfByteBuf)
 }

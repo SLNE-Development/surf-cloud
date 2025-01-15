@@ -8,8 +8,8 @@ import org.jetbrains.annotations.ApiStatus
 /**
  * Represents a server within the cloud infrastructure.
  *
- * Provides metadata about the server, access to its player list, and operations
- * for managing players and server behavior.
+ * This interface provides access to metadata about the server, its player list,
+ * and methods for managing player transfers and server operations.
  */
 @ApiStatus.NonExtendable
 interface CommonCloudServer : ForwardingAudience {
@@ -45,6 +45,11 @@ interface CommonCloudServer : ForwardingAudience {
     val emptySlots: Int
         get() = maxPlayerCount - currentPlayerCount
 
+    /**
+     * Checks if the server has available slots for new players.
+     *
+     * @return `true` if the server has empty slots, otherwise `false`.
+     */
     fun hasEmptySlots(): Boolean = emptySlots > 0
 
     /**
@@ -53,7 +58,7 @@ interface CommonCloudServer : ForwardingAudience {
     val state: ServerState
 
     /**
-     * The list of users currently on the server.
+     * The list of players currently on the server.
      */
     val users: UserList
 
@@ -67,26 +72,26 @@ interface CommonCloudServer : ForwardingAudience {
     /**
      * Sends all players on this server to the specified target server.
      *
-     * This operation suspends until all players have been transferred.
+     * This operation suspends until all players have been successfully transferred.
      *
-     * @param server The target server to send the players to.
+     * @param server The target server to transfer players to.
      */
     suspend fun sendAll(server: CommonCloudServer)
 
     /**
-     * Sends players matching the specified filter on this server to the target server.
+     * Sends a subset of players, filtered by a condition, to the specified target server.
      *
-     * This operation suspends until all matching players have been transferred.
+     * This operation suspends until all matching players have been successfully transferred.
      *
-     * @param server The target server to send the players to.
-     * @param filter A filter function to determine which players should be sent.
+     * @param server The target server to transfer players to.
+     * @param filter A filter function to determine which players to transfer.
      */
     suspend fun sendAll(server: CommonCloudServer, filter: (CloudPlayer) -> Boolean)
 
     /**
      * Shuts down the server.
      *
-     * This will terminate all processes associated with the server.
+     * This terminates all processes and disconnects all players.
      */
     fun shutdown()
 }

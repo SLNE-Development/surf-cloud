@@ -3,7 +3,6 @@
 
 plugins {
     java
-//    id("io.spring.dependency-management")
 }
 
 group = "dev.slne.surf.cloud"

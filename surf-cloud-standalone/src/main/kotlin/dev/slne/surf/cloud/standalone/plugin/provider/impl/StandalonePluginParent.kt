@@ -45,7 +45,7 @@ class StandalonePluginParent(
         var lastProvided: StandalonePluginBootstrap? = null
             private set
 
-        override fun createInstance(): StandalonePluginBootstrap {
+        override suspend fun createInstance(): StandalonePluginBootstrap {
             val bootstrap = ProviderLoader.loadClass(
                 meta.bootstrapper!!,
                 StandalonePluginBootstrap::class.java,
@@ -82,7 +82,7 @@ class StandalonePluginParent(
         override val source = path
         override val file = jarFile
         override val meta = this@StandalonePluginParent.meta
-        override fun createInstance(): StandalonePlugin {
+        override suspend fun createInstance(): StandalonePlugin {
             val bootstrap = this.bootstrapProvider?.lastProvided
 
             return try {

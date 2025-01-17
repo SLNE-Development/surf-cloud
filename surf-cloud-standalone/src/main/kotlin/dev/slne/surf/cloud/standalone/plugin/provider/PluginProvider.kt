@@ -16,7 +16,7 @@ interface PluginProvider<T> {
     val file: JarFile
     val meta: PluginMeta
 
-    fun createInstance(): T
+    suspend fun createInstance(): T
     fun createConfiguration(toLoad: Map<String, PluginProvider<*>>): LoadOrderConfiguration
 
     /**

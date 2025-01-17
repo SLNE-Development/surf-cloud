@@ -112,6 +112,11 @@ public class Main {
   private static URL[] getLibraries(JarFile file) {
     final ZipEntry reposEntry = file.getEntry("repos");
     final ZipEntry dependenciesEntry = file.getEntry("dependencies");
+
+    if (reposEntry == null || dependenciesEntry == null) {
+      return new URL[0];
+    }
+
     final LibraryLoader loader = new LibraryLoader();
 
     try {

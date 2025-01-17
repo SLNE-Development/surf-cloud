@@ -4,9 +4,16 @@ package dev.slne.surf.cloud.api.server.plugin
 
 import dev.slne.surf.cloud.api.common.util.InternalApi
 import dev.slne.surf.cloud.api.server.plugin.configuration.PluginMeta
+import dev.slne.surf.cloud.api.server.plugin.coroutine.CoroutineManager
 import dev.slne.surf.cloud.api.server.plugin.provider.classloader.SpringPluginClassloader
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger
 import java.nio.file.Path
+import kotlin.coroutines.CoroutineContext
 import kotlin.reflect.KClass
 
 abstract class StandalonePlugin {
@@ -20,6 +27,8 @@ abstract class StandalonePlugin {
         private set
 
     val logger = ComponentLogger.logger()
+    val scope get() = CoroutineManager.instance.getCoroutineSession(this).scope
+    val dispatcher get() = CoroutineManager.instance.getCoroutineSession(this).dispatcher
 
     init {
         val classLoader = this::class.java.classLoader
@@ -40,6 +49,7 @@ abstract class StandalonePlugin {
         this.meta = meta
         this.dataFolder = dataFolder
         this.classLoader = classLoader
+        CoroutineManager.instance.setupCoroutineSession(this)
     }
 
     @InternalApi
@@ -52,6 +62,18 @@ abstract class StandalonePlugin {
         } else {
             disable()
         }
+    }
+
+    fun launch(
+        context: CoroutineContext = dispatcher,
+        start: CoroutineStart = CoroutineStart.DEFAULT,
+        block: suspend CoroutineScope.() -> Unit
+    ): Job {
+        if (!scope.isActive) {
+            return Job()
+        }
+
+        return scope.launch(context, start, block)
     }
 
     companion object {

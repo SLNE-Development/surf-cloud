@@ -72,19 +72,24 @@ class StringIdDispatchCodec<B : ByteBuf, V, T> private constructor(
             val idToTypeMap = mutableObject2ObjectMapOf<ByteArray, Entry<B, V, T>>(entries.size)
             val finalTypeToIdMapper = typeToIdMapper
 
-            val tempBuf = ByteBufAllocator.DEFAULT.buffer()
-            for (entry in this.entries) {
-                val type = entry.type
-                val id = finalTypeToIdMapper(type)
+            val tempBuf = ByteBufAllocator.DEFAULT.heapBuffer()
+            try {
+                for (entry in this.entries) {
+                    val type = entry.type
+                    val id = finalTypeToIdMapper(type)
 
-                tempBuf.writeUtf(id)
-                val serializedId = tempBuf.readBytes(tempBuf.readableBytes()).array()
+                    tempBuf.writeUtf(id)
+                    val serializedId = ByteArray(tempBuf.readableBytes())
+                    tempBuf.readBytes(serializedId)
 
-                val previousValue = typeToIdMap.putIfAbsent(type, serializedId)
-                check(previousValue == null) { "Duplicate registration for type $type" }
-                idToTypeMap.put(serializedId, entry)
+                    val previousValue = typeToIdMap.putIfAbsent(type, serializedId)
+                    check(previousValue == null) { "Duplicate registration for type $type" }
+                    idToTypeMap.put(serializedId, entry)
 
-                tempBuf.clear()
+                    tempBuf.clear()
+                }
+            } finally {
+                tempBuf.release()
             }
 
             return StringIdDispatchCodec(

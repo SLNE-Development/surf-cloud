@@ -57,6 +57,8 @@ interface RunningServerPacketListener : ServerCommonPacketListener, TickablePack
     fun handleDisconnectPlayer(packet: DisconnectPlayerPacket)
 
     suspend fun handleTeleportPlayer(packet: TeleportPlayerPacket)
+
+    suspend fun handleShutdownServer(packet: ServerboundShutdownServerPacket)
     
     fun handlePacket(packet: NettyPacket)
 }

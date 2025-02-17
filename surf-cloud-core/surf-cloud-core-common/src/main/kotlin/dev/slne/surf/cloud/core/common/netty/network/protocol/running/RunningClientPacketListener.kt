@@ -65,5 +65,9 @@ interface RunningClientPacketListener : ClientCommonPacketListener {
 
     fun handleRegisterCloudServersToProxy(packet: ClientboundRegisterCloudServersToProxyPacket)
 
+    fun handleTriggerShutdown(packet: ClientboundTriggerShutdownPacket)
+
+    suspend fun handleBatchUpdateServer(packet: ClientboundBatchUpdateServer)
+
     fun handlePacket(packet: NettyPacket)
 }

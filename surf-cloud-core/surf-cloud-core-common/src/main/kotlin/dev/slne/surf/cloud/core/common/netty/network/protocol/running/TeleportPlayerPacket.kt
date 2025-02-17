@@ -7,9 +7,9 @@ import dev.slne.surf.cloud.api.common.netty.packet.RespondingNettyPacket
 import dev.slne.surf.cloud.api.common.netty.packet.packetCodec
 import dev.slne.surf.cloud.api.common.netty.protocol.buffer.SurfByteBuf
 import dev.slne.surf.cloud.api.common.netty.protocol.buffer.readEnum
-import dev.slne.surf.cloud.api.common.util.position.FineLocation
-import dev.slne.surf.cloud.api.common.util.position.FineTeleportCause
-import dev.slne.surf.cloud.api.common.util.position.FineTeleportFlag
+import dev.slne.surf.cloud.api.common.player.teleport.TeleportLocation
+import dev.slne.surf.cloud.api.common.player.teleport.TeleportCause
+import dev.slne.surf.cloud.api.common.player.teleport.TeleportFlag
 import java.util.*
 
 @SurfNettyPacket(DefaultIds.BIDIRECTIONAL_TELEPORT_PLAYER, PacketFlow.BIDIRECTIONAL)
@@ -23,15 +23,15 @@ class TeleportPlayerPacket : RespondingNettyPacket<TeleportPlayerResultPacket> {
     }
 
     val uuid: UUID
-    val location: FineLocation
-    val teleportCause: FineTeleportCause
-    val flags: Array<out FineTeleportFlag>
+    val location: TeleportLocation
+    val teleportCause: TeleportCause
+    val flags: Array<out TeleportFlag>
 
     constructor(
         uuid: UUID,
-        location: FineLocation,
-        teleportCause: FineTeleportCause,
-        vararg flags: FineTeleportFlag
+        location: TeleportLocation,
+        teleportCause: TeleportCause,
+        vararg flags: TeleportFlag
     ) {
         this.uuid = uuid
         this.location = location
@@ -41,14 +41,14 @@ class TeleportPlayerPacket : RespondingNettyPacket<TeleportPlayerResultPacket> {
 
     private constructor(buf: SurfByteBuf) {
         this.uuid = buf.readUuid()
-        this.location = FineLocation.STREAM_CODEC.decode(buf)
+        this.location = TeleportLocation.STREAM_CODEC.decode(buf)
         this.flags = buf.readArray { it.readEnum() }
         this.teleportCause = buf.readEnum()
     }
 
     private fun write(buf: SurfByteBuf) {
         buf.writeUuid(uuid)
-        FineLocation.STREAM_CODEC.encode(buf, location)
+        TeleportLocation.STREAM_CODEC.encode(buf, location)
         buf.writeArray(flags, SurfByteBuf::writeEnum)
         buf.writeEnum(teleportCause)
     }

@@ -42,7 +42,7 @@ class VelocityMain @Inject constructor(
                 velocityCloudInstance.onLoad()
             }
         } catch (e: Throwable) {
-            e.handleEventuallyFatalError { exitProcess(it.exitCode) }
+            e.handleEventuallyFatalError({ exitProcess(it.exitCode) })
         }
     }
 
@@ -52,7 +52,7 @@ class VelocityMain @Inject constructor(
             velocityCloudInstance.onEnable()
             velocityCloudInstance.afterStart()
         } catch (e: Throwable) {
-            e.handleEventuallyFatalError { exitProcess(it.exitCode) }
+            e.handleEventuallyFatalError({ exitProcess(it.exitCode) })
         }
     }
 
@@ -61,7 +61,7 @@ class VelocityMain @Inject constructor(
         try {
             velocityCloudInstance.onDisable()
         } catch (e: Throwable) {
-            e.handleEventuallyFatalError { }
+            e.handleEventuallyFatalError({})
         }
     }
 

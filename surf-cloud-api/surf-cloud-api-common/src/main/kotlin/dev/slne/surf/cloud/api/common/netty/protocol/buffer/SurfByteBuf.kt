@@ -31,10 +31,8 @@ import java.net.InetSocketAddress
 import java.net.URI
 import java.util.*
 import java.util.function.Consumer
-import kotlin.Throws
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
-import kotlin.experimental.and
 import kotlin.reflect.KClass
 
 private const val NUMBER_BYTE: Byte = 0
@@ -623,11 +621,11 @@ open class SurfByteBuf(source: ByteBuf) : WrappedByteBuf(source) {
         fun <B : ByteBuf> readInetSocketAddress(buf: B) =
             createUnresolvedInetSocketAddress(readUtf(buf), buf.readVarInt())
 
-        fun <B: ByteBuf> writeCompoundTag(buf: B, tag: CompoundTag) {
+        fun <B : ByteBuf> writeCompoundTag(buf: B, tag: CompoundTag) {
             ExtraCodecs.COMPOUND_TAG_CODEC.encode(buf, tag)
         }
 
-        fun <B: ByteBuf> readCompoundTag(buf: B) = ExtraCodecs.COMPOUND_TAG_CODEC.decode(buf)
+        fun <B : ByteBuf> readCompoundTag(buf: B) = ExtraCodecs.COMPOUND_TAG_CODEC.decode(buf)
     }
 
 
@@ -1022,3 +1020,22 @@ fun <B : ByteBuf> B.writeCompoundTag(tag: CompoundTag) = SurfByteBuf.writeCompou
 
 fun ByteBuf.wrap() = SurfByteBuf(this)
 // endregion
+
+/**
+ * Reads a byte array from the buffer.
+ * If the buffer has an array, it will return the array directly.
+ * Otherwise, it will copy the bytes into a new array.
+ *
+ * @return The byte array
+ * @receiver The buffer
+ */
+fun ByteBuf.toByteArraySafe(): ByteArray {
+    if (hasArray()) {
+        return array()
+    }
+
+    val bytes = ByteArray(readableBytes())
+    getBytes(readerIndex(), bytes)
+
+    return bytes
+}

@@ -2,6 +2,7 @@ package dev.slne.surf.cloud.core.client.netty
 
 import dev.slne.surf.cloud.core.client.netty.network.PlatformSpecificPacketListenerExtension
 import dev.slne.surf.cloud.core.common.netty.NettyManager
+import kotlinx.coroutines.runBlocking
 
 abstract class NettyCommonClientManager(
     val proxy: Boolean,
@@ -23,7 +24,7 @@ abstract class NettyCommonClientManager(
         nettyClient.finalize()
     }
 
-    override fun stop() {
+    override fun stop() = runBlocking {
         super.stop()
         nettyClient.stop()
     }

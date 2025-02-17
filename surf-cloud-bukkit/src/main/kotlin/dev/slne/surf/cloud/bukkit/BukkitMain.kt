@@ -4,11 +4,15 @@ import com.github.shynixn.mccoroutine.folia.SuspendingJavaPlugin
 import com.github.shynixn.mccoroutine.folia.globalRegionDispatcher
 import com.github.shynixn.mccoroutine.folia.launch
 import com.github.shynixn.mccoroutine.folia.ticks
+import dev.jorel.commandapi.CommandAPIBukkit
+import dev.jorel.commandapi.CommandAPICommand
+import dev.jorel.commandapi.arguments.Argument
+import dev.jorel.commandapi.executors.NativeCommandExecutor
 import dev.jorel.commandapi.kotlindsl.*
+import dev.slne.surf.cloud.api.common.player.teleport.TeleportCause
+import dev.slne.surf.cloud.api.common.player.teleport.fineLocation
 import dev.slne.surf.cloud.api.common.player.toCloudPlayer
 import dev.slne.surf.cloud.api.common.server.serverManager
-import dev.slne.surf.cloud.api.common.util.position.FineTeleportCause
-import dev.slne.surf.cloud.api.common.util.position.fineLocation
 import dev.slne.surf.cloud.bukkit.player.BukkitClientCloudPlayerImpl
 import dev.slne.surf.cloud.core.common.handleEventuallyFatalError
 import dev.slne.surf.surfapi.bukkit.api.event.listen
@@ -20,13 +24,15 @@ import org.bukkit.Location
 import org.bukkit.NamespacedKey
 import org.bukkit.entity.Player
 import org.bukkit.event.server.ServerLoadEvent
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.contract
 
 class BukkitMain : SuspendingJavaPlugin() {
     override suspend fun onLoadAsync() {
         try {
             bukkitCloudInstance.onLoad()
         } catch (t: Throwable) {
-            t.handleEventuallyFatalError { Bukkit.shutdown() }
+            t.handleEventuallyFatalError({ Bukkit.shutdown() })
         }
     }
 
@@ -34,7 +40,7 @@ class BukkitMain : SuspendingJavaPlugin() {
         try {
             bukkitCloudInstance.onEnable()
         } catch (t: Throwable) {
-            t.handleEventuallyFatalError { Bukkit.shutdown() }
+            t.handleEventuallyFatalError({ Bukkit.shutdown() })
         }
 
         var serverLoaded = false
@@ -53,7 +59,7 @@ class BukkitMain : SuspendingJavaPlugin() {
             try {
                 bukkitCloudInstance.afterStart()
             } catch (t: Throwable) {
-                t.handleEventuallyFatalError { Bukkit.shutdown() }
+                t.handleEventuallyFatalError({ Bukkit.shutdown() })
             }
         }
 
@@ -174,24 +180,55 @@ class BukkitMain : SuspendingJavaPlugin() {
                 )
 
                 plugin.launch {
-                    target.toCloudPlayer()?.teleport(fineLocation, FineTeleportCause.COMMAND)
+                    target.toCloudPlayer()?.teleport(fineLocation, TeleportCause.COMMAND)
 
                     player.sendMessage(
                         Component.text(
-                            "Deported player ${target.name} to ${location}",
+                            "Deported player ${target.name} to $location",
                             NamedTextColor.GREEN
                         )
                     )
                 }
             }
         }
+
+        commandAPICommand("cshutdown") {
+            longArgument("id")
+            anyExecutor { sender, args ->
+                val id: Long by args
+                launch {
+                    val server = serverManager.retrieveServerById(id)
+                    requireCommand(server != null) { Component.text("Server with id $id not found") }
+
+                    server.shutdown()
+                }
+            }
+        }
+    }
+
+    @OptIn(ExperimentalContracts::class)
+    private fun requireCommand(
+        condition: Boolean,
+        message: () -> Component
+    ) { // TODO: 20.01.2025 20:51 - move to surf-api
+        contract {
+            returns() implies condition
+        }
+
+        if (!condition) {
+            failCommand(message)
+        }
+    }
+
+    private fun failCommand(message: () -> Component): Nothing { // TODO: 20.01.2025 20:51 - move to surf-api
+        throw CommandAPIBukkit.failWithAdventureComponent(message)
     }
 
     override suspend fun onDisableAsync() {
         try {
             bukkitCloudInstance.onDisable()
         } catch (t: Throwable) {
-            t.handleEventuallyFatalError { }
+            t.handleEventuallyFatalError({ })
         }
     }
 

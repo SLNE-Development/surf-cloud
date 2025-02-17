@@ -3,18 +3,17 @@ package dev.slne.surf.cloud.standalone.player
 import com.google.auto.service.AutoService
 import dev.slne.surf.cloud.api.common.player.CloudPlayerManager
 import dev.slne.surf.cloud.api.common.util.logger
+import dev.slne.surf.cloud.api.server.export.PlayerDataExport
 import dev.slne.surf.cloud.core.common.coroutines.PlayerDataSaveScope
 import dev.slne.surf.cloud.core.common.player.CloudPlayerManagerImpl
+import dev.slne.surf.cloud.core.common.player.playerManagerImpl
 import dev.slne.surf.cloud.core.common.util.checkInstantiationByServiceLoader
 import dev.slne.surf.cloud.standalone.persistent.PlayerDataStorage
 import dev.slne.surf.cloud.standalone.server.StandaloneCloudServerImpl
 import dev.slne.surf.cloud.standalone.server.StandaloneProxyCloudServerImpl
 import dev.slne.surf.cloud.standalone.server.asStandaloneServer
 import dev.slne.surf.cloud.standalone.server.serverManagerImpl
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
 import java.util.*
 import kotlin.time.Duration.Companion.minutes
 
@@ -27,8 +26,13 @@ class StandaloneCloudPlayerManagerImpl : CloudPlayerManagerImpl<StandaloneCloudP
         PlayerDataSaveScope.launch { createPlayerDataSaveTask() }
     }
 
-    private suspend fun createPlayerDataSaveTask() {
-        while (true) {
+//    override fun terminate() = runBlocking {
+//        super.terminate()
+//        saveJob.cancelAndJoin()
+//    }
+
+    private suspend fun createPlayerDataSaveTask() = coroutineScope {
+        while (isActive) {
             delay(3.minutes)
             forEachPlayer { PlayerDataStorage.save(it) }
         }
@@ -125,8 +129,18 @@ class StandaloneCloudPlayerManagerImpl : CloudPlayerManagerImpl<StandaloneCloudP
 
     private suspend fun Long.toServer() = serverManagerImpl.retrieveServerById(this)
 
+    suspend fun exportPlayerData(uuid: UUID): PlayerDataExport {
+
+    }
+
+    suspend fun deleteNotInterestingPlayerData(uuid: UUID) {
+
+    }
+
     private fun logServerNotFound(uid: Long, player: StandaloneCloudPlayerImpl) {
         log.atWarning()
             .log("Could not find server with id $uid for player ${player.uuid}")
     }
 }
+
+val standalonePlayerManagerImpl get() = playerManagerImpl as StandaloneCloudPlayerManagerImpl

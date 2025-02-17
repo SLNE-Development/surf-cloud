@@ -15,10 +15,6 @@ inline fun <API : LoggingApi<API>> LoggingApi<API>.logIf(
     condition: () -> Boolean,
     logOperation: LoggingApi<API>.() -> Unit
 ) {
-    contract {
-        callsInPlace(logOperation, InvocationKind.AT_MOST_ONCE)
-    }
-
     if (condition()) {
         logOperation()
     }

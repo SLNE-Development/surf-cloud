@@ -1,8 +1,14 @@
 package dev.slne.surf.cloud.api.common.util.nbt
 
+import net.querz.nbt.io.NBTDeserializer
+import net.querz.nbt.io.NBTSerializer
+import net.querz.nbt.io.NamedTag
 import net.querz.nbt.tag.CompoundTag
 import net.querz.nbt.tag.ListTag
 import net.querz.nbt.tag.Tag
+import java.nio.file.Path
+import kotlin.io.path.inputStream
+import kotlin.io.path.outputStream
 
 /**
  * Extension function to put a tag into a compound tag.
@@ -37,3 +43,18 @@ fun ListTag<*>.getCompound(index: Int): CompoundTag {
 
     return CompoundTag()
 }
+
+fun Tag<*>.writeToPath(path: Path, compressed: Boolean = true) {
+    val tag = NamedTag(null, this)
+    tag.writeToPath(path, compressed)
+}
+
+fun NamedTag.writeToPath(path: Path, compressed: Boolean = true) {
+    path.outputStream().use { stream -> NBTSerializer(compressed).toStream(this, stream) }
+}
+
+fun Path.readTag(compressed: Boolean = true): NamedTag =
+    inputStream().use { stream -> NBTDeserializer(compressed).fromStream(stream) }
+
+fun Path.readCompoundTag(compressed: Boolean = true): CompoundTag =
+    readTag(compressed).tag as? CompoundTag ?: error("Expected a compound tag")

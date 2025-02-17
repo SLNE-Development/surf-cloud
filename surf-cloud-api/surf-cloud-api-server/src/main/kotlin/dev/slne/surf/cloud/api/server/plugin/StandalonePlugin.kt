@@ -3,16 +3,14 @@
 package dev.slne.surf.cloud.api.server.plugin
 
 import dev.slne.surf.cloud.api.common.util.InternalApi
+import dev.slne.surf.cloud.api.server.export.PlayerDataExport
 import dev.slne.surf.cloud.api.server.plugin.configuration.PluginMeta
 import dev.slne.surf.cloud.api.server.plugin.coroutine.CoroutineManager
 import dev.slne.surf.cloud.api.server.plugin.provider.classloader.SpringPluginClassloader
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.CoroutineStart
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.isActive
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger
 import java.nio.file.Path
+import java.util.*
 import kotlin.coroutines.CoroutineContext
 import kotlin.reflect.KClass
 
@@ -26,7 +24,7 @@ abstract class StandalonePlugin {
     lateinit var classLoader: ClassLoader
         private set
 
-    val logger = ComponentLogger.logger()
+    val logger = ComponentLogger.logger(javaClass)
     val scope get() = CoroutineManager.instance.getCoroutineSession(this).scope
     val dispatcher get() = CoroutineManager.instance.getCoroutineSession(this).dispatcher
 
@@ -39,6 +37,8 @@ abstract class StandalonePlugin {
     abstract suspend fun load()
     abstract suspend fun enable()
     abstract suspend fun disable()
+    abstract suspend fun exportPlayerData(uuid: UUID): PlayerDataExport
+    abstract suspend fun deleteNotInterestingPlayerData(uuid: UUID)
 
     @InternalApi
     fun init(

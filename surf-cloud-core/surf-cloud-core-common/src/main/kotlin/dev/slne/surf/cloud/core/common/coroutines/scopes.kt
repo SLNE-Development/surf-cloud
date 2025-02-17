@@ -1,6 +1,7 @@
 package dev.slne.surf.cloud.core.common.coroutines
 
 import dev.slne.surf.cloud.api.common.util.logger
+import dev.slne.surf.cloud.api.common.util.mutableObjectListOf
 import dev.slne.surf.cloud.api.common.util.threadFactory
 import kotlinx.coroutines.*
 import java.util.concurrent.Executors
@@ -9,7 +10,19 @@ abstract class BaseScope(
     dispatcher: CoroutineDispatcher,
     private val name: String
 ) : CoroutineScope {
+    companion object {
+        private val scopes = mutableObjectListOf<BaseScope>()
+        fun terminateAll() {
+            scopes.forEach { it.cancel() }
+        }
+    }
+
     protected val log = logger()
+
+    init {
+        scopes.add(this)
+    }
+
     override val coroutineContext = dispatcher + CoroutineName(name) + SupervisorJob() +
             CoroutineExceptionHandler { context, throwable ->
                 val coroutineName = context[CoroutineName]?.name ?: "Unnamed Coroutine"
@@ -19,7 +32,7 @@ abstract class BaseScope(
             }
 }
 
-object PacketHandlerScope: BaseScope(
+object PacketHandlerScope : BaseScope(
     dispatcher = Dispatchers.Default,
     name = "netty-listener"
 )
@@ -64,4 +77,35 @@ object PlayerDataSaveScope : BaseScope(
         daemon(false)
     }).asCoroutineDispatcher(),
     name = "player-data-save"
+)
+
+object PlayerBatchTransferScope : BaseScope(
+    dispatcher = Executors.newSingleThreadExecutor(threadFactory {
+        nameFormat("player-batch-transfer-thread-%d")
+        daemon(false)
+    }).asCoroutineDispatcher(),
+    name = "player-batch-transfer"
+)
+
+object ServerShutdownScope : BaseScope(
+    dispatcher = Executors.newSingleThreadExecutor(threadFactory {
+        nameFormat("server-shutdown-thread-%d")
+        daemon(false)
+    }).asCoroutineDispatcher(),
+    name = "server-shutdown"
+)
+
+object ConsoleCommandHandlerScope : BaseScope(
+    dispatcher = Dispatchers.IO,
+    name = "console-command-handler"
+)
+
+object ConsoleCommandInputScope : BaseScope(
+    dispatcher = Dispatchers.IO,
+    name = "Server console handler"
+)
+
+object KtorScope : BaseScope(
+    dispatcher = Dispatchers.IO,
+    name = "ktor"
 )

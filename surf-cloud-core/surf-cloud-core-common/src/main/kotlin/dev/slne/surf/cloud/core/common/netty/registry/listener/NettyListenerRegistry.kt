@@ -2,7 +2,8 @@ package dev.slne.surf.cloud.core.common.netty.registry.listener
 
 import dev.slne.surf.cloud.api.common.netty.exception.SurfNettyListenerRegistrationException
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
-import dev.slne.surf.cloud.core.common.netty.protocol.packet.NettyPacketInfo
+import dev.slne.surf.cloud.api.common.netty.packet.NettyPacketInfo
+import dev.slne.surf.cloud.api.common.util.mutableObject2ObjectMapOf
 import it.unimi.dsi.fastutil.objects.Object2ObjectFunction
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet
@@ -10,11 +11,12 @@ import it.unimi.dsi.fastutil.objects.ObjectSet
 import java.lang.reflect.Method
 import java.lang.reflect.Modifier
 import kotlin.coroutines.Continuation
+import kotlin.jvm.java
 import kotlin.reflect.jvm.kotlinFunction
 
 object NettyListenerRegistry {
     private val listeners =
-        Object2ObjectOpenHashMap<Class<out NettyPacket>, ObjectSet<RegisteredListener>>()
+        mutableObject2ObjectMapOf<Class<out NettyPacket>, ObjectSet<RegisteredListener>>()
 
     fun registerListener(listenerMethod: Method, bean: Any) {
         val params = listenerMethod.parameterTypes

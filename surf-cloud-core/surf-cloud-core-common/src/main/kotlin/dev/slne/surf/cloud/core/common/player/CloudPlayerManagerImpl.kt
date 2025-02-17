@@ -4,7 +4,6 @@ import dev.slne.surf.cloud.api.common.event.player.connection.CloudPlayerConnect
 import dev.slne.surf.cloud.api.common.player.CloudPlayerManager
 import dev.slne.surf.cloud.api.common.util.mutableObject2ObjectMapOf
 import dev.slne.surf.cloud.api.common.util.synchronize
-import dev.slne.surf.cloud.core.common.util.bean
 import dev.slne.surf.cloud.core.common.util.publish
 import it.unimi.dsi.fastutil.objects.Object2ObjectArrayMap
 import org.jetbrains.annotations.ApiStatus
@@ -110,6 +109,8 @@ abstract class CloudPlayerManagerImpl<P : CommonCloudPlayerImpl> : CloudPlayerMa
     open suspend fun onConnect(uuid: UUID, player: P) {
         CloudPlayerConnectToNetworkEvent(this, player).publish()
     }
+
+    open fun terminate() {}
 }
 
 val playerManagerImpl get() = CloudPlayerManager.instance as CloudPlayerManagerImpl<*>

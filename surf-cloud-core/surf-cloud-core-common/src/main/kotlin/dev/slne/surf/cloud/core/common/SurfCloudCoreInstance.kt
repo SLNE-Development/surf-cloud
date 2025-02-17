@@ -9,7 +9,9 @@ import dev.slne.surf.cloud.api.common.startSpringApplication
 import dev.slne.surf.cloud.api.common.util.JoinClassLoader
 import dev.slne.surf.cloud.api.common.util.logger
 import dev.slne.surf.cloud.core.common.netty.NettyManager
+import dev.slne.surf.cloud.core.common.player.playerManagerImpl
 import dev.slne.surf.cloud.core.common.processors.NettyPacketProcessor
+import dev.slne.surf.cloud.core.common.server.CommonCloudServerImpl
 import dev.slne.surf.cloud.core.common.spring.SurfSpringBanner
 import dev.slne.surf.cloud.core.common.spring.event.RootSpringContextInitialized
 import dev.slne.surf.cloud.core.common.util.getCallerClass
@@ -26,7 +28,7 @@ import java.nio.file.Path
 import javax.annotation.OverridingMethodsMustInvokeSuper
 import kotlin.time.Duration.Companion.minutes
 
-abstract class SurfCloudCoreInstance(private val nettyManager: NettyManager) : SurfCloudInstance {
+abstract class SurfCloudCoreInstance(protected val nettyManager: NettyManager) : SurfCloudInstance {
     protected val log = logger()
     override val nettyPacketProcessorListener get() = NettyPacketProcessor
 
@@ -131,8 +133,9 @@ abstract class SurfCloudCoreInstance(private val nettyManager: NettyManager) : S
     open suspend fun onDisable() {
         log.atInfo().log("Disabling SurfCloudCoreInstance...")
 
+        playerManagerImpl.terminate()
         nettyManager.stop()
-        if (internalContext?.isActive == true) internalContext?.close()
+//        if (internalContext?.isActive == true) internalContext?.close()
 
         log.atInfo().log("SurfCloudCoreInstance disabled.")
     }
@@ -172,6 +175,13 @@ abstract class SurfCloudCoreInstance(private val nettyManager: NettyManager) : S
         }
     }
 
+    abstract fun shutdownServer(server: CommonCloudServerImpl)
+
+
+    fun isRunning(): Boolean {
+        return internalContext?.isActive == true
+    }
+
     companion object {
         @Volatile
         var internalContext: ConfigurableApplicationContext? = null
@@ -192,16 +202,22 @@ inline fun FatalSurfError.handle(additionalHandling: (FatalSurfError) -> Unit) {
     additionalHandling(this)
 }
 
-inline fun Throwable.handleEventuallyFatalError(additionalHandling: (FatalSurfError) -> Unit) {
+inline fun Throwable.handleEventuallyFatalError(
+    additionalHandling: (FatalSurfError) -> Unit,
+    log: Boolean = true,
+    handleTimeout: Boolean = true
+): Boolean {
     if (this is OutOfMemoryError) {
         throw this
     }
 
     if (this is FatalSurfError) {
         handle(additionalHandling)
+        return true
     } else if (this is NestedRuntimeException && this.rootCause is FatalSurfError) {
         (this.rootCause as FatalSurfError).handle(additionalHandling)
-    } else if (this is TimeoutCancellationException) {
+        return true
+    } else if (this is TimeoutCancellationException && handleTimeout) {
         val fatalError = FatalSurfError {
             simpleErrorMessage("An operation timed out")
             detailedErrorMessage("An operation timed out")
@@ -210,7 +226,12 @@ inline fun Throwable.handleEventuallyFatalError(additionalHandling: (FatalSurfEr
             exitCode(ExitCodes.TIMEOUT)
         }
         fatalError.handle(additionalHandling)
+        return true
     } else {
-        logger().atSevere().withCause(this).log("An unexpected error occurred")
+        if (log) {
+            logger().atSevere().withCause(this).log("An unexpected error occurred")
+        }
     }
+
+    return false
 }

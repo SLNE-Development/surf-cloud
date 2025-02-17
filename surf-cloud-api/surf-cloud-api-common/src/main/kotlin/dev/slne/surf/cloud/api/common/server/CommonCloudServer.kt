@@ -1,9 +1,19 @@
 package dev.slne.surf.cloud.api.common.server
 
 import dev.slne.surf.cloud.api.common.player.CloudPlayer
+import dev.slne.surf.cloud.api.common.player.ConnectionResult
 import dev.slne.surf.cloud.api.common.server.state.ServerState
+import it.unimi.dsi.fastutil.objects.Object2ObjectMap
 import net.kyori.adventure.audience.ForwardingAudience
 import org.jetbrains.annotations.ApiStatus
+
+/**
+ * Represents the result of a batch transfer operation.
+ *
+ * The result is a pair of a boolean indicating the overall success of the operation,
+ * and a map of [CloudPlayer]s to [ConnectionResult]s indicating the result of each transfer.
+ */
+typealias BatchTransferResult = Pair<Boolean, Object2ObjectMap<CloudPlayer, ConnectionResult>>
 
 /**
  * Represents a server within the cloud infrastructure.
@@ -75,8 +85,9 @@ interface CommonCloudServer : ForwardingAudience {
      * This operation suspends until all players have been successfully transferred.
      *
      * @param server The target server to transfer players to.
+     * @return A [BatchTransferResult] indicating the result of the transfer operation.
      */
-    suspend fun sendAll(server: CommonCloudServer)
+    suspend fun sendAll(server: CloudServer): BatchTransferResult
 
     /**
      * Sends a subset of players, filtered by a condition, to the specified target server.
@@ -85,8 +96,11 @@ interface CommonCloudServer : ForwardingAudience {
      *
      * @param server The target server to transfer players to.
      * @param filter A filter function to determine which players to transfer.
+     * @return A [BatchTransferResult] indicating the result of the transfer operation.
      */
-    suspend fun sendAll(server: CommonCloudServer, filter: (CloudPlayer) -> Boolean)
+    suspend fun sendAll(server: CloudServer, filter: (CloudPlayer) -> Boolean): BatchTransferResult
+
+    suspend fun sendAll(category: String): BatchTransferResult
 
     /**
      * Shuts down the server.

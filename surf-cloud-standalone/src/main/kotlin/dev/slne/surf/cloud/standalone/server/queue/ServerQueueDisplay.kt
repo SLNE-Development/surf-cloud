@@ -1,7 +1,9 @@
 package dev.slne.surf.cloud.standalone.server.queue
 
 import dev.slne.surf.cloud.core.common.coroutines.QueueDisplayScope
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import net.kyori.adventure.text.Component
 import kotlin.time.Duration.Companion.seconds
@@ -11,13 +13,11 @@ class ServerQueueDisplay(
 ) {
 
     init {
-        QueueDisplayScope.launch {
-            display()
-        }
+        QueueDisplayScope.launch { display() }
     }
 
-    private suspend fun display() {
-        while (true) {
+    private suspend fun display() = coroutineScope {
+        while (isActive) {
             delay(1.seconds)
             displayQueue()
         }

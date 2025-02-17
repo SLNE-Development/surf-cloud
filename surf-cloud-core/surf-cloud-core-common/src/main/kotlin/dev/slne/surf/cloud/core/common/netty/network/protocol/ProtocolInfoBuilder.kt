@@ -60,7 +60,12 @@ class ProtocolInfoBuilder<T : PacketListener, B : ByteBuf>(
     }
 
     fun build(bufUpgrader: Function<ByteBuf, B>): ProtocolInfo<T> =
-        ProtocolInfoImpl(this.protocol, this.flow, this.buildPacketCodec(bufUpgrader, this.codecs), this.bundlerInfo)
+        ProtocolInfoImpl(
+            this.protocol,
+            this.flow,
+            this.buildPacketCodec(bufUpgrader, this.codecs),
+            this.bundlerInfo
+        )
 
     fun buildUnbound() = object : ProtocolInfo.Unbound<T, B> {
         override val id = protocol
@@ -163,3 +168,13 @@ fun <T : PacketListener, B : ByteBuf> buildProtocolInfo(
 
     return ProtocolInfoBuilder<T, B>(protocol, flow).apply(block)
 }
+
+fun <T : ClientboundPacketListener, B : ByteBuf> buildClientProtocolInfo(
+    protocol: ConnectionProtocol,
+    @BuilderInference block: ProtocolInfoBuilder<T, B>.() -> Unit
+) = ProtocolInfoBuilder.clientboundProtocol<T, B>(protocol, block)
+
+fun <T : ServerboundPacketListener, B : ByteBuf> buildServerProtocolInfo(
+    protocol: ConnectionProtocol,
+    @BuilderInference block: ProtocolInfoBuilder<T, B>.() -> Unit
+) = ProtocolInfoBuilder.serverboundProtocol<T, B>(protocol, block)

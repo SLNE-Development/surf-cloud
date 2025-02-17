@@ -11,7 +11,7 @@ object PreRunningProtocols {
             ConnectionProtocol.PRE_RUNNING
         ) { builder ->
             builder.withBundlePacket(::ClientboundBundlePacket, ClientboundBundleDelimiterPacket())
-            // TODO: disconnect packet
+            // TODO: disconnect packet - needed?
             builder.addPacket(ClientboundKeepAlivePacket.STREAM_CODEC)
                 .addPacket(ClientboundPongResponsePacket.STREAM_CODEC)
                 .addPacket(ClientboundPreRunningFinishedPacket.STREAM_CODEC)

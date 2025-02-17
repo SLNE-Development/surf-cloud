@@ -5,12 +5,7 @@ import dev.slne.surf.cloud.core.client.netty.ClientNettyClientImpl
 import dev.slne.surf.cloud.core.client.netty.network.AbstractStatusUpdater.State
 import dev.slne.surf.cloud.core.common.netty.network.ConnectionImpl
 import dev.slne.surf.cloud.core.common.netty.network.DisconnectionDetails
-import dev.slne.surf.cloud.core.common.netty.network.protocol.prerunning.ClientPreRunningPacketListener
-import dev.slne.surf.cloud.core.common.netty.network.protocol.prerunning.ClientboundPreRunningFinishedPacket
-import dev.slne.surf.cloud.core.common.netty.network.protocol.prerunning.ClientboundReadyToRunPacket
-import dev.slne.surf.cloud.core.common.netty.network.protocol.prerunning.ServerboundPreRunningAcknowledgedPacket
-import dev.slne.surf.cloud.core.common.netty.network.protocol.prerunning.ServerboundReadyToRunPacket
-import dev.slne.surf.cloud.core.common.netty.network.protocol.prerunning.ServerboundRequestContinuation
+import dev.slne.surf.cloud.core.common.netty.network.protocol.prerunning.*
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.RunningProtocols
 import kotlinx.coroutines.CompletableDeferred
 
@@ -39,7 +34,7 @@ class ClientPreRunningPacketListenerImpl(
     }
 
     override suspend fun handleReadyToRun(packet: ClientboundReadyToRunPacket) {
-        val listener = ClientRunningPacketListenerImpl(connection, platformExtension)
+        val listener = ClientRunningPacketListenerImpl(connection, client, platformExtension)
         connection.setupInboundProtocol(
             RunningProtocols.CLIENTBOUND,
             listener
@@ -64,5 +59,9 @@ class ClientPreRunningPacketListenerImpl(
             detailedErrorMessage("Reason: ${details.reason}")
             possibleSolution("Try restarting the client.")
         }
+    }
+
+    override fun isAcceptingMessages(): Boolean {
+        return completion.isActive
     }
 }

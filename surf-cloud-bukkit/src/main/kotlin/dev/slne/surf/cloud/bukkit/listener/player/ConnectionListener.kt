@@ -10,7 +10,7 @@ import org.bukkit.event.Listener
 import org.bukkit.event.player.AsyncPlayerPreLoginEvent
 import org.bukkit.event.player.PlayerQuitEvent
 
-object ConnectionListener: Listener {
+object ConnectionListener : Listener {
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     fun AsyncPlayerPreLoginEvent.onAsyncPlayerPreLogin() {

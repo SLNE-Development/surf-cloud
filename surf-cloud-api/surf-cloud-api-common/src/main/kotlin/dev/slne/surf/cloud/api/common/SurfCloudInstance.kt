@@ -5,6 +5,7 @@ import org.jetbrains.annotations.ApiStatus
 import org.springframework.boot.builder.SpringApplicationBuilder
 import org.springframework.context.ApplicationListener
 import org.springframework.context.ConfigurableApplicationContext
+import java.util.UUID
 import kotlin.reflect.KClass
 
 /**

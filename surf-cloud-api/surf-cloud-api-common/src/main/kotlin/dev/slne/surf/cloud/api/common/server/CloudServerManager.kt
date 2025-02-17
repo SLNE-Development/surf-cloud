@@ -1,6 +1,7 @@
 package dev.slne.surf.cloud.api.common.server
 
 import dev.slne.surf.cloud.api.common.util.requiredService
+import it.unimi.dsi.fastutil.objects.ObjectCollection
 import it.unimi.dsi.fastutil.objects.ObjectList
 import org.jetbrains.annotations.ApiStatus.NonExtendable
 
@@ -53,6 +54,8 @@ interface CloudServerManager {
      * @return An [ObjectList] of [CommonCloudServer] instances belonging to the specified category.
      */
     suspend fun retrieveServersByCategory(category: String): ObjectList<out CommonCloudServer>
+
+    suspend fun retrieveAllServers(): ObjectCollection<out CommonCloudServer>
 
     companion object {
         /**

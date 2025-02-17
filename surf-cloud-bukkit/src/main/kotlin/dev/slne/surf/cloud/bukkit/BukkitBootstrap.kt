@@ -1,5 +1,6 @@
 package dev.slne.surf.cloud.bukkit
 
+import dev.jorel.commandapi.arguments.ListArgument
 import dev.slne.surf.cloud.core.common.SurfCloudCoreInstance.BootstrapData
 import dev.slne.surf.cloud.core.common.handleEventuallyFatalError
 import io.papermc.paper.plugin.bootstrap.BootstrapContext
@@ -20,7 +21,7 @@ class BukkitBootstrap : PluginBootstrap {
                 )
             )
         } catch (e: Throwable) {
-            e.handleEventuallyFatalError { exitProcess(it.exitCode) }
+            e.handleEventuallyFatalError({ exitProcess(it.exitCode) })
         }
     }
 

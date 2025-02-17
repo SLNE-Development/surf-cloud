@@ -29,6 +29,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import org.jetbrains.annotations.Blocking
 import java.net.InetAddress
 import java.net.InetSocketAddress
 import java.net.SocketAddress
@@ -126,13 +127,14 @@ class ServerConnectionListener(val server: NettyServerImpl) {
         }
     }
 
+    @Blocking
     suspend fun stop() {
         this.running = false
 
         channelsMutex.withLock {
             for (future in channels) {
                 try {
-                    future.channel().close().suspend()
+                    future.channel().close().sync()
                 } catch (e: InterruptedException) {
                     log.atSevere().withCause(e).log("Interrupted whilst closing channel")
                 }

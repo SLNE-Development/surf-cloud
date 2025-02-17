@@ -20,7 +20,7 @@ class ServerHandshakePacketListenerImpl(val server: NettyServerImpl, val connect
         when (packet.intention) {
             ClientIntent.INITIALIZE -> initialize(packet)
             ClientIntent.LOGIN -> beginLogin(packet)
-            ClientIntent.STATUS -> TODO("Not yet implemented")
+            ClientIntent.STATUS -> error("Status intention is not supported")
         }
 
         connection.virtualHost = prepareVirtualHost(packet.hostName, packet.port)
@@ -53,6 +53,9 @@ class ServerHandshakePacketListenerImpl(val server: NettyServerImpl, val connect
     }
 
     override suspend fun onDisconnect(details: DisconnectionDetails) = Unit
+    override fun isAcceptingMessages(): Boolean {
+        return connection.connected
+    }
 
     private fun prepareVirtualHost(host: String, port: Int): InetSocketAddress {
         var len = host.length

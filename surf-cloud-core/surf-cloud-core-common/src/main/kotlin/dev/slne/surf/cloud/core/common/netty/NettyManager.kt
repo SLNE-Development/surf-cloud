@@ -3,9 +3,14 @@ package dev.slne.surf.cloud.core.common.netty
 import dev.slne.surf.cloud.api.common.util.logger
 import org.jetbrains.annotations.MustBeInvokedByOverriders
 
+lateinit var nettyManager: NettyManager
 abstract class NettyManager {
 
     private val log = logger()
+
+    init {
+        nettyManager = this
+    }
 
     @MustBeInvokedByOverriders
     open suspend fun bootstrap() {
@@ -30,6 +35,9 @@ abstract class NettyManager {
     @MustBeInvokedByOverriders
     open fun stop() {
         log.atInfo().log("Stopping NettyManager...")
+        for (thread in Thread.getAllStackTraces().keys) {
+            println("${thread.name} - ${thread.state}")
+        }
     }
 
     @MustBeInvokedByOverriders

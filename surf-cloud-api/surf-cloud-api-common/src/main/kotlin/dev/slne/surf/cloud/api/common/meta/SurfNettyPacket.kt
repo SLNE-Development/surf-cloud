@@ -173,4 +173,12 @@ object DefaultIds {
     const val CLIENTBOUND_REGISTER_CLOUD_SERVERS_TO_PROXY =
         "cloud:clientbound:register_cloud_servers_to_proxy"
 
+    const val CLIENTBOUND_SHUTDOWN_PACKET = "cloud:clientbound:shutdown"
+    const val SERVERBOUND_SHUTDOWN_SERVER_PACKET = "cloud:serverbound:shutdown_server"
+
+    const val CLIENTBOUND_BATCH_UPDATE_SERVER = "cloud:clientbound:batch_update_server"
+
+    const val REQUEST_OFFLINE_DISPLAY_NAME_PACKET = "cloud:request:offline_display_name"
+    const val RESPONSE_REQUEST_OFFLINE_DISPLAY_NAME_PACKET = "cloud:response:request_offline_display_name"
+
 }

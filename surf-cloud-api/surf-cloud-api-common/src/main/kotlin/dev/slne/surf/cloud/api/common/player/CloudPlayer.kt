@@ -1,10 +1,10 @@
 package dev.slne.surf.cloud.api.common.player
 
 import dev.slne.surf.cloud.api.common.player.ppdc.PersistentPlayerDataContainer
+import dev.slne.surf.cloud.api.common.player.teleport.TeleportCause
+import dev.slne.surf.cloud.api.common.player.teleport.TeleportFlag
+import dev.slne.surf.cloud.api.common.player.teleport.TeleportLocation
 import dev.slne.surf.cloud.api.common.server.CloudServer
-import dev.slne.surf.cloud.api.common.util.position.FineLocation
-import dev.slne.surf.cloud.api.common.util.position.FineTeleportCause
-import dev.slne.surf.cloud.api.common.util.position.FineTeleportFlag
 import net.kyori.adventure.audience.Audience
 import net.kyori.adventure.text.Component
 import java.util.*
@@ -16,17 +16,11 @@ import java.util.*
  * server connection management, and advanced teleportation utilities. As an [Audience],
  * it enables sending messages or components to the player.
  */
-interface CloudPlayer : Audience { // TODO: conversation but done correctly?
-    /**
-     * The unique identifier (UUID) of the player.
-     */
-    val uuid: UUID
-
+interface CloudPlayer : Audience, OfflineCloudPlayer { // TODO: conversation but done correctly?
     /**
      * Whether the player is currently connected to a proxy server.
      */
     val connectedToProxy: Boolean
-
     /**
      * Whether the player is currently connected to a real server.
      */
@@ -36,13 +30,6 @@ interface CloudPlayer : Audience { // TODO: conversation but done correctly?
      * Whether the player is connected to either a proxy or a server.
      */
     val connected get() = connectedToProxy || connectedToServer
-
-    /**
-     * Suspends until the display name of the player is retrieved.
-     *
-     * @return The [Component] representing the player's display name.
-     */
-    suspend fun displayName(): Component
 
     /**
      * Performs modifications on the player's persistent data container.
@@ -121,9 +108,9 @@ interface CloudPlayer : Audience { // TODO: conversation but done correctly?
      * @throws IllegalStateException If the player is not connected to a supported server.
      */
     suspend fun teleport(
-        location: FineLocation,
-        teleportCause: FineTeleportCause = FineTeleportCause.PLUGIN,
-        vararg flags: FineTeleportFlag
+        location: TeleportLocation,
+        teleportCause: TeleportCause = TeleportCause.PLUGIN,
+        vararg flags: TeleportFlag
     ): Boolean
 
     /**
@@ -146,26 +133,11 @@ interface CloudPlayer : Audience { // TODO: conversation but done correctly?
         z: Double,
         yaw: Float = 0.0f,
         pitch: Float = 0.0f,
-        teleportCause: FineTeleportCause = FineTeleportCause.PLUGIN,
-        vararg flags: FineTeleportFlag,
-    ) = teleport(FineLocation(world, x, y, z, yaw, pitch), teleportCause, *flags)
+        teleportCause: TeleportCause = TeleportCause.PLUGIN,
+        vararg flags: TeleportFlag,
+    ) = teleport(TeleportLocation(world, x, y, z, yaw, pitch), teleportCause, *flags)
 
-    /**
-     * Retrieves metadata associated with the player's LuckPerms configuration.
-     *
-     * @param key The metadata key to retrieve.
-     * @return The value as a string, or `null` if unavailable.
-     */
-    suspend fun <R> getLuckpermsMetaData(key: String, transformer: (String) -> R): R?
-
-    /**
-     * Retrieves and transforms metadata associated with the player's LuckPerms configuration.
-     *
-     * @param key The metadata key to retrieve.
-     * @param transformer A transformation function applied to the metadata value.
-     * @return The transformed value, or `null` if unavailable.
-     */
-    suspend fun getLuckpermsMetaData(key: String): String?
+    override suspend fun displayName(): Component
 }
 
 /**

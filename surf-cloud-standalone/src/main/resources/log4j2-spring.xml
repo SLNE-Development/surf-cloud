@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="WARN" shutdownHook="disable">
+  <Properties>
+    <Property name="LOG_PATTERN">%highlightError{[%d{dd.MM.yyyy HH:mm:ss} %level]: %msg%n%xEx{full}}</Property>
+    <Property name="LOG_FILE_PATH">logs</Property>
+    <Property name="LOG_FILE_NAME">latest.log</Property>
+  </Properties>
+
+  <Appenders>
+    <TerminalConsole name="TerminalConsole">
+      <PatternLayout>
+        <Pattern>${LOG_PATTERN}</Pattern>
+      </PatternLayout>
+    </TerminalConsole>
+
+    <RollingRandomAccessFile name="File" fileName="logs/latest.log"
+      filePattern="logs/%d{yyyy-MM-dd}-%i.log.gz">
+      <PatternLayout>
+        <Pattern>${LOG_PATTERN}</Pattern>
+      </PatternLayout>
+      <Policies>
+        <TimeBasedTriggeringPolicy/>
+        <OnStartupTriggeringPolicy/>
+      </Policies>
+      <DefaultRolloverStrategy max="1000"/>
+    </RollingRandomAccessFile>
+
+    <Async name="Async">
+      <AppenderRef ref="rewrite"/>
+    </Async>
+
+    <Rewrite name="rewrite">
+      <AppenderRef ref="File"/>
+      <AppenderRef ref="TerminalConsole" level="info"/>
+    </Rewrite>
+  </Appenders>
+
+  <Loggers>
+    <Root level="info">
+      <AppenderRef ref="Async"/>
+    </Root>
+  </Loggers>
+</Configuration>

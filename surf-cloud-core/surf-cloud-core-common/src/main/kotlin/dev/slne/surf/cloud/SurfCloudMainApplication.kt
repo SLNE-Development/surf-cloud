@@ -37,7 +37,6 @@ class SurfCloudMainApplication : AsyncConfigurer, ApplicationContextAware {
                 handleFatalSurfError(ex.rootCause as FatalSurfError, method, params)
             } else {
                 log.atSevere()
-                    .atMostEvery(1, TimeUnit.SECONDS)
                     .withCause(ex)
                     .log(
                         """

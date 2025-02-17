@@ -2,27 +2,34 @@ package dev.slne.surf.cloud.standalone
 
 import com.google.auto.service.AutoService
 import dev.slne.surf.cloud.api.common.SurfCloudInstance
+import dev.slne.surf.cloud.api.server.SurfCloudServerInstance
+import dev.slne.surf.cloud.api.server.export.RootExportPlayerData
 import dev.slne.surf.cloud.api.server.plugin.PluginManager
 import dev.slne.surf.cloud.api.server.plugin.StandalonePlugin
 import dev.slne.surf.cloud.core.common.SurfCloudCoreInstance
-import dev.slne.surf.cloud.core.common.util.bean
+import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ClientboundTriggerShutdownPacket
+import dev.slne.surf.cloud.core.common.server.CommonCloudServerImpl
 import dev.slne.surf.cloud.core.common.util.checkInstantiationByServiceLoader
 import dev.slne.surf.cloud.core.common.util.random
+import dev.slne.surf.cloud.standalone.ktor.KtorServer
 import dev.slne.surf.cloud.standalone.netty.server.StandaloneNettyManager
 import dev.slne.surf.cloud.standalone.netty.server.network.ServerEncryptionManager
+import dev.slne.surf.cloud.standalone.player.standalonePlayerManagerImpl
 import dev.slne.surf.cloud.standalone.plugin.PluginInitializerManager
 import dev.slne.surf.cloud.standalone.plugin.entrypoint.Entrypoint
 import dev.slne.surf.cloud.standalone.plugin.entrypoint.LaunchEntryPointHandler
-import dev.slne.surf.cloud.standalone.redis.RedisEvent
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.runBlocking
-import org.springframework.data.redis.core.ReactiveRedisTemplate
-import reactor.util.Loggers
-import kotlin.concurrent.thread
-import kotlin.time.Duration.Companion.seconds
+import dev.slne.surf.cloud.standalone.server.connection
+import kotlinx.coroutines.*
+import org.bson.BsonDocument
+import org.bson.BsonDocumentWriter
+import org.bson.codecs.EncoderContext
+import org.bson.codecs.kotlinx.KotlinSerializerCodec
+import org.jetbrains.exposed.sql.SchemaUtils
+import java.util.*
 
 @AutoService(SurfCloudInstance::class)
-class SurfCloudStandaloneInstance : SurfCloudCoreInstance(StandaloneNettyManager) {
+class SurfCloudStandaloneInstance : SurfCloudCoreInstance(StandaloneNettyManager),
+    SurfCloudServerInstance {
     override val springProfile = "independent"
 
     init {
@@ -42,8 +49,6 @@ class SurfCloudStandaloneInstance : SurfCloudCoreInstance(StandaloneNettyManager
     }
 
     override suspend fun onLoad() {
-//        SpringApplication.getShutdownHandlers().add(StandalonePluginManager)
-        thread(name = "KeepAlive") { while (true) runBlocking { delay(5.seconds) } }
         super.onLoad()
         random
 
@@ -54,6 +59,7 @@ class SurfCloudStandaloneInstance : SurfCloudCoreInstance(StandaloneNettyManager
         super.onEnable()
 
         enablePlugins()
+        KtorServer.start()
         afterStart()
 
         log.atInfo()
@@ -63,6 +69,10 @@ class SurfCloudStandaloneInstance : SurfCloudCoreInstance(StandaloneNettyManager
     override suspend fun onDisable() {
         disablePlugins()
         super.onDisable()
+    }
+
+    override fun shutdownServer(server: CommonCloudServerImpl) {
+        server.connection.send(ClientboundTriggerShutdownPacket)
     }
 
     private suspend fun loadPlugins() {
@@ -93,14 +103,62 @@ class SurfCloudStandaloneInstance : SurfCloudCoreInstance(StandaloneNettyManager
         PluginManager.instance.disablePlugins()
     }
 
-    private val redisEventLog = Loggers.getLogger("RedisEvent")
-    fun callRedisEvent(event: RedisEvent) {
-        val template = bean<ReactiveRedisTemplate<String, Any>>("reactiveRedisTemplate")
-        for (channel in event.channels) {
-            template.convertAndSend(channel, event)
-                .log(redisEventLog)
-                .subscribe()
+    private val playerDataCodec =
+        KotlinSerializerCodec.create<RootExportPlayerData>() ?: error("Codec not found")
+
+    override suspend fun exportPlayerData(uuid: UUID): String = supervisorScope {
+        val standaloneData = coroutineScope {
+            async(Dispatchers.IO) {
+                standalonePlayerManagerImpl.exportPlayerData(uuid)
+            }
         }
+
+        val pluginData = PluginManager.instance.getPlugins().map { plugin ->
+            coroutineScope {
+                async(Dispatchers.IO) {
+                    runCatching {
+                        plugin.exportPlayerData(uuid)
+                    }.getOrElse {
+                        log.atSevere()
+                            .withCause(it)
+                            .log("Error while exporting player data for plugin ${plugin.meta.displayName}")
+                        null
+                    }
+                }
+            }
+        }
+
+        val dataExport = (listOf(standaloneData) + pluginData).awaitAll().filterNotNull()
+        val data = RootExportPlayerData(dataExport)
+
+        val document = BsonDocument()
+        playerDataCodec.encode(BsonDocumentWriter(document), data, EncoderContext.builder().build())
+        document.toJson()
+    }
+
+    override suspend fun deleteNotInterestingPlayerData(uuid: UUID): Unit = supervisorScope {
+        val standaloneDelete = coroutineScope {
+            async(Dispatchers.IO) {
+                standalonePlayerManagerImpl.deleteNotInterestingPlayerData(uuid)
+            }
+        }
+
+        val pluginDelete = PluginManager.instance.getPlugins().map { plugin ->
+            coroutineScope {
+                async(Dispatchers.IO) {
+                    runCatching {
+                        plugin.deleteNotInterestingPlayerData(uuid)
+                    }.getOrElse {
+                        log.atSevere()
+                            .withCause(it)
+                            .log("Error while deleting player data for plugin ${plugin.meta.displayName}")
+                    }
+                }
+            }
+        }
+
+        standaloneDelete.await()
+        pluginDelete.awaitAll()
     }
 
     companion object {

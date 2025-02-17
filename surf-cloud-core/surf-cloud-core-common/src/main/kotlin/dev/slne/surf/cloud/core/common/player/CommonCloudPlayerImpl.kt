@@ -7,7 +7,7 @@ import dev.slne.surf.cloud.api.common.server.CloudServer
 import dev.slne.surf.cloud.api.common.server.serverManager
 import java.util.*
 
-abstract class CommonCloudPlayerImpl(override val uuid: UUID) : CloudPlayer {
+abstract class CommonCloudPlayerImpl(uuid: UUID) : CommonOfflineCloudPlayerImpl(uuid), CloudPlayer {
 
     override suspend fun connectToServer(
         group: String,

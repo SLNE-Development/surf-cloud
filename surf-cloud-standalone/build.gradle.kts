@@ -1,6 +1,7 @@
 plugins {
     id("dev.slne.surf.surfapi.gradle.standalone")
     `core-convention`
+    id("org.springframework.boot")
 }
 
 dependencies {
@@ -9,18 +10,27 @@ dependencies {
 
     runtimeOnly("org.mariadb.jdbc:mariadb-java-client")
     api("org.springframework.boot:spring-boot-starter-data-jpa")
-    api("org.springframework.boot:spring-boot-starter-data-redis")
     api("org.reactivestreams:reactive-streams:1.0.4")
-    api("io.lettuce:lettuce-core")
     api(libs.velocity.native)
+
+    // Ktor
+    implementation("io.ktor:ktor-server-status-pages")
+
+    implementation("org.springframework.boot:spring-boot-starter-log4j2")
+    modules {
+        module("org.springframework.boot:spring-boot-starter-logging") {
+            replacedBy(
+                "org.springframework.boot:spring-boot-starter-log4j2",
+                "Use Log4j2 instead of Logback"
+            )
+        }
+    }
 }
 
 tasks {
-    jar {
-        manifest {
-            attributes["Main-Class"] = "dev.slne.surf.cloud.standalone.launcher.Launcher"
-            attributes["Real-Main-Class"] = "dev.slne.surf.cloud.standalone.Bootstrap"
-        }
+    publish {
+        dependsOn(bootJar)
+        inputs.files(bootJar)
     }
 }
 

@@ -1,10 +1,11 @@
-import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+import org.springframework.boot.gradle.tasks.bundling.BootJar
 
 plugins {
     id("dev.slne.surf.surfapi.gradle.standalone")
 
     application
     `core-convention`
+    id("org.springframework.boot")
 }
 
 surfStandaloneApi {
@@ -22,14 +23,17 @@ application {
 
 tasks {
     val standaloneProject = project(":surf-cloud-standalone")
+    val standaloneJarTask = standaloneProject.tasks.named<BootJar>("bootJar")
 
     val copyStandaloneJar by registering(Copy::class) {
-        val standaloneJarTask = standaloneProject.tasks.named<ShadowJar>("shadowJar")
         dependsOn(standaloneJarTask)
 
-        from(standaloneJarTask.map { it.archiveFile.get().asFile })
-        into(buildDirectory.resolve("libs"))
+        from(standaloneJarTask.flatMap { it.archiveFile })
+        into(layout.buildDirectory.dir("libs"))
         rename { "surf-cloud-standalone.jara" }
+
+        inputs.file(standaloneJarTask.flatMap { it.archiveFile })
+        outputs.file(layout.buildDirectory.file("libs/surf-cloud-standalone.jara"))
 
         doFirst {
             val standaloneJar = standaloneJarTask.get().archiveFile.get().asFile
@@ -39,35 +43,30 @@ tasks {
             }
         }
     }
+    val cleanupCopyStandaloneJar by registering(Delete::class) {
+        delete(layout.buildDirectory.dir("libs").map { it.file("surf-cloud-standalone.jara") })
+    }
 
-    shadowJar {
+    bootJar {
         dependsOn(copyStandaloneJar)
-        from(buildDirectory.resolve("libs/surf-cloud-standalone.jara"))
+        dependsOn(standaloneJarTask)
 
-        manifest {
-            attributes(
-                "Standalone-Main-Class" to "dev.slne.surf.cloud.standalone.Bootstrap"
-            )
+        from(layout.buildDirectory.file("libs/surf-cloud-standalone.jara"))
+        from(resources.text.fromString("org.springframework.boot.loader.launch.JarLauncher")) {
+            into("META-INF")
+            rename { "main-class" }
         }
 
         doLast {
             file("${buildDirectory}/libs/surf-cloud-standalone.jara").delete()
         }
 
-        val relocations = listOf(
-            "com.ctc.wstx",
-            "com.google",
-            "org.apache",
-            "org.codehaus",
-            "org.eclipse",
-            "org.slf4j",
-        )
-
-        relocations.forEach { relocate(it, "dev.slne.surf.cloud.launcher.libs.$it") }
+        finalizedBy(cleanupCopyStandaloneJar)
     }
 
-    named<JavaExec>("run") {
-        dependsOn(shadowJar)
+    publish {
+        dependsOn(bootJar)
+        inputs.files(bootJar)
     }
 }
 

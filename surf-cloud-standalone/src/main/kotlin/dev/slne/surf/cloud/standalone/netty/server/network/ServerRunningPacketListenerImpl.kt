@@ -1,6 +1,7 @@
 package dev.slne.surf.cloud.standalone.netty.server.network
 
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
+import dev.slne.surf.cloud.api.common.netty.packet.NettyPacketInfo
 import dev.slne.surf.cloud.api.common.player.ConnectionResultEnum
 import dev.slne.surf.cloud.api.common.server.CloudServer
 import dev.slne.surf.cloud.api.common.server.serverManager
@@ -9,7 +10,6 @@ import dev.slne.surf.cloud.api.common.util.mutableIntSetOf
 import dev.slne.surf.cloud.core.common.coroutines.PacketHandlerScope
 import dev.slne.surf.cloud.core.common.netty.network.ConnectionImpl
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.*
-import dev.slne.surf.cloud.core.common.netty.protocol.packet.NettyPacketInfo
 import dev.slne.surf.cloud.core.common.netty.registry.listener.NettyListenerRegistry
 import dev.slne.surf.cloud.core.common.player.playerManagerImpl
 import dev.slne.surf.cloud.core.common.util.random
@@ -24,7 +24,6 @@ import net.kyori.adventure.text.Component
 import net.kyori.adventure.title.Title
 import net.kyori.adventure.title.TitlePart
 import java.util.*
-import java.util.concurrent.TimeUnit
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
@@ -251,28 +250,28 @@ class ServerRunningPacketListenerImpl(
         }
     }
 
+    override suspend fun handleShutdownServer(packet: ServerboundShutdownServerPacket) {
+        val server = serverManager.retrieveServerById(packet.serverId) ?: return
+        server.shutdown()
+    }
+
     override fun handlePacket(packet: NettyPacket) {
         val listeners = NettyListenerRegistry.getListeners(packet.javaClass) ?: return
         if (listeners.isEmpty()) return
 
-        val (proxiedSource, finalPacket) = when (packet) {
-//            is ProxiedNettyPacket -> packet.source to packet.packet
-            else -> null to packet
-        }
-        val info = NettyPacketInfo(this, proxiedSource)
+        val info = NettyPacketInfo(connection)
 
         for (listener in listeners) {
             PacketHandlerScope.launch {
                 try {
-                    listener.handle(finalPacket, info)
-                } catch (e: Exception) {
+                    listener.handle(packet, info)
+                } catch (e: Throwable) {
                     log.atWarning()
                         .withCause(e)
-                        .atMostEvery(5, TimeUnit.SECONDS)
                         .log(
                             "Failed to call listener %s for packet %s",
                             listener::class.simpleName,
-                            finalPacket::class.simpleName
+                            packet::class.simpleName
                         )
                 }
             }
@@ -287,6 +286,10 @@ class ServerRunningPacketListenerImpl(
 
         val player = playerManagerImpl.getPlayer(uuid) as? StandaloneCloudPlayerImpl ?: return
         player.block()
+    }
+
+    override fun isAcceptingMessages(): Boolean {
+        return connection.connected
     }
 }
 

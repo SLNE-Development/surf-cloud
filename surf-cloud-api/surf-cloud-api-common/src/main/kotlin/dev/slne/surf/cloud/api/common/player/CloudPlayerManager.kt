@@ -23,6 +23,9 @@ interface CloudPlayerManager {
      */
     fun getPlayer(uuid: UUID?): CloudPlayer?
 
+    fun getOfflinePlayer(uuid: UUID?): OfflineCloudPlayer?
+    fun getOrCreateOfflinePlayer(uuid: UUID): OfflineCloudPlayer
+
     companion object {
         val instance = requiredService<CloudPlayerManager>()
     }

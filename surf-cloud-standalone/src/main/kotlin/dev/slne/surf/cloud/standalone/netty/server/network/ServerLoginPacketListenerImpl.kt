@@ -80,6 +80,10 @@ class ServerLoginPacketListenerImpl(val server: NettyServerImpl, val connection:
         log.atInfo().log("${client?.displayName} lost connection: ${details.reason}")
     }
 
+    override fun isAcceptingMessages(): Boolean {
+        return connection.connected
+    }
+
     fun disconnect(reason: String) {
         disconnect(DisconnectionDetails(reason))
     }

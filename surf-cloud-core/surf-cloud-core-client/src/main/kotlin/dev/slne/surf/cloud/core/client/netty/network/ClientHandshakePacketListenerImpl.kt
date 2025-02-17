@@ -38,4 +38,7 @@ class ClientHandshakePacketListenerImpl(
     }
 
     override suspend fun onDisconnect(details: DisconnectionDetails) = Unit
+    override fun isAcceptingMessages(): Boolean {
+        return connection.connected
+    }
 }

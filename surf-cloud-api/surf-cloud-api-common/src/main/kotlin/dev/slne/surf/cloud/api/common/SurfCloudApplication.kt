@@ -4,8 +4,10 @@ import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration
 import org.springframework.boot.autoconfigure.domain.EntityScan
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
+import org.springframework.cache.annotation.EnableCaching
 import org.springframework.context.annotation.EnableAspectJAutoProxy
 import org.springframework.core.annotation.AliasFor
+import org.springframework.data.jpa.repository.config.EnableJpaAuditing
 import org.springframework.scheduling.annotation.EnableAsync
 import org.springframework.scheduling.annotation.EnableScheduling
 import org.springframework.transaction.annotation.EnableTransactionManagement
@@ -31,6 +33,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement
 @EnableAspectJAutoProxy
 @EntityScan
 //@EnableRedisRepositories
+@EnableCaching
 annotation class SurfCloudApplication(
     @get:AliasFor(
         annotation = SpringBootApplication::class,

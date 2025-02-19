@@ -1,4 +1,4 @@
-package dev.slne.surf.cloud.api.common.util
+package dev.slne.surf.cloud.api.common.util.netty
 
 import io.netty.channel.ChannelFuture
 import io.netty.util.concurrent.Future

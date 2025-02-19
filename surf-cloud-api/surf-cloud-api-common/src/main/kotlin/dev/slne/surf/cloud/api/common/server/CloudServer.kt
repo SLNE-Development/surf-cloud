@@ -18,5 +18,5 @@ interface CloudServer : CommonCloudServer {
      *
      * When enabled, only players on the allowlist (whitelist) can join the server.
      */
-    val whitelist: Boolean
+    val allowlist: Boolean
 }

@@ -1,6 +1,5 @@
 package dev.slne.surf.cloud.standalone.plugin.provider.impl
 
-import dev.slne.surf.cloud.api.common.util.logger
 import dev.slne.surf.cloud.api.server.plugin.StandalonePlugin
 import dev.slne.surf.cloud.api.server.plugin.bootstrap.StandalonePluginBootstrap
 import dev.slne.surf.cloud.api.server.plugin.bootstrap.StandalonePluginProviderContext
@@ -13,9 +12,9 @@ import dev.slne.surf.cloud.standalone.plugin.provider.ProviderStatus
 import dev.slne.surf.cloud.standalone.plugin.provider.ProviderStatusHolder
 import dev.slne.surf.cloud.standalone.plugin.provider.configuration.LoadOrderConfiguration
 import dev.slne.surf.cloud.standalone.plugin.provider.configuration.StandalonePluginMeta
+import dev.slne.surf.surfapi.core.api.util.logger
 import java.nio.file.Path
 import java.util.jar.JarFile
-import kotlin.jvm.java
 
 class StandalonePluginParent(
     private val path: Path,

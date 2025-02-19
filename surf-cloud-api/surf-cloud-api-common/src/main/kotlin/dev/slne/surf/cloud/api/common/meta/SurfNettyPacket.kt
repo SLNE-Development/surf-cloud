@@ -2,7 +2,7 @@ package dev.slne.surf.cloud.api.common.meta
 
 import dev.slne.surf.cloud.api.common.netty.network.ConnectionProtocol
 import dev.slne.surf.cloud.api.common.netty.network.protocol.PacketFlow
-import org.jetbrains.annotations.ApiStatus.Internal
+import dev.slne.surf.cloud.api.common.util.annotation.InternalApi
 
 /**
  * Annotation for marking a class as a Netty packet in the Surf Cloud application.
@@ -16,7 +16,8 @@ import org.jetbrains.annotations.ApiStatus.Internal
 annotation class SurfNettyPacket(
     val id: String,
     val flow: PacketFlow,
-    @Internal vararg val protocols: ConnectionProtocol = [ConnectionProtocol.RUNNING]
+    @property:InternalApi
+    vararg val protocols: ConnectionProtocol = [ConnectionProtocol.RUNNING]
 )
 
 /**
@@ -30,8 +31,6 @@ annotation class PacketCodec
  * Object containing default packet IDs for various operations in the Surf Cloud application.
  */
 object DefaultIds {
-
-    const val PROXIED_NETTY_PACKET = "cloud:proxied"
 
     // Handshake
     const val SERVERBOUND_HANDSHAKE_PACKET = "cloud:serverbound:handshake"

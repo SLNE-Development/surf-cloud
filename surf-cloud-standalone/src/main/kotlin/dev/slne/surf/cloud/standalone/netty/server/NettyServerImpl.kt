@@ -1,6 +1,5 @@
 package dev.slne.surf.cloud.standalone.netty.server
 
-import dev.slne.surf.cloud.api.common.util.logger
 import dev.slne.surf.cloud.api.common.util.mutableObjectListOf
 import dev.slne.surf.cloud.api.common.util.synchronize
 import dev.slne.surf.cloud.core.common.config.cloudConfig
@@ -11,6 +10,7 @@ import dev.slne.surf.cloud.standalone.netty.server.network.ServerEncryptionManag
 import dev.slne.surf.cloud.standalone.server.StandaloneCloudServerImpl
 import dev.slne.surf.cloud.standalone.server.StandaloneProxyCloudServerImpl
 import dev.slne.surf.cloud.standalone.server.serverManagerImpl
+import dev.slne.surf.surfapi.core.api.util.logger
 import io.netty.channel.epoll.Epoll
 import io.netty.channel.unix.DomainSocketAddress
 import jakarta.annotation.PostConstruct

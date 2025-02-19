@@ -1,5 +1,7 @@
 package dev.slne.surf.cloud.api.common.player.name
 
+import it.unimi.dsi.fastutil.objects.ObjectList
+
 /**
  * Represents an immutable history of player names with their associated timestamps.
  */
@@ -14,7 +16,7 @@ interface NameHistory {
      *
      * @return A list of [NameEntry] objects representing the full name history.
      */
-    fun names(): List<NameEntry>
+    fun names(): ObjectList<NameEntry>
 
     /**
      * Returns the most recently known name.

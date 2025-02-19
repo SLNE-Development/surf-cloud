@@ -2,8 +2,7 @@
 
 package dev.slne.surf.cloud.api.server.plugin.loader.library.impl
 
-import dev.slne.surf.cloud.api.common.util.InternalApi
-import dev.slne.surf.cloud.api.common.util.logger
+import dev.slne.surf.cloud.api.common.util.annotation.InternalApi
 import dev.slne.surf.cloud.api.common.util.mutableObjectListOf
 import dev.slne.surf.cloud.api.server.plugin.loader.library.ClassPathLibrary
 import dev.slne.surf.cloud.api.server.plugin.loader.library.LibraryLoadingException
@@ -23,7 +22,7 @@ import org.eclipse.aether.transfer.AbstractTransferListener
 import org.eclipse.aether.transfer.TransferEvent
 
 class MavenLibraryResolver : ClassPathLibrary {
-    private val log = logger()
+    private val log = dev.slne.surf.surfapi.core.api.util.logger()
 
     private val repository: RepositorySystem = RepositorySystemSupplier().get()
 //    private val session = repository.createSessionBuilder().apply {

@@ -1,6 +1,6 @@
 package dev.slne.surf.cloud.api.common.server
 
-import dev.slne.surf.cloud.api.common.util.requiredService
+import dev.slne.surf.surfapi.core.api.util.requiredService
 import it.unimi.dsi.fastutil.objects.ObjectCollection
 import it.unimi.dsi.fastutil.objects.ObjectList
 import org.jetbrains.annotations.ApiStatus.NonExtendable
@@ -57,15 +57,7 @@ interface CloudServerManager {
 
     suspend fun retrieveAllServers(): ObjectCollection<out CommonCloudServer>
 
-    companion object {
-        /**
-         * The singleton instance of the [CloudServerManager].
-         */
-        val instance = requiredService<CloudServerManager>()
+    companion object : CloudServerManager by requiredService<CloudServerManager>() {
+        val instance = this as CloudServerManager
     }
 }
-
-/**
- * A global reference to the singleton [CloudServerManager] instance.
- */
-val serverManager get() = CloudServerManager.instance

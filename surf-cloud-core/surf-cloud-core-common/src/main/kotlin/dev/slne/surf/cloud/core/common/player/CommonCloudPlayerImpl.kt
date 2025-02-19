@@ -3,8 +3,11 @@ package dev.slne.surf.cloud.core.common.player
 import dev.slne.surf.cloud.api.common.player.CloudPlayer
 import dev.slne.surf.cloud.api.common.player.ConnectionResult
 import dev.slne.surf.cloud.api.common.player.ConnectionResultEnum
+import dev.slne.surf.cloud.api.common.player.name.NameHistory
 import dev.slne.surf.cloud.api.common.server.CloudServer
-import dev.slne.surf.cloud.api.common.server.serverManager
+import dev.slne.surf.cloud.api.common.server.CloudServerManager
+import java.net.InetAddress
+import java.time.ZonedDateTime
 import java.util.*
 
 abstract class CommonCloudPlayerImpl(uuid: UUID) : CommonOfflineCloudPlayerImpl(uuid), CloudPlayer {
@@ -12,7 +15,7 @@ abstract class CommonCloudPlayerImpl(uuid: UUID) : CommonOfflineCloudPlayerImpl(
     override suspend fun connectToServer(
         group: String,
         server: String
-    ): ConnectionResult = serverManager.retrieveServerByCategoryAndName(group, server)
+    ): ConnectionResult = CloudServerManager.retrieveServerByCategoryAndName(group, server)
         ?.let {
             it as? CloudServer ?: return (ConnectionResultEnum.CANNOT_CONNECT_TO_PROXY to null)
         }
@@ -20,7 +23,7 @@ abstract class CommonCloudPlayerImpl(uuid: UUID) : CommonOfflineCloudPlayerImpl(
         ?: (ConnectionResultEnum.SERVER_NOT_FOUND to null)
 
     override suspend fun connectToServer(group: String): ConnectionResult =
-        serverManager.retrieveServersByCategory(group).asSequence()
+        CloudServerManager.retrieveServersByCategory(group).asSequence()
             .filterIsInstance<CloudServer>()
             .filter { it.hasEmptySlots() }
             .also { if (it.none()) return (ConnectionResultEnum.CATEGORY_FULL to null) }
@@ -30,7 +33,7 @@ abstract class CommonCloudPlayerImpl(uuid: UUID) : CommonOfflineCloudPlayerImpl(
     override suspend fun connectToServerOrQueue(
         group: String,
         server: String
-    ): ConnectionResult = serverManager.retrieveServerByCategoryAndName(group, server)
+    ): ConnectionResult = CloudServerManager.retrieveServerByCategoryAndName(group, server)
         ?.let {
             it as? CloudServer ?: return (ConnectionResultEnum.CANNOT_CONNECT_TO_PROXY to null)
         }
@@ -38,7 +41,7 @@ abstract class CommonCloudPlayerImpl(uuid: UUID) : CommonOfflineCloudPlayerImpl(
         ?: (ConnectionResultEnum.SERVER_NOT_FOUND to null)
 
     override suspend fun connectToServerOrQueue(group: String): ConnectionResult =
-        serverManager.retrieveServersByCategory(group).asSequence()
+        CloudServerManager.retrieveServersByCategory(group).asSequence()
             .filterIsInstance<CloudServer>()
 //            .filter { it.emptySlots > 0 }
             .minBy { it.currentPlayerCount } // also check player count in queue / maybe do it completely different - a group queue?
@@ -48,6 +51,26 @@ abstract class CommonCloudPlayerImpl(uuid: UUID) : CommonOfflineCloudPlayerImpl(
         key: String,
         transformer: (String) -> R
     ): R? = getLuckpermsMetaData(key)?.let(transformer)
+
+    override suspend fun nameHistory(): NameHistory {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun lastServerRaw(): String {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun lastSeen(): ZonedDateTime? {
+        return ZonedDateTime.now()
+    }
+
+    override suspend fun latestIpAddress(): InetAddress {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun playedBefore(): Boolean {
+        return true
+    }
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

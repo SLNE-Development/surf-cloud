@@ -11,7 +11,7 @@ import org.jetbrains.annotations.MustBeInvokedByOverriders
 import java.util.*
 
 abstract class CloudPlayerManagerImpl<P : CommonCloudPlayerImpl> : CloudPlayerManager {
-    private val players = mutableObject2ObjectMapOf<UUID, P>().synchronize()
+    protected val players = mutableObject2ObjectMapOf<UUID, P>().synchronize()
 
     override fun getPlayer(uuid: UUID?): P? {
         return players[uuid]
@@ -32,7 +32,7 @@ abstract class CloudPlayerManagerImpl<P : CommonCloudPlayerImpl> : CloudPlayerMa
         players[player.uuid] = player
     }
 
-    protected fun forEachPlayer(action: (P) -> Unit) {
+    protected inline fun forEachPlayer(action: (P) -> Unit) {
         val tempPlayers = Object2ObjectArrayMap(players)
         tempPlayers.values.forEach(action)
         tempPlayers.clear()
@@ -49,19 +49,14 @@ abstract class CloudPlayerManagerImpl<P : CommonCloudPlayerImpl> : CloudPlayerMa
     suspend fun updateOrCreatePlayer(uuid: UUID, serverUid: Long, proxy: Boolean) {
         val player = players[uuid]
 
-        if (proxy) {
-            if (player == null) {
-                val createPlayer = createPlayer(uuid, serverUid, true)
-                onConnect(uuid, createPlayer)
-                addPlayer(createPlayer)
-            } else {
-                updateProxyServer(player, serverUid)
+        if (player == null) {
+            createPlayer(uuid, serverUid, proxy).also {
+                onNetworkConnect(uuid, it)
+                addPlayer(it)
             }
         } else {
-            if (player == null) {
-                val createPlayer = createPlayer(uuid, serverUid, false)
-                onConnect(uuid, createPlayer)
-                addPlayer(createPlayer)
+            if (proxy) {
+                updateProxyServer(player, serverUid)
             } else {
                 updateServer(player, serverUid)
             }
@@ -106,7 +101,7 @@ abstract class CloudPlayerManagerImpl<P : CommonCloudPlayerImpl> : CloudPlayerMa
 
     @MustBeInvokedByOverriders
     @ApiStatus.OverrideOnly
-    open suspend fun onConnect(uuid: UUID, player: P) {
+    open suspend fun onNetworkConnect(uuid: UUID, player: P) {
         CloudPlayerConnectToNetworkEvent(this, player).publish()
     }
 

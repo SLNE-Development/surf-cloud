@@ -1,17 +1,13 @@
 package dev.slne.surf.cloud.core.common.netty.network
 
 import dev.slne.surf.cloud.api.common.exceptions.SkipPacketException
-import dev.slne.surf.cloud.api.common.netty.network.ConnectionProtocol
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
 import dev.slne.surf.cloud.api.common.netty.packet.RespondingNettyPacket
 import dev.slne.surf.cloud.api.common.netty.packet.ResponseNettyPacket
-import dev.slne.surf.cloud.api.common.netty.protocol.buffer.writeNullable
-import dev.slne.surf.cloud.api.common.netty.protocol.buffer.writeVarLong
-import dev.slne.surf.cloud.api.common.util.logger
+import dev.slne.surf.surfapi.core.api.util.logger
 import io.netty.buffer.ByteBuf
 import io.netty.channel.ChannelHandlerContext
 import io.netty.handler.codec.MessageToByteEncoder
-import org.checkerframework.checker.units.qual.m
 import java.io.Serial
 
 

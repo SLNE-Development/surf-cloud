@@ -19,6 +19,8 @@ interface OfflineCloudPlayer {
     suspend fun lastSeen(): ZonedDateTime?
     suspend fun latestIpAddress(): InetAddress?
 
+    suspend fun playedBefore(): Boolean
+
     /**
      * Returns the online player instance if the player is currently connected.
      */

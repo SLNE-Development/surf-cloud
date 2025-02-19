@@ -2,7 +2,7 @@
 
 package dev.slne.surf.cloud.api.server.plugin
 
-import dev.slne.surf.cloud.api.common.util.InternalApi
+import dev.slne.surf.cloud.api.common.util.annotation.InternalApi
 import dev.slne.surf.cloud.api.server.export.PlayerDataExport
 import dev.slne.surf.cloud.api.server.plugin.configuration.PluginMeta
 import dev.slne.surf.cloud.api.server.plugin.coroutine.CoroutineManager

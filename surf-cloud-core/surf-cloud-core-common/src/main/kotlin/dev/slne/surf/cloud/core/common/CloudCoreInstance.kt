@@ -1,13 +1,11 @@
 package dev.slne.surf.cloud.core.common
 
 import dev.slne.surf.cloud.SurfCloudMainApplication
-import dev.slne.surf.cloud.api.common.SurfCloudInstance
-import dev.slne.surf.cloud.api.common.cloudInstance
+import dev.slne.surf.cloud.api.common.CloudInstance
 import dev.slne.surf.cloud.api.common.exceptions.ExitCodes
 import dev.slne.surf.cloud.api.common.exceptions.FatalSurfError
 import dev.slne.surf.cloud.api.common.startSpringApplication
-import dev.slne.surf.cloud.api.common.util.JoinClassLoader
-import dev.slne.surf.cloud.api.common.util.logger
+import dev.slne.surf.cloud.api.common.util.classloader.JoinClassLoader
 import dev.slne.surf.cloud.core.common.netty.NettyManager
 import dev.slne.surf.cloud.core.common.player.playerManagerImpl
 import dev.slne.surf.cloud.core.common.processors.NettyPacketProcessor
@@ -16,6 +14,7 @@ import dev.slne.surf.cloud.core.common.spring.SurfSpringBanner
 import dev.slne.surf.cloud.core.common.spring.event.RootSpringContextInitialized
 import dev.slne.surf.cloud.core.common.util.getCallerClass
 import dev.slne.surf.cloud.core.common.util.tempChangeSystemClassLoader
+import dev.slne.surf.surfapi.core.api.util.logger
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.withTimeout
 import org.jetbrains.annotations.MustBeInvokedByOverriders
@@ -28,9 +27,8 @@ import java.nio.file.Path
 import javax.annotation.OverridingMethodsMustInvokeSuper
 import kotlin.time.Duration.Companion.minutes
 
-abstract class SurfCloudCoreInstance(protected val nettyManager: NettyManager) : SurfCloudInstance {
+abstract class CloudCoreInstance(protected val nettyManager: NettyManager) : CloudInstance {
     protected val log = logger()
-    override val nettyPacketProcessorListener get() = NettyPacketProcessor
 
     val dataContext get() = internalContext ?: error("Data context is not initialized yet.")
 
@@ -190,8 +188,8 @@ abstract class SurfCloudCoreInstance(protected val nettyManager: NettyManager) :
     data class BootstrapData(val dataFolder: Path)
 }
 
-val coreCloudInstance: SurfCloudCoreInstance
-    get() = cloudInstance as SurfCloudCoreInstance
+val coreCloudInstance: CloudCoreInstance
+    get() = CloudInstance.instance as CloudCoreInstance
 
 inline fun FatalSurfError.handle(additionalHandling: (FatalSurfError) -> Unit) {
     val log = logger()

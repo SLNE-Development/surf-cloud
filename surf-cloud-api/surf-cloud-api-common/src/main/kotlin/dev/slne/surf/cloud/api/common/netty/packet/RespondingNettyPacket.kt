@@ -3,7 +3,7 @@ package dev.slne.surf.cloud.api.common.netty.packet
 import dev.slne.surf.cloud.api.common.netty.network.Connection
 import dev.slne.surf.cloud.api.common.netty.protocol.buffer.readUuid
 import dev.slne.surf.cloud.api.common.netty.protocol.buffer.writeUuid
-import dev.slne.surf.cloud.api.common.util.InternalApi
+import dev.slne.surf.cloud.api.common.util.annotation.InternalApi
 import io.netty.buffer.ByteBuf
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.withTimeout
@@ -50,7 +50,6 @@ abstract class RespondingNettyPacket<P : ResponseNettyPacket> : NettyPacket() {
      * @param timeout The timeout duration. Defaults to [DEFAULT_TIMEOUT].
      * @return The response packet, or `null` if the timeout elapses.
      */
-    @OptIn(InternalApi::class)
     suspend fun fireAndAwait(connection: Connection, timeout: Duration = DEFAULT_TIMEOUT): P? =
         withTimeoutOrNull(timeout) {
             connection.send(this@RespondingNettyPacket)
@@ -73,7 +72,6 @@ abstract class RespondingNettyPacket<P : ResponseNettyPacket> : NettyPacket() {
      * @param timeout The timeout duration. Defaults to [DEFAULT_TIMEOUT].
      * @return The response packet.
      */
-    @OptIn(InternalApi::class)
     suspend fun fireAndAwaitOrThrow(
         connection: Connection,
         timeout: Duration = DEFAULT_TIMEOUT
@@ -97,7 +95,6 @@ abstract class RespondingNettyPacket<P : ResponseNettyPacket> : NettyPacket() {
      *
      * @param packet The response packet to send.
      */
-    @OptIn(InternalApi::class)
     fun respond(packet: P) {
         packet.responseTo = uniqueSessionId
             ?: error("Responding packet has no session id. Are you sure it was sent?")

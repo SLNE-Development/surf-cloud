@@ -2,7 +2,7 @@
 
 package dev.slne.surf.cloud.api.server.plugin.loader.library.impl
 
-import dev.slne.surf.cloud.api.common.util.InternalApi
+import dev.slne.surf.cloud.api.common.util.annotation.InternalApi
 import dev.slne.surf.cloud.api.server.plugin.loader.library.ClassPathLibrary
 import dev.slne.surf.cloud.api.server.plugin.loader.library.LibraryLoadingException
 import dev.slne.surf.cloud.api.server.plugin.loader.library.LibraryStore

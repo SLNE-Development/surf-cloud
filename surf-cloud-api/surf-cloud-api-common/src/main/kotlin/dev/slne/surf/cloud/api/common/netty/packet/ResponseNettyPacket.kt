@@ -2,9 +2,8 @@ package dev.slne.surf.cloud.api.common.netty.packet
 
 import dev.slne.surf.cloud.api.common.netty.protocol.buffer.readUuid
 import dev.slne.surf.cloud.api.common.netty.protocol.buffer.writeUuid
-import dev.slne.surf.cloud.api.common.util.InternalApi
+import dev.slne.surf.cloud.api.common.util.annotation.InternalApi
 import io.netty.buffer.ByteBuf
-import org.jetbrains.annotations.ApiStatus.Internal
 import java.util.*
 
 /**

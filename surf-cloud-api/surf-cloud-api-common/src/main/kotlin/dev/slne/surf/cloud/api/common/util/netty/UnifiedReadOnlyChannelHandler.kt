@@ -1,4 +1,4 @@
-package dev.slne.surf.cloud.api.common.util
+package dev.slne.surf.cloud.api.common.util.netty
 
 import io.netty.channel.ChannelDuplexHandler
 import io.netty.channel.ChannelHandlerContext

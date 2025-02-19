@@ -1,12 +1,12 @@
 package dev.slne.surf.cloud.standalone
 
 import com.google.auto.service.AutoService
-import dev.slne.surf.cloud.api.common.SurfCloudInstance
-import dev.slne.surf.cloud.api.server.SurfCloudServerInstance
+import dev.slne.surf.cloud.api.common.CloudInstance
+import dev.slne.surf.cloud.api.server.CloudServerInstance
 import dev.slne.surf.cloud.api.server.export.RootExportPlayerData
 import dev.slne.surf.cloud.api.server.plugin.PluginManager
 import dev.slne.surf.cloud.api.server.plugin.StandalonePlugin
-import dev.slne.surf.cloud.core.common.SurfCloudCoreInstance
+import dev.slne.surf.cloud.core.common.CloudCoreInstance
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ClientboundTriggerShutdownPacket
 import dev.slne.surf.cloud.core.common.server.CommonCloudServerImpl
 import dev.slne.surf.cloud.core.common.util.checkInstantiationByServiceLoader
@@ -24,12 +24,11 @@ import org.bson.BsonDocument
 import org.bson.BsonDocumentWriter
 import org.bson.codecs.EncoderContext
 import org.bson.codecs.kotlinx.KotlinSerializerCodec
-import org.jetbrains.exposed.sql.SchemaUtils
 import java.util.*
 
-@AutoService(SurfCloudInstance::class)
-class SurfCloudStandaloneInstance : SurfCloudCoreInstance(StandaloneNettyManager),
-    SurfCloudServerInstance {
+@AutoService(CloudInstance::class)
+class CloudStandaloneInstance : CloudCoreInstance(StandaloneNettyManager),
+    CloudServerInstance {
     override val springProfile = "independent"
 
     init {
@@ -162,9 +161,9 @@ class SurfCloudStandaloneInstance : SurfCloudCoreInstance(StandaloneNettyManager
     }
 
     companion object {
-        fun get() = SurfCloudInstance.instance as SurfCloudStandaloneInstance
+        fun get() = CloudInstance.instance as CloudStandaloneInstance
     }
 }
 
 val standaloneCloudInstance
-    get() = SurfCloudStandaloneInstance.get()
+    get() = CloudStandaloneInstance.get()

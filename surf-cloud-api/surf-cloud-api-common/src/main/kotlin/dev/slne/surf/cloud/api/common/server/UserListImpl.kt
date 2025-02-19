@@ -3,8 +3,8 @@ package dev.slne.surf.cloud.api.common.server
 import dev.slne.surf.cloud.api.common.netty.network.codec.streamCodec
 import dev.slne.surf.cloud.api.common.netty.protocol.buffer.SurfByteBuf
 import dev.slne.surf.cloud.api.common.player.CloudPlayer
-import dev.slne.surf.cloud.api.common.player.playerManager
-import dev.slne.surf.cloud.api.common.util.InternalApi
+import dev.slne.surf.cloud.api.common.player.CloudPlayerManager
+import dev.slne.surf.cloud.api.common.util.annotation.InternalApi
 import dev.slne.surf.cloud.api.common.util.mutableObjectSetOf
 import dev.slne.surf.cloud.api.common.util.synchronize
 import it.unimi.dsi.fastutil.objects.ObjectSet
@@ -41,10 +41,8 @@ open class UserListImpl : UserList {
         return object : Iterator<CloudPlayer> {
             private val iterator = playerReferences.iterator()
             override fun hasNext() = iterator.hasNext()
-            override fun next() =
-                iterator.next().let { playerManager.getPlayer(it) } ?: throw NoSuchElementException(
-                    "Player not found"
-                )
+            override fun next() = CloudPlayerManager.getPlayer(iterator.next())
+                ?: throw NoSuchElementException("Player not found")
         }
     }
 
@@ -83,10 +81,8 @@ class MutableUserListImpl : UserListImpl(), MutableUserList {
         return object : MutableIterator<CloudPlayer> {
             private val iterator = playerReferences.iterator()
             override fun hasNext() = iterator.hasNext()
-            override fun next() =
-                iterator.next().let { playerManager.getPlayer(it) } ?: throw NoSuchElementException(
-                    "Player not found"
-                )
+            override fun next() = CloudPlayerManager.getPlayer(iterator.next())
+                ?: throw NoSuchElementException("Player not found")
 
             override fun remove() {
                 iterator.remove()

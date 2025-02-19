@@ -7,6 +7,7 @@ import dev.slne.surf.cloud.api.common.player.teleport.TeleportLocation
 import dev.slne.surf.cloud.api.common.server.CloudServer
 import net.kyori.adventure.audience.Audience
 import net.kyori.adventure.text.Component
+import java.net.InetAddress
 import java.util.*
 
 /**
@@ -17,6 +18,9 @@ import java.util.*
  * it enables sending messages or components to the player.
  */
 interface CloudPlayer : Audience, OfflineCloudPlayer { // TODO: conversation but done correctly?
+    override suspend fun latestIpAddress(): InetAddress
+    override suspend fun lastServerRaw(): String
+
     /**
      * Whether the player is currently connected to a proxy server.
      */

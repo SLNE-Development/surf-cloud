@@ -1,13 +1,16 @@
 package dev.slne.surf.cloud.standalone.player
 
 import dev.slne.surf.cloud.api.common.player.CloudPlayer
+import dev.slne.surf.cloud.api.common.player.CloudPlayerManager
 import dev.slne.surf.cloud.api.common.player.OfflineCloudPlayer
 import dev.slne.surf.cloud.api.common.player.name.NameHistory
-import dev.slne.surf.cloud.api.common.player.playerManager
 import dev.slne.surf.cloud.api.common.server.CloudServer
+import dev.slne.surf.cloud.core.common.coroutines.NameHistoryScope
 import dev.slne.surf.cloud.core.common.util.bean
 import dev.slne.surf.cloud.standalone.player.db.service.CloudPlayerService
+import dev.slne.surf.cloud.standalone.player.name.NameHistoryImpl
 import dev.slne.surf.cloud.standalone.server.serverManagerImpl
+import kotlinx.coroutines.withContext
 import net.kyori.adventure.text.Component
 import java.net.InetAddress
 import java.time.ZonedDateTime
@@ -19,7 +22,14 @@ class OfflineCloudPlayerImpl(override val uuid: UUID) : OfflineCloudPlayer {
     }
 
     override suspend fun nameHistory(): NameHistory {
-        TODO("Not yet implemented")
+        val player = player
+        if (player != null) {
+            return player.nameHistory()
+        }
+
+        return withContext(NameHistoryScope.context) {
+            NameHistoryImpl(service.findNameHistories(uuid) ?: emptyList())
+        }
     }
 
     override suspend fun lastServerRaw(): String? =
@@ -34,11 +44,15 @@ class OfflineCloudPlayerImpl(override val uuid: UUID) : OfflineCloudPlayer {
     override suspend fun latestIpAddress(): InetAddress? =
         player?.latestIpAddress() ?: service.findLastIpAddress(uuid)
 
+    override suspend fun playedBefore(): Boolean {
+        return player != null || lastSeen() != null
+    }
+
     override suspend fun displayName(): Component? {
         return player?.displayName() ?: serverManagerImpl.requestOfflineDisplayName(uuid)
     }
 
-    override val player: CloudPlayer? get() = playerManager.getPlayer(uuid)
+    override val player: CloudPlayer? get() = CloudPlayerManager.getPlayer(uuid)
 
     override suspend fun <R> getLuckpermsMetaData(
         key: String,

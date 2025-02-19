@@ -25,3 +25,9 @@ dependencies {
     }
     api("net.bytebuddy:byte-buddy:1.15.10")
 }
+
+kotlin {
+    compilerOptions {
+        optIn.add("dev.slne.surf.cloud.api.common.util.annotation.InternalApi")
+    }
+}

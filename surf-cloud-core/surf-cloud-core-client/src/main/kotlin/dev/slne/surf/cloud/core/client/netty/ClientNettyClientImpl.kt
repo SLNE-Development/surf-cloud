@@ -6,7 +6,6 @@ import dev.slne.surf.cloud.api.common.exceptions.FatalSurfError
 import dev.slne.surf.cloud.api.common.netty.network.protocol.PacketFlow
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
 import dev.slne.surf.cloud.api.common.server.CloudServerConstants
-import dev.slne.surf.cloud.api.common.util.logger
 import dev.slne.surf.cloud.api.common.util.mutableObjectListOf
 import dev.slne.surf.cloud.core.client.netty.network.*
 import dev.slne.surf.cloud.core.client.server.serverManagerImpl
@@ -14,7 +13,6 @@ import dev.slne.surf.cloud.core.common.config.cloudConfig
 import dev.slne.surf.cloud.core.common.coroutines.ConnectionTickScope
 import dev.slne.surf.cloud.core.common.data.CloudPersistentData
 import dev.slne.surf.cloud.core.common.netty.CommonNettyClientImpl
-import dev.slne.surf.cloud.core.common.netty.nettyManager
 import dev.slne.surf.cloud.core.common.netty.network.ConnectionImpl
 import dev.slne.surf.cloud.core.common.netty.network.DisconnectionDetails
 import dev.slne.surf.cloud.core.common.netty.network.protocol.common.ServerboundBundlePacket
@@ -26,6 +24,7 @@ import dev.slne.surf.cloud.core.common.netty.network.protocol.login.ServerboundL
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ServerboundBroadcastPacket
 import dev.slne.surf.cloud.core.common.util.InetSocketAddress
 import dev.slne.surf.cloud.core.common.util.ServerAddress
+import dev.slne.surf.surfapi.core.api.util.logger
 import kotlinx.coroutines.*
 import java.net.InetSocketAddress
 import kotlin.time.Duration.Companion.minutes

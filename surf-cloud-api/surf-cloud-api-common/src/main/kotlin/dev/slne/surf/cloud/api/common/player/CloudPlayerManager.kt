@@ -1,6 +1,6 @@
 package dev.slne.surf.cloud.api.common.player
 
-import dev.slne.surf.cloud.api.common.util.requiredService
+import dev.slne.surf.surfapi.core.api.util.requiredService
 import net.kyori.adventure.audience.Audience
 import net.kyori.adventure.identity.Identity
 import org.jetbrains.annotations.ApiStatus
@@ -23,15 +23,12 @@ interface CloudPlayerManager {
      */
     fun getPlayer(uuid: UUID?): CloudPlayer?
 
-    fun getOfflinePlayer(uuid: UUID?): OfflineCloudPlayer?
-    fun getOrCreateOfflinePlayer(uuid: UUID): OfflineCloudPlayer
+    fun getOfflinePlayer(uuid: UUID): OfflineCloudPlayer
 
-    companion object {
-        val instance = requiredService<CloudPlayerManager>()
+    companion object : CloudPlayerManager by requiredService<CloudPlayerManager>() {
+        val instance = this as CloudPlayerManager
     }
 }
-
-val playerManager get() = CloudPlayerManager.instance
 
 /**
  * Attempts to convert an [Audience] to its corresponding [CloudPlayer].
@@ -41,5 +38,5 @@ val playerManager get() = CloudPlayerManager.instance
  * or `null` if the [Audience] is not a player or cannot be resolved.
  */
 fun Audience?.toCloudPlayer(): CloudPlayer? {
-    return playerManager.getPlayer(this?.pointers()?.get(Identity.UUID)?.orElse(null))
+    return CloudPlayerManager.getPlayer(this?.pointers()?.get(Identity.UUID)?.orElse(null))
 }

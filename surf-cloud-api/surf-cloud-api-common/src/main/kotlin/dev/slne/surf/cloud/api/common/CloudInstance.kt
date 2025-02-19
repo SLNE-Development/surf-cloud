@@ -1,11 +1,9 @@
 package dev.slne.surf.cloud.api.common
 
-import dev.slne.surf.cloud.api.common.util.requiredService
+import dev.slne.surf.surfapi.core.api.util.requiredService
 import org.jetbrains.annotations.ApiStatus
 import org.springframework.boot.builder.SpringApplicationBuilder
-import org.springframework.context.ApplicationListener
 import org.springframework.context.ConfigurableApplicationContext
-import java.util.UUID
 import kotlin.reflect.KClass
 
 /**
@@ -16,7 +14,7 @@ import kotlin.reflect.KClass
  * This interface is non-extendable.
  */
 @ApiStatus.NonExtendable
-interface SurfCloudInstance {
+interface CloudInstance {
 
     /**
      * Starts a Spring application with the specified parameters.
@@ -34,23 +32,10 @@ interface SurfCloudInstance {
         customizer: SpringApplicationBuilder.() -> Unit = {}
     ): ConfigurableApplicationContext
 
-    /**
-     * Internal listener for Netty packet processing events.
-     */
-    @get:ApiStatus.Internal
-    @Deprecated("Not needed anymore?", level = DeprecationLevel.ERROR)
-    val nettyPacketProcessorListener: ApplicationListener<*>
-
-    companion object {
-        val instance = requiredService<SurfCloudInstance>()
+    companion object : CloudInstance by requiredService<CloudInstance>() {
+        val instance = this as CloudInstance
     }
 }
-
-/**
- * Provides a convenient property to access the singleton [SurfCloudInstance].
- */
-val cloudInstance: SurfCloudInstance
-    get() = SurfCloudInstance.instance
 
 /**
  * Extension function to start a Spring application using [KClass].
@@ -61,9 +46,14 @@ val cloudInstance: SurfCloudInstance
  * @param customizer A block to customize the [SpringApplicationBuilder].
  * @return The resulting [ConfigurableApplicationContext].
  */
-fun SurfCloudInstance.startSpringApplication(
+fun CloudInstance.startSpringApplication(
     applicationClass: KClass<*>,
     classLoader: ClassLoader = applicationClass.java.classLoader,
     vararg parentClassLoader: ClassLoader,
     customizer: SpringApplicationBuilder.() -> Unit = {}
-) = startSpringApplication(applicationClass.java, classLoader, *parentClassLoader, customizer = customizer)
+) = startSpringApplication(
+    applicationClass.java,
+    classLoader,
+    *parentClassLoader,
+    customizer = customizer
+)

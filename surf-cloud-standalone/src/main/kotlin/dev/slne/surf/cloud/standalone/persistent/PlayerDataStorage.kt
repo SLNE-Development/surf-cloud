@@ -1,9 +1,9 @@
 package dev.slne.surf.cloud.standalone.persistent
 
-import dev.slne.surf.cloud.api.common.util.logger
 import dev.slne.surf.cloud.api.common.util.nbt.FastNbtIo
 import dev.slne.surf.cloud.api.common.util.safeReplaceFile
 import dev.slne.surf.cloud.standalone.player.StandaloneCloudPlayerImpl
+import dev.slne.surf.surfapi.core.api.util.logger
 import net.querz.nbt.tag.CompoundTag
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption

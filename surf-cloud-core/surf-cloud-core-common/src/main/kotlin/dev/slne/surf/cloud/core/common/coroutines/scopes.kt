@@ -1,8 +1,8 @@
 package dev.slne.surf.cloud.core.common.coroutines
 
-import dev.slne.surf.cloud.api.common.util.logger
 import dev.slne.surf.cloud.api.common.util.mutableObjectListOf
 import dev.slne.surf.cloud.api.common.util.threadFactory
+import dev.slne.surf.surfapi.core.api.util.logger
 import kotlinx.coroutines.*
 import java.util.concurrent.Executors
 
@@ -30,6 +30,8 @@ abstract class BaseScope(
                     .withCause(throwable)
                     .log("Unhandled exception in coroutine: $coroutineName")
             }
+
+    val context get() = coroutineContext
 }
 
 object PacketHandlerScope : BaseScope(
@@ -72,10 +74,7 @@ object QueueDisplayScope : BaseScope(
 )
 
 object PlayerDataSaveScope : BaseScope(
-    dispatcher = Executors.newSingleThreadExecutor(threadFactory {
-        nameFormat("player-data-save-thread-%d")
-        daemon(false)
-    }).asCoroutineDispatcher(),
+    dispatcher = Dispatchers.IO,
     name = "player-data-save"
 )
 
@@ -108,4 +107,14 @@ object ConsoleCommandInputScope : BaseScope(
 object KtorScope : BaseScope(
     dispatcher = Dispatchers.IO,
     name = "ktor"
+)
+
+object NameHistoryScope : BaseScope(
+    dispatcher = Dispatchers.IO,
+    name = "name-history"
+)
+
+object PlayerDatabaseScope : BaseScope(
+    dispatcher = Dispatchers.IO,
+    name = "player-database"
 )

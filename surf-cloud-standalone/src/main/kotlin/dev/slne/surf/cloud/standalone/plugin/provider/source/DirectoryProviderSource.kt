@@ -2,8 +2,8 @@
 
 package dev.slne.surf.cloud.standalone.plugin.provider.source
 
-import dev.slne.surf.cloud.api.common.util.logger
 import dev.slne.surf.cloud.standalone.plugin.entrypoint.EntrypointHandler
+import dev.slne.surf.surfapi.core.api.util.logger
 import java.nio.file.FileVisitOption
 import java.nio.file.Files
 import java.nio.file.Path

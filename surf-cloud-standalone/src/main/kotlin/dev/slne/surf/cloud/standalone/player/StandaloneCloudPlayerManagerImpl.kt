@@ -2,18 +2,23 @@ package dev.slne.surf.cloud.standalone.player
 
 import com.google.auto.service.AutoService
 import dev.slne.surf.cloud.api.common.player.CloudPlayerManager
-import dev.slne.surf.cloud.api.common.util.logger
+import dev.slne.surf.cloud.api.common.player.OfflineCloudPlayer
 import dev.slne.surf.cloud.api.server.export.PlayerDataExport
+import dev.slne.surf.cloud.api.server.export.PlayerDataExportEmpty
 import dev.slne.surf.cloud.core.common.coroutines.PlayerDataSaveScope
 import dev.slne.surf.cloud.core.common.player.CloudPlayerManagerImpl
 import dev.slne.surf.cloud.core.common.player.playerManagerImpl
+import dev.slne.surf.cloud.core.common.util.bean
 import dev.slne.surf.cloud.core.common.util.checkInstantiationByServiceLoader
 import dev.slne.surf.cloud.standalone.persistent.PlayerDataStorage
+import dev.slne.surf.cloud.standalone.player.db.service.CloudPlayerService
 import dev.slne.surf.cloud.standalone.server.StandaloneCloudServerImpl
 import dev.slne.surf.cloud.standalone.server.StandaloneProxyCloudServerImpl
 import dev.slne.surf.cloud.standalone.server.asStandaloneServer
 import dev.slne.surf.cloud.standalone.server.serverManagerImpl
+import dev.slne.surf.surfapi.core.api.util.logger
 import kotlinx.coroutines.*
+import org.gradle.internal.impldep.kotlinx.coroutines.awaitAll
 import java.util.*
 import kotlin.time.Duration.Companion.minutes
 
@@ -107,12 +112,24 @@ class StandaloneCloudPlayerManagerImpl : CloudPlayerManagerImpl<StandaloneCloudP
     override fun getProxyServerUid(player: StandaloneCloudPlayerImpl) = player.proxyServer?.uid
     override fun getServerUid(player: StandaloneCloudPlayerImpl) = player.server?.uid
 
-    override suspend fun onConnect(
+    override fun getOfflinePlayer(uuid: UUID): OfflineCloudPlayer {
+        return OfflineCloudPlayerImpl(uuid)
+    }
+
+    override suspend fun onNetworkConnect(
         uuid: UUID,
         player: StandaloneCloudPlayerImpl
     ) {
-        withContext(Dispatchers.IO) { PlayerDataStorage.load(player) }
-        super.onConnect(uuid, player)
+
+        supervisorScope {
+            awaitAll(
+                async(PlayerDataSaveScope.context) {
+                    PlayerDataStorage.load(player)
+                }
+            )
+        }
+
+        super.onNetworkConnect(uuid, player)
     }
 
     override suspend fun onNetworkDisconnect(
@@ -123,14 +140,25 @@ class StandaloneCloudPlayerManagerImpl : CloudPlayerManagerImpl<StandaloneCloudP
     ) {
         super.onNetworkDisconnect(uuid, player, oldProxy, oldServer)
 
-        oldServer?.toServer()?.asStandaloneServer()?.queue?.handlePlayerLeave(player)
-        withContext(Dispatchers.IO) { PlayerDataStorage.save(player) }
+        supervisorScope {
+            awaitAll(
+                async {
+                    oldServer?.toServer()?.asStandaloneServer()?.queue?.handlePlayerLeave(player)
+                },
+                async(PlayerDataSaveScope.context) {
+                    PlayerDataStorage.save(player)
+                },
+                async {
+                    bean<CloudPlayerService>().updateOnDisconnect(player)
+                }
+            )
+        }
     }
 
     private suspend fun Long.toServer() = serverManagerImpl.retrieveServerById(this)
 
     suspend fun exportPlayerData(uuid: UUID): PlayerDataExport {
-
+        return PlayerDataExportEmpty
     }
 
     suspend fun deleteNotInterestingPlayerData(uuid: UUID) {

@@ -1,6 +1,6 @@
 package dev.slne.surf.cloud.api.server.plugin.loader.library
 
-import dev.slne.surf.cloud.api.common.util.InternalApi
+import dev.slne.surf.cloud.api.common.util.annotation.InternalApi
 import java.nio.file.Path
 
 @InternalApi

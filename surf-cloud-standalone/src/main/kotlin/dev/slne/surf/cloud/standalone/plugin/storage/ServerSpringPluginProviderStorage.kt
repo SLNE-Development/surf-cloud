@@ -1,6 +1,5 @@
 package dev.slne.surf.cloud.standalone.plugin.storage
 
-import dev.slne.surf.cloud.api.common.util.logger
 import dev.slne.surf.cloud.api.server.plugin.PluginManager
 import dev.slne.surf.cloud.api.server.plugin.StandalonePlugin
 import dev.slne.surf.cloud.api.server.plugin.dependency.DependencyContext
@@ -9,6 +8,7 @@ import dev.slne.surf.cloud.standalone.plugin.entrypoint.strategy.ProviderConfigu
 import dev.slne.surf.cloud.standalone.plugin.manager.SpringPluginManagerImpl
 import dev.slne.surf.cloud.standalone.plugin.provider.PluginProvider
 import dev.slne.surf.cloud.standalone.plugin.provider.impl.StandalonePluginParent
+import dev.slne.surf.surfapi.core.api.util.logger
 import it.unimi.dsi.fastutil.objects.ObjectList
 
 open class ServerSpringPluginProviderStorage :

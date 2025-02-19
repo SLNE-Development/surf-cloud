@@ -5,14 +5,11 @@ import com.github.shynixn.mccoroutine.folia.globalRegionDispatcher
 import com.github.shynixn.mccoroutine.folia.launch
 import com.github.shynixn.mccoroutine.folia.ticks
 import dev.jorel.commandapi.CommandAPIBukkit
-import dev.jorel.commandapi.CommandAPICommand
-import dev.jorel.commandapi.arguments.Argument
-import dev.jorel.commandapi.executors.NativeCommandExecutor
 import dev.jorel.commandapi.kotlindsl.*
 import dev.slne.surf.cloud.api.common.player.teleport.TeleportCause
 import dev.slne.surf.cloud.api.common.player.teleport.fineLocation
 import dev.slne.surf.cloud.api.common.player.toCloudPlayer
-import dev.slne.surf.cloud.api.common.server.serverManager
+import dev.slne.surf.cloud.api.common.server.CloudServerManager
 import dev.slne.surf.cloud.bukkit.player.BukkitClientCloudPlayerImpl
 import dev.slne.surf.cloud.core.common.handleEventuallyFatalError
 import dev.slne.surf.surfapi.bukkit.api.event.listen
@@ -69,7 +66,7 @@ class BukkitMain : SuspendingJavaPlugin() {
                     anyExecutor { sender, args ->
                         val id: Long by args
                         launch {
-                            val server = serverManager.retrieveServerById(id)
+                            val server = CloudServerManager.retrieveServerById(id)
                             sender.sendMessage("Server: $server")
                         }
                     }
@@ -83,7 +80,10 @@ class BukkitMain : SuspendingJavaPlugin() {
                             val name: String by args
                             launch {
                                 val server =
-                                    serverManager.retrieveServerByCategoryAndName(category, name)
+                                    CloudServerManager.retrieveServerByCategoryAndName(
+                                        category,
+                                        name
+                                    )
                                 sender.sendMessage("Server: $server")
                             }
                         }
@@ -95,7 +95,7 @@ class BukkitMain : SuspendingJavaPlugin() {
                     anyExecutor { sender, args ->
                         val name: String by args
                         launch {
-                            val server = serverManager.retrieveServerByName(name)
+                            val server = CloudServerManager.retrieveServerByName(name)
                             sender.sendMessage("Server: $server")
                         }
                     }
@@ -106,7 +106,7 @@ class BukkitMain : SuspendingJavaPlugin() {
                     anyExecutor { sender, args ->
                         val category: String by args
                         launch {
-                            val servers = serverManager.retrieveServersByCategory(category)
+                            val servers = CloudServerManager.retrieveServersByCategory(category)
                             sender.sendMessage("Servers: $servers")
                         }
                     }
@@ -197,7 +197,7 @@ class BukkitMain : SuspendingJavaPlugin() {
             anyExecutor { sender, args ->
                 val id: Long by args
                 launch {
-                    val server = serverManager.retrieveServerById(id)
+                    val server = CloudServerManager.retrieveServerById(id)
                     requireCommand(server != null) { Component.text("Server with id $id not found") }
 
                     server.shutdown()

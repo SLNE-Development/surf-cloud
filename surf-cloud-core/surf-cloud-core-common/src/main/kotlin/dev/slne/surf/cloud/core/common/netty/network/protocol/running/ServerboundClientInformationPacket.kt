@@ -50,33 +50,33 @@ class ServerboundClientInformationPacket : NettyPacket {
 
 data class ClientInformation(
     val maxPlayerCount: Int,
-    val whitelist: Boolean,
+    val allowlist: Boolean,
     val state: ServerState
 ) {
     companion object {
         val CODEC = createRecordCodec<ClientInformation> {
             group(
                 int("maxPlayerCount") { maxPlayerCount },
-                bool("whitelist") { whitelist },
+                bool("allowlist") { allowlist },
                 enum("state") { state }
             ).apply(this, ::ClientInformation)
         }
 
         val STREAM_CODEC = streamCodec<SurfByteBuf, ClientInformation>({ buf, info ->
             buf.writeVarInt(info.maxPlayerCount)
-            buf.writeBoolean(info.whitelist)
+            buf.writeBoolean(info.allowlist)
             buf.writeEnum(info.state)
         }, { buf ->
             ClientInformation(
                 maxPlayerCount = buf.readVarInt(),
-                whitelist = buf.readBoolean(),
+                allowlist = buf.readBoolean(),
                 state = buf.readEnum()
             )
         })
 
         val NOT_AVAILABLE = ClientInformation(
             maxPlayerCount = -1,
-            whitelist = true,
+            allowlist = true,
             state = ServerState.OFFLINE
         )
     }

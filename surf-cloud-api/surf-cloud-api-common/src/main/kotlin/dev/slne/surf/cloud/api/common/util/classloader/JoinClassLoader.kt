@@ -1,4 +1,4 @@
-package dev.slne.surf.cloud.api.common.util
+package dev.slne.surf.cloud.api.common.util.classloader
 
 import java.io.IOException
 import java.net.URL

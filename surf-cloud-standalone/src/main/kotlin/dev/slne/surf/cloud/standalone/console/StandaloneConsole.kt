@@ -1,9 +1,9 @@
 package dev.slne.surf.cloud.standalone.console
 
 import dev.slne.surf.cloud.api.common.exceptions.ExitCodes
-import dev.slne.surf.cloud.api.common.util.logger
 import dev.slne.surf.cloud.core.common.coroutines.ConsoleCommandInputScope
 import dev.slne.surf.cloud.standalone.commands.CommandManagerImpl
+import dev.slne.surf.surfapi.core.api.util.logger
 import jakarta.annotation.PostConstruct
 import kotlinx.coroutines.launch
 import net.minecrell.terminalconsole.SimpleTerminalConsole

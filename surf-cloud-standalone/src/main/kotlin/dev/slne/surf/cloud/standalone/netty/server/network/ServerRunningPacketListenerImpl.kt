@@ -4,8 +4,7 @@ import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacketInfo
 import dev.slne.surf.cloud.api.common.player.ConnectionResultEnum
 import dev.slne.surf.cloud.api.common.server.CloudServer
-import dev.slne.surf.cloud.api.common.server.serverManager
-import dev.slne.surf.cloud.api.common.util.logger
+import dev.slne.surf.cloud.api.common.server.CloudServerManager
 import dev.slne.surf.cloud.api.common.util.mutableIntSetOf
 import dev.slne.surf.cloud.core.common.coroutines.PacketHandlerScope
 import dev.slne.surf.cloud.core.common.netty.network.ConnectionImpl
@@ -19,6 +18,7 @@ import dev.slne.surf.cloud.standalone.player.StandaloneCloudPlayerImpl
 import dev.slne.surf.cloud.standalone.server.StandaloneCloudServerImpl
 import dev.slne.surf.cloud.standalone.server.StandaloneProxyCloudServerImpl
 import dev.slne.surf.cloud.standalone.server.serverManagerImpl
+import dev.slne.surf.surfapi.core.api.util.logger
 import kotlinx.coroutines.launch
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.title.Title
@@ -212,7 +212,7 @@ class ServerRunningPacketListenerImpl(
 
     override suspend fun handleConnectPlayerToServer(packet: ServerboundConnectPlayerToServerPacket) {
         withPlayer(packet.uuid) {
-            val server = serverManager.retrieveServerById(packet.serverId)
+            val server = CloudServerManager.retrieveServerById(packet.serverId)
 
             if (server == null) {
                 packet.respond(ClientboundConnectPlayerToServerResponse(ConnectionResultEnum.SERVER_NOT_FOUND to null))
@@ -251,7 +251,7 @@ class ServerRunningPacketListenerImpl(
     }
 
     override suspend fun handleShutdownServer(packet: ServerboundShutdownServerPacket) {
-        val server = serverManager.retrieveServerById(packet.serverId) ?: return
+        val server = CloudServerManager.retrieveServerById(packet.serverId) ?: return
         server.shutdown()
     }
 

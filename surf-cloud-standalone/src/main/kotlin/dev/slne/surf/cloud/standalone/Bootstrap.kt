@@ -1,12 +1,11 @@
 package dev.slne.surf.cloud.standalone
 
-import dev.slne.surf.cloud.api.common.util.logger
-import dev.slne.surf.cloud.core.common.SurfCloudCoreInstance.BootstrapData
+import dev.slne.surf.cloud.core.common.CloudCoreInstance.BootstrapData
 import dev.slne.surf.cloud.core.common.handleEventuallyFatalError
+import dev.slne.surf.surfapi.core.api.util.logger
 import dev.slne.surf.surfapi.standalone.SurfApiStandaloneBootstrap
 import kotlinx.coroutines.runBlocking
 import org.springframework.boot.SpringApplication
-import java.net.URL
 import kotlin.concurrent.thread
 import kotlin.io.path.Path
 import kotlin.system.exitProcess

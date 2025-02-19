@@ -2,7 +2,7 @@ package dev.slne.surf.cloud.core.common.netty.network
 
 import dev.slne.surf.cloud.api.common.netty.network.protocol.PacketFlow
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
-import dev.slne.surf.cloud.api.common.util.logger
+import dev.slne.surf.surfapi.core.api.util.logger
 
 interface ServerboundPacketListener: PacketListener {
     override val flow get() = PacketFlow.SERVERBOUND

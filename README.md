@@ -2,9 +2,6 @@
 
 Docs: [https://surf-cloud-docs.netlify.app/](https://surf-cloud-docs.netlify.app/)
 
-# System properties properties:
-- 
-
 
 # TODO
 ## IntelliJ Plugin

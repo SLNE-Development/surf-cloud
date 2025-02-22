@@ -52,6 +52,7 @@ abstract class CloudPlayerManagerImpl<P : CommonCloudPlayerImpl> : CloudPlayerMa
         if (player == null) {
             createPlayer(uuid, serverUid, proxy).also {
                 onNetworkConnect(uuid, it)
+                onServerConnect(uuid, it, serverUid)
                 addPlayer(it)
             }
         } else {
@@ -60,6 +61,7 @@ abstract class CloudPlayerManagerImpl<P : CommonCloudPlayerImpl> : CloudPlayerMa
             } else {
                 updateServer(player, serverUid)
             }
+            onServerConnect(uuid, player, serverUid)
         }
     }
 
@@ -89,18 +91,18 @@ abstract class CloudPlayerManagerImpl<P : CommonCloudPlayerImpl> : CloudPlayerMa
         }
     }
 
+    open suspend fun onServerConnect(uuid: UUID, player: P, serverUid: Long) {
+    }
+
     @MustBeInvokedByOverriders
-    @ApiStatus.OverrideOnly
     open suspend fun onServerDisconnect(uuid: UUID, player: P, serverUid: Long) {
     }
 
     @MustBeInvokedByOverriders
-    @ApiStatus.OverrideOnly
     open suspend fun onNetworkDisconnect(uuid: UUID, player: P, oldProxy: Long?, oldServer: Long?) {
     }
 
     @MustBeInvokedByOverriders
-    @ApiStatus.OverrideOnly
     open suspend fun onNetworkConnect(uuid: UUID, player: P) {
         CloudPlayerConnectToNetworkEvent(this, player).publish()
     }

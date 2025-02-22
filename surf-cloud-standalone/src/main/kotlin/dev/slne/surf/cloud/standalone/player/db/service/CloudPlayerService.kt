@@ -1,5 +1,6 @@
 package dev.slne.surf.cloud.standalone.player.db.service
 
+import dev.slne.surf.cloud.api.common.util.singleOrNullOrThrow
 import dev.slne.surf.cloud.api.server.exposed.service.AbstractExposedDAOService
 import dev.slne.surf.cloud.core.common.coroutines.PlayerDatabaseScope
 import dev.slne.surf.cloud.standalone.player.StandaloneCloudPlayerImpl
@@ -48,7 +49,15 @@ class CloudPlayerService : AbstractExposedDAOService<UUID, CloudPlayerEntity>(
         evict(player.uuid)
     }
 
+    suspend fun updateOnServerConnect(player: StandaloneCloudPlayerImpl) {
+        update(player.uuid) {
+            this.lastSeen = ZonedDateTime.now()
+            this.lastIpAddress = player.latestIpAddress()
+            this.lastServer = player.lastServerRaw()
+        }
+    }
+
     override suspend fun load(key: UUID): CloudPlayerEntity? {
-        return CloudPlayerEntity.find { CloudPlayers.uuid eq key }.singleOrNull()
+        return CloudPlayerEntity.find { CloudPlayers.uuid eq key }.singleOrNullOrThrow()
     }
 }

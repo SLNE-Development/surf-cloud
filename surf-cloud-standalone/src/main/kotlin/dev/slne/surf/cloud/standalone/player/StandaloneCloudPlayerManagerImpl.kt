@@ -116,6 +116,22 @@ class StandaloneCloudPlayerManagerImpl : CloudPlayerManagerImpl<StandaloneCloudP
         return OfflineCloudPlayerImpl(uuid)
     }
 
+    override suspend fun onServerConnect(
+        uuid: UUID,
+        player: StandaloneCloudPlayerImpl,
+        serverUid: Long
+    ) {
+        supervisorScope {
+            awaitAll(
+                async {
+                    bean<CloudPlayerService>().updateOnServerConnect(player)
+                }
+            )
+        }
+
+        super.onServerConnect(uuid, player, serverUid)
+    }
+
     override suspend fun onNetworkConnect(
         uuid: UUID,
         player: StandaloneCloudPlayerImpl

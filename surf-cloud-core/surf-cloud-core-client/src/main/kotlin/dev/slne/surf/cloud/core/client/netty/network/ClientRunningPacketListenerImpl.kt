@@ -1,5 +1,6 @@
 package dev.slne.surf.cloud.core.client.netty.network
 
+import com.google.common.flogger.StackSize
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacketInfo
 import dev.slne.surf.cloud.api.common.server.UserListImpl
@@ -15,6 +16,8 @@ import dev.slne.surf.cloud.core.common.netty.registry.listener.NettyListenerRegi
 import dev.slne.surf.cloud.core.common.player.playerManagerImpl
 import dev.slne.surf.cloud.core.common.server.CloudServerImpl
 import dev.slne.surf.cloud.core.common.server.ProxyCloudServerImpl
+import dev.slne.surf.surfapi.core.api.messages.adventure.getPointer
+import dev.slne.surf.surfapi.core.api.messages.adventure.text
 import dev.slne.surf.surfapi.core.api.util.logger
 import kotlinx.coroutines.launch
 import net.kyori.adventure.audience.Audience
@@ -133,9 +136,13 @@ class ClientRunningPacketListenerImpl(
 
     override fun handleRequestDisplayName(packet: ClientboundRequestDisplayNamePacket) {
         withRequiredAudience(packet.uuid, {
-            val displayName = pointers().get(Identity.DISPLAY_NAME).orElse(Component.empty())
+            val displayName = getPointer(Identity.DISPLAY_NAME) ?: Component.empty()
             packet.respond(ResponseDisplayNamePacketRequestPacket(packet.uuid, displayName))
         }) { "Display name requested for player ${packet.uuid} who is not online. Probably send to wrong server." }
+    }
+
+    override suspend fun handleRequestOfflinePlayerDisplayName(packet: RequestOfflineDisplayNamePacket) {
+        packet.respond(luckperms.userManager.getOrLoadUser(packet.uuid).username?.let { text(it) })
     }
 
     override suspend fun handleRegisterServerPacket(packet: ClientboundRegisterServerPacket) {
@@ -259,7 +266,9 @@ class ClientRunningPacketListenerImpl(
     ) {
         val audience = commonPlayerManagerImpl.getAudience(uuid)
         if (audience == null) {
-            log.atWarning().log(errorMessage())
+            log.atWarning()
+                .withStackTrace(StackSize.SMALL)
+                .log(errorMessage())
             return
         }
 

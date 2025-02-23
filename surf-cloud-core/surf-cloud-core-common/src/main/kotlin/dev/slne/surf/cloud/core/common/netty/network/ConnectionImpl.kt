@@ -5,9 +5,10 @@ import dev.slne.surf.cloud.api.common.netty.network.Connection
 import dev.slne.surf.cloud.api.common.netty.network.ConnectionProtocol
 import dev.slne.surf.cloud.api.common.netty.network.protocol.PacketFlow
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
-import dev.slne.surf.cloud.api.common.util.*
+import dev.slne.surf.cloud.api.common.util.DefaultUncaughtExceptionHandlerWithName
 import dev.slne.surf.cloud.api.common.util.math.lerp
 import dev.slne.surf.cloud.api.common.util.netty.suspend
+import dev.slne.surf.cloud.api.common.util.threadFactory
 import dev.slne.surf.cloud.core.common.config.cloudConfig
 import dev.slne.surf.cloud.core.common.coroutines.ConnectionManagementScope
 import dev.slne.surf.cloud.core.common.coroutines.PacketHandlerScope
@@ -312,6 +313,10 @@ class ConnectionImpl(
                             msg
                         )
 
+                        is RequestOfflineDisplayNamePacket -> listener.handleRequestOfflinePlayerDisplayName(
+                            msg
+                        )
+
                         is ServerboundClientInformationPacket -> listener.handleClientInformation(
                             msg
                         )
@@ -417,6 +422,10 @@ class ConnectionImpl(
                         )
 
                         is ClientboundRequestDisplayNamePacket -> listener.handleRequestDisplayName(
+                            msg
+                        )
+
+                        is RequestOfflineDisplayNamePacket -> listener.handleRequestOfflinePlayerDisplayName(
                             msg
                         )
 

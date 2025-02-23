@@ -162,6 +162,11 @@ class ServerRunningPacketListenerImpl(
         }
     }
 
+    override suspend fun handleRequestOfflinePlayerDisplayName(packet: RequestOfflineDisplayNamePacket) {
+        val name = serverManagerImpl.requestOfflineDisplayName(packet.uuid)
+        packet.respond(name)
+    }
+
     override suspend fun handleClientInformation(packet: ServerboundClientInformationPacket) {
         val server = serverManagerImpl.retrieveServerById(packet.serverId) ?: return
 

@@ -43,6 +43,8 @@ interface RunningClientPacketListener : ClientCommonPacketListener {
 
     fun handleRequestDisplayName(packet: ClientboundRequestDisplayNamePacket)
 
+    suspend fun handleRequestOfflinePlayerDisplayName(packet: RequestOfflineDisplayNamePacket)
+
     suspend fun handleRegisterServerPacket(packet: ClientboundRegisterServerPacket)
 
     suspend fun handleUnregisterServerPacket(packet: ClientboundUnregisterServerPacket)

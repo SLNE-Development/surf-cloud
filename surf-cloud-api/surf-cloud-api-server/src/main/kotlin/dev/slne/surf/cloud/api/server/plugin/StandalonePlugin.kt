@@ -8,13 +8,14 @@ import dev.slne.surf.cloud.api.server.plugin.configuration.PluginMeta
 import dev.slne.surf.cloud.api.server.plugin.coroutine.CoroutineManager
 import dev.slne.surf.cloud.api.server.plugin.provider.classloader.SpringPluginClassloader
 import kotlinx.coroutines.*
+import net.kyori.adventure.key.Namespaced
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger
 import java.nio.file.Path
 import java.util.*
 import kotlin.coroutines.CoroutineContext
 import kotlin.reflect.KClass
 
-abstract class StandalonePlugin {
+abstract class StandalonePlugin : Namespaced {
     var enabled = false
         private set
     lateinit var meta: PluginMeta
@@ -74,6 +75,10 @@ abstract class StandalonePlugin {
         }
 
         return scope.launch(context, start, block)
+    }
+
+    override fun namespace(): String {
+        return meta.name.trim().replace(' ', '_').lowercase()
     }
 
     companion object {

@@ -47,7 +47,7 @@ abstract class ClientCloudPlayerImpl<PlatformPlayer : Audience>(uuid: UUID) :
      * The audience for this player. If the player is on this server, this will point to
      * the bukkit / velocity player. Otherwise packets will be sent to the player via the network.
      */
-    protected abstract val player: PlatformPlayer?
+    protected abstract val audience: PlatformPlayer?
 
     protected abstract val platformClass: Class<PlatformPlayer>
 
@@ -69,7 +69,7 @@ abstract class ClientCloudPlayerImpl<PlatformPlayer : Audience>(uuid: UUID) :
 
     override suspend fun displayName(): Component {
         val localName =
-            player?.pointers()?.get(Identity.DISPLAY_NAME)?.orElse(null)
+            audience?.pointers()?.get(Identity.DISPLAY_NAME)?.orElse(null)
         if (localName != null) {
             return localName
         }
@@ -91,7 +91,7 @@ abstract class ClientCloudPlayerImpl<PlatformPlayer : Audience>(uuid: UUID) :
     }
 
     override suspend fun getLuckpermsMetaData(key: String): String? {
-        val player = player
+        val player = audience
         if (player != null) {
             return withLuckpermsAdapter { it.getMetaData(player).getMetaValue(key) }
         }
@@ -102,7 +102,7 @@ abstract class ClientCloudPlayerImpl<PlatformPlayer : Audience>(uuid: UUID) :
     @Deprecated("Deprecated in Java")
     @Suppress("UnstableApiUsage", "DEPRECATION")
     override fun sendMessage(source: Identity, message: Component, type: MessageType) {
-        val audience = player
+        val audience = audience
         if (audience != null) {
             audience.sendMessage(source, message, type)
             return
@@ -112,7 +112,7 @@ abstract class ClientCloudPlayerImpl<PlatformPlayer : Audience>(uuid: UUID) :
     }
 
     override fun sendActionBar(message: Component) {
-        val audience = player
+        val audience = audience
         if (audience != null) {
             audience.sendActionBar(message)
             return
@@ -122,7 +122,7 @@ abstract class ClientCloudPlayerImpl<PlatformPlayer : Audience>(uuid: UUID) :
     }
 
     override fun sendPlayerListHeaderAndFooter(header: Component, footer: Component) {
-        val audience = player
+        val audience = audience
         if (audience != null) {
             audience.sendPlayerListHeaderAndFooter(header, footer)
             return
@@ -132,7 +132,7 @@ abstract class ClientCloudPlayerImpl<PlatformPlayer : Audience>(uuid: UUID) :
     }
 
     override fun showTitle(title: Title) {
-        val audience = player
+        val audience = audience
         if (audience != null) {
             audience.showTitle(title)
             return
@@ -142,7 +142,7 @@ abstract class ClientCloudPlayerImpl<PlatformPlayer : Audience>(uuid: UUID) :
     }
 
     override fun <T : Any> sendTitlePart(part: TitlePart<T>, value: T) {
-        val audience = player
+        val audience = audience
         if (audience != null) {
             audience.sendTitlePart(part, value)
             return
@@ -152,7 +152,7 @@ abstract class ClientCloudPlayerImpl<PlatformPlayer : Audience>(uuid: UUID) :
     }
 
     override fun clearTitle() {
-        val audience = player
+        val audience = audience
         if (audience != null) {
             audience.clearTitle()
             return
@@ -162,7 +162,7 @@ abstract class ClientCloudPlayerImpl<PlatformPlayer : Audience>(uuid: UUID) :
     }
 
     override fun resetTitle() {
-        val audience = player
+        val audience = audience
         if (audience != null) {
             audience.resetTitle()
             return
@@ -172,7 +172,7 @@ abstract class ClientCloudPlayerImpl<PlatformPlayer : Audience>(uuid: UUID) :
     }
 
     override fun showBossBar(bar: BossBar) {
-        val audience = player
+        val audience = audience
         if (audience != null) {
             audience.showBossBar(bar)
             return
@@ -182,7 +182,7 @@ abstract class ClientCloudPlayerImpl<PlatformPlayer : Audience>(uuid: UUID) :
     }
 
     override fun hideBossBar(bar: BossBar) {
-        val audience = player
+        val audience = audience
         if (audience != null) {
             audience.hideBossBar(bar)
             return
@@ -192,7 +192,7 @@ abstract class ClientCloudPlayerImpl<PlatformPlayer : Audience>(uuid: UUID) :
     }
 
     override fun playSound(sound: Sound) {
-        val audience = player
+        val audience = audience
         if (audience != null) {
             audience.playSound(sound)
             return
@@ -202,7 +202,7 @@ abstract class ClientCloudPlayerImpl<PlatformPlayer : Audience>(uuid: UUID) :
     }
 
     override fun playSound(sound: Sound, emitter: Emitter) {
-        val audience = player
+        val audience = audience
         if (audience != null) {
             audience.playSound(sound, emitter)
             return
@@ -216,7 +216,7 @@ abstract class ClientCloudPlayerImpl<PlatformPlayer : Audience>(uuid: UUID) :
     }
 
     override fun playSound(sound: Sound, x: Double, y: Double, z: Double) {
-        val audience = player
+        val audience = audience
         if (audience != null) {
             audience.playSound(sound, x, y, z)
             return
@@ -226,7 +226,7 @@ abstract class ClientCloudPlayerImpl<PlatformPlayer : Audience>(uuid: UUID) :
     }
 
     override fun stopSound(stop: SoundStop) {
-        val audience = player
+        val audience = audience
         if (audience != null) {
             audience.stopSound(stop)
             return
@@ -236,7 +236,7 @@ abstract class ClientCloudPlayerImpl<PlatformPlayer : Audience>(uuid: UUID) :
     }
 
     override fun openBook(book: Book) {
-        val audience = player
+        val audience = audience
         if (audience != null) {
             audience.openBook(book)
             return
@@ -246,7 +246,7 @@ abstract class ClientCloudPlayerImpl<PlatformPlayer : Audience>(uuid: UUID) :
     }
 
     override fun sendResourcePacks(request: ResourcePackRequest) {
-        val audience = player
+        val audience = audience
         if (audience != null) {
             audience.sendResourcePacks(request)
             return
@@ -256,7 +256,7 @@ abstract class ClientCloudPlayerImpl<PlatformPlayer : Audience>(uuid: UUID) :
     }
 
     override fun removeResourcePacks(id: UUID, vararg others: UUID) {
-        val audience = player
+        val audience = audience
         if (audience != null) {
             audience.removeResourcePacks(id, *others)
             return
@@ -266,7 +266,7 @@ abstract class ClientCloudPlayerImpl<PlatformPlayer : Audience>(uuid: UUID) :
     }
 
     override fun clearResourcePacks() {
-        val audience = player
+        val audience = audience
         if (audience != null) {
             audience.clearResourcePacks()
             return

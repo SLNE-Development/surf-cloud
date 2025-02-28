@@ -1,6 +1,6 @@
 package dev.slne.surf.cloud.standalone.test
 
-import dev.slne.surf.cloud.api.server.jpa.SurfEntity
+import dev.slne.surf.cloud.api.server.jpa.SurfAuditableEntity
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.Table
@@ -9,8 +9,7 @@ import java.util.*
 @Entity(name = "test_entity")
 @Table(name = "test_entities")
 class TestEntity(
-
-) : SurfEntity() {
+) : SurfAuditableEntity() {
 
     @Column(
         name = "active",

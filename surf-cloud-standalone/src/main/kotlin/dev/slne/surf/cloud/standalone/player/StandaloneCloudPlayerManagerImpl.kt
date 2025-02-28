@@ -18,7 +18,6 @@ import dev.slne.surf.cloud.standalone.server.asStandaloneServer
 import dev.slne.surf.cloud.standalone.server.serverManagerImpl
 import dev.slne.surf.surfapi.core.api.util.logger
 import kotlinx.coroutines.*
-import org.gradle.internal.impldep.kotlinx.coroutines.awaitAll
 import java.util.*
 import kotlin.time.Duration.Companion.minutes
 

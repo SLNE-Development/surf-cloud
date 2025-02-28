@@ -34,6 +34,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement
 @EntityScan
 //@EnableRedisRepositories
 @EnableCaching
+@EnableJpaAuditing
 annotation class SurfCloudApplication(
     @get:AliasFor(
         annotation = SpringBootApplication::class,

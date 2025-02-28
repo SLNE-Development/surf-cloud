@@ -466,17 +466,17 @@ open class SurfByteBuf(source: ByteBuf) : WrappedByteBuf(source) {
         }
 
         fun readUuid(buf: ByteBuf) = UUID(buf.readLong(), buf.readLong())
-        fun readBitSet(buf: ByteBuf) = BitSet.valueOf(readLongArray(buf))
+        fun readBitSet(buf: ByteBuf): BitSet = BitSet.valueOf(readLongArray(buf))
         fun writeBitSet(buf: ByteBuf, bitSet: BitSet) =
             writeLongArray(buf, bitSet.toLongArray())
 
-        fun readFixedBitSet(buf: ByteBuf, size: Int) =
+        fun readFixedBitSet(buf: ByteBuf, size: Int): BitSet =
             ByteArray(positiveCeilDiv(size, Byte.SIZE_BITS)).run {
                 buf.readBytes(this)
                 BitSet.valueOf(this)
             }
 
-        fun writeFixedBitSet(buf: ByteBuf, bitSet: BitSet, size: Int) =
+        fun writeFixedBitSet(buf: ByteBuf, bitSet: BitSet, size: Int): ByteBuf =
             bitSet.length().let { bitSetSize ->
                 checkEncoded(bitSetSize <= size) { "BitSet is larger than expected size ($bitSetSize>$size)" }
                 buf.writeBytes(bitSet.toByteArray().copyOf(positiveCeilDiv(size, Byte.SIZE_BITS)))
@@ -560,12 +560,11 @@ open class SurfByteBuf(source: ByteBuf) : WrappedByteBuf(source) {
             buf: B,
             decodeFactory: DecodeLongFactory<in B> =
                 DecodeLongFactory { buf -> buf.readLong() }
-        ) =
-            if (buf.readBoolean()) OptionalLong.of(decodeFactory.decodeLong(buf)) else OptionalLong.empty()
+        ): OptionalLong = if (buf.readBoolean()) OptionalLong.of(decodeFactory.decodeLong(buf)) else OptionalLong.empty()
 
 
         @Deprecated("Use codec instead")
-        fun <B : ByteBuf> writeSerializable(buf: B, serializable: Serializable) =
+        fun <B : ByteBuf> writeSerializable(buf: B, serializable: Serializable): ByteBuf =
             ByteArrayOutputStream().use { bout ->
                 ObjectOutputStream(bout).use { out ->
                     try {

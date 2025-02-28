@@ -2,6 +2,7 @@ package dev.slne.surf.cloud.core.common.player
 
 import dev.slne.surf.cloud.api.common.event.player.connection.CloudPlayerConnectToNetworkEvent
 import dev.slne.surf.cloud.api.common.player.CloudPlayerManager
+import dev.slne.surf.cloud.api.common.player.OfflineCloudPlayer
 import dev.slne.surf.cloud.api.common.util.mutableObject2ObjectMapOf
 import dev.slne.surf.cloud.api.common.util.synchronize
 import dev.slne.surf.cloud.core.common.util.publish
@@ -108,6 +109,10 @@ abstract class CloudPlayerManagerImpl<P : CommonCloudPlayerImpl> : CloudPlayerMa
     }
 
     open fun terminate() {}
+
+    override fun getOfflinePlayer(uuid: UUID): OfflineCloudPlayer {
+        TODO("Not yet implemented")
+    }
 }
 
 val playerManagerImpl get() = CloudPlayerManager.instance as CloudPlayerManagerImpl<*>

@@ -1,6 +1,7 @@
 package dev.slne.surf.cloud.standalone.server
 
 import com.google.auto.service.AutoService
+import dev.slne.surf.cloud.api.common.netty.network.protocol.awaitOrThrowUrgent
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
 import dev.slne.surf.cloud.api.common.server.CloudServerManager
 import dev.slne.surf.cloud.api.server.server.ServerCloudServerManager
@@ -66,7 +67,7 @@ class StandaloneCloudServerManagerImpl : CommonCloudServerManagerImpl<ServerComm
 
     suspend fun requestOfflineDisplayName(uuid: UUID): Component? {
         if (standaloneConfig.useSingleProxySetup) { // easy, we just ask the proxy
-            return RequestOfflineDisplayNamePacket(uuid).fireAndAwaitOrThrowUrgent(singleProxyServer().connection).displayName
+            return RequestOfflineDisplayNamePacket(uuid).awaitOrThrowUrgent(singleProxyServer().connection)
         } else {
             // here we play the lottery until we get a response or all servers have been asked
             val servers = retrieveAllServers()
@@ -75,7 +76,7 @@ class StandaloneCloudServerManagerImpl : CommonCloudServerManagerImpl<ServerComm
             // so let's ask them first
             val proxies = servers.filterIsInstance<StandaloneProxyCloudServerImpl>()
             for (proxy in proxies) {
-                val (name) = RequestOfflineDisplayNamePacket(uuid).fireAndAwaitOrThrowUrgent(proxy.connection)
+                val name = RequestOfflineDisplayNamePacket(uuid).awaitOrThrowUrgent(proxy.connection)
                 if (name != null) {
                     return name
                 }

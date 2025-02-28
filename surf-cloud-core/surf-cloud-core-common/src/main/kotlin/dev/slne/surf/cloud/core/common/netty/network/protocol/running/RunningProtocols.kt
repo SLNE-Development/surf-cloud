@@ -49,7 +49,6 @@ object RunningProtocols {
                 .addPacket(ClientboundRegisterCloudServersToProxyPacket.STREAM_CODEC)
                 .addPacket(ClientboundTriggerShutdownPacket.STREAM_CODEC)
                 .addPacket(RequestOfflineDisplayNamePacket.STREAM_CODEC)
-                .addPacket(ResponseRequestOfflineDisplayNamePacket.STREAM_CODEC)
         }
 
     val CLIENTBOUND by lazy { CLIENTBOUND_TEMPLATE.freeze().bind(::SurfByteBuf) }
@@ -93,7 +92,6 @@ object RunningProtocols {
                 .addPacket(TeleportPlayerResultPacket.STREAM_CODEC)
                 .addPacket(ServerboundShutdownServerPacket.STREAM_CODEC)
                 .addPacket(RequestOfflineDisplayNamePacket.STREAM_CODEC)
-                .addPacket(ResponseRequestOfflineDisplayNamePacket.STREAM_CODEC)
         }
 
     val SERVERBOUND by lazy { SERVERBOUND_TEMPLATE.freeze().bind(::SurfByteBuf) }

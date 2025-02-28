@@ -6,6 +6,7 @@ import dev.slne.surf.cloud.api.common.player.ConnectionResultEnum
 import dev.slne.surf.cloud.api.common.player.name.NameHistory
 import dev.slne.surf.cloud.api.common.server.CloudServer
 import dev.slne.surf.cloud.api.common.server.CloudServerManager
+import java.net.Inet4Address
 import java.net.InetAddress
 import java.time.ZonedDateTime
 import java.util.*
@@ -64,7 +65,7 @@ abstract class CommonCloudPlayerImpl(uuid: UUID) : CommonOfflineCloudPlayerImpl(
         return ZonedDateTime.now()
     }
 
-    override suspend fun latestIpAddress(): InetAddress {
+    override suspend fun latestIpAddress(): Inet4Address {
         TODO("Not yet implemented")
     }
 

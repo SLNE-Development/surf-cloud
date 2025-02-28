@@ -18,7 +18,7 @@ import org.bukkit.entity.Player
 import java.util.*
 
 class BukkitClientCloudPlayerImpl(uuid: UUID) : ClientCloudPlayerImpl<Player>(uuid) {
-    override val player: Player? get() = Bukkit.getPlayer(uuid)
+    override val audience: Player? get() = Bukkit.getPlayer(uuid)
     override val platformClass: Class<Player> = Player::class.java
 
     override fun disconnect(reason: Component) {
@@ -26,7 +26,7 @@ class BukkitClientCloudPlayerImpl(uuid: UUID) : ClientCloudPlayerImpl<Player>(uu
     }
 
     fun test() {
-        val player = player ?: return
+        val player = audience ?: return
 
         val factory = ConversationFactory(plugin)
         factory.withModality(true) // player dont receive messages from other players
@@ -76,7 +76,7 @@ class BukkitClientCloudPlayerImpl(uuid: UUID) : ClientCloudPlayerImpl<Player>(uu
         teleportCause: TeleportCause,
         vararg flags: TeleportFlag
     ): Boolean {
-        val player = player ?: return super.teleport(location, teleportCause, *flags)
+        val player = audience ?: return super.teleport(location, teleportCause, *flags)
 
         val bukkitTeleportFlags = flags.map { it.toBukkitTpFlag() }.toTypedArray()
         return player.teleportAsync(

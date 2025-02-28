@@ -4,7 +4,9 @@ import dev.slne.surf.cloud.api.common.util.mutableObjectListOf
 import dev.slne.surf.cloud.api.common.util.threadFactory
 import dev.slne.surf.surfapi.core.api.util.logger
 import kotlinx.coroutines.*
+import org.gradle.internal.declarativedsl.language.This
 import java.util.concurrent.Executors
+import kotlin.coroutines.CoroutineContext
 
 abstract class BaseScope(
     dispatcher: CoroutineDispatcher,
@@ -32,6 +34,7 @@ abstract class BaseScope(
             }
 
     val context get() = coroutineContext
+
 }
 
 object PacketHandlerScope : BaseScope(

@@ -34,19 +34,19 @@ interface OfflineCloudPlayer {
     suspend fun displayName(): Component?
 
     /**
-     * Retrieves metadata associated with the player's LuckPerms configuration.
-     *
-     * @param key The metadata key to retrieve.
-     * @return The value as a string, or `null` if unavailable.
-     */
-    suspend fun <R> getLuckpermsMetaData(key: String, transformer: (String) -> R): R?
-
-    /**
      * Retrieves and transforms metadata associated with the player's LuckPerms configuration.
      *
      * @param key The metadata key to retrieve.
      * @param transformer A transformation function applied to the metadata value.
      * @return The transformed value, or `null` if unavailable.
+     */
+    suspend fun <R> getLuckpermsMetaData(key: String, transformer: (String) -> R): R?
+
+    /**
+     * Retrieves metadata associated with the player's LuckPerms configuration.
+     *
+     * @param key The metadata key to retrieve.
+     * @return The value as a string, or `null` if unavailable.
      */
     suspend fun getLuckpermsMetaData(key: String): String?
 

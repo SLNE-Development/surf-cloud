@@ -11,7 +11,7 @@ import dev.slne.surf.cloud.api.common.netty.protocol.buffer.SurfByteBuf
 /**
  * The server will frequently send out a keep-alive, each containing a random ID. The client must
  * respond with the same payload (see
- * [dev.slne.surf.cloud.core.netty.protocol.packets.cloud.phase.running.serverbound.ServerboundKeepAlivePacket]).
+ * [ServerboundKeepAlivePacket]).
  * If the client does not respond to a
  * Keep Alive packet within `15 seconds` after it was sent, the server kicks the client. Vice versa,
  * if the server does not send any keep-alives for `20 seconds`, the client will disconnect and yields

@@ -12,8 +12,8 @@ import dev.slne.surf.cloud.standalone.commands.execution.ExecutionContext
 import dev.slne.surf.cloud.standalone.commands.impl.ShutdownCommand
 import dev.slne.surf.cloud.standalone.commands.impl.TestCommand
 import dev.slne.surf.surfapi.core.api.messages.Colors
-import dev.slne.surf.surfapi.core.api.messages.appendText
-import dev.slne.surf.surfapi.core.api.messages.buildText
+import dev.slne.surf.surfapi.core.api.messages.adventure.appendText
+import dev.slne.surf.surfapi.core.api.messages.adventure.buildText
 import dev.slne.surf.surfapi.core.api.util.logger
 import jakarta.annotation.PostConstruct
 import jakarta.annotation.PreDestroy

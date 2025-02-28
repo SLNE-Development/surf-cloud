@@ -25,6 +25,7 @@ import java.util.function.Consumer;
  * @param <V> the vertex type.
  * @author Nikolay Ognyanov
  */
+@SuppressWarnings("all")
 public class JohnsonSimpleCycles<V> {
 
   // The graph.

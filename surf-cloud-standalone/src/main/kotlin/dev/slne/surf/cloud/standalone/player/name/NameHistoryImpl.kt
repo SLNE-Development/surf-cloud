@@ -4,7 +4,7 @@ import dev.slne.surf.cloud.api.common.player.name.NameEntry
 import dev.slne.surf.cloud.api.common.player.name.NameHistory
 import dev.slne.surf.cloud.api.common.util.mutableObjectListOf
 import dev.slne.surf.cloud.api.common.util.toEpochUtcMillis
-import dev.slne.surf.cloud.standalone.player.db.CloudPlayerNameHistoryEntity
+import dev.slne.surf.cloud.standalone.player.db.player.name.CloudPlayerNameHistoryEntity
 import it.unimi.dsi.fastutil.objects.ObjectList
 import it.unimi.dsi.fastutil.objects.ObjectLists
 
@@ -12,7 +12,7 @@ class NameHistoryImpl(private val entries: ObjectList<NameEntry>) : NameHistory 
     constructor(entries: Iterable<CloudPlayerNameHistoryEntity>) : this(
         entries.mapTo(
             mutableObjectListOf()
-        ) { NameEntry(it.createdAt.toEpochUtcMillis(), it.name) }
+        ) { NameEntry(it.createdDate.toEpochSecond(), it.name) }
     )
 
     override val nameChanges = entries.size

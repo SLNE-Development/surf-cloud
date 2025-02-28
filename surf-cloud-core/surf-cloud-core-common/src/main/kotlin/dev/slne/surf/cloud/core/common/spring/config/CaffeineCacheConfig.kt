@@ -1,22 +1,20 @@
 package dev.slne.surf.cloud.core.common.spring.config
 
 import com.github.benmanes.caffeine.cache.Caffeine
-import org.springframework.cache.CacheManager
+import com.sksamuel.aedile.core.expireAfterAccess
+import org.springframework.cache.annotation.EnableCaching
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.context.annotation.Primary
+import kotlin.time.Duration.Companion.minutes
 
 @Configuration
+@EnableCaching
 class CaffeineCacheConfig {
 
     @Bean
     fun caffeineConfig(): Caffeine<Any, Any> {
-
-    }
-
-    @Bean
-    @Primary
-    fun cacheManager(caffeine: Caffeine<Any, Any>): CacheManager {
-        org.springframework.cache.caffeine
+        return Caffeine.newBuilder()
+            .expireAfterAccess(10.minutes)
+            .maximumSize(1000)
     }
 }

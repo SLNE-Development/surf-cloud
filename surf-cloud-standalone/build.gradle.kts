@@ -13,6 +13,10 @@ dependencies {
     api("org.reactivestreams:reactive-streams:1.0.4")
     api(libs.velocity.native)
 
+    implementation("org.hibernate.orm:hibernate-jcache")
+    implementation("org.ehcache:ehcache:3.10.8")
+
+
     // Ktor
     implementation("io.ktor:ktor-server-status-pages")
 

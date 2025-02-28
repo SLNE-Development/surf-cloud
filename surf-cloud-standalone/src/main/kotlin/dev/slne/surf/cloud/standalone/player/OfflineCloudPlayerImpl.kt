@@ -5,6 +5,7 @@ import dev.slne.surf.cloud.api.common.player.CloudPlayerManager
 import dev.slne.surf.cloud.api.common.player.OfflineCloudPlayer
 import dev.slne.surf.cloud.api.common.player.name.NameHistory
 import dev.slne.surf.cloud.api.common.server.CloudServer
+import dev.slne.surf.cloud.api.common.util.emptyObjectList
 import dev.slne.surf.cloud.core.common.coroutines.NameHistoryScope
 import dev.slne.surf.cloud.core.common.util.bean
 import dev.slne.surf.cloud.standalone.player.db.service.CloudPlayerService
@@ -28,7 +29,7 @@ class OfflineCloudPlayerImpl(override val uuid: UUID) : OfflineCloudPlayer {
         }
 
         return withContext(NameHistoryScope.context) {
-            NameHistoryImpl(service.findNameHistories(uuid) ?: emptyList())
+            NameHistoryImpl(service.findNameHistories(uuid) ?: emptyObjectList())
         }
     }
 

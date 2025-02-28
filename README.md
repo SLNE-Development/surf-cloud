@@ -2,6 +2,8 @@
 
 Docs: [https://surf-cloud-docs.netlify.app/](https://surf-cloud-docs.netlify.app/)
 
+![logo](https://github.com/SLNE-Development/assets/blob/master/logos/surf-cloud/surf-cloud-logo-bg-removed.png?raw=true)
+
 
 # TODO
 ## IntelliJ Plugin

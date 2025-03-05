@@ -1,0 +1,21 @@
+public abstract interface class dev/slne/surf/cloud/api/client/netty/CloudClientNettyManager {
+	public static final field Companion Ldev/slne/surf/cloud/api/client/netty/CloudClientNettyManager$Companion;
+	public abstract fun getClient ()Ldev/slne/surf/cloud/api/common/netty/NettyClient;
+}
+
+public final class dev/slne/surf/cloud/api/client/netty/CloudClientNettyManager$Companion : dev/slne/surf/cloud/api/client/netty/CloudClientNettyManager {
+	public fun getClient ()Ldev/slne/surf/cloud/api/common/netty/NettyClient;
+}
+
+public final class dev/slne/surf/cloud/api/client/netty/packet/NettyPacketClientExtensionKt {
+	public static final fun fire (Ldev/slne/surf/cloud/api/common/netty/packet/NettyPacket;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun fire$default (Ldev/slne/surf/cloud/api/common/netty/packet/NettyPacket;ZLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static final fun fireAndAwait-8Mi8wO0 (Ldev/slne/surf/cloud/api/common/netty/packet/RespondingNettyPacket;JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun fireAndAwait-8Mi8wO0$default (Ldev/slne/surf/cloud/api/common/netty/packet/RespondingNettyPacket;JLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static final fun fireAndAwaitOrThrow-8Mi8wO0 (Ldev/slne/surf/cloud/api/common/netty/packet/RespondingNettyPacket;JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun fireAndAwaitOrThrow-8Mi8wO0$default (Ldev/slne/surf/cloud/api/common/netty/packet/RespondingNettyPacket;JLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static final fun fireAndAwaitOrThrowUrgent (Ldev/slne/surf/cloud/api/common/netty/packet/RespondingNettyPacket;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun fireAndAwaitUrgent (Ldev/slne/surf/cloud/api/common/netty/packet/RespondingNettyPacket;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun fireAndForget (Ldev/slne/surf/cloud/api/common/netty/packet/NettyPacket;)V
+}
+

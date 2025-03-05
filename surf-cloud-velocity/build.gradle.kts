@@ -15,6 +15,10 @@ dependencies {
     api("com.fasterxml.jackson.module:jackson-module-kotlin")
 }
 
+velocityPluginFile {
+    main = "dev.slne.surf.cloud.velocity.VelocityMain"
+}
+
 configurations {
     all {
         exclude(group = "ch.qos.logback", module = "logback-classic")

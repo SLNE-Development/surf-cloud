@@ -9,8 +9,12 @@ buildscript {
         maven("https://repo.slne.dev/repository/maven-public/") { name = "maven-public" }
     }
     dependencies {
-        classpath("dev.slne.surf:surf-api-gradle-plugin:1.21.4-1.0.99")
+        classpath("dev.slne.surf:surf-api-gradle-plugin:1.21.4+")
     }
+}
+
+plugins {
+    id("org.jetbrains.kotlinx.binary-compatibility-validator") version "0.17.0"
 }
 
 allprojects {
@@ -47,4 +51,20 @@ allprojects {
             }
         }
     }
+}
+
+apiValidation {
+    ignoredProjects.addAll(
+        listOf(
+            "surf-cloud-core",
+            "surf-cloud-core-common",
+            "surf-cloud-core-client",
+            "surf-cloud-bukkit",
+            "surf-cloud-velocity",
+            "surf-cloud-standalone",
+            "surf-cloud-standalone-launcher",
+            "surf-cloud-test-standalone"
+        )
+    )
+    nonPublicMarkers.add("dev.slne.surf.cloud.api.common.util.annotation.InternalApi")
 }

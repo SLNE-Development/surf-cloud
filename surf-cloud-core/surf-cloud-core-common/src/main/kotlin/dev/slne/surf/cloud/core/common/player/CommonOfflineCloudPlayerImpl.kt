@@ -13,4 +13,8 @@ abstract class CommonOfflineCloudPlayerImpl(override val uuid: UUID) : OfflineCl
 
     override suspend fun lastServer(): CloudServer? =
         lastServerRaw()?.let { CloudServerManager.retrieveServerByName(it) } as? CloudServer
+
+    override suspend fun playedBefore(): Boolean {
+        return player != null || lastSeen() != null
+    }
 }

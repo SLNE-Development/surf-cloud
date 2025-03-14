@@ -1,5 +1,6 @@
 package dev.slne.surf.cloud.core.client.player
 
+import dev.slne.surf.cloud.api.common.player.OfflineCloudPlayer
 import dev.slne.surf.cloud.core.common.player.CloudPlayerManagerImpl
 import dev.slne.surf.cloud.core.common.player.playerManagerImpl
 import net.kyori.adventure.audience.Audience
@@ -41,6 +42,10 @@ abstract class CommonClientCloudPlayerManagerImpl<Platform: Audience, P : Client
 
     override fun getServerUid(player: P): Long? {
         return player.serverUid
+    }
+
+    override fun getOfflinePlayer(uuid: UUID): OfflineCloudPlayer {
+        return OfflineCloudPlayerImpl(uuid)
     }
 
     abstract fun getAudience(uuid: UUID): Audience?

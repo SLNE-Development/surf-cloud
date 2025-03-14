@@ -109,10 +109,6 @@ abstract class CloudPlayerManagerImpl<P : CommonCloudPlayerImpl> : CloudPlayerMa
     }
 
     open fun terminate() {}
-
-    override fun getOfflinePlayer(uuid: UUID): OfflineCloudPlayer {
-        TODO("Not yet implemented")
-    }
 }
 
 val playerManagerImpl get() = CloudPlayerManager.instance as CloudPlayerManagerImpl<*>

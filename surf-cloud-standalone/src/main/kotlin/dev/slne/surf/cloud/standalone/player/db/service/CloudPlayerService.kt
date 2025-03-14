@@ -12,12 +12,9 @@ import java.net.Inet4Address
 import java.time.ZonedDateTime
 import java.util.*
 
-
 @Service
 @Transactional
-class CloudPlayerService(
-    private val cloudPlayerRepository: CloudPlayerRepository
-) {
+class CloudPlayerService(private val cloudPlayerRepository: CloudPlayerRepository) {
 
     suspend fun findLastServer(uuid: UUID): String? = find(uuid)?.lastServer
     suspend fun updateLastServer(uuid: UUID, server: String) = update(uuid) { lastServer = server }
@@ -52,14 +49,12 @@ class CloudPlayerService(
         }
     }
 
-    @Transactional
-    protected suspend fun update(uuid: UUID, block: suspend CloudPlayerEntity.() -> Unit) =
+    private suspend fun update(uuid: UUID, block: suspend CloudPlayerEntity.() -> Unit) =
         withContext(PlayerDatabaseScope.context) {
             cloudPlayerRepository.findByUuid(uuid)?.apply { block() }
                 ?.let { cloudPlayerRepository.save(it) }
         }
 
-    @Transactional
-    protected suspend fun find(uuid: UUID) =
+    private suspend fun find(uuid: UUID) =
         withContext(PlayerDatabaseScope.context) { cloudPlayerRepository.findByUuid(uuid) }
 }

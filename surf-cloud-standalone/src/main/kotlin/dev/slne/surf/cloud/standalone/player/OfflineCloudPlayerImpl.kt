@@ -45,10 +45,6 @@ class OfflineCloudPlayerImpl(override val uuid: UUID) : OfflineCloudPlayer {
     override suspend fun latestIpAddress(): InetAddress? =
         player?.latestIpAddress() ?: service.findLastIpAddress(uuid)
 
-    override suspend fun playedBefore(): Boolean {
-        return player != null || lastSeen() != null
-    }
-
     override suspend fun displayName(): Component? {
         return player?.displayName() ?: serverManagerImpl.requestOfflineDisplayName(uuid)
     }

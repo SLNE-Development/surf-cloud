@@ -27,8 +27,12 @@ import net.kyori.adventure.sound.Sound
 import net.kyori.adventure.text.Component
 import net.querz.nbt.tag.CompoundTag
 import java.io.*
+import java.net.Inet4Address
 import java.net.InetSocketAddress
 import java.net.URI
+import java.time.Instant
+import java.time.ZoneId
+import java.time.ZonedDateTime
 import java.util.*
 import java.util.function.Consumer
 import kotlin.contracts.ExperimentalContracts
@@ -625,6 +629,37 @@ open class SurfByteBuf(source: ByteBuf) : WrappedByteBuf(source) {
         }
 
         fun <B : ByteBuf> readCompoundTag(buf: B) = ExtraCodecs.COMPOUND_TAG_CODEC.decode(buf)
+
+        fun <B: ByteBuf> writeZonedDateTime(buf: B, time: ZonedDateTime) {
+            writeVarLong(buf, time.toInstant().toEpochMilli())
+            writeUtf(buf, time.zone.id)
+        }
+
+        fun <B: ByteBuf> readZonedDateTime(buf: B): ZonedDateTime {
+            val epoch = readVarLong(buf)
+            val zone = readUtf(buf)
+            return ZonedDateTime.ofInstant(Instant.ofEpochMilli(epoch), ZoneId.of(zone))
+        }
+
+        fun <B : ByteBuf> writeInet4Address(buf: B, address: Inet4Address) {
+            writeByteArray(buf, address.address)
+        }
+
+        fun <B : ByteBuf> readInet4Address(buf: B): Inet4Address {
+            val address = readByteArray(buf)
+            return Inet4Address.getByAddress(address) as Inet4Address
+        }
+
+        fun <B : ByteBuf> writeSingleton(buf: B, singleton: Any) {
+            require(singleton::class.objectInstance != null) { "Object must be a singleton" }
+            writeUtf(buf, singleton::class.qualifiedName!!)
+        }
+
+        fun <B : ByteBuf> readSingleton(buf: B): Any {
+            val className = readUtf(buf)
+            return Class.forName(className).kotlin.objectInstance
+                ?: throw DecoderException("Failed to read singleton: $className")
+        }
     }
 
 
@@ -794,6 +829,12 @@ open class SurfByteBuf(source: ByteBuf) : WrappedByteBuf(source) {
     fun readInetSocketAddress() = readInetSocketAddress(this)
     fun writeCompoundTag(tag: CompoundTag) = writeCompoundTag(this, tag)
     fun readCompoundTag() = readCompoundTag(this)
+    fun writeZonedDateTime(time: ZonedDateTime) = writeZonedDateTime(this, time)
+    fun readZonedDateTime() = readZonedDateTime(this)
+    fun writeInet4Address(address: Inet4Address) = writeInet4Address(this, address)
+    fun readInet4Address() = readInet4Address(this)
+    fun writeSingleton(singleton: Any) = writeSingleton(this, singleton)
+    fun readSingleton() = readSingleton(this)
     // @formatter:on
 // endregion
 
@@ -1016,6 +1057,15 @@ fun <B : ByteBuf> B.writeInetSocketAddress(address: InetSocketAddress) =
 
 fun <B : ByteBuf> B.readCompoundTag() = SurfByteBuf.readCompoundTag(this)
 fun <B : ByteBuf> B.writeCompoundTag(tag: CompoundTag) = SurfByteBuf.writeCompoundTag(this, tag)
+
+fun <B : ByteBuf> B.readZonedDateTime() = SurfByteBuf.readZonedDateTime(this)
+fun <B : ByteBuf> B.writeZonedDateTime(time: ZonedDateTime) = SurfByteBuf.writeZonedDateTime(this, time)
+
+fun <B : ByteBuf> B.readInet4Address() = SurfByteBuf.readInet4Address(this)
+fun <B : ByteBuf> B.writeInet4Address(address: Inet4Address) = SurfByteBuf.writeInet4Address(this, address)
+
+fun <B : ByteBuf> B.readSingleton() = SurfByteBuf.readSingleton(this)
+fun <B : ByteBuf> B.writeSingleton(singleton: Any) = SurfByteBuf.writeSingleton(this, singleton)
 
 fun ByteBuf.wrap() = SurfByteBuf(this)
 // endregion

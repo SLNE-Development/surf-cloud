@@ -4,8 +4,10 @@ import dev.slne.surf.cloud.api.client.paper.toCloudTpCause
 import dev.slne.surf.cloud.api.client.paper.toCloudTpFlag
 import dev.slne.surf.cloud.api.client.paper.toCloudTpLocation
 import dev.slne.surf.cloud.api.common.player.CloudPlayer
+import dev.slne.surf.cloud.api.common.player.CloudPlayerManager
 import io.papermc.paper.entity.TeleportFlag
 import org.bukkit.Location
+import org.bukkit.OfflinePlayer
 import org.bukkit.event.player.PlayerTeleportEvent
 
 suspend fun CloudPlayer.teleport(
@@ -19,3 +21,5 @@ suspend fun CloudPlayer.teleport(
         *flags.map { it.toCloudTpFlag() }.toTypedArray()
     )
 }
+
+fun OfflinePlayer.toCloudOfflinePlayer() = CloudPlayerManager.getOfflinePlayer(uniqueId)

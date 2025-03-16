@@ -5,8 +5,7 @@ plugins {
     java
 }
 
-group = "dev.slne.surf.cloud"
-version = "1.21.1-1.0.0-SNAPSHOT"
+
 
 repositories {
     mavenCentral()

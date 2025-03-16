@@ -1,30 +1,29 @@
 plugins {
     id("dev.slne.surf.surfapi.gradle.standalone")
-    `core-convention`
-    id("org.springframework.boot")
+    alias(libs.plugins.spring.boot)
 }
 
 dependencies {
     api(project(":surf-cloud-core:surf-cloud-core-common"))
     api(project(":surf-cloud-api:surf-cloud-api-server"))
 
-    runtimeOnly("org.mariadb.jdbc:mariadb-java-client")
-    api("org.springframework.boot:spring-boot-starter-data-jpa")
-    api("org.reactivestreams:reactive-streams:1.0.4")
+    runtimeOnly(libs.mariadb.java.client)
+    api(libs.spring.boot.starter.data.jpa)
+    api(libs.reactive.streams)
     api(libs.velocity.native)
 
-    implementation("org.hibernate.orm:hibernate-jcache")
-    implementation("org.ehcache:ehcache:3.10.8")
+    implementation(libs.hibernate.jcache)
+    implementation(libs.ehcache)
 
 
     // Ktor
-    implementation("io.ktor:ktor-server-status-pages")
+    implementation(libs.ktor.server.status.pages)
 
-    implementation("org.springframework.boot:spring-boot-starter-log4j2")
+    implementation(libs.spring.boot.starter.log4j2)
     modules {
         module("org.springframework.boot:spring-boot-starter-logging") {
             replacedBy(
-                "org.springframework.boot:spring-boot-starter-log4j2",
+                libs.spring.boot.starter.log4j2.get().toString(),
                 "Use Log4j2 instead of Logback"
             )
         }

@@ -2,11 +2,11 @@ package dev.slne.surf.cloud.standalone.player
 
 import dev.slne.surf.cloud.api.common.player.CloudPlayer
 import dev.slne.surf.cloud.api.common.player.CloudPlayerManager
-import dev.slne.surf.cloud.api.common.player.OfflineCloudPlayer
 import dev.slne.surf.cloud.api.common.player.name.NameHistory
 import dev.slne.surf.cloud.api.common.server.CloudServer
 import dev.slne.surf.cloud.api.common.util.emptyObjectList
 import dev.slne.surf.cloud.core.common.coroutines.NameHistoryScope
+import dev.slne.surf.cloud.core.common.player.CommonOfflineCloudPlayerImpl
 import dev.slne.surf.cloud.core.common.util.bean
 import dev.slne.surf.cloud.standalone.player.db.service.CloudPlayerService
 import dev.slne.surf.cloud.standalone.player.name.NameHistoryImpl
@@ -17,7 +17,7 @@ import java.net.InetAddress
 import java.time.ZonedDateTime
 import java.util.*
 
-class OfflineCloudPlayerImpl(override val uuid: UUID) : OfflineCloudPlayer {
+class OfflineCloudPlayerImpl(uuid: UUID) : CommonOfflineCloudPlayerImpl(uuid) {
     companion object {
         private val service by lazy { bean<CloudPlayerService>() }
     }

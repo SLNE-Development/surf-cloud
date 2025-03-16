@@ -1,7 +1,5 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import dev.slne.surf.surfapi.gradle.util.slnePublic
-import org.jetbrains.kotlin.noarg.gradle.NoArgExtension
-import org.jetbrains.kotlin.noarg.gradle.NoArgGradleSubplugin
 
 buildscript {
     repositories {
@@ -9,48 +7,40 @@ buildscript {
         maven("https://repo.slne.dev/repository/maven-public/") { name = "maven-public" }
     }
     dependencies {
-        classpath("dev.slne.surf:surf-api-gradle-plugin:1.21.4-1.0.121")
+        classpath("dev.slne.surf:surf-api-gradle-plugin:1.21.4+")
     }
 }
 
 plugins {
     id("org.jetbrains.kotlinx.binary-compatibility-validator") version "0.17.0"
+    java
 }
 
 allprojects {
+    apply(plugin = "java")
+    group = "dev.slne.surf.cloud"
+    version = findProperty("version") as String
+
+    repositories {
+        slnePublic()
+    }
+
+    dependencies {
+        implementation(platform("org.springframework.boot:spring-boot-dependencies:3.4.3"))
+        implementation(platform("io.ktor:ktor-bom:3.0.3"))
+        implementation(platform("org.jetbrains.kotlin-wrappers:kotlin-wrappers-bom:2025.2.2"))
+
+        compileOnly("org.springframework.boot:spring-boot-configuration-processor:3.4.3")
+        //    "kapt"("org.springframework.boot:spring-boot-configuration-processor:3.4.3")
+    }
+
+
     tasks {
-        withType<ShadowJar> {
-            mergeServiceFiles {
-                setPath("META-INF")
-                exclude("META-INF/MANIFEST.MF")
-            }
-
-            isZip64 = true
-        }
-
-        withType<Jar> {
-            duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-        }
+        configureShadowJar()
+        configureJar()
     }
 
-    afterEvaluate {
-        if (plugins.hasPlugin(PublishingPlugin::class)) {
-            configure<PublishingExtension> {
-                repositories {
-                    slnePublic()
-                }
-            }
-        }
-
-        if (plugins.hasPlugin(NoArgGradleSubplugin::class)) {
-            configure<NoArgExtension> {
-                annotation("jakarta.persistence.Entity")
-                annotation("jakarta.persistence.MappedSuperclass")
-                annotation("jakarta.persistence.Embeddable")
-                invokeInitializers = true
-            }
-        }
-    }
+    setupPublishing()
 }
 
 apiValidation {
@@ -67,4 +57,27 @@ apiValidation {
         )
     )
     nonPublicMarkers.add("dev.slne.surf.cloud.api.common.util.annotation.InternalApi")
+}
+
+private fun TaskContainerScope.configureShadowJar() = withType<ShadowJar> {
+    mergeServiceFiles {
+        setPath("META-INF")
+        exclude("META-INF/MANIFEST.MF")
+    }
+
+    isZip64 = true
+}
+
+private fun TaskContainerScope.configureJar() = withType<Jar> {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
+private fun setupPublishing() = afterEvaluate {
+    if (plugins.hasPlugin(PublishingPlugin::class)) {
+        configure<PublishingExtension> {
+            repositories {
+                slnePublic()
+            }
+        }
+    }
 }

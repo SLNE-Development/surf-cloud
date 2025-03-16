@@ -4,8 +4,7 @@ plugins {
     id("dev.slne.surf.surfapi.gradle.standalone")
 
     application
-    `core-convention`
-    id("org.springframework.boot")
+    alias(libs.plugins.spring.boot)
 }
 
 surfStandaloneApi {
@@ -13,8 +12,7 @@ surfStandaloneApi {
 }
 
 dependencies {
-    implementation("org.apache.maven:maven-impl:4.0.0-rc-2")
-    implementation("org.apache.maven.resolver:maven-resolver-supplier-mvn4:2.0.5")
+    implementation(libs.bundles.maven.libraries)
 }
 
 application {

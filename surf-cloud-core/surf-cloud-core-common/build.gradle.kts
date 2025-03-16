@@ -1,6 +1,5 @@
 plugins {
     id("dev.slne.surf.surfapi.gradle.core")
-    `core-convention`
 }
 
 dependencies {
@@ -8,11 +7,9 @@ dependencies {
         exclude(group = "ch.qos.logback", module = "logback-classic")
     }
 
-    runtimeOnly("org.aspectj:aspectjweaver:1.9.22.1")
+    runtimeOnly(libs.aspectjweaver)
     compileOnlyApi(libs.velocity.native)
-
-    // https://mvnrepository.com/artifact/com.github.luben/zstd-jni
-    api("com.github.luben:zstd-jni:1.5.6-9")
+    api(libs.zstd.jni)
 }
 
 kotlin {

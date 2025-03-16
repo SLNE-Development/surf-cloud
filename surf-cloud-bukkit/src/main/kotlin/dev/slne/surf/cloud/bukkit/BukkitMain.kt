@@ -6,6 +6,7 @@ import com.github.shynixn.mccoroutine.folia.launch
 import com.github.shynixn.mccoroutine.folia.ticks
 import dev.jorel.commandapi.CommandAPIBukkit
 import dev.jorel.commandapi.kotlindsl.*
+import dev.slne.surf.cloud.api.client.paper.player.toCloudOfflinePlayer
 import dev.slne.surf.cloud.api.common.player.teleport.TeleportCause
 import dev.slne.surf.cloud.api.common.player.teleport.fineLocation
 import dev.slne.surf.cloud.api.common.player.toCloudPlayer
@@ -13,12 +14,17 @@ import dev.slne.surf.cloud.api.common.server.CloudServerManager
 import dev.slne.surf.cloud.bukkit.player.BukkitClientCloudPlayerImpl
 import dev.slne.surf.cloud.core.common.handleEventuallyFatalError
 import dev.slne.surf.surfapi.bukkit.api.event.listen
+import dev.slne.surf.surfapi.core.api.messages.CommonComponents
+import dev.slne.surf.surfapi.core.api.messages.adventure.buildText
+import dev.slne.surf.surfapi.core.api.messages.adventure.sendText
+import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
 import org.bukkit.Bukkit
 import org.bukkit.Location
 import org.bukkit.NamespacedKey
+import org.bukkit.OfflinePlayer
 import org.bukkit.entity.Player
 import org.bukkit.event.server.ServerLoadEvent
 import kotlin.contracts.ExperimentalContracts
@@ -201,6 +207,66 @@ class BukkitMain : SuspendingJavaPlugin() {
                     requireCommand(server != null) { Component.text("Server with id $id not found") }
 
                     server.shutdown()
+                }
+            }
+        }
+
+        commandAPICommand("offlinePlayer") {
+            offlinePlayerArgument("player")
+            anyExecutor { sender, args ->
+                val player: OfflinePlayer by args
+                val offlinePlayer = player.toCloudOfflinePlayer()
+
+                launch {
+                    val displayName = async { offlinePlayer.displayName() }
+                    val lastServer = async { offlinePlayer.lastServer() }
+                    val lastSeen = async { offlinePlayer.lastSeen() }
+                    val lastIpAddress = async { offlinePlayer.latestIpAddress() }
+                    val playedBefore = async { offlinePlayer.playedBefore() }
+                    val nameHistory = async { offlinePlayer.nameHistory() }
+
+                    sender.sendText {
+                        appendPrefix()
+                        appendNewPrefixedLine {
+                            variableKey("UUID")
+                            spacer(": ")
+                            variableValue(offlinePlayer.uuid.toString())
+                        }
+                        appendNewPrefixedLineAsync {
+                            variableKey("Display Name")
+                            spacer(": ")
+                            append(displayName.await() ?: Component.text("#Unknown"))
+                        }
+                        appendNewPrefixedLineAsync {
+                            variableKey("Last Server")
+                            spacer(": ")
+                            variableValue(lastServer.await()?.name ?: "#Unknown")
+                        }
+                        appendNewPrefixedLineAsync {
+                            variableKey("Last Seen")
+                            spacer(": ")
+                            variableValue(lastSeen.await()?.toString() ?: "#Unknown")
+                        }
+                        appendNewPrefixedLineAsync {
+                            variableKey("Last IP Address")
+                            spacer(": ")
+                            variableValue(lastIpAddress.await()?.hostAddress ?: "#Unknown")
+                        }
+                        appendNewPrefixedLineAsync {
+                            variableKey("Played Before")
+                            spacer(": ")
+                            variableValue(playedBefore.await().toString())
+                        }
+                        appendAsync {
+                            appendCollectionNewLine(nameHistory.await().names()) {(timestamp, name) ->
+                                buildText {
+                                    variableKey(timestamp.toString())
+                                    append(CommonComponents.MAP_SEPERATOR)
+                                    variableValue(name)
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }

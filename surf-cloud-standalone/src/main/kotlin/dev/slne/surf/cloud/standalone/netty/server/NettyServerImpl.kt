@@ -27,7 +27,7 @@ import java.security.KeyPair
 import kotlin.time.Duration.Companion.seconds
 
 @Component
-@Profile("independent")
+@Profile("server")
 class NettyServerImpl {
     val log = logger()
 

@@ -11,10 +11,10 @@ import kotlin.time.Duration.Companion.minutes
 @EnableCaching
 class CaffeineCacheConfig {
 
-    @Bean
-    fun caffeineConfig(): Caffeine<Any, Any> {
-        return Caffeine.newBuilder()
-            .expireAfterAccess(10.minutes)
-            .maximumSize(1000)
-    }
+//    @Bean
+//    fun caffeineConfig(): Caffeine<Any, Any> {
+//        return Caffeine.newBuilder()
+//            .expireAfterAccess(10.minutes)
+//            .maximumSize(1000)
+//    }
 }

@@ -29,7 +29,7 @@ import java.util.*
 @AutoService(CloudInstance::class)
 class CloudStandaloneInstance : CloudCoreInstance(StandaloneNettyManager),
     CloudServerInstance {
-    override val springProfile = "independent"
+    override val springProfile = "server"
 
     init {
         checkInstantiationByServiceLoader()

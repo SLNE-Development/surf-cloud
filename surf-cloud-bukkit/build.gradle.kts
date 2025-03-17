@@ -2,6 +2,7 @@ import dev.slne.surf.surfapi.gradle.util.registerRequired
 
 plugins {
     id("dev.slne.surf.surfapi.gradle.paper-plugin")
+    `exclude-kotlin`
 }
 
 surfPaperPluginApi {

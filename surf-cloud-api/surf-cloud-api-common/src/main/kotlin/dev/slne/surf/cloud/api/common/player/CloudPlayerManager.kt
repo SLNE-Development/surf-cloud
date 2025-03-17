@@ -26,10 +26,12 @@ interface CloudPlayerManager {
 
     fun getOfflinePlayer(uuid: UUID): OfflineCloudPlayer
 
-    companion object : CloudPlayerManager by requiredService<CloudPlayerManager>() {
-        val instance = this as CloudPlayerManager
+    companion object : CloudPlayerManager by INSTANCE {
+        val instance = INSTANCE
     }
 }
+
+private val INSTANCE = requiredService<CloudPlayerManager>()
 
 /**
  * Attempts to convert an [Audience] to its corresponding [CloudPlayer].

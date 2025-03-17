@@ -7,7 +7,6 @@ dependencies {
         exclude(group = "ch.qos.logback", module = "logback-classic")
     }
 
-    runtimeOnly(libs.aspectjweaver)
     compileOnlyApi(libs.velocity.native)
     api(libs.zstd.jni)
 }

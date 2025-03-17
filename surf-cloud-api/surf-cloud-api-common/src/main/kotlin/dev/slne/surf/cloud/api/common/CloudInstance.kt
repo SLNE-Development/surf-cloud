@@ -32,10 +32,12 @@ interface CloudInstance {
         customizer: SpringApplicationBuilder.() -> Unit = {}
     ): ConfigurableApplicationContext
 
-    companion object : CloudInstance by requiredService<CloudInstance>() {
-        val instance = this as CloudInstance
+    companion object : CloudInstance by INSTANCE {
+        val instance = INSTANCE
     }
 }
+
+private val INSTANCE = requiredService<CloudInstance>()
 
 /**
  * Extension function to start a Spring application using [KClass].

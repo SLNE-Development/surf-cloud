@@ -14,10 +14,7 @@ import org.springframework.core.NestedRuntimeException
 import org.springframework.scheduling.annotation.AsyncConfigurer
 import java.lang.reflect.Method
 
-@SurfCloudApplication(
-    jpaBasePackages = ["dev.slne.surf.cloud.core.test"],
-    redisBasePackages = ["dev.slne.surf.cloud.core.util"]
-)
+@SurfCloudApplication
 class SurfCloudMainApplication : AsyncConfigurer, ApplicationContextAware {
     private val log = logger()
     private lateinit var applicationContext: ApplicationContext

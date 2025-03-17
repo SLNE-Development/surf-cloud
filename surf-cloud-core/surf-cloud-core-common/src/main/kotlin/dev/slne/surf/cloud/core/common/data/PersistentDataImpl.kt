@@ -6,6 +6,7 @@ import dev.slne.surf.cloud.core.common.coreCloudInstance
 import net.querz.nbt.tag.CompoundTag
 import net.querz.nbt.tag.Tag
 import kotlin.io.path.createFile
+import kotlin.io.path.createParentDirectories
 import kotlin.io.path.div
 import kotlin.io.path.notExists
 
@@ -14,6 +15,7 @@ internal object PersistentDataImpl {
     private val file by lazy {
         (coreCloudInstance.dataFolder / "storage" / "data.dat").apply {
             if (notExists()) {
+                createParentDirectories()
                 createFile()
                 CompoundTag().writeToPath(this)
             }

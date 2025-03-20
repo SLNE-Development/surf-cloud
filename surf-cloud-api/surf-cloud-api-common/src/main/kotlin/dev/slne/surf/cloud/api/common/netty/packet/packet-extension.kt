@@ -44,7 +44,7 @@ fun KClass<out NettyPacket>.getPacketMetaOrNull() =
  * @return The [SurfNettyPacket] metadata annotation.
  */
 fun KClass<out NettyPacket>.getPacketMeta() = getPacketMetaOrNull()
-    ?: error("NettyPacket class must be annotated with SurfNettyPacket")
+    ?: error("NettyPacket class '$qualifiedName' must be annotated with @SurfNettyPacket")
 
 /**
  * Retrieves the metadata for a [NettyPacket] class from a [Class] reference.

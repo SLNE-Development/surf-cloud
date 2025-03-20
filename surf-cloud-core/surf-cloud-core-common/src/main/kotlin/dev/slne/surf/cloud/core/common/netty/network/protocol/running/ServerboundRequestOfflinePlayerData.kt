@@ -1,5 +1,7 @@
 package dev.slne.surf.cloud.core.common.netty.network.protocol.running
 
+import dev.slne.surf.cloud.api.common.meta.SurfNettyPacket
+import dev.slne.surf.cloud.api.common.netty.network.protocol.PacketFlow
 import dev.slne.surf.cloud.api.common.netty.packet.RespondingNettyPacket
 import dev.slne.surf.cloud.api.common.netty.packet.ResponseNettyPacket
 import dev.slne.surf.cloud.api.common.netty.packet.packetCodec
@@ -10,6 +12,7 @@ import java.net.Inet4Address
 import java.time.ZonedDateTime
 import java.util.*
 
+@SurfNettyPacket("cloud:serverbound:request_offline_player_data", PacketFlow.SERVERBOUND)
 class ServerboundRequestOfflinePlayerData<T>(
     val uuid: UUID,
     val requestType: RequestType<T>
@@ -38,6 +41,7 @@ class ServerboundRequestOfflinePlayerData<T>(
     }
 }
 
+@SurfNettyPacket("cloud:response:request_offline_player_data_response", PacketFlow.CLIENTBOUND)
 sealed class ResponseRequestOfflinePlayerData<T>(val value: T) : ResponseNettyPacket() {
     companion object {
         val STREAM_CODEC = packetCodec(

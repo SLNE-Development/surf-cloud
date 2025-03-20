@@ -13,3 +13,9 @@ dependencies {
     api(libs.bundles.ktor.api.server)
     api(libs.bson.kotlinx)
 }
+
+kotlin {
+    compilerOptions {
+        optIn.add("dev.slne.surf.cloud.api.common.util.annotation.InternalApi")
+    }
+}

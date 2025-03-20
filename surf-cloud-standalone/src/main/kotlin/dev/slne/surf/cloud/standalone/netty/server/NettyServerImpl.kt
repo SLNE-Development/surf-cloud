@@ -52,7 +52,7 @@ class NettyServerImpl {
         finalizeServer()
 
         ConnectionTickScope.launch {
-            while (running) {
+            while (isActive && running) {
                 delay(1.seconds)
                 tick()
             }
@@ -108,6 +108,7 @@ class NettyServerImpl {
 
     suspend fun finalizeServer() {
         initKeyPair()
+        running = true
         connection.acceptConnections()
     }
 
@@ -119,11 +120,11 @@ class NettyServerImpl {
 
     suspend fun stopServer() {
         connection.stop()
+        running = false
     }
 
 
-    //    @Scheduled(fixedRate = 1, timeUnit = TimeUnit.SECONDS)
-    suspend fun tick() {
+    private suspend fun tick() {
         connection.connections.forEach { it.tick() }
         connection.tick()
         schedules.removeAll { function ->

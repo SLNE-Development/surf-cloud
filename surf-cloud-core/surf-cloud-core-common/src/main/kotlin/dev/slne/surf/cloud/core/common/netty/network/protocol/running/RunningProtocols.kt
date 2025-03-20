@@ -49,6 +49,7 @@ object RunningProtocols {
                 .addPacket(ClientboundRegisterCloudServersToProxyPacket.STREAM_CODEC)
                 .addPacket(ClientboundTriggerShutdownPacket.STREAM_CODEC)
                 .addPacket(RequestOfflineDisplayNamePacket.STREAM_CODEC)
+                .addPacket(ClientboundBatchUpdateServer.STREAM_CODEC)
         }
 
     val CLIENTBOUND by lazy { CLIENTBOUND_TEMPLATE.freeze().bind(::SurfByteBuf) }

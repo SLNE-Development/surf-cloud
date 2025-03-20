@@ -1,5 +1,6 @@
 package dev.slne.surf.cloud.api.common
 
+import dev.slne.surf.cloud.api.common.util.annotation.InternalApi
 import dev.slne.surf.surfapi.core.api.util.requiredService
 import org.jetbrains.annotations.ApiStatus
 import org.springframework.boot.builder.SpringApplicationBuilder
@@ -33,6 +34,7 @@ interface CloudInstance {
     ): ConfigurableApplicationContext
 
     companion object : CloudInstance by INSTANCE {
+        @InternalApi
         val instance = INSTANCE
     }
 }

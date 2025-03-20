@@ -1,5 +1,6 @@
 package dev.slne.surf.cloud.api.common.player
 
+import dev.slne.surf.cloud.api.common.util.annotation.InternalApi
 import dev.slne.surf.surfapi.core.api.util.requiredService
 import net.kyori.adventure.audience.Audience
 import net.kyori.adventure.identity.Identity
@@ -27,6 +28,7 @@ interface CloudPlayerManager {
     fun getOfflinePlayer(uuid: UUID): OfflineCloudPlayer
 
     companion object : CloudPlayerManager by INSTANCE {
+        @InternalApi
         val instance = INSTANCE
     }
 }

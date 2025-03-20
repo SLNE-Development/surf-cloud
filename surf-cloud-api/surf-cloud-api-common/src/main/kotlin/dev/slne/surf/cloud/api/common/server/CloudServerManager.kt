@@ -1,5 +1,6 @@
 package dev.slne.surf.cloud.api.common.server
 
+import dev.slne.surf.cloud.api.common.util.annotation.InternalApi
 import dev.slne.surf.surfapi.core.api.util.requiredService
 import it.unimi.dsi.fastutil.objects.ObjectCollection
 import it.unimi.dsi.fastutil.objects.ObjectList
@@ -57,7 +58,10 @@ interface CloudServerManager {
 
     suspend fun retrieveAllServers(): ObjectCollection<out CommonCloudServer>
 
-    companion object : CloudServerManager by requiredService<CloudServerManager>() {
-        val instance = this as CloudServerManager
+    companion object : CloudServerManager by INSTANCE {
+        @InternalApi
+        val instance = INSTANCE
     }
 }
+
+private val INSTANCE = requiredService<CloudServerManager>()

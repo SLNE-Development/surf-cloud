@@ -155,8 +155,20 @@ public final class dev/slne/surf/cloud/api/server/exposed/columns/CharUuidColumn
 	public static final fun charUuid (Lorg/jetbrains/exposed/sql/Table;Ljava/lang/String;)Lorg/jetbrains/exposed/sql/Column;
 }
 
+public class dev/slne/surf/cloud/api/server/exposed/columns/CurrentTimestampBase : org/jetbrains/exposed/sql/Function {
+	public fun <init> (Lorg/jetbrains/exposed/sql/IColumnType;)V
+	public fun toQueryBuilder (Lorg/jetbrains/exposed/sql/QueryBuilder;)V
+}
+
+public final class dev/slne/surf/cloud/api/server/exposed/columns/CurrentZonedDateTime : dev/slne/surf/cloud/api/server/exposed/columns/CurrentTimestampBase {
+	public static final field INSTANCE Ldev/slne/surf/cloud/api/server/exposed/columns/CurrentZonedDateTime;
+}
+
 public final class dev/slne/surf/cloud/api/server/exposed/columns/InetAddressColumnType : org/jetbrains/exposed/sql/ColumnType {
 	public fun <init> ()V
+	public synthetic fun notNullValueToDB (Ljava/lang/Object;)Ljava/lang/Object;
+	public fun notNullValueToDB (Ljava/net/InetAddress;)Ljava/lang/Object;
+	public fun setParameter (Lorg/jetbrains/exposed/sql/statements/api/PreparedStatementApi;ILjava/lang/Object;)V
 	public fun sqlType ()Ljava/lang/String;
 	public synthetic fun valueFromDB (Ljava/lang/Object;)Ljava/lang/Object;
 	public fun valueFromDB (Ljava/lang/Object;)Ljava/net/InetAddress;
@@ -166,19 +178,64 @@ public final class dev/slne/surf/cloud/api/server/exposed/columns/InetAddressCol
 	public static final fun inet (Lorg/jetbrains/exposed/sql/Table;Ljava/lang/String;)Lorg/jetbrains/exposed/sql/Column;
 }
 
+public final class dev/slne/surf/cloud/api/server/exposed/columns/ZonedDateTimeColumnType : org/jetbrains/exposed/sql/ColumnType, org/jetbrains/exposed/sql/IDateColumnType {
+	public static final field Companion Ldev/slne/surf/cloud/api/server/exposed/columns/ZonedDateTimeColumnType$Companion;
+	public fun <init> ()V
+	public fun getHasTimePart ()Z
+	public synthetic fun nonNullValueAsDefaultString (Ljava/lang/Object;)Ljava/lang/String;
+	public fun nonNullValueAsDefaultString (Ljava/time/ZonedDateTime;)Ljava/lang/String;
+	public synthetic fun nonNullValueToString (Ljava/lang/Object;)Ljava/lang/String;
+	public fun nonNullValueToString (Ljava/time/ZonedDateTime;)Ljava/lang/String;
+	public synthetic fun notNullValueToDB (Ljava/lang/Object;)Ljava/lang/Object;
+	public fun notNullValueToDB (Ljava/time/ZonedDateTime;)Ljava/lang/Object;
+	public fun readObject (Ljava/sql/ResultSet;I)Ljava/lang/Object;
+	public fun sqlType ()Ljava/lang/String;
+	public synthetic fun valueFromDB (Ljava/lang/Object;)Ljava/lang/Object;
+	public fun valueFromDB (Ljava/lang/Object;)Ljava/time/ZonedDateTime;
+}
+
+public final class dev/slne/surf/cloud/api/server/exposed/columns/ZonedDateTimeColumnType$Companion {
+}
+
+public final class dev/slne/surf/cloud/api/server/exposed/columns/ZonedDateTimeColumnTypeKt {
+	public static final fun zonedDateTime (Lorg/jetbrains/exposed/sql/Table;Ljava/lang/String;)Lorg/jetbrains/exposed/sql/Column;
+}
+
 public abstract class dev/slne/surf/cloud/api/server/exposed/service/AbstractExposedDAOService {
 	public fun <init> ()V
 	public fun <init> (Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/CoroutineContext;)V
 	public synthetic fun <init> (Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/CoroutineContext;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	protected abstract fun create (Ljava/lang/Object;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	protected final fun evict (Ljava/lang/Object;)V
 	protected final fun find (Ljava/lang/Object;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	protected final fun find (Ljava/lang/Object;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	protected final fun getCache ()Lcom/sksamuel/aedile/core/LoadingCache;
 	protected abstract fun load (Ljava/lang/Object;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	protected final fun update (Ljava/lang/Object;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	protected final fun update (Ljava/lang/Object;ZLkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun update$default (Ldev/slne/surf/cloud/api/server/exposed/service/AbstractExposedDAOService;Ljava/lang/Object;ZLkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	protected final fun withTransaction (Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public abstract interface annotation class dev/slne/surf/cloud/api/server/exposed/service/DirectCacheAccess : java/lang/annotation/Annotation {
+}
+
+public abstract class dev/slne/surf/cloud/api/server/exposed/table/AuditableLongEntity : org/jetbrains/exposed/dao/LongEntity {
+	public fun <init> (Lorg/jetbrains/exposed/dao/id/EntityID;Ldev/slne/surf/cloud/api/server/exposed/table/AuditableLongIdTable;)V
+	public final fun getCreatedAt ()Ljava/time/ZonedDateTime;
+	public final fun getUpdatedAt ()Ljava/time/ZonedDateTime;
+	public final fun setUpdatedAt (Ljava/time/ZonedDateTime;)V
+}
+
+public abstract class dev/slne/surf/cloud/api/server/exposed/table/AuditableLongEntityClass : org/jetbrains/exposed/dao/LongEntityClass {
+	public fun <init> (Ldev/slne/surf/cloud/api/server/exposed/table/AuditableLongIdTable;)V
+}
+
+public class dev/slne/surf/cloud/api/server/exposed/table/AuditableLongIdTable : org/jetbrains/exposed/dao/id/LongIdTable {
+	public fun <init> ()V
+	public fun <init> (Ljava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getCreatedAt ()Lorg/jetbrains/exposed/sql/Column;
+	public final fun getUpdatedAt ()Lorg/jetbrains/exposed/sql/Column;
 }
 
 public abstract class dev/slne/surf/cloud/api/server/jpa/SurfAuditableEntity : dev/slne/surf/cloud/api/server/jpa/SurfEntity {
@@ -222,6 +279,14 @@ public abstract interface annotation class dev/slne/surf/cloud/api/server/meta/S
 
 public abstract interface annotation class dev/slne/surf/cloud/api/server/meta/SurfRedisRepository : java/lang/annotation/Annotation {
 	public abstract fun value ()Ljava/lang/String;
+}
+
+public abstract interface annotation class dev/slne/surf/cloud/api/server/plugin/AdditionalStandaloneConfiguration : java/lang/annotation/Annotation {
+}
+
+public class dev/slne/surf/cloud/api/server/plugin/JpaAuditingConfiguration {
+	public fun <init> ()V
+	public fun auditingDateTimeProvider ()Lorg/springframework/data/auditing/DateTimeProvider;
 }
 
 public abstract interface class dev/slne/surf/cloud/api/server/plugin/KtorPlugin {
@@ -270,6 +335,12 @@ public abstract class dev/slne/surf/cloud/api/server/plugin/StandalonePlugin : n
 }
 
 public final class dev/slne/surf/cloud/api/server/plugin/StandalonePlugin$Companion {
+}
+
+public class dev/slne/surf/cloud/api/server/plugin/TransactionConfiguration {
+	public fun <init> ()V
+	public fun transactionOperations (Lorg/springframework/transaction/PlatformTransactionManager;)Lorg/springframework/transaction/support/TransactionOperations;
+	public fun txManager (Ljavax/sql/DataSource;)Lorg/springframework/jdbc/datasource/DataSourceTransactionManager;
 }
 
 public abstract interface class dev/slne/surf/cloud/api/server/plugin/bootstrap/BootstrapContext : dev/slne/surf/cloud/api/server/plugin/bootstrap/StandalonePluginProviderContext {

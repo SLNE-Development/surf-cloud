@@ -10,5 +10,6 @@ public final class dev/slne/surf/cloud/api/client/paper/Paper_cloud_converterKt 
 public final class dev/slne/surf/cloud/api/client/paper/player/CloudPlayerBukkitExtensionsKt {
 	public static final fun teleport (Ldev/slne/surf/cloud/api/common/player/CloudPlayer;Lorg/bukkit/Location;Lorg/bukkit/event/player/PlayerTeleportEvent$TeleportCause;[Lio/papermc/paper/entity/TeleportFlag;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun teleport$default (Ldev/slne/surf/cloud/api/common/player/CloudPlayer;Lorg/bukkit/Location;Lorg/bukkit/event/player/PlayerTeleportEvent$TeleportCause;[Lio/papermc/paper/entity/TeleportFlag;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static final fun toCloudOfflinePlayer (Lorg/bukkit/OfflinePlayer;)Ldev/slne/surf/cloud/api/common/player/OfflineCloudPlayer;
 }
 

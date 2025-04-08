@@ -4,7 +4,6 @@ public abstract interface class dev/slne/surf/cloud/api/common/CloudInstance {
 }
 
 public final class dev/slne/surf/cloud/api/common/CloudInstance$Companion : dev/slne/surf/cloud/api/common/CloudInstance {
-	public final fun getInstance ()Ldev/slne/surf/cloud/api/common/CloudInstance;
 	public fun startSpringApplication (Ljava/lang/Class;Ljava/lang/ClassLoader;[Ljava/lang/ClassLoader;Lkotlin/jvm/functions/Function1;)Lorg/springframework/context/ConfigurableApplicationContext;
 }
 
@@ -18,9 +17,6 @@ public final class dev/slne/surf/cloud/api/common/CloudInstanceKt {
 }
 
 public abstract interface annotation class dev/slne/surf/cloud/api/common/SurfCloudApplication : java/lang/annotation/Annotation {
-	public abstract fun basePackages ()[Ljava/lang/String;
-	public abstract fun jpaBasePackages ()[Ljava/lang/String;
-	public abstract fun redisBasePackages ()[Ljava/lang/String;
 }
 
 public class dev/slne/surf/cloud/api/common/config/auto/AdventureAutoConfiguration {
@@ -30,6 +26,7 @@ public class dev/slne/surf/cloud/api/common/config/auto/AdventureAutoConfigurati
 
 public final class dev/slne/surf/cloud/api/common/config/properties/CloudProperties {
 	public static final field INSTANCE Ldev/slne/surf/cloud/api/common/config/properties/CloudProperties;
+	public static final field SERVER_CATEGORY_NOT_SET Ljava/lang/String;
 	public static final fun getSERVER_CATEGORY ()Ljava/lang/String;
 	public static final fun getSERVER_NAME ()Ljava/lang/String;
 }
@@ -257,6 +254,10 @@ public abstract interface annotation class dev/slne/surf/cloud/api/common/meta/S
 }
 
 public abstract interface annotation class dev/slne/surf/cloud/api/common/meta/SurfNettyPacketHandler : java/lang/annotation/Annotation {
+	public abstract fun classes ()[Ljava/lang/Class;
+	public abstract fun condition ()Ljava/lang/String;
+	public abstract fun id ()Ljava/lang/String;
+	public abstract fun value ()[Ljava/lang/Class;
 }
 
 public abstract interface class dev/slne/surf/cloud/api/common/netty/NettyClient {
@@ -1297,6 +1298,7 @@ public class dev/slne/surf/cloud/api/common/netty/protocol/buffer/SurfByteBuf : 
 	public final fun readEnumSet (Lkotlin/reflect/KClass;)Ljava/util/EnumSet;
 	public final fun readFixedBitSet (I)Ljava/util/BitSet;
 	public final fun readFloatArray ()[F
+	public final fun readInet4Address ()Ljava/net/Inet4Address;
 	public final fun readInetSocketAddress ()Ljava/net/InetSocketAddress;
 	public final fun readIntArray ()[I
 	public final fun readJsonWithCodec (Lcom/mojang/serialization/Codec;)Ljava/lang/Object;
@@ -1322,6 +1324,7 @@ public class dev/slne/surf/cloud/api/common/netty/protocol/buffer/SurfByteBuf : 
 	public final fun readOptionalLong ()Ljava/util/OptionalLong;
 	public final fun readSerializable (Ljava/lang/Class;)Ljava/io/Serializable;
 	public final fun readShortArray ()[S
+	public final fun readSingleton (Ljava/lang/ClassLoader;)Ljava/lang/Object;
 	public final fun readSound ()Lnet/kyori/adventure/sound/Sound;
 	public final fun readStringArray ()[Ljava/lang/String;
 	public final fun readURI ()Ljava/net/URI;
@@ -1337,6 +1340,7 @@ public class dev/slne/surf/cloud/api/common/netty/protocol/buffer/SurfByteBuf : 
 	public final fun readVarLong ()J
 	public final fun readWithCount (Ljava/util/function/Consumer;)V
 	public final fun readWithCount (Lkotlin/jvm/functions/Function1;)V
+	public final fun readZonedDateTime ()Ljava/time/ZonedDateTime;
 	public final fun writeArray ([Ljava/lang/Object;Ldev/slne/surf/cloud/api/common/netty/protocol/buffer/ecoder/EncodeFactory;)V
 	public final fun writeBitSet (Ljava/util/BitSet;)V
 	public final fun writeBooleanArray ([Z)V
@@ -1353,6 +1357,7 @@ public class dev/slne/surf/cloud/api/common/netty/protocol/buffer/SurfByteBuf : 
 	public final fun writeEnumSet (Ljava/util/EnumSet;Lkotlin/reflect/KClass;)V
 	public final fun writeFixedBitSet (Ljava/util/BitSet;I)Lio/netty/buffer/ByteBuf;
 	public final fun writeFloatArray ([F)V
+	public final fun writeInet4Address (Ljava/net/Inet4Address;)V
 	public final fun writeInetSocketAddress (Ljava/net/InetSocketAddress;)V
 	public final fun writeIntArray ([I)V
 	public final fun writeJsonWithCodec (Lcom/mojang/serialization/Codec;Ljava/lang/Object;)V
@@ -1377,6 +1382,7 @@ public class dev/slne/surf/cloud/api/common/netty/protocol/buffer/SurfByteBuf : 
 	public final fun writeOptionalLong (Ljava/util/OptionalLong;)V
 	public final fun writeSerializable (Ljava/io/Serializable;)Lio/netty/buffer/ByteBuf;
 	public final fun writeShortArray ([S)V
+	public final fun writeSingleton (Ljava/lang/Object;)V
 	public final fun writeSound (Lnet/kyori/adventure/sound/Sound;)V
 	public final fun writeStringArray ([Ljava/lang/String;)V
 	public final fun writeURI (Ljava/net/URI;)V
@@ -1395,6 +1401,7 @@ public class dev/slne/surf/cloud/api/common/netty/protocol/buffer/SurfByteBuf : 
 	public final fun writeVarLong (J)Lio/netty/buffer/ByteBuf;
 	public final fun writeWithCount (ILjava/util/function/Consumer;)V
 	public final fun writeWithCount (ILkotlin/jvm/functions/Function1;)V
+	public final fun writeZonedDateTime (Ljava/time/ZonedDateTime;)V
 }
 
 public final class dev/slne/surf/cloud/api/common/netty/protocol/buffer/SurfByteBuf$Companion {
@@ -1412,6 +1419,7 @@ public final class dev/slne/surf/cloud/api/common/netty/protocol/buffer/SurfByte
 	public final fun readEnumSet (Lio/netty/buffer/ByteBuf;Lkotlin/reflect/KClass;)Ljava/util/EnumSet;
 	public final fun readFixedBitSet (Lio/netty/buffer/ByteBuf;I)Ljava/util/BitSet;
 	public final fun readFloatArray (Lio/netty/buffer/ByteBuf;)[F
+	public final fun readInet4Address (Lio/netty/buffer/ByteBuf;)Ljava/net/Inet4Address;
 	public final fun readInetSocketAddress (Lio/netty/buffer/ByteBuf;)Ljava/net/InetSocketAddress;
 	public final fun readIntArray (Lio/netty/buffer/ByteBuf;)[I
 	public final fun readKey (Lio/netty/buffer/ByteBuf;)Lnet/kyori/adventure/key/Key;
@@ -1427,6 +1435,7 @@ public final class dev/slne/surf/cloud/api/common/netty/protocol/buffer/SurfByte
 	public static synthetic fun readOptionalLong$default (Ldev/slne/surf/cloud/api/common/netty/protocol/buffer/SurfByteBuf$Companion;Lio/netty/buffer/ByteBuf;Ldev/slne/surf/cloud/api/common/netty/protocol/buffer/decoder/DecodeFactory$DecodeLongFactory;ILjava/lang/Object;)Ljava/util/OptionalLong;
 	public final fun readSerializable (Lio/netty/buffer/ByteBuf;Ljava/lang/Class;)Ljava/io/Serializable;
 	public final fun readShortArray (Lio/netty/buffer/ByteBuf;)[S
+	public final fun readSingleton (Lio/netty/buffer/ByteBuf;Ljava/lang/ClassLoader;)Ljava/lang/Object;
 	public final fun readSound (Lio/netty/buffer/ByteBuf;)Lnet/kyori/adventure/sound/Sound;
 	public final fun readStringArray (Lio/netty/buffer/ByteBuf;)[Ljava/lang/String;
 	public final fun readURI (Lio/netty/buffer/ByteBuf;)Ljava/net/URI;
@@ -1445,6 +1454,7 @@ public final class dev/slne/surf/cloud/api/common/netty/protocol/buffer/SurfByte
 	public final fun readVarLong (Lio/netty/buffer/ByteBuf;)J
 	public final fun readWithCount (Lio/netty/buffer/ByteBuf;Ljava/util/function/Consumer;)V
 	public final fun readWithCount (Lio/netty/buffer/ByteBuf;Lkotlin/jvm/functions/Function1;)V
+	public final fun readZonedDateTime (Lio/netty/buffer/ByteBuf;)Ljava/time/ZonedDateTime;
 	public final fun writeArray (Lio/netty/buffer/ByteBuf;[Ljava/lang/Object;Ldev/slne/surf/cloud/api/common/netty/protocol/buffer/ecoder/EncodeFactory;)V
 	public final fun writeBitSet (Lio/netty/buffer/ByteBuf;Ljava/util/BitSet;)V
 	public final fun writeBooleanArray (Lio/netty/buffer/ByteBuf;[Z)V
@@ -1459,6 +1469,7 @@ public final class dev/slne/surf/cloud/api/common/netty/protocol/buffer/SurfByte
 	public final fun writeEnumSet (Lio/netty/buffer/ByteBuf;Ljava/util/EnumSet;Lkotlin/reflect/KClass;)V
 	public final fun writeFixedBitSet (Lio/netty/buffer/ByteBuf;Ljava/util/BitSet;I)Lio/netty/buffer/ByteBuf;
 	public final fun writeFloatArray (Lio/netty/buffer/ByteBuf;[F)V
+	public final fun writeInet4Address (Lio/netty/buffer/ByteBuf;Ljava/net/Inet4Address;)V
 	public final fun writeInetSocketAddress (Lio/netty/buffer/ByteBuf;Ljava/net/InetSocketAddress;)V
 	public final fun writeIntArray (Lio/netty/buffer/ByteBuf;[I)V
 	public final fun writeKey (Lio/netty/buffer/ByteBuf;Lnet/kyori/adventure/key/Key;)V
@@ -1472,6 +1483,7 @@ public final class dev/slne/surf/cloud/api/common/netty/protocol/buffer/SurfByte
 	public static synthetic fun writeOptionalLong$default (Ldev/slne/surf/cloud/api/common/netty/protocol/buffer/SurfByteBuf$Companion;Lio/netty/buffer/ByteBuf;Ljava/util/OptionalLong;Ldev/slne/surf/cloud/api/common/netty/protocol/buffer/ecoder/EncodeFactory$EncodeLongFactory;ILjava/lang/Object;)V
 	public final fun writeSerializable (Lio/netty/buffer/ByteBuf;Ljava/io/Serializable;)Lio/netty/buffer/ByteBuf;
 	public final fun writeShortArray (Lio/netty/buffer/ByteBuf;[S)V
+	public final fun writeSingleton (Lio/netty/buffer/ByteBuf;Ljava/lang/Object;)V
 	public final fun writeSound (Lio/netty/buffer/ByteBuf;Lnet/kyori/adventure/sound/Sound;)V
 	public final fun writeStringArray (Lio/netty/buffer/ByteBuf;[Ljava/lang/String;)V
 	public final fun writeURI (Lio/netty/buffer/ByteBuf;Ljava/net/URI;)V
@@ -1490,6 +1502,7 @@ public final class dev/slne/surf/cloud/api/common/netty/protocol/buffer/SurfByte
 	public final fun writeVarLong (Lio/netty/buffer/ByteBuf;J)Lio/netty/buffer/ByteBuf;
 	public final fun writeWithCount (Lio/netty/buffer/ByteBuf;ILjava/util/function/Consumer;)V
 	public final fun writeWithCount (Lio/netty/buffer/ByteBuf;ILkotlin/jvm/functions/Function1;)V
+	public final fun writeZonedDateTime (Lio/netty/buffer/ByteBuf;Ljava/time/ZonedDateTime;)V
 }
 
 public final class dev/slne/surf/cloud/api/common/netty/protocol/buffer/SurfByteBufKt {
@@ -1509,6 +1522,7 @@ public final class dev/slne/surf/cloud/api/common/netty/protocol/buffer/SurfByte
 	public static final fun readEnumSet (Lio/netty/buffer/ByteBuf;Lkotlin/reflect/KClass;)Ljava/util/EnumSet;
 	public static final fun readFixedBitSet (Lio/netty/buffer/ByteBuf;I)Ljava/util/BitSet;
 	public static final fun readFloatArray (Lio/netty/buffer/ByteBuf;)[F
+	public static final fun readInet4Address (Lio/netty/buffer/ByteBuf;)Ljava/net/Inet4Address;
 	public static final fun readInetSocketAddress (Lio/netty/buffer/ByteBuf;)Ljava/net/InetSocketAddress;
 	public static final fun readIntArray (Lio/netty/buffer/ByteBuf;)[I
 	public static final fun readKey (Lio/netty/buffer/ByteBuf;)Lnet/kyori/adventure/key/Key;
@@ -1532,6 +1546,7 @@ public final class dev/slne/surf/cloud/api/common/netty/protocol/buffer/SurfByte
 	public static final fun readOptional (Lio/netty/buffer/ByteBuf;Ldev/slne/surf/cloud/api/common/netty/protocol/buffer/decoder/DecodeFactory;)Ljava/util/Optional;
 	public static final fun readOptionalLong (Lio/netty/buffer/ByteBuf;)Ljava/util/OptionalLong;
 	public static final fun readShortArray (Lio/netty/buffer/ByteBuf;)[S
+	public static final fun readSingleton (Lio/netty/buffer/ByteBuf;Ljava/lang/ClassLoader;)Ljava/lang/Object;
 	public static final fun readSound (Lio/netty/buffer/ByteBuf;)Lnet/kyori/adventure/sound/Sound;
 	public static final fun readStringArray (Lio/netty/buffer/ByteBuf;)[Ljava/lang/String;
 	public static final fun readURI (Lio/netty/buffer/ByteBuf;)Ljava/net/URI;
@@ -1546,6 +1561,7 @@ public final class dev/slne/surf/cloud/api/common/netty/protocol/buffer/SurfByte
 	public static final fun readVarLong (Lio/netty/buffer/ByteBuf;)J
 	public static final fun readWithCount (Lio/netty/buffer/ByteBuf;Ljava/util/function/Consumer;)V
 	public static final fun readWithCount (Lio/netty/buffer/ByteBuf;Lkotlin/jvm/functions/Function1;)V
+	public static final fun readZonedDateTime (Lio/netty/buffer/ByteBuf;)Ljava/time/ZonedDateTime;
 	public static final fun toByteArraySafe (Lio/netty/buffer/ByteBuf;)[B
 	public static final fun wrap (Lio/netty/buffer/ByteBuf;)Ldev/slne/surf/cloud/api/common/netty/protocol/buffer/SurfByteBuf;
 	public static final fun writeArray (Lio/netty/buffer/ByteBuf;[Ljava/lang/Object;Ldev/slne/surf/cloud/api/common/netty/protocol/buffer/ecoder/EncodeFactory;)V
@@ -1562,6 +1578,7 @@ public final class dev/slne/surf/cloud/api/common/netty/protocol/buffer/SurfByte
 	public static final fun writeEnumSet (Lio/netty/buffer/ByteBuf;Ljava/util/EnumSet;Lkotlin/reflect/KClass;)V
 	public static final fun writeFixedBitSet (Lio/netty/buffer/ByteBuf;Ljava/util/BitSet;I)Lio/netty/buffer/ByteBuf;
 	public static final fun writeFloatArray (Lio/netty/buffer/ByteBuf;[F)V
+	public static final fun writeInet4Address (Lio/netty/buffer/ByteBuf;Ljava/net/Inet4Address;)V
 	public static final fun writeInetSocketAddress (Lio/netty/buffer/ByteBuf;Ljava/net/InetSocketAddress;)V
 	public static final fun writeIntArray (Lio/netty/buffer/ByteBuf;[I)V
 	public static final fun writeKey (Lio/netty/buffer/ByteBuf;Lnet/kyori/adventure/key/Key;)V
@@ -1583,6 +1600,7 @@ public final class dev/slne/surf/cloud/api/common/netty/protocol/buffer/SurfByte
 	public static final fun writeOptional (Lio/netty/buffer/ByteBuf;Ljava/util/Optional;Ldev/slne/surf/cloud/api/common/netty/protocol/buffer/ecoder/EncodeFactory;)V
 	public static final fun writeOptionalLong (Lio/netty/buffer/ByteBuf;Ljava/util/OptionalLong;)V
 	public static final fun writeShortArray (Lio/netty/buffer/ByteBuf;[S)V
+	public static final fun writeSingleton (Lio/netty/buffer/ByteBuf;Ljava/lang/Object;)V
 	public static final fun writeSound (Lio/netty/buffer/ByteBuf;Lnet/kyori/adventure/sound/Sound;)V
 	public static final fun writeStringArray (Lio/netty/buffer/ByteBuf;[Ljava/lang/String;)V
 	public static final fun writeURI (Lio/netty/buffer/ByteBuf;Ljava/net/URI;)V
@@ -1600,6 +1618,7 @@ public final class dev/slne/surf/cloud/api/common/netty/protocol/buffer/SurfByte
 	public static final fun writeVarLong (Lio/netty/buffer/ByteBuf;J)Lio/netty/buffer/ByteBuf;
 	public static final fun writeWithCount (Lio/netty/buffer/ByteBuf;ILjava/util/function/Consumer;)V
 	public static final fun writeWithCount (Lio/netty/buffer/ByteBuf;ILkotlin/jvm/functions/Function1;)V
+	public static final fun writeZonedDateTime (Lio/netty/buffer/ByteBuf;Ljava/time/ZonedDateTime;)V
 }
 
 public class dev/slne/surf/cloud/api/common/netty/protocol/buffer/WrappedByteBuf : io/netty/buffer/ByteBuf {
@@ -1867,6 +1886,7 @@ public abstract interface class dev/slne/surf/cloud/api/common/player/CloudPlaye
 	public abstract fun getConnectedToServer ()Z
 	public abstract fun lastServerRaw (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun latestIpAddress (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun name (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun teleport (Ldev/slne/surf/cloud/api/common/player/teleport/TeleportLocation;Ldev/slne/surf/cloud/api/common/player/teleport/TeleportCause;[Ldev/slne/surf/cloud/api/common/player/teleport/TeleportFlag;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun teleport (Ljava/util/UUID;DDDFFLdev/slne/surf/cloud/api/common/player/teleport/TeleportCause;[Ldev/slne/surf/cloud/api/common/player/teleport/TeleportFlag;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun withPersistentData (Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -1882,17 +1902,19 @@ public final class dev/slne/surf/cloud/api/common/player/CloudPlayer$DefaultImpl
 public abstract interface class dev/slne/surf/cloud/api/common/player/CloudPlayerManager {
 	public static final field Companion Ldev/slne/surf/cloud/api/common/player/CloudPlayerManager$Companion;
 	public abstract fun getOfflinePlayer (Ljava/util/UUID;)Ldev/slne/surf/cloud/api/common/player/OfflineCloudPlayer;
+	public abstract fun getOnlinePlayers ()Ldev/slne/surf/cloud/api/common/server/UserList;
 	public abstract fun getPlayer (Ljava/util/UUID;)Ldev/slne/surf/cloud/api/common/player/CloudPlayer;
 }
 
 public final class dev/slne/surf/cloud/api/common/player/CloudPlayerManager$Companion : dev/slne/surf/cloud/api/common/player/CloudPlayerManager {
-	public final fun getInstance ()Ldev/slne/surf/cloud/api/common/player/CloudPlayerManager;
 	public fun getOfflinePlayer (Ljava/util/UUID;)Ldev/slne/surf/cloud/api/common/player/OfflineCloudPlayer;
+	public fun getOnlinePlayers ()Ldev/slne/surf/cloud/api/common/server/UserList;
 	public fun getPlayer (Ljava/util/UUID;)Ldev/slne/surf/cloud/api/common/player/CloudPlayer;
 }
 
 public final class dev/slne/surf/cloud/api/common/player/CloudPlayerManagerKt {
 	public static final fun toCloudPlayer (Lnet/kyori/adventure/audience/Audience;)Ldev/slne/surf/cloud/api/common/player/CloudPlayer;
+	public static final fun toOfflineCloudPlayer (Lnet/kyori/adventure/audience/Audience;)Ldev/slne/surf/cloud/api/common/player/OfflineCloudPlayer;
 }
 
 public final class dev/slne/surf/cloud/api/common/player/ConnectionResultEnum : java/lang/Enum {
@@ -1924,11 +1946,13 @@ public abstract interface class dev/slne/surf/cloud/api/common/player/OfflineClo
 	public abstract fun lastServer (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun lastServerRaw (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun latestIpAddress (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun name (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun nameHistory (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun playedBefore (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class dev/slne/surf/cloud/api/common/player/name/NameEntry {
+	public static final field Companion Ldev/slne/surf/cloud/api/common/player/name/NameEntry$Companion;
 	public fun <init> (JLjava/lang/String;)V
 	public final fun component1 ()J
 	public final fun component2 ()Ljava/lang/String;
@@ -1939,9 +1963,15 @@ public final class dev/slne/surf/cloud/api/common/player/name/NameEntry {
 	public final fun getTimestamp ()J
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
+	public final fun writeToByteBuf (Lio/netty/buffer/ByteBuf;)V
+}
+
+public final class dev/slne/surf/cloud/api/common/player/name/NameEntry$Companion {
+	public final fun readFromByteBuf (Lio/netty/buffer/ByteBuf;)Ldev/slne/surf/cloud/api/common/player/name/NameEntry;
 }
 
 public abstract interface class dev/slne/surf/cloud/api/common/player/name/NameHistory {
+	public static final field Companion Ldev/slne/surf/cloud/api/common/player/name/NameHistory$Companion;
 	public abstract fun firstUsedName ()Ldev/slne/surf/cloud/api/common/player/name/NameEntry;
 	public abstract fun getNameAtTime (J)Ldev/slne/surf/cloud/api/common/player/name/NameEntry;
 	public abstract fun getNameChanges ()I
@@ -1949,6 +1979,15 @@ public abstract interface class dev/slne/surf/cloud/api/common/player/name/NameH
 	public abstract fun names ()Lit/unimi/dsi/fastutil/objects/ObjectList;
 	public abstract fun timeSinceLastChange ()J
 	public abstract fun wasNameUsed (Ljava/lang/String;)Z
+	public abstract fun writeToByteBuf (Lio/netty/buffer/ByteBuf;)V
+}
+
+public final class dev/slne/surf/cloud/api/common/player/name/NameHistory$Companion {
+	public final fun readFromByteBuf (Lio/netty/buffer/ByteBuf;)Ldev/slne/surf/cloud/api/common/player/name/NameHistory;
+}
+
+public final class dev/slne/surf/cloud/api/common/player/name/NameHistoryFactory$Companion {
+	public final fun getInstance ()Ldev/slne/surf/cloud/api/common/player/name/NameHistoryFactory;
 }
 
 public abstract interface class dev/slne/surf/cloud/api/common/player/ppdc/ListPersistentPlayerDataType : dev/slne/surf/cloud/api/common/player/ppdc/PersistentPlayerDataType {
@@ -2092,7 +2131,6 @@ public abstract interface class dev/slne/surf/cloud/api/common/server/CloudServe
 }
 
 public final class dev/slne/surf/cloud/api/common/server/CloudServerManager$Companion : dev/slne/surf/cloud/api/common/server/CloudServerManager {
-	public final fun getInstance ()Ldev/slne/surf/cloud/api/common/server/CloudServerManager;
 	public fun retrieveAllServers (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun retrieveServerByCategoryAndName (Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun retrieveServerById (JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -2139,6 +2177,7 @@ public abstract interface class dev/slne/surf/cloud/api/common/server/UserList :
 
 public final class dev/slne/surf/cloud/api/common/server/UserListImpl$Companion {
 	public final fun getSTREAM_CODEC ()Ldev/slne/surf/cloud/api/common/netty/network/codec/StreamCodec;
+	public final fun of (Ljava/lang/Iterable;)Ldev/slne/surf/cloud/api/common/server/UserListImpl;
 }
 
 public final class dev/slne/surf/cloud/api/common/server/state/ServerState : java/lang/Enum {
@@ -2371,9 +2410,13 @@ public final class dev/slne/surf/cloud/api/common/util/Result_utilKt {
 }
 
 public final class dev/slne/surf/cloud/api/common/util/Spring_utilKt {
+	public static final fun executeAndAwait (Lorg/springframework/transaction/support/TransactionOperations;Lkotlin/coroutines/CoroutineContext;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun executeAndAwait$default (Lorg/springframework/transaction/support/TransactionOperations;Lkotlin/coroutines/CoroutineContext;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public static final fun getFieldValue (Lorg/springframework/core/type/AnnotationMetadata;Ljava/lang/String;Lkotlin/reflect/KClass;Ljava/lang/ClassLoader;)Ljava/lang/Object;
+	public static final fun getTxDispatcher ()Lkotlinx/coroutines/CoroutineDispatcher;
 	public static final fun getValue (Lorg/springframework/beans/factory/ObjectFactory;Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
 	public static final fun getValue (Lorg/springframework/beans/factory/ObjectFactory;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+	public static final fun measureWithStopWatch (Ljava/lang/Object;Ljava/lang/String;Lkotlin/jvm/functions/Function0;)Lorg/springframework/util/StopWatch;
 	public static final fun selectFunctions (Lkotlin/reflect/KClass;Lkotlin/jvm/functions/Function1;)Ljava/util/Set;
 	public static final fun ultimateTargetClass (Ljava/lang/Object;)Lkotlin/reflect/KClass;
 }
@@ -2412,6 +2455,7 @@ public final class dev/slne/surf/cloud/api/common/util/Time_utilKt {
 public final class dev/slne/surf/cloud/api/common/util/UtilKt {
 	public static final field LINEAR_LOOKUP_THRESHOLD I
 	public static final fun createIndexLookup (Ljava/util/List;)Ljava/util/function/ToIntFunction;
+	public static final fun isSuspending (Ljava/lang/reflect/Method;)Z
 	public static final fun safeReplaceFile (Ljava/nio/file/Path;Ljava/nio/file/Path;Ljava/nio/file/Path;)V
 	public static final fun safeReplaceOrMoveFile (Ljava/nio/file/Path;Ljava/nio/file/Path;Ljava/nio/file/Path;Z)Z
 	public static final fun toIntArray (Ljava/util/UUID;)[I

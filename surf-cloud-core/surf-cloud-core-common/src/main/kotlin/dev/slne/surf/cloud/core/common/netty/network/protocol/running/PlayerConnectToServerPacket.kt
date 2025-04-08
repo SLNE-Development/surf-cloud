@@ -6,6 +6,7 @@ import dev.slne.surf.cloud.api.common.netty.network.protocol.PacketFlow
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
 import dev.slne.surf.cloud.api.common.netty.packet.packetCodec
 import dev.slne.surf.cloud.api.common.netty.protocol.buffer.SurfByteBuf
+import java.net.Inet4Address
 import java.util.*
 
 /**
@@ -38,6 +39,8 @@ class PlayerConnectToServerPacket : NettyPacket {
      */
     val uuid: UUID
 
+    val name: String
+
     /**
      * Represents the unique identifier of the server the player is connecting to.
      */
@@ -48,6 +51,8 @@ class PlayerConnectToServerPacket : NettyPacket {
      */
     val proxy: Boolean
 
+    val playerIp: Inet4Address
+
     /**
      * Constructs a new instance of `PlayerConnectToServerPacket`.
      *
@@ -55,10 +60,12 @@ class PlayerConnectToServerPacket : NettyPacket {
      * @param serverUid The unique identifier of the server the player is connecting to.
      * @param proxy Indicates if the server is a proxy.
      */
-    constructor(uuid: UUID, serverUid: Long, proxy: Boolean) {
+    constructor(uuid: UUID, name: String, proxy: Boolean, playerIp: Inet4Address, serverUid: Long) {
         this.uuid = uuid
+        this.name = name
         this.serverUid = serverUid
         this.proxy = proxy
+        this.playerIp = playerIp
     }
 
     /**
@@ -69,8 +76,10 @@ class PlayerConnectToServerPacket : NettyPacket {
      */
     private constructor(buf: SurfByteBuf) {
         this.uuid = buf.readUuid()
+        this.name = buf.readUtf(16)
         this.serverUid = buf.readLong()
         this.proxy = buf.readBoolean()
+        this.playerIp = buf.readInet4Address()
     }
 
     /**
@@ -80,7 +89,9 @@ class PlayerConnectToServerPacket : NettyPacket {
      */
     private fun write(buf: SurfByteBuf) {
         buf.writeUuid(uuid)
+        buf.writeUtf(name, 16)
         buf.writeLong(serverUid)
         buf.writeBoolean(proxy)
+        buf.writeInet4Address(playerIp)
     }
 }

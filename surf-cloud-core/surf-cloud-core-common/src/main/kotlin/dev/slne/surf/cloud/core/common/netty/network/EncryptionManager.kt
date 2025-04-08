@@ -1,7 +1,7 @@
 package dev.slne.surf.cloud.core.common.netty.network
 
-import dev.slne.surf.cloud.api.common.util.logger
 import dev.slne.surf.cloud.core.common.coreCloudInstance
+import dev.slne.surf.surfapi.core.api.util.logger
 import io.netty.channel.Channel
 import kotlinx.coroutines.delay
 import java.io.File

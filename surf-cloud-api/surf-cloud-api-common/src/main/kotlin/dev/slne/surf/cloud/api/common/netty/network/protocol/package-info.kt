@@ -9,16 +9,16 @@
  *   communication between network nodes.
  *
  * - **Packet Flow**:
- *   All packets are annotated with [SurfNettyPacket], specifying their unique identifier
+ *   All packets are annotated with [dev.slne.surf.cloud.api.common.meta.SurfNettyPacket], specifying their unique identifier
  *   and flow direction, enabling seamless integration with the Netty framework.
  *
  * - **Serialization**:
  *   Packets implement efficient serialization and deserialization mechanisms using
- *   [SurfByteBuf], ensuring minimal overhead during transmission.
+ *   [dev.slne.surf.cloud.api.common.netty.protocol.buffer.SurfByteBuf], ensuring minimal overhead during transmission.
  *
  * ### Extensibility:
  * New packet types can be easily added to support additional data structures or custom
  * requirements. Implement the codec logic for serialization, annotate with
- * [SurfNettyPacket], and register the packet as needed.
+ * [dev.slne.surf.cloud.api.common.meta.SurfNettyPacket], and register the packet as needed.
  */
 package dev.slne.surf.cloud.api.common.netty.network.protocol

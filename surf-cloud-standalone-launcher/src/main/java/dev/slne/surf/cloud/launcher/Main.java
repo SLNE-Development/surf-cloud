@@ -11,7 +11,6 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
-import java.util.List;
 import java.util.Objects;
 import java.util.jar.JarFile;
 import java.util.stream.Stream;
@@ -19,6 +18,7 @@ import java.util.zip.ZipEntry;
 import org.eclipse.aether.resolution.DependencyResolutionException;
 
 public class Main {
+
   public static void main(String[] args) {
     if (Path.of("").toAbsolutePath().toString().contains("!")) {
       System.err.println(
@@ -27,7 +27,7 @@ public class Main {
     }
 
     final URL[] classpathUrls = setupClasspath();
-    final ClassLoader parentClassLoader = Main.class.getClassLoader();
+    final ClassLoader parentClassLoader = Main.class.getClassLoader().getParent().getParent();
     final StandaloneUrlClassLoader classLoader = new StandaloneUrlClassLoader(classpathUrls,
         parentClassLoader);
 
@@ -136,23 +136,10 @@ public class Main {
   }
 
   private static String findMainClass() {
-//    try (final InputStream manifestStream = Launcher.class.getResource("/META-INF/MANIFEST.MF")
-//        .openStream()) {
-//      final Manifest manifest = new Manifest(manifestStream);
-//      System.out.println("manifest: " + manifest);
-//
-//      System.out.println("main attributes: " + manifest.getMainAttributes().entrySet());
-//      String mainClass = manifest.getMainAttributes().getValue("Real-Main-Class");
-//      System.out.println("main class: " + mainClass);
-//
-//      if (mainClass == null) {
-//        throw new IllegalStateException("Main class not found in manifest");
-//      }
-//
-//      return mainClass;
-//    }
-
-    // TODO: 19.09.2024 18:47 - fix
-    return "dev.slne.surf.cloud.standalone.Bootstrap";
+    try {
+      return LauncherUtils.readResourceText("/META-INF/main-class");
+    } catch (final IOException e) {
+      throw LauncherUtils.fail("Failed to read main-class file", e);
+    }
   }
 }

@@ -1,17 +1,17 @@
 package dev.slne.surf.cloud.core.client.netty.network
 
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
-import dev.slne.surf.cloud.api.common.util.logger
 import dev.slne.surf.cloud.core.common.coroutines.ConnectionManagementScope
 import dev.slne.surf.cloud.core.common.netty.network.ConnectionImpl
 import dev.slne.surf.cloud.core.common.netty.network.DisconnectionDetails
 import dev.slne.surf.cloud.core.common.netty.network.protocol.common.ClientCommonPacketListener
+import dev.slne.surf.cloud.core.common.netty.network.protocol.common.ClientboundBundlePacket
 import dev.slne.surf.cloud.core.common.netty.network.protocol.common.ClientboundKeepAlivePacket
 import dev.slne.surf.cloud.core.common.netty.network.protocol.common.ServerboundKeepAlivePacket
-import dev.slne.surf.cloud.core.common.netty.network.protocol.common.ClientboundBundlePacket
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ClientboundDisconnectPacket
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ClientboundPingPacket
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ServerboundPongPacket
+import dev.slne.surf.surfapi.core.api.util.logger
 import kotlinx.coroutines.launch
 import kotlin.system.exitProcess
 

@@ -1,6 +1,5 @@
 package dev.slne.surf.cloud.standalone.netty.server.network
 
-import dev.slne.surf.cloud.api.common.util.logger
 import dev.slne.surf.cloud.core.common.netty.network.CommonTickablePacketListener
 import dev.slne.surf.cloud.core.common.netty.network.ConnectionImpl
 import dev.slne.surf.cloud.core.common.netty.network.DisconnectionDetails
@@ -10,6 +9,7 @@ import dev.slne.surf.cloud.standalone.config.standaloneConfig
 import dev.slne.surf.cloud.standalone.netty.server.NettyServerImpl
 import dev.slne.surf.cloud.standalone.netty.server.ProxyServerAutoregistration
 import dev.slne.surf.cloud.standalone.netty.server.ServerClientImpl
+import dev.slne.surf.surfapi.core.api.util.logger
 
 private const val MAX_LOGIN_TIME = 30
 
@@ -78,6 +78,10 @@ class ServerLoginPacketListenerImpl(val server: NettyServerImpl, val connection:
 
     override suspend fun onDisconnect(details: DisconnectionDetails) {
         log.atInfo().log("${client?.displayName} lost connection: ${details.reason}")
+    }
+
+    override fun isAcceptingMessages(): Boolean {
+        return connection.connected
     }
 
     fun disconnect(reason: String) {

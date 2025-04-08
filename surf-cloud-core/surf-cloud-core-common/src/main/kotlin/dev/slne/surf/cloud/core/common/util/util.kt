@@ -2,8 +2,8 @@
 
 package dev.slne.surf.cloud.core.common.util
 
-import dev.slne.surf.cloud.api.common.util.logger
 import dev.slne.surf.cloud.core.common.coreCloudInstance
+import dev.slne.surf.surfapi.core.api.util.logger
 import org.jetbrains.annotations.ApiStatus
 import org.springframework.context.ApplicationEvent
 import java.security.SecureRandom

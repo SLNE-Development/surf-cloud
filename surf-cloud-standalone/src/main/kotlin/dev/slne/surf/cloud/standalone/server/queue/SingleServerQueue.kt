@@ -2,12 +2,14 @@ package dev.slne.surf.cloud.standalone.server.queue
 
 import dev.slne.surf.cloud.api.common.player.CloudPlayer
 import dev.slne.surf.cloud.api.common.player.ConnectionResultEnum.*
-import dev.slne.surf.cloud.api.common.util.logger
 import dev.slne.surf.cloud.api.common.util.queue.FairSuspendPriorityQueue
 import dev.slne.surf.cloud.api.common.util.toObjectList
 import dev.slne.surf.cloud.core.common.coroutines.QueueProcessingScope
 import dev.slne.surf.cloud.standalone.player.StandaloneCloudPlayerImpl
 import dev.slne.surf.cloud.standalone.server.StandaloneCloudServerImpl
+import dev.slne.surf.surfapi.core.api.util.logger
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -30,13 +32,13 @@ class SingleServerQueue(private val server: StandaloneCloudServerImpl) {
 
     val queueDisplay = ServerQueueDisplay(this)
 
-    private suspend fun processQueue() {
-        if (processing) return
+    private suspend fun processQueue() = coroutineScope {
+        if (processing) return@coroutineScope
         processing = true
 
-        while (true) {
+        while (isActive) {
             val player = mutex.withLock {
-                if (queue.isEmpty() || !server.hasEmptySlots()) return
+                if (queue.isEmpty() || !server.hasEmptySlots()) return@coroutineScope
                 queue.poll()
             } ?: break // No more players to process at the moment
             val rawResult = player.connectToServer(server) // suspend

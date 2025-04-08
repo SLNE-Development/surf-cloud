@@ -8,7 +8,7 @@ import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
 import dev.slne.surf.cloud.api.common.netty.packet.packetCodec
 import dev.slne.surf.cloud.api.common.netty.protocol.buffer.SurfByteBuf
 
-const val PROTOCOL_VERSION = -1 // TODO: implement maybe?
+const val PROTOCOL_VERSION = 1
 
 /**
  * First packet sent by the client to the cloud server. It is used to establish a connection to the cloud server.

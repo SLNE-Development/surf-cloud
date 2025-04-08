@@ -4,29 +4,38 @@ import com.github.shynixn.mccoroutine.folia.SuspendingJavaPlugin
 import com.github.shynixn.mccoroutine.folia.globalRegionDispatcher
 import com.github.shynixn.mccoroutine.folia.launch
 import com.github.shynixn.mccoroutine.folia.ticks
+import dev.jorel.commandapi.CommandAPIBukkit
 import dev.jorel.commandapi.kotlindsl.*
+import dev.slne.surf.cloud.api.client.paper.player.toCloudOfflinePlayer
+import dev.slne.surf.cloud.api.common.player.teleport.TeleportCause
+import dev.slne.surf.cloud.api.common.player.teleport.fineLocation
 import dev.slne.surf.cloud.api.common.player.toCloudPlayer
-import dev.slne.surf.cloud.api.common.server.serverManager
-import dev.slne.surf.cloud.api.common.util.position.FineTeleportCause
-import dev.slne.surf.cloud.api.common.util.position.fineLocation
+import dev.slne.surf.cloud.api.common.server.CloudServerManager
 import dev.slne.surf.cloud.bukkit.player.BukkitClientCloudPlayerImpl
 import dev.slne.surf.cloud.core.common.handleEventuallyFatalError
 import dev.slne.surf.surfapi.bukkit.api.event.listen
+import dev.slne.surf.surfapi.core.api.messages.CommonComponents
+import dev.slne.surf.surfapi.core.api.messages.adventure.buildText
+import dev.slne.surf.surfapi.core.api.messages.adventure.sendText
+import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
 import org.bukkit.Bukkit
 import org.bukkit.Location
 import org.bukkit.NamespacedKey
+import org.bukkit.OfflinePlayer
 import org.bukkit.entity.Player
 import org.bukkit.event.server.ServerLoadEvent
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.contract
 
 class BukkitMain : SuspendingJavaPlugin() {
     override suspend fun onLoadAsync() {
         try {
             bukkitCloudInstance.onLoad()
         } catch (t: Throwable) {
-            t.handleEventuallyFatalError { Bukkit.shutdown() }
+            t.handleEventuallyFatalError({ Bukkit.shutdown() })
         }
     }
 
@@ -34,7 +43,7 @@ class BukkitMain : SuspendingJavaPlugin() {
         try {
             bukkitCloudInstance.onEnable()
         } catch (t: Throwable) {
-            t.handleEventuallyFatalError { Bukkit.shutdown() }
+            t.handleEventuallyFatalError({ Bukkit.shutdown() })
         }
 
         var serverLoaded = false
@@ -53,7 +62,7 @@ class BukkitMain : SuspendingJavaPlugin() {
             try {
                 bukkitCloudInstance.afterStart()
             } catch (t: Throwable) {
-                t.handleEventuallyFatalError { Bukkit.shutdown() }
+                t.handleEventuallyFatalError({ Bukkit.shutdown() })
             }
         }
 
@@ -63,7 +72,7 @@ class BukkitMain : SuspendingJavaPlugin() {
                     anyExecutor { sender, args ->
                         val id: Long by args
                         launch {
-                            val server = serverManager.retrieveServerById(id)
+                            val server = CloudServerManager.retrieveServerById(id)
                             sender.sendMessage("Server: $server")
                         }
                     }
@@ -77,7 +86,10 @@ class BukkitMain : SuspendingJavaPlugin() {
                             val name: String by args
                             launch {
                                 val server =
-                                    serverManager.retrieveServerByCategoryAndName(category, name)
+                                    CloudServerManager.retrieveServerByCategoryAndName(
+                                        category,
+                                        name
+                                    )
                                 sender.sendMessage("Server: $server")
                             }
                         }
@@ -89,7 +101,7 @@ class BukkitMain : SuspendingJavaPlugin() {
                     anyExecutor { sender, args ->
                         val name: String by args
                         launch {
-                            val server = serverManager.retrieveServerByName(name)
+                            val server = CloudServerManager.retrieveServerByName(name)
                             sender.sendMessage("Server: $server")
                         }
                     }
@@ -100,7 +112,7 @@ class BukkitMain : SuspendingJavaPlugin() {
                     anyExecutor { sender, args ->
                         val category: String by args
                         launch {
-                            val servers = serverManager.retrieveServersByCategory(category)
+                            val servers = CloudServerManager.retrieveServersByCategory(category)
                             sender.sendMessage("Servers: $servers")
                         }
                     }
@@ -174,24 +186,115 @@ class BukkitMain : SuspendingJavaPlugin() {
                 )
 
                 plugin.launch {
-                    target.toCloudPlayer()?.teleport(fineLocation, FineTeleportCause.COMMAND)
+                    target.toCloudPlayer()?.teleport(fineLocation, TeleportCause.COMMAND)
 
                     player.sendMessage(
                         Component.text(
-                            "Deported player ${target.name} to ${location}",
+                            "Deported player ${target.name} to $location",
                             NamedTextColor.GREEN
                         )
                     )
                 }
             }
         }
+
+        commandAPICommand("cshutdown") {
+            longArgument("id")
+            anyExecutor { sender, args ->
+                val id: Long by args
+                launch {
+                    val server = CloudServerManager.retrieveServerById(id)
+                    requireCommand(server != null) { Component.text("Server with id $id not found") }
+
+                    server.shutdown()
+                }
+            }
+        }
+
+        commandAPICommand("offlinePlayer") {
+            offlinePlayerArgument("player")
+            anyExecutor { sender, args ->
+                val player: OfflinePlayer by args
+                val offlinePlayer = player.toCloudOfflinePlayer()
+
+                launch {
+                    val displayName = async { offlinePlayer.displayName() }
+                    val lastServer = async { offlinePlayer.lastServer() }
+                    val lastSeen = async { offlinePlayer.lastSeen() }
+                    val lastIpAddress = async { offlinePlayer.latestIpAddress() }
+                    val playedBefore = async { offlinePlayer.playedBefore() }
+                    val nameHistory = async { offlinePlayer.nameHistory() }
+
+                    sender.sendText {
+                        appendPrefix()
+                        appendNewPrefixedLine {
+                            variableKey("UUID")
+                            spacer(": ")
+                            variableValue(offlinePlayer.uuid.toString())
+                        }
+                        appendNewPrefixedLineAsync {
+                            variableKey("Display Name")
+                            spacer(": ")
+                            append(displayName.await() ?: Component.text("#Unknown"))
+                        }
+                        appendNewPrefixedLineAsync {
+                            variableKey("Last Server")
+                            spacer(": ")
+                            variableValue(lastServer.await()?.name ?: "#Unknown")
+                        }
+                        appendNewPrefixedLineAsync {
+                            variableKey("Last Seen")
+                            spacer(": ")
+                            variableValue(lastSeen.await()?.toString() ?: "#Unknown")
+                        }
+                        appendNewPrefixedLineAsync {
+                            variableKey("Last IP Address")
+                            spacer(": ")
+                            variableValue(lastIpAddress.await()?.hostAddress ?: "#Unknown")
+                        }
+                        appendNewPrefixedLineAsync {
+                            variableKey("Played Before")
+                            spacer(": ")
+                            variableValue(playedBefore.await().toString())
+                        }
+                        appendAsync {
+                            appendCollectionNewLine(nameHistory.await().names()) {(timestamp, name) ->
+                                buildText {
+                                    variableKey(timestamp.toString())
+                                    append(CommonComponents.MAP_SEPERATOR)
+                                    variableValue(name)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    @OptIn(ExperimentalContracts::class)
+    private fun requireCommand(
+        condition: Boolean,
+        message: () -> Component
+    ) { // TODO: 20.01.2025 20:51 - move to surf-api
+        contract {
+            returns() implies condition
+        }
+
+        if (!condition) {
+            failCommand(message)
+        }
+    }
+
+    private fun failCommand(message: () -> Component): Nothing { // TODO: 20.01.2025 20:51 - move to surf-api
+        throw CommandAPIBukkit.failWithAdventureComponent(message)
     }
 
     override suspend fun onDisableAsync() {
         try {
             bukkitCloudInstance.onDisable()
         } catch (t: Throwable) {
-            t.handleEventuallyFatalError { }
+            t.handleEventuallyFatalError({ })
         }
     }
 

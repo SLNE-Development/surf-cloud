@@ -1,6 +1,5 @@
 package dev.slne.surf.cloud.standalone.plugin.storage
 
-import dev.slne.surf.cloud.api.common.util.logger
 import dev.slne.surf.cloud.api.server.plugin.bootstrap.StandalonePluginBootstrap
 import dev.slne.surf.cloud.api.server.plugin.dependency.DependencyContext
 import dev.slne.surf.cloud.standalone.plugin.PluginInitializerManager
@@ -12,6 +11,7 @@ import dev.slne.surf.cloud.standalone.plugin.entrypoint.strategy.ProviderConfigu
 import dev.slne.surf.cloud.standalone.plugin.provider.PluginProvider
 import dev.slne.surf.cloud.standalone.plugin.provider.ProviderStatus
 import dev.slne.surf.cloud.standalone.plugin.provider.ProviderStatusHolder
+import dev.slne.surf.surfapi.core.api.util.logger
 
 class BootstrapSpringProviderStorage : SimpleProviderStorage<StandalonePluginBootstrap>(
     PluginLoadingStrategy(object : ProviderConfiguration<StandalonePluginBootstrap> {

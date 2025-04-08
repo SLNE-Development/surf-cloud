@@ -2,14 +2,12 @@
 
 package dev.slne.surf.cloud.api.common.netty.network.codec
 
-import dev.slne.surf.cloud.api.common.netty.protocol.buffer.readByteArray
-import dev.slne.surf.cloud.api.common.netty.protocol.buffer.writeByteArray
+import dev.slne.surf.cloud.api.common.netty.protocol.buffer.readUtf
 import dev.slne.surf.cloud.api.common.netty.protocol.buffer.writeUtf
 import dev.slne.surf.cloud.api.common.util.freeze
 import dev.slne.surf.cloud.api.common.util.mutableObject2ObjectMapOf
 import dev.slne.surf.cloud.api.common.util.mutableObjectListOf
 import io.netty.buffer.ByteBuf
-import io.netty.buffer.ByteBufAllocator
 import io.netty.handler.codec.DecoderException
 import io.netty.handler.codec.EncoderException
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap
@@ -19,19 +17,15 @@ import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
 import kotlin.experimental.ExperimentalTypeInference
 
-//private const val UNKNOWN_TYPE = -1
 
 class StringIdDispatchCodec<B : ByteBuf, V, T> private constructor(
     private val typeGetter: Function<V, out T>,
-    private val byId: Object2ObjectMap<ByteArray, Entry<B, V, T>>,
-    private val toId: Object2ObjectMap<T, ByteArray>
+    private val byId: Object2ObjectMap<String, Entry<B, V, T>>,
+    private val toId: Object2ObjectMap<T, String>
 ) : StreamCodec<B, V> {
-    init {
-//        toId.defaultReturnValue(UNKNOWN_TYPE)
-    }
 
     override fun decode(buf: B): V {
-        val id = buf.readByteArray()
+        val id = buf.readUtf()
         val entry = byId[id]
 
         if (id.isNotEmpty() && entry != null) {
@@ -49,7 +43,7 @@ class StringIdDispatchCodec<B : ByteBuf, V, T> private constructor(
         val type = typeGetter.apply(value)
         val id = toId[type] ?: throw EncoderException("Sending unknown packet '$type'")
 
-        buf.writeByteArray(id)
+        buf.writeUtf(id)
         val entry = byId[id] ?: throw EncoderException("Messed up mapping for packet '$type'")
 
         try {
@@ -68,23 +62,16 @@ class StringIdDispatchCodec<B : ByteBuf, V, T> private constructor(
         }
 
         fun build(typeToIdMapper: (T) -> String): StringIdDispatchCodec<B, V, T> {
-            val typeToIdMap = mutableObject2ObjectMapOf<T, ByteArray>(entries.size)
-            val idToTypeMap = mutableObject2ObjectMapOf<ByteArray, Entry<B, V, T>>(entries.size)
-            val finalTypeToIdMapper = typeToIdMapper
+            val typeToIdMap = mutableObject2ObjectMapOf<T, String>(entries.size)
+            val idToTypeMap = mutableObject2ObjectMapOf<String, Entry<B, V, T>>(entries.size)
 
-            val tempBuf = ByteBufAllocator.DEFAULT.buffer()
             for (entry in this.entries) {
                 val type = entry.type
-                val id = finalTypeToIdMapper(type)
+                val id = typeToIdMapper(type)
 
-                tempBuf.writeUtf(id)
-                val serializedId = tempBuf.readBytes(tempBuf.readableBytes()).array()
-
-                val previousValue = typeToIdMap.putIfAbsent(type, serializedId)
+                val previousValue = typeToIdMap.putIfAbsent(type, id)
                 check(previousValue == null) { "Duplicate registration for type $type" }
-                idToTypeMap.put(serializedId, entry)
-
-                tempBuf.clear()
+                idToTypeMap.put(id, entry)
             }
 
             return StringIdDispatchCodec(

@@ -5,9 +5,10 @@ import dev.slne.surf.cloud.api.common.exceptions.ExitCodes
 import dev.slne.surf.cloud.api.common.exceptions.FatalSurfError
 import dev.slne.surf.cloud.api.common.netty.network.protocol.PacketFlow
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
-import dev.slne.surf.cloud.api.common.util.logger
+import dev.slne.surf.cloud.api.common.server.CloudServerConstants
 import dev.slne.surf.cloud.api.common.util.mutableObjectListOf
 import dev.slne.surf.cloud.core.client.netty.network.*
+import dev.slne.surf.cloud.core.client.server.serverManagerImpl
 import dev.slne.surf.cloud.core.common.config.cloudConfig
 import dev.slne.surf.cloud.core.common.coroutines.ConnectionTickScope
 import dev.slne.surf.cloud.core.common.data.CloudPersistentData
@@ -23,10 +24,10 @@ import dev.slne.surf.cloud.core.common.netty.network.protocol.login.ServerboundL
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ServerboundBroadcastPacket
 import dev.slne.surf.cloud.core.common.util.InetSocketAddress
 import dev.slne.surf.cloud.core.common.util.ServerAddress
-import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
+import dev.slne.surf.surfapi.core.api.util.logger
+import kotlinx.coroutines.*
 import java.net.InetSocketAddress
+import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 
 class ClientNettyClientImpl(
@@ -77,8 +78,8 @@ class ClientNettyClientImpl(
 
     fun finalizeHandler(handler: suspend () -> Unit) = finalizeHandler.add(handler)
 
-    fun stop() {
-        connection.disconnect(DisconnectionDetails("Client stopped"))
+    suspend fun stop() {
+        doShutdown()
     }
 
     suspend fun connectToServer(serverAddress: ServerAddress) {
@@ -152,6 +153,10 @@ class ClientNettyClientImpl(
                         responseId.completeExceptionally(IllegalStateException("The connection was closed before the server ID could be fetched."))
                     }
                 }
+
+                override fun isAcceptingMessages(): Boolean {
+                    return connection.connected
+                }
             }
 
             ConnectionTickScope.launch {
@@ -205,5 +210,20 @@ class ClientNettyClientImpl(
         val connection = ConnectionImpl(PacketFlow.CLIENTBOUND, ClientEncryptionManager)
         ConnectionImpl.connect(address, useEpoll, connection)
         return connection
+    }
+
+    suspend fun doShutdown() {
+        val server = serverManagerImpl.retrieveServerById(serverId)
+
+        try {
+            withTimeout(1.minutes) { server?.sendAll(CloudServerConstants.LOBBY_CATEGORY) }
+        } catch (e: TimeoutCancellationException) {
+            log.atWarning()
+                .withCause(e)
+                .log("Failed to transfer all players from server ${server?.name} to the lobby. Proceeding with shutdown anyway.")
+        }
+
+        listener.close()
+        connection.disconnect("Client shutdown")
     }
 }

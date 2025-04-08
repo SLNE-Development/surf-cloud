@@ -1,13 +1,7 @@
 package dev.slne.surf.cloud.standalone.netty.server.network
 
 import dev.slne.surf.cloud.core.common.netty.network.ConnectionImpl
-import dev.slne.surf.cloud.core.common.netty.network.DisconnectionDetails
-import dev.slne.surf.cloud.core.common.netty.network.protocol.prerunning.ClientboundPreRunningFinishedPacket
-import dev.slne.surf.cloud.core.common.netty.network.protocol.prerunning.ClientboundReadyToRunPacket
-import dev.slne.surf.cloud.core.common.netty.network.protocol.prerunning.ServerPreRunningPacketListener
-import dev.slne.surf.cloud.core.common.netty.network.protocol.prerunning.ServerboundPreRunningAcknowledgedPacket
-import dev.slne.surf.cloud.core.common.netty.network.protocol.prerunning.ServerboundReadyToRunPacket
-import dev.slne.surf.cloud.core.common.netty.network.protocol.prerunning.ServerboundRequestContinuation
+import dev.slne.surf.cloud.core.common.netty.network.protocol.prerunning.*
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.RunningProtocols
 import dev.slne.surf.cloud.standalone.netty.server.NettyServerImpl
 import dev.slne.surf.cloud.standalone.netty.server.ServerClientImpl
@@ -56,6 +50,10 @@ class ServerPreRunningPacketListenerImpl(
         )
         client.initListener(listener)
         server.registerClient(client, proxy)
+    }
+
+    override fun isAcceptingMessages(): Boolean {
+        return connection.connected
     }
 
     private enum class State {

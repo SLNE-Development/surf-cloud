@@ -1,28 +1,23 @@
 package dev.slne.surf.cloud.standalone.netty.server
 
-import dev.slne.surf.cloud.api.common.util.logger
 import dev.slne.surf.cloud.api.common.util.mutableObjectListOf
 import dev.slne.surf.cloud.api.common.util.synchronize
 import dev.slne.surf.cloud.core.common.config.cloudConfig
 import dev.slne.surf.cloud.core.common.coroutines.ConnectionTickScope
 import dev.slne.surf.cloud.core.common.util.encryption.Crypt
-import dev.slne.surf.cloud.standalone.config.standaloneConfig
 import dev.slne.surf.cloud.standalone.netty.server.connection.ServerConnectionListener
 import dev.slne.surf.cloud.standalone.netty.server.network.ServerEncryptionManager
 import dev.slne.surf.cloud.standalone.server.StandaloneCloudServerImpl
 import dev.slne.surf.cloud.standalone.server.StandaloneProxyCloudServerImpl
 import dev.slne.surf.cloud.standalone.server.serverManagerImpl
+import dev.slne.surf.surfapi.core.api.util.logger
 import io.netty.channel.epoll.Epoll
 import io.netty.channel.unix.DomainSocketAddress
 import jakarta.annotation.PostConstruct
 import jakarta.annotation.PreDestroy
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.*
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import kotlinx.coroutines.withContext
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
 import java.net.InetAddress
@@ -32,7 +27,7 @@ import java.security.KeyPair
 import kotlin.time.Duration.Companion.seconds
 
 @Component
-@Profile("independent")
+@Profile("server")
 class NettyServerImpl {
     val log = logger()
 
@@ -46,24 +41,31 @@ class NettyServerImpl {
 
     lateinit var keyPair: KeyPair
 
+    @Volatile
+    private var running = false
+
     @PostConstruct
-    protected fun init() {
-        runBlocking {
-            ServerEncryptionManager
+    protected fun init(): Unit = runBlocking {
+        ServerEncryptionManager
 
-            initServer()
-            finalizeServer()
+        initServer()
+        finalizeServer()
 
-            ConnectionTickScope.launch {
-                while (true) {
-                    delay(1.seconds)
-                    tick()
-                }
+        ConnectionTickScope.launch {
+            while (isActive && running) {
+                delay(1.seconds)
+                tick()
             }
         }
     }
 
+    @PreDestroy
+    protected fun destroy(): Unit = runBlocking {
+        stopServer()
+    }
+
     suspend fun initServer(): Boolean = withContext(Dispatchers.IO) {
+
         val config = cloudConfig.connectionConfig.nettyConfig
         localIp = config.host
 
@@ -72,7 +74,8 @@ class NettyServerImpl {
         if (localIp.startsWith("unix:")) {
             if (!Epoll.isAvailable()) {
                 log.atSevere().log("**** INVALID CONFIGURATION! ****")
-                log.atSevere().log("You are trying to use a Unix domain socket but you're not on a supported OS.")
+                log.atSevere()
+                    .log("You are trying to use a Unix domain socket but you're not on a supported OS.")
                 return@withContext false
             }
             bindAddress = DomainSocketAddress(localIp.substring(5))
@@ -105,6 +108,7 @@ class NettyServerImpl {
 
     suspend fun finalizeServer() {
         initKeyPair()
+        running = true
         connection.acceptConnections()
     }
 
@@ -113,18 +117,14 @@ class NettyServerImpl {
         keyPair = Crypt.generateKeyPair()
     }
 
-    @PreDestroy
-    protected fun stop() {
-        runBlocking { stopServer() }
-    }
 
     suspend fun stopServer() {
         connection.stop()
+        running = false
     }
 
 
-//    @Scheduled(fixedRate = 1, timeUnit = TimeUnit.SECONDS)
-    suspend fun tick() {
+    private suspend fun tick() {
         connection.connections.forEach { it.tick() }
         connection.tick()
         schedules.removeAll { function ->
@@ -152,9 +152,19 @@ class NettyServerImpl {
         log.atInfo().log("Registered client ${client.displayName}")
 
         val server = if (proxy) {
-            StandaloneProxyCloudServerImpl(client.serverId, client.serverCategory, client.serverName, client.connection)
+            StandaloneProxyCloudServerImpl(
+                client.serverId,
+                client.serverCategory,
+                client.serverName,
+                client.connection
+            )
         } else {
-            StandaloneCloudServerImpl(client.serverId, client.serverCategory, client.serverName, client.connection)
+            StandaloneCloudServerImpl(
+                client.serverId,
+                client.serverCategory,
+                client.serverName,
+                client.connection
+            )
         }
 
         serverManagerImpl.registerServer(server)

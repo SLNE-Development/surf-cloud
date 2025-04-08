@@ -1,6 +1,6 @@
 package dev.slne.surf.cloud.api.server.plugin.dependency
 
-import dev.slne.surf.cloud.api.common.util.InternalApi
+import dev.slne.surf.cloud.api.common.util.annotation.InternalApi
 import dev.slne.surf.cloud.api.server.plugin.configuration.PluginMeta
 
 @InternalApi

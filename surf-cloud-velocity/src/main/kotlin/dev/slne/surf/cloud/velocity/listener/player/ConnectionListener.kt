@@ -7,7 +7,9 @@ import com.velocitypowered.api.event.connection.LoginEvent
 import dev.slne.surf.cloud.api.client.netty.packet.fireAndForget
 import dev.slne.surf.cloud.core.common.data.CloudPersistentData
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.PlayerConnectToServerPacket
+import dev.slne.surf.cloud.core.common.netty.network.protocol.running.PlayerDisconnectFromServerPacket
 import org.springframework.stereotype.Component
+import java.net.Inet4Address
 
 @Component
 class ConnectionListener {
@@ -16,16 +18,20 @@ class ConnectionListener {
     fun onLogin(event: LoginEvent) {
         if (!event.result.isAllowed) return
 
+        val player = event.player
         PlayerConnectToServerPacket(
-            event.player.uniqueId,
-            CloudPersistentData.SERVER_ID,
-            true
+            player.uniqueId,
+            player.username,
+            true,
+            player.remoteAddress.address as? Inet4Address
+                ?: error("Player address is not an Inet4Address"),
+            CloudPersistentData.SERVER_ID
         ).fireAndForget()
     }
 
     @Subscribe(order = PostOrder.CUSTOM)
     fun onDisconnect(event: DisconnectEvent) {
-        PlayerConnectToServerPacket(
+        PlayerDisconnectFromServerPacket(
             event.player.uniqueId,
             CloudPersistentData.SERVER_ID,
             true

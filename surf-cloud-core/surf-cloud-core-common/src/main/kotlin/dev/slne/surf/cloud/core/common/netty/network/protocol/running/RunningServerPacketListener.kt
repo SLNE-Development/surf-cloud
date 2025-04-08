@@ -44,6 +44,8 @@ interface RunningServerPacketListener : ServerCommonPacketListener, TickablePack
 
     suspend fun handleRequestDisplayName(packet: ServerboundRequestDisplayNamePacket)
 
+    suspend fun handleRequestOfflinePlayerDisplayName(packet: RequestOfflineDisplayNamePacket)
+
     suspend fun handleClientInformation(packet: ServerboundClientInformationPacket)
 
     suspend fun handleRequestLuckpermsMetaData(packet: RequestLuckpermsMetaDataPacket)
@@ -57,6 +59,10 @@ interface RunningServerPacketListener : ServerCommonPacketListener, TickablePack
     fun handleDisconnectPlayer(packet: DisconnectPlayerPacket)
 
     suspend fun handleTeleportPlayer(packet: TeleportPlayerPacket)
+
+    suspend fun handleShutdownServer(packet: ServerboundShutdownServerPacket)
+
+    suspend fun handleRequestPlayerData(packet: ServerboundRequestPlayerDataPacket)
     
     fun handlePacket(packet: NettyPacket)
 }

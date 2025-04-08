@@ -5,12 +5,14 @@ import dev.slne.surf.cloud.api.common.server.CommonCloudServer
 import dev.slne.surf.cloud.api.common.util.mutableLong2ObjectMapOf
 import dev.slne.surf.cloud.api.common.util.mutableObjectListOf
 import dev.slne.surf.cloud.api.common.util.synchronize
+import dev.slne.surf.cloud.api.common.util.toObjectSet
+import it.unimi.dsi.fastutil.objects.ObjectCollection
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
 abstract class CommonCloudServerManagerImpl<S : CommonCloudServer> : CloudServerManager {
     protected val servers = mutableLong2ObjectMapOf<S>().synchronize()
-    private val serversMutex = Mutex()
+    protected val serversMutex = Mutex()
 
     open suspend fun registerServer(server: S) =
         serversMutex.withLock { servers[server.uid] = server }
@@ -37,5 +39,15 @@ abstract class CommonCloudServerManagerImpl<S : CommonCloudServer> : CloudServer
 
     override suspend fun retrieveServersByCategory(category: String) = serversMutex.withLock {
         servers.values.filterTo(mutableObjectListOf()) { it.group == category }
+    }
+
+    suspend fun batchUpdateServer(update: List<CommonCloudServer>) {
+        serversMutex.withLock {
+            update.forEach { servers[it.uid] = it as S }
+        }
+    }
+
+    override suspend fun retrieveAllServers(): ObjectCollection<S> {
+        return serversMutex.withLock { servers.values.toObjectSet() }
     }
 }

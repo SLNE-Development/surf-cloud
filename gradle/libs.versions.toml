@@ -1,8 +1,81 @@
 [versions]
 velocity-version = "3.4.0-SNAPSHOT"
-auto-service = "1.1.1"
+aide-reflection = "1.3"
+netty = "4.1.117.Final"
+nbt = "6.1"
+datafixerupper = "8.0.16"
+byte-buddy = "1.15.10"
+exposed = "0.60.0"
+maven-impl = "4.0.0-rc-2"
+maven-resolver = "2.0.5"
+jline = "3.26.3"
+brigadier = "1.3.10"
+terminalconsoleappender = "1.3.0"
+bson-kotlinx = "5.3.0"
+aspectjweaver = "1.9.22.1"
+zstd-jni = "1.5.6-9"
+luckperms-api = "5.4"
+reactive-streams = "1.0.4"
+ehcache = "3.10.8"
+
 
 [libraries]
 velocity-native = { module = "com.velocitypowered:velocity-native", version.ref = "velocity-version" }
-auto-service-annotations = { module = "com.google.auto.service:auto-service-annotations", version.ref = "auto-service" }
-auto-service = { module = "com.google.auto.service:auto-service", version.ref = "auto-service" }
+spring-boot-starter = { module = "org.springframework.boot:spring-boot-starter" }
+spring-boot-starter-cache = { module = "org.springframework.boot:spring-boot-starter-cache" }
+jackson-core = { module = "com.fasterxml.jackson.core:jackson-core" }
+jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind" }
+jackson-module-kotlin = { module = "com.fasterxml.jackson.module:jackson-module-kotlin" }
+aide-reflection = { module = "tech.hiddenproject:aide-reflection", version.ref = "aide-reflection" }
+netty-all = { module = "io.netty:netty-all", version.ref = "netty" }
+nbt = { module = "com.github.Querz:NBT", version.ref = "nbt" }
+spring-data-jpa = { module = "org.springframework.data:spring-data-jpa" }
+datafixerupper = { module = "com.mojang:datafixerupper", version.ref = "datafixerupper" }
+byte-buddy = { module = "net.bytebuddy:byte-buddy", version.ref = "byte-buddy" }
+jakarta-persistence-api = { module = "jakarta.persistence:jakarta.persistence-api" }
+exposed-spring-boot-starter = { module = "org.jetbrains.exposed:exposed-spring-boot-starter", version.ref = "exposed" }
+exposed-java-time = { module = "org.jetbrains.exposed:exposed-java-time", version.ref = "exposed" }
+maven-impl = { module = "org.apache.maven:maven-impl", version.ref = "maven-impl" }
+maven-resolver = { module = "org.apache.maven.resolver:maven-resolver-supplier-mvn4", version.ref = "maven-resolver" }
+jline = { module = "org.jline:jline", version.ref = "jline" }
+brigadier = { module = "com.mojang:brigadier", version.ref = "brigadier" }
+terminalconsoleappender = { module = "net.minecrell:terminalconsoleappender", version.ref = "terminalconsoleappender" }
+ktor-server-core-jvm = { module = "io.ktor:ktor-server-core-jvm" }
+ktor-server-netty = { module = "io.ktor:ktor-server-netty" }
+ktor-server-core = { module = "io.ktor:ktor-server-core" }
+ktor-server-html-builder = { module = "io.ktor:ktor-server-html-builder" }
+kotlin-css = { module = "org.jetbrains.kotlin-wrappers:kotlin-css" }
+ktor-server-websockets = { module = "io.ktor:ktor-server-websockets" }
+ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx-json" }
+bson-kotlinx = { module = "org.mongodb:bson-kotlinx", version.ref = "bson-kotlinx" }
+aspectjweaver = { module = "org.aspectj:aspectjweaver" }
+aspectjrt = { module = "org.aspectj:aspectjrt" }
+zstd-jni = { module = "com.github.luben:zstd-jni", version.ref = "zstd-jni" }
+luckperms-api = { module = "net.luckperms:api", version.ref = "luckperms-api" }
+mariadb-java-client = { module = "org.mariadb.jdbc:mariadb-java-client" }
+mysql-connector-j = { module = "com.mysql:mysql-connector-j" }
+spring-boot-starter-data-jpa = { module = "org.springframework.boot:spring-boot-starter-data-jpa" }
+reactive-streams = { module = "org.reactivestreams:reactive-streams", version.ref = "reactive-streams" }
+hibernate-jcache = { module = "org.hibernate.orm:hibernate-jcache" }
+ehcache = { module = "org.ehcache:ehcache", version.ref = "ehcache" }
+ktor-server-status-pages = { module = "io.ktor:ktor-server-status-pages" }
+spring-boot-starter-log4j2 = { module = "org.springframework.boot:spring-boot-starter-log4j2" }
+spring-aop = { module = "org.springframework:spring-aop" }
+spring-aspects = { module = "org.springframework:spring-aspects" }
+flyway-core = { module = "org.flywaydb:flyway-core" }
+flyway-mysql = { module = "org.flywaydb:flyway-mysql" }
+spring-instrument = { module = "org.springframework:spring-instrument" }
+
+
+[plugins]
+spring-boot = { id = "org.springframework.boot" }
+
+[bundles]
+spring-aop = ["spring-aop", "aspectjweaver", "aspectjrt", "spring-aspects"]
+spring-api-common = ["spring-boot-starter", "spring-boot-starter-cache"]
+jackson-api-common = ["jackson-core", "jackson-databind", "jackson-module-kotlin"]
+exposed-api-server = ["exposed-spring-boot-starter", "exposed-java-time"]
+maven-libraries = ["maven-impl", "maven-resolver"]
+console-api = ["jline", "brigadier", "terminalconsoleappender"]
+ktor-api-server = ["ktor-server-core-jvm", "ktor-server-netty", "ktor-server-core", "ktor-server-html-builder", "kotlin-css", "ktor-server-websockets", "ktor-serialization-kotlinx-json"]
+flyway = ["flyway-core", "flyway-mysql"]

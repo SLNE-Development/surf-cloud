@@ -2,9 +2,9 @@ package dev.slne.surf.cloud.velocity.netty.network
 
 import com.velocitypowered.api.proxy.ConnectionRequestBuilder
 import com.velocitypowered.api.proxy.server.ServerInfo
-import dev.slne.surf.cloud.api.common.util.position.FineLocation
-import dev.slne.surf.cloud.api.common.util.position.FineTeleportCause
-import dev.slne.surf.cloud.api.common.util.position.FineTeleportFlag
+import dev.slne.surf.cloud.api.common.player.teleport.TeleportLocation
+import dev.slne.surf.cloud.api.common.player.teleport.TeleportCause
+import dev.slne.surf.cloud.api.common.player.teleport.TeleportFlag
 import dev.slne.surf.cloud.core.client.netty.network.PlatformSpecificPacketListenerExtension
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.RegistrationInfo
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ServerboundTransferPlayerPacketResponse.Status
@@ -45,9 +45,9 @@ object VelocitySpecificPacketListenerExtension : PlatformSpecificPacketListenerE
 
     override suspend fun teleportPlayer(
         uuid: UUID,
-        location: FineLocation,
-        teleportCause: FineTeleportCause,
-        flags: Array<out FineTeleportFlag>
+        location: TeleportLocation,
+        teleportCause: TeleportCause,
+        flags: Array<out TeleportFlag>
     ): Boolean {
         error("Teleporting players is not supported on Velocity")
     }
@@ -55,5 +55,9 @@ object VelocitySpecificPacketListenerExtension : PlatformSpecificPacketListenerE
     override fun registerCloudServersToProxy(servers: Array<RegistrationInfo>) {
         servers.map { (name, address) -> ServerInfo(name, address) }
             .forEach { proxy.registerServer(it) }
+    }
+
+    override fun triggerShutdown() {
+        proxy.shutdown()
     }
 }

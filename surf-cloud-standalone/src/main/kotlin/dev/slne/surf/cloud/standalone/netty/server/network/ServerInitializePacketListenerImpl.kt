@@ -19,4 +19,8 @@ class ServerInitializePacketListenerImpl(val connection: ConnectionImpl) :
     override suspend fun onDisconnect(details: DisconnectionDetails) {
         // Do nothing
     }
+
+    override fun isAcceptingMessages(): Boolean {
+        return connection.connected
+    }
 }

@@ -1,25 +1,29 @@
 package dev.slne.surf.cloud.core.common.data
 
+import dev.slne.surf.cloud.api.common.util.nbt.readCompoundTag
+import dev.slne.surf.cloud.api.common.util.nbt.writeToPath
 import dev.slne.surf.cloud.core.common.coreCloudInstance
-import net.querz.nbt.io.NBTUtil
 import net.querz.nbt.tag.CompoundTag
 import net.querz.nbt.tag.Tag
-import java.io.File
+import kotlin.io.path.createFile
+import kotlin.io.path.createParentDirectories
+import kotlin.io.path.div
+import kotlin.io.path.notExists
 
 
 internal object PersistentDataImpl {
-    private val file: File by lazy {
-        coreCloudInstance.dataFolder.resolve("data.dat").toFile().apply {
-            if (!exists()) {
-                parentFile?.mkdirs()
-                createNewFile()
-                NBTUtil.write(CompoundTag(), this, true)
+    private val file by lazy {
+        (coreCloudInstance.dataFolder / "storage" / "data.dat").apply {
+            if (notExists()) {
+                createParentDirectories()
+                createFile()
+                CompoundTag().writeToPath(this)
             }
         }
     }
 
-    private val tag: CompoundTag by lazy { NBTUtil.read(file, true).tag as CompoundTag }
-    private fun saveTag() = NBTUtil.write(tag, file, true)
+    private val tag by lazy { file.readCompoundTag() }
+    private fun saveTag() = tag.writeToPath(file)
 
     fun <T : Tag<D>, D> data(
         key: String,
@@ -30,7 +34,6 @@ internal object PersistentDataImpl {
     ): PersistentData<D> {
         return DataImpl(tag, key, toValue, toTag, type, defaultValue)
     }
-
 
     private data class DataImpl<T : Tag<D>, D>(
         val tag: CompoundTag,
@@ -50,6 +53,6 @@ internal object PersistentDataImpl {
             saveTag()
         }
 
-       override operator fun contains(key: String): Boolean = tag.containsKey(key)
+        override operator fun contains(key: String): Boolean = tag.containsKey(key)
     }
 }

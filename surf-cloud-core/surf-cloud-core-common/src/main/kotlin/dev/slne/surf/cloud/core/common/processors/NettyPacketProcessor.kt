@@ -8,9 +8,9 @@ import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
 import dev.slne.surf.cloud.api.common.netty.packet.findPacketCodec
 import dev.slne.surf.cloud.api.common.netty.packet.getPacketMetaOrNull
 import dev.slne.surf.cloud.api.common.netty.protocol.buffer.SurfByteBuf
-import dev.slne.surf.cloud.api.common.util.logger
 import dev.slne.surf.cloud.core.common.netty.network.protocol.ProtocolInfoBuilder
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.RunningProtocols
+import dev.slne.surf.surfapi.core.api.util.logger
 import org.springframework.boot.autoconfigure.AutoConfigurationPackages
 import org.springframework.context.ApplicationListener
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider

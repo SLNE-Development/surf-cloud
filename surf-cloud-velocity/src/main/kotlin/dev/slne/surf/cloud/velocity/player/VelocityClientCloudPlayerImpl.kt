@@ -8,8 +8,8 @@ import java.util.*
 
 class VelocityClientCloudPlayerImpl(uuid: UUID) : ClientCloudPlayerImpl<Player>(uuid) {
     override val platformClass = Player::class.java
-    override val player: Player? get() = proxy.getPlayer(uuid).orElse(null)
+    override val audience: Player? get() = proxy.getPlayer(uuid).orElse(null)
     override fun disconnect(reason: Component) {
-        player?.disconnect(reason)
+        audience?.disconnect(reason)
     }
 }

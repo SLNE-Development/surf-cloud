@@ -2,7 +2,7 @@ package dev.slne.surf.cloud.standalone.temp
 
 //
 //@Component
-//@Profile("independent")
+//@Profile("server")
 //class SurfNettyServerPacketHandler(private val nettyServerImpl: NettyServerImpl) {
 //    @SurfNettyPacketHandler
 //    fun onCloudServerRegistration(packet: CloudRegisterServerPacket, info: NettyPacketInfo) {

@@ -5,7 +5,10 @@ import dev.slne.surf.cloud.api.common.netty.network.Connection
 import dev.slne.surf.cloud.api.common.netty.network.ConnectionProtocol
 import dev.slne.surf.cloud.api.common.netty.network.protocol.PacketFlow
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
-import dev.slne.surf.cloud.api.common.util.*
+import dev.slne.surf.cloud.api.common.util.DefaultUncaughtExceptionHandlerWithName
+import dev.slne.surf.cloud.api.common.util.math.lerp
+import dev.slne.surf.cloud.api.common.util.netty.suspend
+import dev.slne.surf.cloud.api.common.util.threadFactory
 import dev.slne.surf.cloud.core.common.config.cloudConfig
 import dev.slne.surf.cloud.core.common.coroutines.ConnectionManagementScope
 import dev.slne.surf.cloud.core.common.coroutines.PacketHandlerScope
@@ -18,6 +21,7 @@ import dev.slne.surf.cloud.core.common.netty.network.protocol.initialize.*
 import dev.slne.surf.cloud.core.common.netty.network.protocol.login.*
 import dev.slne.surf.cloud.core.common.netty.network.protocol.prerunning.*
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.*
+import dev.slne.surf.surfapi.core.api.util.logger
 import io.netty.bootstrap.Bootstrap
 import io.netty.channel.*
 import io.netty.channel.epoll.Epoll
@@ -30,6 +34,8 @@ import io.netty.handler.codec.EncoderException
 import io.netty.handler.codec.compression.ZstdDecoder
 import io.netty.handler.codec.compression.ZstdEncoder
 import io.netty.handler.flow.FlowControlHandler
+import io.netty.handler.logging.LogLevel
+import io.netty.handler.logging.LoggingHandler
 import io.netty.handler.timeout.ReadTimeoutHandler
 import io.netty.handler.timeout.TimeoutException
 import io.netty.util.AttributeKey
@@ -131,6 +137,11 @@ class ConnectionImpl(
     }
 
     override fun exceptionCaught(ctx: ChannelHandlerContext, e: Throwable?) {
+//        if (e is NotSslRecordException) {
+//            ctx.close()
+//            return
+//        }
+
         log.atInfo().withCause(e).log("Exception caught") // TODO: remove this debug line
         var throwable = e
 
@@ -204,6 +215,7 @@ class ConnectionImpl(
         check(packetListener != null) { "Received a packet before the packet listener was initialized" }
 
         if (stopReadingPackets) return
+        if (!packetListener.shouldHandleMessage(msg)) return
 
         this.receivedPackets++
         PacketHandlerScope.launch {
@@ -303,6 +315,10 @@ class ConnectionImpl(
                             msg
                         )
 
+                        is RequestOfflineDisplayNamePacket -> listener.handleRequestOfflinePlayerDisplayName(
+                            msg
+                        )
+
                         is ServerboundClientInformationPacket -> listener.handleClientInformation(
                             msg
                         )
@@ -326,6 +342,8 @@ class ConnectionImpl(
                         is DisconnectPlayerPacket -> listener.handleDisconnectPlayer(msg)
 
                         is TeleportPlayerPacket -> listener.handleTeleportPlayer(msg)
+                        is ServerboundShutdownServerPacket -> listener.handleShutdownServer(msg)
+                        is ServerboundRequestPlayerDataPacket -> listener.handleRequestPlayerData(msg)
 
                         else -> listener.handlePacket(msg) // handle other packets
                     }
@@ -410,6 +428,10 @@ class ConnectionImpl(
                             msg
                         )
 
+                        is RequestOfflineDisplayNamePacket -> listener.handleRequestOfflinePlayerDisplayName(
+                            msg
+                        )
+
                         is ClientboundRegisterServerPacket -> listener.handleRegisterServerPacket(
                             msg
                         )
@@ -444,6 +466,8 @@ class ConnectionImpl(
                         is ClientboundRegisterCloudServersToProxyPacket -> listener.handleRegisterCloudServersToProxy(
                             msg
                         )
+                        is ClientboundTriggerShutdownPacket -> listener.handleTriggerShutdown(msg)
+                        is ClientboundBatchUpdateServer -> listener.handleBatchUpdateServer(msg)
 
                         else -> listener.handlePacket(msg)
                     }
@@ -1024,8 +1048,11 @@ class ConnectionImpl(
             val receivingSide = side == PacketFlow.SERVERBOUND
             val sendingSide = opposite == PacketFlow.SERVERBOUND
 
-            pipeline.addLast(HandlerNames.COMPRESS, ZstdEncoder(8))
-                .addLast(HandlerNames.DECODER, ZstdDecoder())
+
+            pipeline.addFirst(HandlerNames.LOGGER, LoggingHandler(cloudConfig.logging.nettyLogLevel))
+//                .addLast(HandlerNames.SSL_HANDLER_ENFORCER, EnforceSslHandler())
+                .addLast(HandlerNames.COMPRESS, ZstdEncoder(8))
+                .addLast(HandlerNames.DECOMPRESS, ZstdDecoder())
                 .addLast(HandlerNames.SPLITTER, createFrameDecoder(local))
                 .addLast(FlowControlHandler())
                 .addLast(

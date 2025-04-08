@@ -1,0 +1,15 @@
+public final class dev/slne/surf/cloud/api/client/paper/Paper_cloud_converterKt {
+	public static final fun toBukkitTpCause (Ldev/slne/surf/cloud/api/common/player/teleport/TeleportCause;)Lorg/bukkit/event/player/PlayerTeleportEvent$TeleportCause;
+	public static final fun toBukkitTpFlag (Ldev/slne/surf/cloud/api/common/player/teleport/TeleportFlag;)Lio/papermc/paper/entity/TeleportFlag;
+	public static final fun toCloudTpCause (Lorg/bukkit/event/player/PlayerTeleportEvent$TeleportCause;)Ldev/slne/surf/cloud/api/common/player/teleport/TeleportCause;
+	public static final fun toCloudTpFlag (Lio/papermc/paper/entity/TeleportFlag;)Ldev/slne/surf/cloud/api/common/player/teleport/TeleportFlag;
+	public static final fun toCloudTpLocation (Lorg/bukkit/Location;)Ldev/slne/surf/cloud/api/common/player/teleport/TeleportLocation;
+	public static final fun toLocation (Ldev/slne/surf/cloud/api/common/player/teleport/TeleportLocation;)Lorg/bukkit/Location;
+}
+
+public final class dev/slne/surf/cloud/api/client/paper/player/CloudPlayerBukkitExtensionsKt {
+	public static final fun teleport (Ldev/slne/surf/cloud/api/common/player/CloudPlayer;Lorg/bukkit/Location;Lorg/bukkit/event/player/PlayerTeleportEvent$TeleportCause;[Lio/papermc/paper/entity/TeleportFlag;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun teleport$default (Ldev/slne/surf/cloud/api/common/player/CloudPlayer;Lorg/bukkit/Location;Lorg/bukkit/event/player/PlayerTeleportEvent$TeleportCause;[Lio/papermc/paper/entity/TeleportFlag;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static final fun toCloudOfflinePlayer (Lorg/bukkit/OfflinePlayer;)Ldev/slne/surf/cloud/api/common/player/OfflineCloudPlayer;
+}
+

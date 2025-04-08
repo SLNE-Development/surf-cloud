@@ -3,18 +3,22 @@ package dev.slne.surf.cloud.standalone.player
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
 import dev.slne.surf.cloud.api.common.player.ConnectionResult
 import dev.slne.surf.cloud.api.common.player.ConnectionResultEnum
+import dev.slne.surf.cloud.api.common.player.name.NameHistory
 import dev.slne.surf.cloud.api.common.player.ppdc.PersistentPlayerDataContainer
+import dev.slne.surf.cloud.api.common.player.teleport.TeleportCause
+import dev.slne.surf.cloud.api.common.player.teleport.TeleportFlag
+import dev.slne.surf.cloud.api.common.player.teleport.TeleportLocation
 import dev.slne.surf.cloud.api.common.server.CloudServer
-import dev.slne.surf.cloud.api.common.util.position.FineLocation
-import dev.slne.surf.cloud.api.common.util.position.FineTeleportCause
-import dev.slne.surf.cloud.api.common.util.position.FineTeleportFlag
 import dev.slne.surf.cloud.api.server.server.ServerCommonCloudServer
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.*
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ServerboundTransferPlayerPacketResponse.Status
 import dev.slne.surf.cloud.core.common.player.CommonCloudPlayerImpl
 import dev.slne.surf.cloud.core.common.player.ppdc.PersistentPlayerDataContainerImpl
+import dev.slne.surf.cloud.core.common.util.bean
+import dev.slne.surf.cloud.standalone.player.db.exposed.CloudPlayerService
 import dev.slne.surf.cloud.standalone.server.StandaloneCloudServerImpl
 import dev.slne.surf.cloud.standalone.server.StandaloneProxyCloudServerImpl
+import dev.slne.surf.surfapi.core.api.util.logger
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -22,6 +26,7 @@ import net.kyori.adventure.audience.MessageType
 import net.kyori.adventure.bossbar.BossBar
 import net.kyori.adventure.identity.Identity
 import net.kyori.adventure.inventory.Book
+import net.kyori.adventure.resource.ResourcePackCallback
 import net.kyori.adventure.resource.ResourcePackRequest
 import net.kyori.adventure.sound.Sound
 import net.kyori.adventure.sound.Sound.Emitter
@@ -30,10 +35,19 @@ import net.kyori.adventure.text.Component
 import net.kyori.adventure.title.Title
 import net.kyori.adventure.title.TitlePart
 import net.querz.nbt.tag.CompoundTag
+import java.net.Inet4Address
 import java.util.*
+import java.util.concurrent.TimeUnit
 import kotlin.time.Duration
 
-class StandaloneCloudPlayerImpl(uuid: UUID) : CommonCloudPlayerImpl(uuid) {
+class StandaloneCloudPlayerImpl(uuid: UUID, val name: String, val ip: Inet4Address) :
+    CommonCloudPlayerImpl(uuid) {
+
+    companion object {
+        private val log = logger()
+        private val service by lazy { bean<CloudPlayerService>() }
+    }
+
     @Volatile
     var proxyServer: StandaloneProxyCloudServerImpl? = null
 
@@ -42,7 +56,7 @@ class StandaloneCloudPlayerImpl(uuid: UUID) : CommonCloudPlayerImpl(uuid) {
 
     override val connectedToProxy get() = proxyServer != null
     override val connectedToServer get() = server != null
-    private val anyServer: ServerCommonCloudServer
+    val anyServer: ServerCommonCloudServer
         get() = server ?: proxyServer ?: error("Player is not connected to a server")
 
     @Volatile
@@ -85,9 +99,25 @@ class StandaloneCloudPlayerImpl(uuid: UUID) : CommonCloudPlayerImpl(uuid) {
     suspend fun updatePersistentData(tag: CompoundTag) =
         ppdcMutex.withLock { ppdc.fromTagCompound(tag) }
 
+    override suspend fun latestIpAddress(): Inet4Address {
+        return ip
+    }
+
+    override suspend fun lastServerRaw(): String {
+        return anyServer.name
+    }
+
+    override suspend fun nameHistory(): NameHistory {
+        return service.findNameHistories(uuid)
+    }
+
     override suspend fun displayName(): Component = ClientboundRequestDisplayNamePacket(uuid)
         .fireAndAwaitUrgent(anyServer.connection)?.displayName
         ?: error("Failed to get display name (probably timed out)")
+
+    override suspend fun name(): String {
+        return name
+    }
 
     override suspend fun connectToServer(server: CloudServer): ConnectionResult {
         check(server is StandaloneCloudServerImpl) { "Server must be a StandaloneCloudServerImpl" }
@@ -273,7 +303,13 @@ class StandaloneCloudPlayerImpl(uuid: UUID) : CommonCloudPlayerImpl(uuid) {
         send(ClientboundOpenBookPacket(uuid, book))
     }
 
-    override fun sendResourcePacks(request: ResourcePackRequest) { // TODO: Implement callback
+    override fun sendResourcePacks(request: ResourcePackRequest) {
+        if (request.callback() != ResourcePackCallback.noOp()) {
+            log.atWarning()
+                .atMostEvery(30, TimeUnit.SECONDS)
+                .log("Resource pack callback is not supported in standalone mode. Ignoring.")
+        }
+
         send(ClientboundSendResourcePacksPacket(uuid, request))
     }
 
@@ -286,9 +322,9 @@ class StandaloneCloudPlayerImpl(uuid: UUID) : CommonCloudPlayerImpl(uuid) {
     }
 
     override suspend fun teleport(
-        location: FineLocation,
-        teleportCause: FineTeleportCause,
-        vararg flags: FineTeleportFlag
+        location: TeleportLocation,
+        teleportCause: TeleportCause,
+        vararg flags: TeleportFlag
     ): Boolean {
         val server = server ?: return false
 
@@ -297,7 +333,7 @@ class StandaloneCloudPlayerImpl(uuid: UUID) : CommonCloudPlayerImpl(uuid) {
             location,
             teleportCause,
             *flags
-        ).fireAndAwait(server.connection)?.result ?: false
+        ).fireAndAwait(server.connection)?.result == true
     }
 
     private fun send(packet: NettyPacket) {

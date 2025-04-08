@@ -3,7 +3,7 @@ package dev.slne.surf.cloud.api.common.netty.packet
 import dev.slne.surf.cloud.api.common.netty.network.codec.StreamCodec
 import dev.slne.surf.cloud.api.common.netty.network.codec.StreamDecoder
 import dev.slne.surf.cloud.api.common.netty.network.codec.StreamMemberEncoder
-import dev.slne.surf.cloud.api.common.util.InternalApi
+import dev.slne.surf.cloud.api.common.util.annotation.InternalApi
 import io.netty.buffer.ByteBuf
 import org.apache.commons.lang3.builder.ToStringBuilder
 import java.util.concurrent.ThreadLocalRandom
@@ -118,7 +118,6 @@ abstract class NettyPacket {
         return result
     }
 
-    @OptIn(InternalApi::class)
     override fun toString(): String = runCatching {
         ToStringBuilder.reflectionToString(this).toString()
     }.getOrElse { "NettyPacket(id=$id, flow=$flow, skippable=$skippable, extraPackets=$extraPackets, terminal=$terminal, sessionId=$sessionId, handled=$handled)" }

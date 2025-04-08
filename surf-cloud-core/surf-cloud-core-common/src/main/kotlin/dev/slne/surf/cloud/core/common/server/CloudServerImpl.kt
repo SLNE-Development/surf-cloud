@@ -31,5 +31,5 @@ open class CloudServerImpl(
         })
     }
 
-    override val whitelist get() = information.whitelist
+    override val allowlist get() = information.allowlist
 }

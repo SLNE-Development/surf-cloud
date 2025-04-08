@@ -1,15 +1,30 @@
 package dev.slne.surf.cloud.core.common.coroutines
 
-import dev.slne.surf.cloud.api.common.util.logger
+import dev.slne.surf.cloud.api.common.util.mutableObjectListOf
 import dev.slne.surf.cloud.api.common.util.threadFactory
+import dev.slne.surf.surfapi.core.api.util.logger
 import kotlinx.coroutines.*
+import org.gradle.internal.declarativedsl.language.This
 import java.util.concurrent.Executors
+import kotlin.coroutines.CoroutineContext
 
 abstract class BaseScope(
     dispatcher: CoroutineDispatcher,
     private val name: String
 ) : CoroutineScope {
+    companion object {
+        private val scopes = mutableObjectListOf<BaseScope>()
+        fun terminateAll() {
+            scopes.forEach { it.cancel() }
+        }
+    }
+
     protected val log = logger()
+
+    init {
+        scopes.add(this)
+    }
+
     override val coroutineContext = dispatcher + CoroutineName(name) + SupervisorJob() +
             CoroutineExceptionHandler { context, throwable ->
                 val coroutineName = context[CoroutineName]?.name ?: "Unnamed Coroutine"
@@ -17,9 +32,12 @@ abstract class BaseScope(
                     .withCause(throwable)
                     .log("Unhandled exception in coroutine: $coroutineName")
             }
+
+    val context get() = coroutineContext
+
 }
 
-object PacketHandlerScope: BaseScope(
+object PacketHandlerScope : BaseScope(
     dispatcher = Dispatchers.Default,
     name = "netty-listener"
 )
@@ -59,9 +77,47 @@ object QueueDisplayScope : BaseScope(
 )
 
 object PlayerDataSaveScope : BaseScope(
+    dispatcher = Dispatchers.IO,
+    name = "player-data-save"
+)
+
+object PlayerBatchTransferScope : BaseScope(
     dispatcher = Executors.newSingleThreadExecutor(threadFactory {
-        nameFormat("player-data-save-thread-%d")
+        nameFormat("player-batch-transfer-thread-%d")
         daemon(false)
     }).asCoroutineDispatcher(),
-    name = "player-data-save"
+    name = "player-batch-transfer"
+)
+
+object ServerShutdownScope : BaseScope(
+    dispatcher = Executors.newSingleThreadExecutor(threadFactory {
+        nameFormat("server-shutdown-thread-%d")
+        daemon(false)
+    }).asCoroutineDispatcher(),
+    name = "server-shutdown"
+)
+
+object ConsoleCommandHandlerScope : BaseScope(
+    dispatcher = Dispatchers.IO,
+    name = "console-command-handler"
+)
+
+object ConsoleCommandInputScope : BaseScope(
+    dispatcher = Dispatchers.IO,
+    name = "Server console handler"
+)
+
+object KtorScope : BaseScope(
+    dispatcher = Dispatchers.IO,
+    name = "ktor"
+)
+
+object NameHistoryScope : BaseScope(
+    dispatcher = Dispatchers.IO,
+    name = "name-history"
+)
+
+object PlayerDatabaseScope : BaseScope(
+    dispatcher = newSingleThreadContext("player-database-thread"),
+    name = "player-database"
 )

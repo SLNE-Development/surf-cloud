@@ -2,7 +2,7 @@ package dev.slne.surf.cloud.api.common.meta
 
 import dev.slne.surf.cloud.api.common.netty.network.ConnectionProtocol
 import dev.slne.surf.cloud.api.common.netty.network.protocol.PacketFlow
-import org.jetbrains.annotations.ApiStatus.Internal
+import dev.slne.surf.cloud.api.common.util.annotation.InternalApi
 
 /**
  * Annotation for marking a class as a Netty packet in the Surf Cloud application.
@@ -16,7 +16,8 @@ import org.jetbrains.annotations.ApiStatus.Internal
 annotation class SurfNettyPacket(
     val id: String,
     val flow: PacketFlow,
-    @Internal vararg val protocols: ConnectionProtocol = [ConnectionProtocol.RUNNING]
+    @property:InternalApi
+    vararg val protocols: ConnectionProtocol = [ConnectionProtocol.RUNNING]
 )
 
 /**
@@ -30,8 +31,6 @@ annotation class PacketCodec
  * Object containing default packet IDs for various operations in the Surf Cloud application.
  */
 object DefaultIds {
-
-    const val PROXIED_NETTY_PACKET = "cloud:proxied"
 
     // Handshake
     const val SERVERBOUND_HANDSHAKE_PACKET = "cloud:serverbound:handshake"
@@ -172,5 +171,13 @@ object DefaultIds {
 
     const val CLIENTBOUND_REGISTER_CLOUD_SERVERS_TO_PROXY =
         "cloud:clientbound:register_cloud_servers_to_proxy"
+
+    const val CLIENTBOUND_SHUTDOWN_PACKET = "cloud:clientbound:shutdown"
+    const val SERVERBOUND_SHUTDOWN_SERVER_PACKET = "cloud:serverbound:shutdown_server"
+
+    const val CLIENTBOUND_BATCH_UPDATE_SERVER = "cloud:clientbound:batch_update_server"
+
+    const val REQUEST_OFFLINE_DISPLAY_NAME_PACKET = "cloud:request:offline_display_name"
+    const val RESPONSE_REQUEST_OFFLINE_DISPLAY_NAME_PACKET = "cloud:response:request_offline_display_name"
 
 }

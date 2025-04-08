@@ -43,6 +43,8 @@ interface RunningClientPacketListener : ClientCommonPacketListener {
 
     fun handleRequestDisplayName(packet: ClientboundRequestDisplayNamePacket)
 
+    suspend fun handleRequestOfflinePlayerDisplayName(packet: RequestOfflineDisplayNamePacket)
+
     suspend fun handleRegisterServerPacket(packet: ClientboundRegisterServerPacket)
 
     suspend fun handleUnregisterServerPacket(packet: ClientboundUnregisterServerPacket)
@@ -64,6 +66,10 @@ interface RunningClientPacketListener : ClientCommonPacketListener {
     suspend fun handleTeleportPlayer(packet: TeleportPlayerPacket)
 
     fun handleRegisterCloudServersToProxy(packet: ClientboundRegisterCloudServersToProxyPacket)
+
+    fun handleTriggerShutdown(packet: ClientboundTriggerShutdownPacket)
+
+    suspend fun handleBatchUpdateServer(packet: ClientboundBatchUpdateServer)
 
     fun handlePacket(packet: NettyPacket)
 }

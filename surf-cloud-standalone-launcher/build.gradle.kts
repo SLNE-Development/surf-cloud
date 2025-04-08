@@ -1,10 +1,10 @@
-import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+import org.springframework.boot.gradle.tasks.bundling.BootJar
 
 plugins {
     id("dev.slne.surf.surfapi.gradle.standalone")
 
     application
-    `core-convention`
+    alias(libs.plugins.spring.boot)
 }
 
 surfStandaloneApi {
@@ -12,8 +12,8 @@ surfStandaloneApi {
 }
 
 dependencies {
-    implementation("org.apache.maven:maven-impl:4.0.0-rc-2")
-    implementation("org.apache.maven.resolver:maven-resolver-supplier-mvn4:2.0.5")
+    implementation(libs.bundles.maven.libraries)
+    implementation(libs.spring.instrument)
 }
 
 application {
@@ -22,14 +22,17 @@ application {
 
 tasks {
     val standaloneProject = project(":surf-cloud-standalone")
+    val standaloneJarTask = standaloneProject.tasks.named<BootJar>("bootJar")
 
     val copyStandaloneJar by registering(Copy::class) {
-        val standaloneJarTask = standaloneProject.tasks.named<ShadowJar>("shadowJar")
         dependsOn(standaloneJarTask)
 
-        from(standaloneJarTask.map { it.archiveFile.get().asFile })
-        into(buildDirectory.resolve("libs"))
+        from(standaloneJarTask.flatMap { it.archiveFile })
+        into(layout.buildDirectory.dir("libs"))
         rename { "surf-cloud-standalone.jara" }
+
+        inputs.file(standaloneJarTask.flatMap { it.archiveFile })
+        outputs.file(layout.buildDirectory.file("libs/surf-cloud-standalone.jara"))
 
         doFirst {
             val standaloneJar = standaloneJarTask.get().archiveFile.get().asFile
@@ -39,14 +42,35 @@ tasks {
             }
         }
     }
+    val cleanupCopyStandaloneJar by registering(Delete::class) {
+        delete(layout.buildDirectory.dir("libs").map { it.file("surf-cloud-standalone.jara") })
+    }
 
-    shadowJar {
+    bootJar {
         dependsOn(copyStandaloneJar)
-        from(buildDirectory.resolve("libs/surf-cloud-standalone.jara"))
+        dependsOn(standaloneJarTask)
+
+        from(layout.buildDirectory.file("libs/surf-cloud-standalone.jara"))
+        from(resources.text.fromString("org.springframework.boot.loader.launch.JarLauncher")) {
+            into("META-INF")
+            rename { "main-class" }
+        }
+
+        from("$buildDir/classes/java/main/dev/slne/surf/cloud/launcher/LauncherAgent.class") {
+            into("dev/slne/surf/cloud/launcher")
+        }
+
+        val springInstrumentJar = configurations.runtimeClasspath.get()
+            .find { it.name.contains("spring-instrument") } ?: throw GradleException("spring-instrument.jar not found")
+
+        from(zipTree(springInstrumentJar)) {
+            include("org/springframework/instrument/InstrumentationSavingAgent.class")
+            into("")
+        }
 
         manifest {
             attributes(
-                "Standalone-Main-Class" to "dev.slne.surf.cloud.standalone.Bootstrap"
+                "Launcher-Agent-Class" to "dev.slne.surf.cloud.launcher.LauncherAgent"
             )
         }
 
@@ -54,20 +78,12 @@ tasks {
             file("${buildDirectory}/libs/surf-cloud-standalone.jara").delete()
         }
 
-        val relocations = listOf(
-            "com.ctc.wstx",
-            "com.google",
-            "org.apache",
-            "org.codehaus",
-            "org.eclipse",
-            "org.slf4j",
-        )
-
-        relocations.forEach { relocate(it, "dev.slne.surf.cloud.launcher.libs.$it") }
+        finalizedBy(cleanupCopyStandaloneJar)
     }
 
-    named<JavaExec>("run") {
-        dependsOn(shadowJar)
+    publish {
+        dependsOn(bootJar)
+        inputs.files(bootJar)
     }
 }
 

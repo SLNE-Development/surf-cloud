@@ -1,31 +1,45 @@
 plugins {
     id("dev.slne.surf.surfapi.gradle.standalone")
-    `core-convention`
+    alias(libs.plugins.spring.boot)
 }
 
 dependencies {
     api(project(":surf-cloud-core:surf-cloud-core-common"))
     api(project(":surf-cloud-api:surf-cloud-api-server"))
 
-    runtimeOnly("org.mariadb.jdbc:mariadb-java-client")
-    api("org.springframework.boot:spring-boot-starter-data-jpa")
-    api("org.springframework.boot:spring-boot-starter-data-redis")
-    api("org.reactivestreams:reactive-streams:1.0.4")
-    api("io.lettuce:lettuce-core")
+    runtimeOnly(libs.mariadb.java.client)
+    runtimeOnly(libs.mysql.connector.j)
+    api(libs.spring.boot.starter.data.jpa)
+    api(libs.reactive.streams)
     api(libs.velocity.native)
+
+    implementation(libs.hibernate.jcache)
+    implementation(libs.ehcache)
+
+
+    // Ktor
+    implementation(libs.ktor.server.status.pages)
+
+    implementation(libs.spring.boot.starter.log4j2)
+    modules {
+        module("org.springframework.boot:spring-boot-starter-logging") {
+            replacedBy(
+                libs.spring.boot.starter.log4j2.get().toString(),
+                "Use Log4j2 instead of Logback"
+            )
+        }
+    }
 }
 
 tasks {
-    jar {
-        manifest {
-            attributes["Main-Class"] = "dev.slne.surf.cloud.standalone.launcher.Launcher"
-            attributes["Real-Main-Class"] = "dev.slne.surf.cloud.standalone.Bootstrap"
-        }
+    publish {
+        dependsOn(bootJar)
+        inputs.files(bootJar)
     }
 }
 
 kotlin {
     compilerOptions {
-        optIn.add("dev.slne.surf.cloud.api.common.util.InternalApi")
+        optIn.add("dev.slne.surf.cloud.api.common.util.annotation.InternalApi")
     }
 }

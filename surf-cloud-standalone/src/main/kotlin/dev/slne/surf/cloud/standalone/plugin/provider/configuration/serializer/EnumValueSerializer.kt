@@ -1,6 +1,6 @@
 package dev.slne.surf.cloud.standalone.plugin.provider.configuration.serializer
 
-import dev.slne.surf.cloud.api.common.util.logger
+import dev.slne.surf.surfapi.core.api.util.logger
 import io.leangen.geantyref.GenericTypeReflector
 import io.leangen.geantyref.TypeToken
 import org.spongepowered.configurate.serialize.ScalarSerializer

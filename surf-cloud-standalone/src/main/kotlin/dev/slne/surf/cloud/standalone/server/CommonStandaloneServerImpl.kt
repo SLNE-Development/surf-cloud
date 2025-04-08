@@ -58,7 +58,7 @@ class CommonStandaloneServerImpl : CommonStandaloneServer {
 //                return ConnectionResult.ALREADY_CONNECTED
 //            }
 //
-//            if (emptySlots <= 0) { // TODO: 26.11.2024 20:36 - add bypass perm
+//            if (emptySlots <= 0) {
 //                return ConnectionResult.SERVER_FULL
 //            }
 //        }

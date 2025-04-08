@@ -1,6 +1,6 @@
 package dev.slne.surf.cloud.api.server.plugin
 
-import dev.slne.surf.cloud.api.common.util.requiredService
+import dev.slne.surf.surfapi.core.api.util.requiredService
 
 
 interface PluginManager {

@@ -1,6 +1,7 @@
 package dev.slne.surf.cloud.api.common.util
 
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger
+import java.lang.reflect.Method
 import java.nio.file.Path
 import java.util.*
 import java.util.function.ToIntFunction
@@ -10,6 +11,7 @@ import kotlin.io.path.fileVisitor
 import kotlin.io.path.isRegularFile
 import kotlin.io.path.moveTo
 import kotlin.io.path.visitFileTree
+import kotlin.reflect.jvm.kotlinFunction
 
 const val LINEAR_LOOKUP_THRESHOLD = 8
 
@@ -140,3 +142,5 @@ private fun createFileCreatedCheck(path: Path): () -> Boolean = {
 private fun createFileDeletedCheck(path: Path): () -> Boolean = {
     !path.exists()
 }
+
+fun Method.isSuspending() = kotlinFunction?.isSuspend == true

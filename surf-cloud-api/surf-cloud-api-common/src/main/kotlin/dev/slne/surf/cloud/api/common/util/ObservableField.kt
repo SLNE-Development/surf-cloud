@@ -1,5 +1,6 @@
 package dev.slne.surf.cloud.api.common.util
 
+import dev.slne.surf.surfapi.core.api.util.logger
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import org.jetbrains.annotations.ApiStatus

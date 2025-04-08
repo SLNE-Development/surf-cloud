@@ -1,15 +1,15 @@
 package dev.slne.surf.cloud.standalone.netty.server.network
 
+import dev.slne.surf.cloud.api.common.netty.network.protocol.respond
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
+import dev.slne.surf.cloud.api.common.netty.packet.NettyPacketInfo
 import dev.slne.surf.cloud.api.common.player.ConnectionResultEnum
 import dev.slne.surf.cloud.api.common.server.CloudServer
-import dev.slne.surf.cloud.api.common.server.serverManager
-import dev.slne.surf.cloud.api.common.util.logger
+import dev.slne.surf.cloud.api.common.server.CloudServerManager
 import dev.slne.surf.cloud.api.common.util.mutableIntSetOf
 import dev.slne.surf.cloud.core.common.coroutines.PacketHandlerScope
 import dev.slne.surf.cloud.core.common.netty.network.ConnectionImpl
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.*
-import dev.slne.surf.cloud.core.common.netty.protocol.packet.NettyPacketInfo
 import dev.slne.surf.cloud.core.common.netty.registry.listener.NettyListenerRegistry
 import dev.slne.surf.cloud.core.common.player.playerManagerImpl
 import dev.slne.surf.cloud.core.common.util.random
@@ -19,12 +19,12 @@ import dev.slne.surf.cloud.standalone.player.StandaloneCloudPlayerImpl
 import dev.slne.surf.cloud.standalone.server.StandaloneCloudServerImpl
 import dev.slne.surf.cloud.standalone.server.StandaloneProxyCloudServerImpl
 import dev.slne.surf.cloud.standalone.server.serverManagerImpl
+import dev.slne.surf.surfapi.core.api.util.logger
 import kotlinx.coroutines.launch
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.title.Title
 import net.kyori.adventure.title.TitlePart
 import java.util.*
-import java.util.concurrent.TimeUnit
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
@@ -38,7 +38,13 @@ class ServerRunningPacketListenerImpl(
     private val log = logger()
 
     override suspend fun handlePlayerConnectToServer(packet: PlayerConnectToServerPacket) {
-        playerManagerImpl.updateOrCreatePlayer(packet.uuid, packet.serverUid, packet.proxy)
+        playerManagerImpl.updateOrCreatePlayer(
+            packet.uuid,
+            packet.name,
+            packet.proxy,
+            packet.playerIp,
+            packet.serverUid
+        )
         broadcast(packet)
         serverManagerImpl.getCommonStandaloneServerByUid(packet.serverUid)
             ?.handlePlayerConnect(packet.uuid)
@@ -163,6 +169,11 @@ class ServerRunningPacketListenerImpl(
         }
     }
 
+    override suspend fun handleRequestOfflinePlayerDisplayName(packet: RequestOfflineDisplayNamePacket) {
+        val name = serverManagerImpl.requestOfflineDisplayName(packet.uuid)
+        packet.respond(name)
+    }
+
     override suspend fun handleClientInformation(packet: ServerboundClientInformationPacket) {
         val server = serverManagerImpl.retrieveServerById(packet.serverId) ?: return
 
@@ -213,7 +224,7 @@ class ServerRunningPacketListenerImpl(
 
     override suspend fun handleConnectPlayerToServer(packet: ServerboundConnectPlayerToServerPacket) {
         withPlayer(packet.uuid) {
-            val server = serverManager.retrieveServerById(packet.serverId)
+            val server = CloudServerManager.retrieveServerById(packet.serverId)
 
             if (server == null) {
                 packet.respond(ClientboundConnectPlayerToServerResponse(ConnectionResultEnum.SERVER_NOT_FOUND to null))
@@ -251,28 +262,40 @@ class ServerRunningPacketListenerImpl(
         }
     }
 
+    override suspend fun handleShutdownServer(packet: ServerboundShutdownServerPacket) {
+        val server = CloudServerManager.retrieveServerById(packet.serverId) ?: return
+        server.shutdown()
+    }
+
+    override suspend fun handleRequestPlayerData(packet: ServerboundRequestPlayerDataPacket) {
+        packet.respond(
+            ServerboundRequestPlayerDataResponse(
+                packet.type.readData(
+                    playerManagerImpl.getOfflinePlayer(
+                        packet.uuid
+                    )
+                )
+            )
+        )
+    }
+
     override fun handlePacket(packet: NettyPacket) {
         val listeners = NettyListenerRegistry.getListeners(packet.javaClass) ?: return
         if (listeners.isEmpty()) return
 
-        val (proxiedSource, finalPacket) = when (packet) {
-//            is ProxiedNettyPacket -> packet.source to packet.packet
-            else -> null to packet
-        }
-        val info = NettyPacketInfo(this, proxiedSource)
+        val info = NettyPacketInfo(connection)
 
         for (listener in listeners) {
             PacketHandlerScope.launch {
                 try {
-                    listener.handle(finalPacket, info)
-                } catch (e: Exception) {
+                    listener.handle(packet, info)
+                } catch (e: Throwable) {
                     log.atWarning()
                         .withCause(e)
-                        .atMostEvery(5, TimeUnit.SECONDS)
                         .log(
                             "Failed to call listener %s for packet %s",
                             listener::class.simpleName,
-                            finalPacket::class.simpleName
+                            packet::class.simpleName
                         )
                 }
             }
@@ -287,6 +310,10 @@ class ServerRunningPacketListenerImpl(
 
         val player = playerManagerImpl.getPlayer(uuid) as? StandaloneCloudPlayerImpl ?: return
         player.block()
+    }
+
+    override fun isAcceptingMessages(): Boolean {
+        return connection.connected
     }
 }
 

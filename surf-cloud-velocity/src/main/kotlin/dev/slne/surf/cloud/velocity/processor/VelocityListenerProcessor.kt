@@ -3,11 +3,11 @@ package dev.slne.surf.cloud.velocity.processor
 import com.velocitypowered.api.event.Subscribe
 import dev.slne.surf.cloud.api.common.util.containsMethodWithAnnotation
 import dev.slne.surf.cloud.api.common.util.isCandidateFor
-import dev.slne.surf.cloud.api.common.util.logger
 import dev.slne.surf.cloud.api.common.util.mutableObjectSetOf
 import dev.slne.surf.cloud.api.common.util.ultimateTargetClass
 import dev.slne.surf.cloud.velocity.VelocityMain
 import dev.slne.surf.cloud.velocity.plugin
+import dev.slne.surf.surfapi.core.api.util.logger
 import org.springframework.aop.framework.AopInfrastructureBean
 import org.springframework.beans.BeansException
 import org.springframework.beans.factory.BeanCreationException

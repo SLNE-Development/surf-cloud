@@ -2,23 +2,21 @@ package dev.slne.surf.cloud
 
 import dev.slne.surf.cloud.api.common.SurfCloudApplication
 import dev.slne.surf.cloud.api.common.exceptions.FatalSurfError
-import dev.slne.surf.cloud.api.common.util.logger
+import dev.slne.surf.surfapi.core.api.util.logger
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.asExecutor
 import org.apache.commons.lang3.ArrayUtils
 import org.springframework.aop.interceptor.AsyncUncaughtExceptionHandler
 import org.springframework.boot.SpringApplication
+import org.springframework.boot.autoconfigure.AutoConfigurationPackage
 import org.springframework.context.ApplicationContext
 import org.springframework.context.ApplicationContextAware
 import org.springframework.core.NestedRuntimeException
 import org.springframework.scheduling.annotation.AsyncConfigurer
 import java.lang.reflect.Method
-import java.util.concurrent.TimeUnit
 
-@SurfCloudApplication(
-    jpaBasePackages = ["dev.slne.surf.cloud.core.test"],
-    redisBasePackages = ["dev.slne.surf.cloud.core.util"]
-)
+@SurfCloudApplication
+@AutoConfigurationPackage
 class SurfCloudMainApplication : AsyncConfigurer, ApplicationContextAware {
     private val log = logger()
     private lateinit var applicationContext: ApplicationContext
@@ -37,7 +35,6 @@ class SurfCloudMainApplication : AsyncConfigurer, ApplicationContextAware {
                 handleFatalSurfError(ex.rootCause as FatalSurfError, method, params)
             } else {
                 log.atSevere()
-                    .atMostEvery(1, TimeUnit.SECONDS)
                     .withCause(ex)
                     .log(
                         """

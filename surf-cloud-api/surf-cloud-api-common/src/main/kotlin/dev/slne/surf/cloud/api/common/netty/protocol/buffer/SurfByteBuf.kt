@@ -17,6 +17,7 @@ import dev.slne.surf.cloud.api.common.netty.protocol.buffer.types.VarLong
 import dev.slne.surf.cloud.api.common.util.codec.ExtraCodecs
 import dev.slne.surf.cloud.api.common.util.createUnresolvedInetSocketAddress
 import dev.slne.surf.cloud.api.common.util.fromJson
+import dev.slne.surf.surfapi.core.api.util.getCallerClass
 import io.netty.buffer.ByteBuf
 import io.netty.handler.codec.DecoderException
 import io.netty.handler.codec.EncoderException
@@ -27,14 +28,16 @@ import net.kyori.adventure.sound.Sound
 import net.kyori.adventure.text.Component
 import net.querz.nbt.tag.CompoundTag
 import java.io.*
+import java.net.Inet4Address
 import java.net.InetSocketAddress
 import java.net.URI
+import java.time.Instant
+import java.time.ZoneId
+import java.time.ZonedDateTime
 import java.util.*
 import java.util.function.Consumer
-import kotlin.Throws
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
-import kotlin.experimental.and
 import kotlin.reflect.KClass
 
 private const val NUMBER_BYTE: Byte = 0
@@ -468,17 +471,17 @@ open class SurfByteBuf(source: ByteBuf) : WrappedByteBuf(source) {
         }
 
         fun readUuid(buf: ByteBuf) = UUID(buf.readLong(), buf.readLong())
-        fun readBitSet(buf: ByteBuf) = BitSet.valueOf(readLongArray(buf))
+        fun readBitSet(buf: ByteBuf): BitSet = BitSet.valueOf(readLongArray(buf))
         fun writeBitSet(buf: ByteBuf, bitSet: BitSet) =
             writeLongArray(buf, bitSet.toLongArray())
 
-        fun readFixedBitSet(buf: ByteBuf, size: Int) =
+        fun readFixedBitSet(buf: ByteBuf, size: Int): BitSet =
             ByteArray(positiveCeilDiv(size, Byte.SIZE_BITS)).run {
                 buf.readBytes(this)
                 BitSet.valueOf(this)
             }
 
-        fun writeFixedBitSet(buf: ByteBuf, bitSet: BitSet, size: Int) =
+        fun writeFixedBitSet(buf: ByteBuf, bitSet: BitSet, size: Int): ByteBuf =
             bitSet.length().let { bitSetSize ->
                 checkEncoded(bitSetSize <= size) { "BitSet is larger than expected size ($bitSetSize>$size)" }
                 buf.writeBytes(bitSet.toByteArray().copyOf(positiveCeilDiv(size, Byte.SIZE_BITS)))
@@ -562,12 +565,11 @@ open class SurfByteBuf(source: ByteBuf) : WrappedByteBuf(source) {
             buf: B,
             decodeFactory: DecodeLongFactory<in B> =
                 DecodeLongFactory { buf -> buf.readLong() }
-        ) =
-            if (buf.readBoolean()) OptionalLong.of(decodeFactory.decodeLong(buf)) else OptionalLong.empty()
+        ): OptionalLong = if (buf.readBoolean()) OptionalLong.of(decodeFactory.decodeLong(buf)) else OptionalLong.empty()
 
 
         @Deprecated("Use codec instead")
-        fun <B : ByteBuf> writeSerializable(buf: B, serializable: Serializable) =
+        fun <B : ByteBuf> writeSerializable(buf: B, serializable: Serializable): ByteBuf =
             ByteArrayOutputStream().use { bout ->
                 ObjectOutputStream(bout).use { out ->
                     try {
@@ -623,11 +625,42 @@ open class SurfByteBuf(source: ByteBuf) : WrappedByteBuf(source) {
         fun <B : ByteBuf> readInetSocketAddress(buf: B) =
             createUnresolvedInetSocketAddress(readUtf(buf), buf.readVarInt())
 
-        fun <B: ByteBuf> writeCompoundTag(buf: B, tag: CompoundTag) {
+        fun <B : ByteBuf> writeCompoundTag(buf: B, tag: CompoundTag) {
             ExtraCodecs.COMPOUND_TAG_CODEC.encode(buf, tag)
         }
 
-        fun <B: ByteBuf> readCompoundTag(buf: B) = ExtraCodecs.COMPOUND_TAG_CODEC.decode(buf)
+        fun <B : ByteBuf> readCompoundTag(buf: B) = ExtraCodecs.COMPOUND_TAG_CODEC.decode(buf)
+
+        fun <B: ByteBuf> writeZonedDateTime(buf: B, time: ZonedDateTime) {
+            buf.writeLong(time.toInstant().toEpochMilli())
+            writeUtf(buf, time.zone.id)
+        }
+
+        fun <B: ByteBuf> readZonedDateTime(buf: B): ZonedDateTime {
+            val epoch = buf.readLong()
+            val zone = readUtf(buf)
+            return ZonedDateTime.ofInstant(Instant.ofEpochMilli(epoch), ZoneId.of(zone))
+        }
+
+        fun <B : ByteBuf> writeInet4Address(buf: B, address: Inet4Address) {
+            writeByteArray(buf, address.address)
+        }
+
+        fun <B : ByteBuf> readInet4Address(buf: B): Inet4Address {
+            val address = readByteArray(buf)
+            return Inet4Address.getByAddress(address) as Inet4Address
+        }
+
+        fun <B : ByteBuf> writeSingleton(buf: B, singleton: Any) {
+            require(singleton::class.objectInstance != null) { "Object must be a singleton" }
+            writeUtf(buf, singleton::class.qualifiedName!!)
+        }
+
+        fun <B : ByteBuf> readSingleton(buf: B, classLoader: ClassLoader): Any {
+            val className = readUtf(buf)
+            return Class.forName(className, true, classLoader).kotlin.objectInstance
+                ?: throw DecoderException("Failed to read singleton: $className")
+        }
     }
 
 
@@ -797,6 +830,12 @@ open class SurfByteBuf(source: ByteBuf) : WrappedByteBuf(source) {
     fun readInetSocketAddress() = readInetSocketAddress(this)
     fun writeCompoundTag(tag: CompoundTag) = writeCompoundTag(this, tag)
     fun readCompoundTag() = readCompoundTag(this)
+    fun writeZonedDateTime(time: ZonedDateTime) = writeZonedDateTime(this, time)
+    fun readZonedDateTime() = readZonedDateTime(this)
+    fun writeInet4Address(address: Inet4Address) = writeInet4Address(this, address)
+    fun readInet4Address() = readInet4Address(this)
+    fun writeSingleton(singleton: Any) = writeSingleton(this, singleton)
+    fun readSingleton(classLoader: ClassLoader) = readSingleton(this, classLoader)
     // @formatter:on
 // endregion
 
@@ -1020,5 +1059,33 @@ fun <B : ByteBuf> B.writeInetSocketAddress(address: InetSocketAddress) =
 fun <B : ByteBuf> B.readCompoundTag() = SurfByteBuf.readCompoundTag(this)
 fun <B : ByteBuf> B.writeCompoundTag(tag: CompoundTag) = SurfByteBuf.writeCompoundTag(this, tag)
 
+fun <B : ByteBuf> B.readZonedDateTime() = SurfByteBuf.readZonedDateTime(this)
+fun <B : ByteBuf> B.writeZonedDateTime(time: ZonedDateTime) = SurfByteBuf.writeZonedDateTime(this, time)
+
+fun <B : ByteBuf> B.readInet4Address() = SurfByteBuf.readInet4Address(this)
+fun <B : ByteBuf> B.writeInet4Address(address: Inet4Address) = SurfByteBuf.writeInet4Address(this, address)
+
+fun <B : ByteBuf> B.readSingleton(classLoader: ClassLoader) = SurfByteBuf.readSingleton(this, classLoader)
+fun <B : ByteBuf> B.writeSingleton(singleton: Any) = SurfByteBuf.writeSingleton(this, singleton)
+
 fun ByteBuf.wrap() = SurfByteBuf(this)
 // endregion
+
+/**
+ * Reads a byte array from the buffer.
+ * If the buffer has an array, it will return the array directly.
+ * Otherwise, it will copy the bytes into a new array.
+ *
+ * @return The byte array
+ * @receiver The buffer
+ */
+fun ByteBuf.toByteArraySafe(): ByteArray {
+    if (hasArray()) {
+        return array()
+    }
+
+    val bytes = ByteArray(readableBytes())
+    getBytes(readerIndex(), bytes)
+
+    return bytes
+}

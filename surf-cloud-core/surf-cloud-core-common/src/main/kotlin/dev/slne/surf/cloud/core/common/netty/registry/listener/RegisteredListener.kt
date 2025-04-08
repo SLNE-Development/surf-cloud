@@ -2,7 +2,7 @@ package dev.slne.surf.cloud.core.common.netty.registry.listener
 
 import dev.slne.surf.cloud.api.common.netty.exception.SurfNettyListenerRegistrationException
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
-import dev.slne.surf.cloud.core.common.netty.protocol.packet.NettyPacketInfo
+import dev.slne.surf.cloud.api.common.netty.packet.NettyPacketInfo
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import tech.hiddenproject.aide.reflection.LambdaWrapperHolder

@@ -1,8 +1,8 @@
 package dev.slne.surf.cloud.standalone.netty.server.network
 
-import dev.slne.surf.cloud.api.common.util.logger
 import dev.slne.surf.cloud.core.common.netty.network.EncryptionManager
 import dev.slne.surf.cloud.core.common.netty.network.HandlerNames
+import dev.slne.surf.surfapi.core.api.util.logger
 import io.netty.channel.Channel
 import io.netty.handler.ssl.ClientAuth
 import io.netty.handler.ssl.SslContext

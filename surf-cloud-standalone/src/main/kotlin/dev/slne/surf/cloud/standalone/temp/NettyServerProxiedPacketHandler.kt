@@ -1,7 +1,7 @@
 package dev.slne.surf.cloud.standalone.temp
 
 //@Component
-//@Profile("independent")
+//@Profile("server")
 //class NettyServerProxiedPacketHandler : ChannelInitializerModifier {
 //    override fun modify(channel: Channel) {
 //        channel.pipeline().addBefore("packetHandler", "proxiedPacketHandler", Handler())

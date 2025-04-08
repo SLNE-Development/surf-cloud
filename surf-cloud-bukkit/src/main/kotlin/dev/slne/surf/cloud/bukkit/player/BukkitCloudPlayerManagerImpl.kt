@@ -7,6 +7,7 @@ import dev.slne.surf.cloud.core.common.util.checkInstantiationByServiceLoader
 import net.kyori.adventure.audience.Audience
 import org.bukkit.Bukkit
 import org.bukkit.entity.Player
+import java.net.Inet4Address
 import java.util.*
 
 @AutoService(CloudPlayerManager::class)
@@ -17,8 +18,10 @@ class BukkitCloudPlayerManagerImpl : CommonClientCloudPlayerManagerImpl<Player, 
 
     override suspend fun createPlayer(
         uuid: UUID,
-        serverUid: Long,
-        proxy: Boolean
+        name: String,
+        proxy: Boolean,
+        ip: Inet4Address,
+        serverUid: Long
     ) = BukkitClientCloudPlayerImpl(uuid).also {
         if (proxy) {
             it.proxyServerUid = serverUid

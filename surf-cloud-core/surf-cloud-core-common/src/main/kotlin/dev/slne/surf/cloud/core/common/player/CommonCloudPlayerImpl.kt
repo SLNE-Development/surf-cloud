@@ -3,11 +3,8 @@ package dev.slne.surf.cloud.core.common.player
 import dev.slne.surf.cloud.api.common.player.CloudPlayer
 import dev.slne.surf.cloud.api.common.player.ConnectionResult
 import dev.slne.surf.cloud.api.common.player.ConnectionResultEnum
-import dev.slne.surf.cloud.api.common.player.name.NameHistory
 import dev.slne.surf.cloud.api.common.server.CloudServer
 import dev.slne.surf.cloud.api.common.server.CloudServerManager
-import java.net.Inet4Address
-import java.net.InetAddress
 import java.time.ZonedDateTime
 import java.util.*
 
@@ -53,20 +50,8 @@ abstract class CommonCloudPlayerImpl(uuid: UUID) : CommonOfflineCloudPlayerImpl(
         transformer: (String) -> R
     ): R? = getLuckpermsMetaData(key)?.let(transformer)
 
-    override suspend fun nameHistory(): NameHistory {
-        TODO("Not yet implemented")
-    }
-
-    override suspend fun lastServerRaw(): String {
-        TODO("Not yet implemented")
-    }
-
     override suspend fun lastSeen(): ZonedDateTime? {
         return ZonedDateTime.now()
-    }
-
-    override suspend fun latestIpAddress(): Inet4Address {
-        TODO("Not yet implemented")
     }
 
     override suspend fun playedBefore(): Boolean {

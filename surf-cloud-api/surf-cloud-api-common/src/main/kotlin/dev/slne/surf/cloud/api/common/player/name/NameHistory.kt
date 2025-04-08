@@ -1,5 +1,12 @@
 package dev.slne.surf.cloud.api.common.player.name
 
+import dev.slne.surf.cloud.api.common.netty.protocol.buffer.readUtf
+import dev.slne.surf.cloud.api.common.netty.protocol.buffer.readVarLong
+import dev.slne.surf.cloud.api.common.netty.protocol.buffer.writeUtf
+import dev.slne.surf.cloud.api.common.netty.protocol.buffer.writeVarLong
+import dev.slne.surf.cloud.api.common.util.annotation.InternalApi
+import dev.slne.surf.surfapi.core.api.util.requiredService
+import io.netty.buffer.ByteBuf
 import it.unimi.dsi.fastutil.objects.ObjectList
 
 /**
@@ -54,6 +61,25 @@ interface NameHistory {
      * @return The time in milliseconds since the last name change, or `0` if no names are recorded.
      */
     fun timeSinceLastChange(): Long
+
+    /**
+     * Writes the name history to a [ByteBuf].
+     *
+     * @param buf The buffer to write the history to.
+     */
+    fun writeToByteBuf(buf: ByteBuf)
+
+    companion object {
+        /**
+         * Reads a [NameHistory] from a [ByteBuf].
+         *
+         * @param buf The buffer to read the history from.
+         * @return The [NameHistory] read from the buffer.
+         */
+        fun readFromByteBuf(buf: ByteBuf): NameHistory {
+            return NameHistoryFactory.instance.createFromByteBuf(buf)
+        }
+    }
 }
 
 /**
@@ -62,4 +88,28 @@ interface NameHistory {
  * @property timestamp The time in milliseconds when the name was set.
  * @property name The player's name at the given timestamp.
  */
-data class NameEntry(val timestamp: Long, val name: String)
+data class NameEntry(val timestamp: Long, val name: String) {
+    fun writeToByteBuf(buf: ByteBuf) {
+        buf.writeVarLong(timestamp)
+        buf.writeUtf(name)
+    }
+
+    companion object {
+        fun readFromByteBuf(buf: ByteBuf): NameEntry {
+            val timestamp = buf.readVarLong()
+            val name = buf.readUtf()
+            return NameEntry(timestamp, name)
+        }
+    }
+}
+
+@InternalApi
+interface NameHistoryFactory {
+    fun create(entries: ObjectList<NameEntry>): NameHistory
+    fun createFromByteBuf(buf: ByteBuf): NameHistory
+    fun empty(): NameHistory
+
+    companion object {
+        val instance = requiredService<NameHistoryFactory>()
+    }
+}

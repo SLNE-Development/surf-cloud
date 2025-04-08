@@ -5,7 +5,7 @@ netty = "4.1.117.Final"
 nbt = "6.1"
 datafixerupper = "8.0.16"
 byte-buddy = "1.15.10"
-exposed = "0.59.0"
+exposed = "0.60.0"
 maven-impl = "4.0.0-rc-2"
 maven-resolver = "2.0.5"
 jline = "3.26.3"
@@ -53,6 +53,7 @@ aspectjrt = { module = "org.aspectj:aspectjrt" }
 zstd-jni = { module = "com.github.luben:zstd-jni", version.ref = "zstd-jni" }
 luckperms-api = { module = "net.luckperms:api", version.ref = "luckperms-api" }
 mariadb-java-client = { module = "org.mariadb.jdbc:mariadb-java-client" }
+mysql-connector-j = { module = "com.mysql:mysql-connector-j" }
 spring-boot-starter-data-jpa = { module = "org.springframework.boot:spring-boot-starter-data-jpa" }
 reactive-streams = { module = "org.reactivestreams:reactive-streams", version.ref = "reactive-streams" }
 hibernate-jcache = { module = "org.hibernate.orm:hibernate-jcache" }
@@ -61,6 +62,9 @@ ktor-server-status-pages = { module = "io.ktor:ktor-server-status-pages" }
 spring-boot-starter-log4j2 = { module = "org.springframework.boot:spring-boot-starter-log4j2" }
 spring-aop = { module = "org.springframework:spring-aop" }
 spring-aspects = { module = "org.springframework:spring-aspects" }
+flyway-core = { module = "org.flywaydb:flyway-core" }
+flyway-mysql = { module = "org.flywaydb:flyway-mysql" }
+spring-instrument = { module = "org.springframework:spring-instrument" }
 
 
 [plugins]
@@ -74,3 +78,4 @@ exposed-api-server = ["exposed-spring-boot-starter", "exposed-java-time"]
 maven-libraries = ["maven-impl", "maven-resolver"]
 console-api = ["jline", "brigadier", "terminalconsoleappender"]
 ktor-api-server = ["ktor-server-core-jvm", "ktor-server-netty", "ktor-server-core", "ktor-server-html-builder", "kotlin-css", "ktor-server-websockets", "ktor-serialization-kotlinx-json"]
+flyway = ["flyway-core", "flyway-mysql"]

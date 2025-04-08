@@ -1,6 +1,7 @@
 package dev.slne.surf.cloud.core.common.netty.network
 
 object HandlerNames {
+    const val LOGGER = "logger"
     const val SSL_HANDLER_ENFORCER = "ssl_handler_enforcer"
     const val SSL_HANDLER: String = "ssl_handler"
     const val DECOMPRESS: String = "decompress"

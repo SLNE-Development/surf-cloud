@@ -9,6 +9,7 @@ import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
 import org.bukkit.event.player.AsyncPlayerPreLoginEvent
 import org.bukkit.event.player.PlayerQuitEvent
+import java.net.Inet4Address
 
 object ConnectionListener : Listener {
 
@@ -20,8 +21,10 @@ object ConnectionListener : Listener {
 
         PlayerConnectToServerPacket(
             uniqueId,
-            CloudPersistentData.SERVER_ID,
-            false
+            name,
+            false,
+            address as? Inet4Address ?: error("Player address is not an Inet4Address"),
+            CloudPersistentData.SERVER_ID
         ).fireAndForget()
     }
 

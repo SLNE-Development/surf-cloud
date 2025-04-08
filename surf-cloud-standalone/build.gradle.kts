@@ -8,6 +8,7 @@ dependencies {
     api(project(":surf-cloud-api:surf-cloud-api-server"))
 
     runtimeOnly(libs.mariadb.java.client)
+    runtimeOnly(libs.mysql.connector.j)
     api(libs.spring.boot.starter.data.jpa)
     api(libs.reactive.streams)
     api(libs.velocity.native)

@@ -1,10 +1,8 @@
 package dev.slne.surf.cloud.standalone.config
 
 import dev.slne.surf.cloud.core.common.coreCloudInstance
-import dev.slne.surf.surfapi.core.api.SurfCoreApi
 import dev.slne.surf.surfapi.core.api.config.createSpongeYmlConfig
 import dev.slne.surf.surfapi.core.api.config.surfConfigApi
-import kotlinx.serialization.Required
 import org.spongepowered.configurate.objectmapping.ConfigSerializable
 import org.spongepowered.configurate.objectmapping.meta.Comment
 import org.spongepowered.configurate.objectmapping.meta.Setting
@@ -22,12 +20,21 @@ data class StandaloneConfig(
     val ktor: KtorConfig = KtorConfig(),
 
     @Comment("Whether only one proxy is used by the network. If enabled the server are automatically registered to the proxy.")
-    @Setting("use-single-proxy-setup")
-    val useSingleProxySetup: Boolean = false
+    @Setting("use-single-proxy-setup2")
+    val useSingleProxySetup: Boolean = false,
+
+    @Comment("Configuration for the logging.")
+    @Setting("logging")
+    val logging: LoggingConfig = LoggingConfig(),
 )
 
 @ConfigSerializable
 data class KtorConfig(
     val port: Int = 8080,
     val host: String = "0.0.0.0"
+)
+
+@ConfigSerializable
+data class LoggingConfig(
+    val logPlayerConnections: Boolean = true,
 )

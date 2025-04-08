@@ -17,6 +17,7 @@ import dev.slne.surf.cloud.api.common.netty.protocol.buffer.types.VarLong
 import dev.slne.surf.cloud.api.common.util.codec.ExtraCodecs
 import dev.slne.surf.cloud.api.common.util.createUnresolvedInetSocketAddress
 import dev.slne.surf.cloud.api.common.util.fromJson
+import dev.slne.surf.surfapi.core.api.util.getCallerClass
 import io.netty.buffer.ByteBuf
 import io.netty.handler.codec.DecoderException
 import io.netty.handler.codec.EncoderException
@@ -631,12 +632,12 @@ open class SurfByteBuf(source: ByteBuf) : WrappedByteBuf(source) {
         fun <B : ByteBuf> readCompoundTag(buf: B) = ExtraCodecs.COMPOUND_TAG_CODEC.decode(buf)
 
         fun <B: ByteBuf> writeZonedDateTime(buf: B, time: ZonedDateTime) {
-            writeVarLong(buf, time.toInstant().toEpochMilli())
+            buf.writeLong(time.toInstant().toEpochMilli())
             writeUtf(buf, time.zone.id)
         }
 
         fun <B: ByteBuf> readZonedDateTime(buf: B): ZonedDateTime {
-            val epoch = readVarLong(buf)
+            val epoch = buf.readLong()
             val zone = readUtf(buf)
             return ZonedDateTime.ofInstant(Instant.ofEpochMilli(epoch), ZoneId.of(zone))
         }
@@ -655,9 +656,9 @@ open class SurfByteBuf(source: ByteBuf) : WrappedByteBuf(source) {
             writeUtf(buf, singleton::class.qualifiedName!!)
         }
 
-        fun <B : ByteBuf> readSingleton(buf: B): Any {
+        fun <B : ByteBuf> readSingleton(buf: B, classLoader: ClassLoader): Any {
             val className = readUtf(buf)
-            return Class.forName(className).kotlin.objectInstance
+            return Class.forName(className, true, classLoader).kotlin.objectInstance
                 ?: throw DecoderException("Failed to read singleton: $className")
         }
     }
@@ -834,7 +835,7 @@ open class SurfByteBuf(source: ByteBuf) : WrappedByteBuf(source) {
     fun writeInet4Address(address: Inet4Address) = writeInet4Address(this, address)
     fun readInet4Address() = readInet4Address(this)
     fun writeSingleton(singleton: Any) = writeSingleton(this, singleton)
-    fun readSingleton() = readSingleton(this)
+    fun readSingleton(classLoader: ClassLoader) = readSingleton(this, classLoader)
     // @formatter:on
 // endregion
 
@@ -1064,7 +1065,7 @@ fun <B : ByteBuf> B.writeZonedDateTime(time: ZonedDateTime) = SurfByteBuf.writeZ
 fun <B : ByteBuf> B.readInet4Address() = SurfByteBuf.readInet4Address(this)
 fun <B : ByteBuf> B.writeInet4Address(address: Inet4Address) = SurfByteBuf.writeInet4Address(this, address)
 
-fun <B : ByteBuf> B.readSingleton() = SurfByteBuf.readSingleton(this)
+fun <B : ByteBuf> B.readSingleton(classLoader: ClassLoader) = SurfByteBuf.readSingleton(this, classLoader)
 fun <B : ByteBuf> B.writeSingleton(singleton: Any) = SurfByteBuf.writeSingleton(this, singleton)
 
 fun ByteBuf.wrap() = SurfByteBuf(this)

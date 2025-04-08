@@ -7,6 +7,7 @@ dependencies {
 
     api(libs.jakarta.persistence.api)
     api(libs.spring.data.jpa)
+    api(libs.bundles.flyway)
     api(libs.bundles.exposed.api.server)
     api(libs.bundles.maven.libraries)
     api(libs.bundles.console.api)

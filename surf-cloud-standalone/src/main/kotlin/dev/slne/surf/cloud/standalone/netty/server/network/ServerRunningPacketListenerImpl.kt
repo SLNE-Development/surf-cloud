@@ -38,7 +38,13 @@ class ServerRunningPacketListenerImpl(
     private val log = logger()
 
     override suspend fun handlePlayerConnectToServer(packet: PlayerConnectToServerPacket) {
-        playerManagerImpl.updateOrCreatePlayer(packet.uuid, packet.serverUid, packet.proxy)
+        playerManagerImpl.updateOrCreatePlayer(
+            packet.uuid,
+            packet.name,
+            packet.proxy,
+            packet.playerIp,
+            packet.serverUid
+        )
         broadcast(packet)
         serverManagerImpl.getCommonStandaloneServerByUid(packet.serverUid)
             ?.handlePlayerConnect(packet.uuid)
@@ -259,6 +265,18 @@ class ServerRunningPacketListenerImpl(
     override suspend fun handleShutdownServer(packet: ServerboundShutdownServerPacket) {
         val server = CloudServerManager.retrieveServerById(packet.serverId) ?: return
         server.shutdown()
+    }
+
+    override suspend fun handleRequestPlayerData(packet: ServerboundRequestPlayerDataPacket) {
+        packet.respond(
+            ServerboundRequestPlayerDataResponse(
+                packet.type.readData(
+                    playerManagerImpl.getOfflinePlayer(
+                        packet.uuid
+                    )
+                )
+            )
+        )
     }
 
     override fun handlePacket(packet: NettyPacket) {

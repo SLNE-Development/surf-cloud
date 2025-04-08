@@ -50,7 +50,7 @@ object RunningProtocols {
                 .addPacket(ClientboundTriggerShutdownPacket.STREAM_CODEC)
                 .addPacket(RequestOfflineDisplayNamePacket.STREAM_CODEC)
                 .addPacket(ClientboundBatchUpdateServer.STREAM_CODEC)
-                .addPacket(ResponseRequestOfflinePlayerData.STREAM_CODEC)
+                .addPacket(ServerboundRequestPlayerDataResponse.STREAM_CODEC)
         }
 
     val CLIENTBOUND by lazy { CLIENTBOUND_TEMPLATE.freeze().bind(::SurfByteBuf) }
@@ -94,7 +94,7 @@ object RunningProtocols {
                 .addPacket(TeleportPlayerResultPacket.STREAM_CODEC)
                 .addPacket(ServerboundShutdownServerPacket.STREAM_CODEC)
                 .addPacket(RequestOfflineDisplayNamePacket.STREAM_CODEC)
-                .addPacket(ServerboundRequestOfflinePlayerData.STREAM_CODEC)
+                .addPacket(ServerboundRequestPlayerDataPacket.STREAM_CODEC)
         }
 
     val SERVERBOUND by lazy { SERVERBOUND_TEMPLATE.freeze().bind(::SurfByteBuf) }

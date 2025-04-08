@@ -4,16 +4,13 @@ import dev.slne.surf.cloud.api.common.player.CloudPlayer
 import dev.slne.surf.cloud.api.common.player.CloudPlayerManager
 import dev.slne.surf.cloud.api.common.player.name.NameHistory
 import dev.slne.surf.cloud.api.common.server.CloudServer
-import dev.slne.surf.cloud.api.common.util.emptyObjectList
-import dev.slne.surf.cloud.core.common.coroutines.NameHistoryScope
 import dev.slne.surf.cloud.core.common.player.CommonOfflineCloudPlayerImpl
 import dev.slne.surf.cloud.core.common.util.bean
-import dev.slne.surf.cloud.standalone.player.db.service.CloudPlayerService
-import dev.slne.surf.cloud.standalone.player.name.NameHistoryImpl
+import dev.slne.surf.cloud.standalone.player.db.exposed.CloudPlayerService
 import dev.slne.surf.cloud.standalone.server.serverManagerImpl
-import kotlinx.coroutines.withContext
+import dev.slne.surf.surfapi.core.api.service.PlayerLookupService
 import net.kyori.adventure.text.Component
-import java.net.InetAddress
+import java.net.Inet4Address
 import java.time.ZonedDateTime
 import java.util.*
 
@@ -28,9 +25,7 @@ class OfflineCloudPlayerImpl(uuid: UUID) : CommonOfflineCloudPlayerImpl(uuid) {
             return player.nameHistory()
         }
 
-        return withContext(NameHistoryScope.context) {
-            NameHistoryImpl(service.findNameHistories(uuid) ?: emptyObjectList())
-        }
+        return service.findNameHistories(uuid)
     }
 
     override suspend fun lastServerRaw(): String? =
@@ -42,11 +37,15 @@ class OfflineCloudPlayerImpl(uuid: UUID) : CommonOfflineCloudPlayerImpl(uuid) {
     override suspend fun lastSeen(): ZonedDateTime? =
         player?.lastSeen() ?: service.findLastSeen(uuid)
 
-    override suspend fun latestIpAddress(): InetAddress? =
+    override suspend fun latestIpAddress(): Inet4Address? =
         player?.latestIpAddress() ?: service.findLastIpAddress(uuid)
 
     override suspend fun displayName(): Component? {
         return player?.displayName() ?: serverManagerImpl.requestOfflineDisplayName(uuid)
+    }
+
+    override suspend fun name(): String? {
+        return player?.name() ?: PlayerLookupService.getUsername(uuid)
     }
 
     override val player: CloudPlayer? get() = CloudPlayerManager.getPlayer(uuid)

@@ -11,13 +11,14 @@ import dev.slne.surf.cloud.core.common.player.playerManagerImpl
 import dev.slne.surf.cloud.core.common.util.bean
 import dev.slne.surf.cloud.core.common.util.checkInstantiationByServiceLoader
 import dev.slne.surf.cloud.standalone.persistent.PlayerDataStorage
-import dev.slne.surf.cloud.standalone.player.db.service.CloudPlayerService
+import dev.slne.surf.cloud.standalone.player.db.exposed.CloudPlayerService
 import dev.slne.surf.cloud.standalone.server.StandaloneCloudServerImpl
 import dev.slne.surf.cloud.standalone.server.StandaloneProxyCloudServerImpl
 import dev.slne.surf.cloud.standalone.server.asStandaloneServer
 import dev.slne.surf.cloud.standalone.server.serverManagerImpl
 import dev.slne.surf.surfapi.core.api.util.logger
 import kotlinx.coroutines.*
+import java.net.Inet4Address
 import java.util.*
 import kotlin.time.Duration.Companion.minutes
 
@@ -44,10 +45,12 @@ class StandaloneCloudPlayerManagerImpl : CloudPlayerManagerImpl<StandaloneCloudP
 
     override suspend fun createPlayer(
         uuid: UUID,
-        serverUid: Long,
-        proxy: Boolean
+        name: String,
+        proxy: Boolean,
+        ip: Inet4Address,
+        serverUid: Long
     ): StandaloneCloudPlayerImpl {
-        return StandaloneCloudPlayerImpl(uuid).also {
+        return StandaloneCloudPlayerImpl(uuid, name, ip).also {
             val server = serverUid.toServer()
             if (server != null) {
                 if (proxy) {
@@ -115,6 +118,8 @@ class StandaloneCloudPlayerManagerImpl : CloudPlayerManagerImpl<StandaloneCloudP
         return OfflineCloudPlayerImpl(uuid)
     }
 
+    fun getRawOnlinePlayers() = players.values.toList()
+
     override suspend fun onServerConnect(
         uuid: UUID,
         player: StandaloneCloudPlayerImpl,
@@ -164,7 +169,7 @@ class StandaloneCloudPlayerManagerImpl : CloudPlayerManagerImpl<StandaloneCloudP
                     PlayerDataStorage.save(player)
                 },
                 async {
-                    bean<CloudPlayerService>().updateOnDisconnect(player)
+                    bean<CloudPlayerService>().updateOnDisconnect(player, oldServer)
                 }
             )
         }

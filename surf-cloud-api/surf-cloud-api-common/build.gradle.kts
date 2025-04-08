@@ -1,5 +1,3 @@
-import org.gradle.internal.impldep.org.bouncycastle.asn1.x500.style.RFC4519Style.l
-
 plugins {
     id("dev.slne.surf.surfapi.gradle.core")
 }

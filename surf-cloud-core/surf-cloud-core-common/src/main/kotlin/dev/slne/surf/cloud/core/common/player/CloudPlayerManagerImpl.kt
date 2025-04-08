@@ -2,13 +2,14 @@ package dev.slne.surf.cloud.core.common.player
 
 import dev.slne.surf.cloud.api.common.event.player.connection.CloudPlayerConnectToNetworkEvent
 import dev.slne.surf.cloud.api.common.player.CloudPlayerManager
-import dev.slne.surf.cloud.api.common.player.OfflineCloudPlayer
+import dev.slne.surf.cloud.api.common.server.UserList
+import dev.slne.surf.cloud.api.common.server.UserListImpl
 import dev.slne.surf.cloud.api.common.util.mutableObject2ObjectMapOf
 import dev.slne.surf.cloud.api.common.util.synchronize
 import dev.slne.surf.cloud.core.common.util.publish
 import it.unimi.dsi.fastutil.objects.Object2ObjectArrayMap
-import org.jetbrains.annotations.ApiStatus
 import org.jetbrains.annotations.MustBeInvokedByOverriders
+import java.net.Inet4Address
 import java.util.*
 
 abstract class CloudPlayerManagerImpl<P : CommonCloudPlayerImpl> : CloudPlayerManager {
@@ -18,7 +19,13 @@ abstract class CloudPlayerManagerImpl<P : CommonCloudPlayerImpl> : CloudPlayerMa
         return players[uuid]
     }
 
-    abstract suspend fun createPlayer(uuid: UUID, serverUid: Long, proxy: Boolean): P
+    abstract suspend fun createPlayer(
+        uuid: UUID,
+        name: String,
+        proxy: Boolean,
+        ip: Inet4Address,
+        serverUid: Long
+    ): P
 
     abstract suspend fun updateProxyServer(player: P, serverUid: Long)
     abstract suspend fun updateServer(player: P, serverUid: Long)
@@ -31,6 +38,10 @@ abstract class CloudPlayerManagerImpl<P : CommonCloudPlayerImpl> : CloudPlayerMa
 
     private fun addPlayer(player: P) {
         players[player.uuid] = player
+    }
+
+    override fun getOnlinePlayers(): UserList {
+        return UserListImpl.of(players.values)
     }
 
     protected inline fun forEachPlayer(action: (P) -> Unit) {
@@ -47,11 +58,17 @@ abstract class CloudPlayerManagerImpl<P : CommonCloudPlayerImpl> : CloudPlayerMa
      * @param serverUid The unique identifier of the server the player is connecting to.
      * @param proxy A boolean indicating if the player is connecting through a proxy.
      */
-    suspend fun updateOrCreatePlayer(uuid: UUID, serverUid: Long, proxy: Boolean) {
+    suspend fun updateOrCreatePlayer(
+        uuid: UUID,
+        name: String,
+        proxy: Boolean,
+        ip: Inet4Address,
+        serverUid: Long
+    ) {
         val player = players[uuid]
 
         if (player == null) {
-            createPlayer(uuid, serverUid, proxy).also {
+            createPlayer(uuid, name, proxy, ip, serverUid).also {
                 onNetworkConnect(uuid, it)
                 onServerConnect(uuid, it, serverUid)
                 addPlayer(it)

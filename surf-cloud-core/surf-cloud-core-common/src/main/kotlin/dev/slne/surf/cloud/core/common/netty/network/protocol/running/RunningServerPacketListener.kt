@@ -61,6 +61,8 @@ interface RunningServerPacketListener : ServerCommonPacketListener, TickablePack
     suspend fun handleTeleportPlayer(packet: TeleportPlayerPacket)
 
     suspend fun handleShutdownServer(packet: ServerboundShutdownServerPacket)
+
+    suspend fun handleRequestPlayerData(packet: ServerboundRequestPlayerDataPacket)
     
     fun handlePacket(packet: NettyPacket)
 }

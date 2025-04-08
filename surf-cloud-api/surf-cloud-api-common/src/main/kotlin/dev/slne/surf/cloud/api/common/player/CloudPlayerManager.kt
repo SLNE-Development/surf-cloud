@@ -1,7 +1,9 @@
 package dev.slne.surf.cloud.api.common.player
 
+import dev.slne.surf.cloud.api.common.server.UserList
 import dev.slne.surf.cloud.api.common.util.annotation.InternalApi
 import dev.slne.surf.surfapi.core.api.util.requiredService
+import it.unimi.dsi.fastutil.objects.ObjectSet
 import net.kyori.adventure.audience.Audience
 import net.kyori.adventure.identity.Identity
 import org.jetbrains.annotations.ApiStatus
@@ -26,6 +28,8 @@ interface CloudPlayerManager {
     fun getPlayer(uuid: UUID?): CloudPlayer?
 
     fun getOfflinePlayer(uuid: UUID): OfflineCloudPlayer
+
+    fun getOnlinePlayers(): UserList
 
     companion object : CloudPlayerManager by INSTANCE {
         @InternalApi

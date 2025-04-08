@@ -18,6 +18,10 @@ open class UserListImpl : UserList {
         }, { buf ->
             UserListImpl(buf.readCollection({ mutableObjectSetOf(it) }, { it.readUuid() }))
         })
+
+        fun of(players: Iterable<CloudPlayer>): UserListImpl {
+            return UserListImpl(players.mapTo(mutableObjectSetOf()) { it.uuid })
+        }
     }
 
     internal val playerReferences: ObjectSet<UUID>

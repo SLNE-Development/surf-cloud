@@ -343,6 +343,7 @@ class ConnectionImpl(
 
                         is TeleportPlayerPacket -> listener.handleTeleportPlayer(msg)
                         is ServerboundShutdownServerPacket -> listener.handleShutdownServer(msg)
+                        is ServerboundRequestPlayerDataPacket -> listener.handleRequestPlayerData(msg)
 
                         else -> listener.handlePacket(msg) // handle other packets
                     }
@@ -1047,7 +1048,8 @@ class ConnectionImpl(
             val receivingSide = side == PacketFlow.SERVERBOUND
             val sendingSide = opposite == PacketFlow.SERVERBOUND
 
-            pipeline.addFirst("logger", LoggingHandler(LogLevel.INFO))
+
+            pipeline.addFirst(HandlerNames.LOGGER, LoggingHandler(cloudConfig.logging.nettyLogLevel))
 //                .addLast(HandlerNames.SSL_HANDLER_ENFORCER, EnforceSslHandler())
                 .addLast(HandlerNames.COMPRESS, ZstdEncoder(8))
                 .addLast(HandlerNames.DECOMPRESS, ZstdDecoder())

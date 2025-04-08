@@ -6,6 +6,7 @@ import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import org.checkerframework.checker.units.qual.K
 import org.jetbrains.exposed.dao.Entity
 import org.jetbrains.exposed.sql.Transaction
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
@@ -48,6 +49,7 @@ abstract class AbstractExposedDAOService<K, V : Entity<*>>(
      * @return The loaded entity, or `null` if not found.
      */
     protected abstract suspend fun load(key: K): V?
+    protected abstract suspend fun create(key: K): V?
 
     /**
      * Executes a suspendable transaction within the configured coroutine context.
@@ -68,6 +70,11 @@ abstract class AbstractExposedDAOService<K, V : Entity<*>>(
      */
     protected suspend fun find(key: K) = cache.get(key)
 
+    protected suspend fun <R> find(key: K, result: V.() -> R): R? = withTransaction {
+        val entity = cache.get(key) ?: return@withTransaction null
+        return@withTransaction entity.result()
+    }
+
     /**
      * Updates an entity by applying the given modification block.
      *
@@ -75,10 +82,14 @@ abstract class AbstractExposedDAOService<K, V : Entity<*>>(
      * @param block The modification block to apply to the entity.
      * @return The updated entity, or `null` if not found.
      */
-    protected suspend fun update(key: K, block: suspend V.() -> Unit) = withTransaction {
-        val entity = cache.get(key) ?: return@withTransaction null
-        entity.block()
-        entity
+    protected suspend fun update(key: K, createIfMissing: Boolean = true, block: suspend V.() -> Unit) = withTransaction {
+        val entity = cache.get(key) ?: if (createIfMissing) create(key) else null
+        if (entity != null) {
+            entity.block()
+            cache.put(key, entity)
+        } else {
+            null
+        }
     }
 
     /**

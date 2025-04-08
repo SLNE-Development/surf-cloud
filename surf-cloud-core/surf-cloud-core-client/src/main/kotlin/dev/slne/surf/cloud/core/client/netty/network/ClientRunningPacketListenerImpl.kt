@@ -40,7 +40,13 @@ class ClientRunningPacketListenerImpl(
     private var closed = false
 
     override suspend fun handlePlayerConnectToServer(packet: PlayerConnectToServerPacket) {
-        playerManagerImpl.updateOrCreatePlayer(packet.uuid, packet.serverUid, packet.proxy)
+        playerManagerImpl.updateOrCreatePlayer(
+            packet.uuid,
+            packet.name,
+            packet.proxy,
+            packet.playerIp,
+            packet.serverUid
+        )
     }
 
     override suspend fun handlePlayerDisconnectFromServer(packet: PlayerDisconnectFromServerPacket) {

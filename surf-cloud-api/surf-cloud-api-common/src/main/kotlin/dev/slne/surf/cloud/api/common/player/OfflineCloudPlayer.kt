@@ -3,7 +3,7 @@ package dev.slne.surf.cloud.api.common.player
 import dev.slne.surf.cloud.api.common.player.name.NameHistory
 import dev.slne.surf.cloud.api.common.server.CloudServer
 import net.kyori.adventure.text.Component
-import java.net.InetAddress
+import java.net.Inet4Address
 import java.time.ZonedDateTime
 import java.util.*
 
@@ -17,7 +17,7 @@ interface OfflineCloudPlayer {
     suspend fun lastServerRaw(): String?
     suspend fun lastServer(): CloudServer?
     suspend fun lastSeen(): ZonedDateTime?
-    suspend fun latestIpAddress(): InetAddress?
+    suspend fun latestIpAddress(): Inet4Address?
 
     suspend fun playedBefore(): Boolean
 
@@ -32,6 +32,8 @@ interface OfflineCloudPlayer {
      * @return The [Component] representing the player's display name.
      */
     suspend fun displayName(): Component?
+
+    suspend fun name(): String?
 
     /**
      * Retrieves and transforms metadata associated with the player's LuckPerms configuration.

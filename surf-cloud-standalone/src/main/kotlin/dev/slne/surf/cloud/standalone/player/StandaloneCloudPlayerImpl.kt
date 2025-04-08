@@ -3,6 +3,7 @@ package dev.slne.surf.cloud.standalone.player
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
 import dev.slne.surf.cloud.api.common.player.ConnectionResult
 import dev.slne.surf.cloud.api.common.player.ConnectionResultEnum
+import dev.slne.surf.cloud.api.common.player.name.NameHistory
 import dev.slne.surf.cloud.api.common.player.ppdc.PersistentPlayerDataContainer
 import dev.slne.surf.cloud.api.common.player.teleport.TeleportCause
 import dev.slne.surf.cloud.api.common.player.teleport.TeleportFlag
@@ -14,7 +15,7 @@ import dev.slne.surf.cloud.core.common.netty.network.protocol.running.Serverboun
 import dev.slne.surf.cloud.core.common.player.CommonCloudPlayerImpl
 import dev.slne.surf.cloud.core.common.player.ppdc.PersistentPlayerDataContainerImpl
 import dev.slne.surf.cloud.core.common.util.bean
-import dev.slne.surf.cloud.standalone.player.db.service.CloudPlayerService
+import dev.slne.surf.cloud.standalone.player.db.exposed.CloudPlayerService
 import dev.slne.surf.cloud.standalone.server.StandaloneCloudServerImpl
 import dev.slne.surf.cloud.standalone.server.StandaloneProxyCloudServerImpl
 import dev.slne.surf.surfapi.core.api.util.logger
@@ -34,11 +35,12 @@ import net.kyori.adventure.text.Component
 import net.kyori.adventure.title.Title
 import net.kyori.adventure.title.TitlePart
 import net.querz.nbt.tag.CompoundTag
+import java.net.Inet4Address
 import java.util.*
 import java.util.concurrent.TimeUnit
 import kotlin.time.Duration
 
-class StandaloneCloudPlayerImpl(uuid: UUID) :
+class StandaloneCloudPlayerImpl(uuid: UUID, val name: String, val ip: Inet4Address) :
     CommonCloudPlayerImpl(uuid) {
 
     companion object {
@@ -54,7 +56,7 @@ class StandaloneCloudPlayerImpl(uuid: UUID) :
 
     override val connectedToProxy get() = proxyServer != null
     override val connectedToServer get() = server != null
-    private val anyServer: ServerCommonCloudServer
+    val anyServer: ServerCommonCloudServer
         get() = server ?: proxyServer ?: error("Player is not connected to a server")
 
     @Volatile
@@ -97,9 +99,25 @@ class StandaloneCloudPlayerImpl(uuid: UUID) :
     suspend fun updatePersistentData(tag: CompoundTag) =
         ppdcMutex.withLock { ppdc.fromTagCompound(tag) }
 
+    override suspend fun latestIpAddress(): Inet4Address {
+        return ip
+    }
+
+    override suspend fun lastServerRaw(): String {
+        return anyServer.name
+    }
+
+    override suspend fun nameHistory(): NameHistory {
+        return service.findNameHistories(uuid)
+    }
+
     override suspend fun displayName(): Component = ClientboundRequestDisplayNamePacket(uuid)
         .fireAndAwaitUrgent(anyServer.connection)?.displayName
         ?: error("Failed to get display name (probably timed out)")
+
+    override suspend fun name(): String {
+        return name
+    }
 
     override suspend fun connectToServer(server: CloudServer): ConnectionResult {
         check(server is StandaloneCloudServerImpl) { "Server must be a StandaloneCloudServerImpl" }

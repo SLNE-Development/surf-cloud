@@ -3,6 +3,7 @@ package dev.slne.surf.cloud.core.common.netty.registry.listener
 import dev.slne.surf.cloud.api.common.netty.exception.SurfNettyListenerRegistrationException
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacketInfo
+import dev.slne.surf.cloud.api.common.util.isSuspending
 import dev.slne.surf.cloud.api.common.util.mutableObject2ObjectMapOf
 import it.unimi.dsi.fastutil.objects.Object2ObjectFunction
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
@@ -119,6 +120,4 @@ object NettyListenerRegistry {
 
     fun hasListeners(packetClass: Class<out NettyPacket>) = listeners.containsKey(packetClass)
     fun getListeners(packetClass: Class<out NettyPacket>) = listeners[packetClass]
-
-    private fun Method.isSuspending() = kotlinFunction?.isSuspend == true
 }

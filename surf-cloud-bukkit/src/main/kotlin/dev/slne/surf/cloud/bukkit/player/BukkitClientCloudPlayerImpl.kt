@@ -83,7 +83,6 @@ class BukkitClientCloudPlayerImpl(uuid: UUID) : ClientCloudPlayerImpl<Player>(uu
             location.toLocation(),
             teleportCause.toBukkitTpCause(),
             *bukkitTeleportFlags
-        )
-            .await()
+        ).await()
     }
 }

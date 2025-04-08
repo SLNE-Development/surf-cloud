@@ -5,15 +5,22 @@ import dev.slne.surf.cloud.api.client.netty.packet.fireAndAwaitOrThrow
 import dev.slne.surf.cloud.api.client.netty.packet.fireAndForget
 import dev.slne.surf.cloud.api.common.netty.packet.DEFAULT_URGENT_TIMEOUT
 import dev.slne.surf.cloud.api.common.player.ConnectionResult
+import dev.slne.surf.cloud.api.common.player.name.NameHistory
 import dev.slne.surf.cloud.api.common.player.ppdc.PersistentPlayerDataContainer
-import dev.slne.surf.cloud.api.common.server.CloudServer
-import dev.slne.surf.cloud.api.common.player.teleport.TeleportLocation
 import dev.slne.surf.cloud.api.common.player.teleport.TeleportCause
 import dev.slne.surf.cloud.api.common.player.teleport.TeleportFlag
+import dev.slne.surf.cloud.api.common.player.teleport.TeleportLocation
+import dev.slne.surf.cloud.api.common.server.CloudServer
 import dev.slne.surf.cloud.core.client.util.luckperms
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.*
+import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ServerboundRequestPlayerDataPacket.DataRequestType
+import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ServerboundRequestPlayerDataResponse.IpAddress
+import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ServerboundRequestPlayerDataResponse.LastServer
+import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ServerboundRequestPlayerDataResponse.Name
+import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ServerboundRequestPlayerDataResponse.NameHistory as NameHistoryResponse
 import dev.slne.surf.cloud.core.common.player.CommonCloudPlayerImpl
 import dev.slne.surf.cloud.core.common.player.ppdc.PersistentPlayerDataContainerImpl
+import dev.slne.surf.surfapi.core.api.messages.adventure.getPointer
 import net.kyori.adventure.audience.Audience
 import net.kyori.adventure.audience.MessageType
 import net.kyori.adventure.bossbar.BossBar
@@ -28,6 +35,7 @@ import net.kyori.adventure.title.Title
 import net.kyori.adventure.title.TitlePart
 import net.luckperms.api.model.user.User
 import net.luckperms.api.platform.PlayerAdapter
+import java.net.Inet4Address
 import java.util.*
 import kotlin.time.Duration
 
@@ -38,7 +46,6 @@ abstract class ClientCloudPlayerImpl<PlatformPlayer : Audience>(uuid: UUID) :
 
     @Volatile
     var serverUid: Long? = null
-
     override val connectedToProxy get() = proxyServerUid != null
 
     override val connectedToServer get() = serverUid != null
@@ -50,6 +57,18 @@ abstract class ClientCloudPlayerImpl<PlatformPlayer : Audience>(uuid: UUID) :
     protected abstract val audience: PlatformPlayer?
 
     protected abstract val platformClass: Class<PlatformPlayer>
+
+    override suspend fun latestIpAddress(): Inet4Address {
+        return request<IpAddress>(DataRequestType.LATEST_IP_ADDRESS).ip ?: error("Failed to get IP address")
+    }
+
+    override suspend fun lastServerRaw(): String {
+        return request<LastServer>(DataRequestType.LAST_SERVER).server ?: error("Failed to get last server")
+    }
+
+    override suspend fun nameHistory(): NameHistory {
+        return request<NameHistoryResponse>(DataRequestType.NAME_HISTORY).history
+    }
 
     override suspend fun <R> withPersistentData(block: PersistentPlayerDataContainer.() -> R): R {
         val response = ServerboundRequestPlayerPersistentDataContainer(uuid).fireAndAwaitOrThrow()
@@ -68,14 +87,22 @@ abstract class ClientCloudPlayerImpl<PlatformPlayer : Audience>(uuid: UUID) :
     }
 
     override suspend fun displayName(): Component {
-        val localName =
-            audience?.pointers()?.get(Identity.DISPLAY_NAME)?.orElse(null)
+        val localName = audience?.getPointer(Identity.DISPLAY_NAME)
         if (localName != null) {
             return localName
         }
 
         return ServerboundRequestDisplayNamePacket(uuid).fireAndAwait(DEFAULT_URGENT_TIMEOUT)?.displayName
             ?: error("Failed to get display name (probably timed out)")
+    }
+
+    override suspend fun name(): String {
+        val localName = audience?.getPointer(Identity.NAME)
+        if (localName != null) {
+            return localName
+        }
+        
+        return request<Name>(DataRequestType.NAME).name ?: error("Failed to get name")
     }
 
     override suspend fun connectToServer(server: CloudServer): ConnectionResult {
@@ -289,5 +316,15 @@ abstract class ClientCloudPlayerImpl<PlatformPlayer : Audience>(uuid: UUID) :
 
     protected fun <R> withLuckpermsAdapter(block: (PlayerAdapter<PlatformPlayer>) -> R): R {
         return block(luckperms.getPlayerAdapter(platformClass))
+    }
+
+    private suspend inline fun <reified T : ServerboundRequestPlayerDataResponse.DataResponse> request(
+        type: DataRequestType
+    ): T {
+        val response = ServerboundRequestPlayerDataPacket(uuid, type).fireAndAwaitOrThrow().data
+        if (response !is T) {
+            error("Unexpected response type: ${response::class.simpleName}")
+        }
+        return response
     }
 }

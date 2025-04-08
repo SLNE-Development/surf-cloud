@@ -19,6 +19,47 @@ public final class dev/slne/surf/cloud/api/common/CloudInstanceKt {
 public abstract interface annotation class dev/slne/surf/cloud/api/common/SurfCloudApplication : java/lang/annotation/Annotation {
 }
 
+public final class dev/slne/surf/cloud/api/common/TestPacket : dev/slne/surf/cloud/api/common/netty/packet/NettyPacket {
+	public static final field Companion Ldev/slne/surf/cloud/api/common/TestPacket$Companion;
+	public fun <init> (Ljava/lang/String;IZLjava/util/List;Ljava/util/Map;Ljava/lang/String;Ljava/util/List;Ljava/util/Map;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()I
+	public final fun component3 ()Z
+	public final fun component4 ()Ljava/util/List;
+	public final fun component5 ()Ljava/util/Map;
+	public final fun component6 ()Ljava/lang/String;
+	public final fun component7 ()Ljava/util/List;
+	public final fun component8 ()Ljava/util/Map;
+	public final fun copy (Ljava/lang/String;IZLjava/util/List;Ljava/util/Map;Ljava/lang/String;Ljava/util/List;Ljava/util/Map;)Ldev/slne/surf/cloud/api/common/TestPacket;
+	public static synthetic fun copy$default (Ldev/slne/surf/cloud/api/common/TestPacket;Ljava/lang/String;IZLjava/util/List;Ljava/util/Map;Ljava/lang/String;Ljava/util/List;Ljava/util/Map;ILjava/lang/Object;)Ldev/slne/surf/cloud/api/common/TestPacket;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getBoolean ()Z
+	public final fun getData ()Ljava/lang/String;
+	public final fun getList ()Ljava/util/List;
+	public final fun getMap ()Ljava/util/Map;
+	public final fun getNullable ()Ljava/lang/String;
+	public final fun getNullableList ()Ljava/util/List;
+	public final fun getNullableMap ()Ljava/util/Map;
+	public final fun getNumber ()I
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public synthetic class dev/slne/surf/cloud/api/common/TestPacket$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Ldev/slne/surf/cloud/api/common/TestPacket$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ldev/slne/surf/cloud/api/common/TestPacket;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Ldev/slne/surf/cloud/api/common/TestPacket;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+}
+
+public final class dev/slne/surf/cloud/api/common/TestPacket$Companion {
+	public final fun random ()Ldev/slne/surf/cloud/api/common/TestPacket;
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
 public class dev/slne/surf/cloud/api/common/config/auto/AdventureAutoConfiguration {
 	public fun <init> ()V
 	public fun miniMessage ()Lnet/kyori/adventure/text/minimessage/MiniMessage;

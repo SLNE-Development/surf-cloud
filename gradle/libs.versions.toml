@@ -17,6 +17,7 @@ zstd-jni = "1.5.6-9"
 luckperms-api = "5.4"
 reactive-streams = "1.0.4"
 ehcache = "3.10.8"
+kotlin-byte-buf-serializer = "1.0.0"
 
 
 [libraries]
@@ -65,6 +66,7 @@ spring-aspects = { module = "org.springframework:spring-aspects" }
 flyway-core = { module = "org.flywaydb:flyway-core" }
 flyway-mysql = { module = "org.flywaydb:flyway-mysql" }
 spring-instrument = { module = "org.springframework:spring-instrument" }
+kotlin-byte-buf-serializer = { module = "dev.slne.surf:kotlin-byte-buf-serializer", version.ref = "kotlin-byte-buf-serializer" }
 
 
 [plugins]

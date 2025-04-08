@@ -254,10 +254,7 @@ public abstract interface annotation class dev/slne/surf/cloud/api/common/meta/S
 }
 
 public abstract interface annotation class dev/slne/surf/cloud/api/common/meta/SurfNettyPacketHandler : java/lang/annotation/Annotation {
-	public abstract fun classes ()[Ljava/lang/Class;
-	public abstract fun condition ()Ljava/lang/String;
 	public abstract fun id ()Ljava/lang/String;
-	public abstract fun value ()[Ljava/lang/Class;
 }
 
 public abstract interface class dev/slne/surf/cloud/api/common/netty/NettyClient {
@@ -1237,17 +1234,14 @@ public final class dev/slne/surf/cloud/api/common/netty/packet/NettyPacket$Compa
 }
 
 public final class dev/slne/surf/cloud/api/common/netty/packet/NettyPacketInfo {
-	public static final synthetic fun box-impl (Ldev/slne/surf/cloud/api/common/netty/network/Connection;)Ldev/slne/surf/cloud/api/common/netty/packet/NettyPacketInfo;
-	public static fun constructor-impl (Ldev/slne/surf/cloud/api/common/netty/network/Connection;)Ldev/slne/surf/cloud/api/common/netty/network/Connection;
+	public fun <init> (Ldev/slne/surf/cloud/api/common/netty/network/Connection;)V
+	public final fun component1 ()Ldev/slne/surf/cloud/api/common/netty/network/Connection;
+	public final fun copy (Ldev/slne/surf/cloud/api/common/netty/network/Connection;)Ldev/slne/surf/cloud/api/common/netty/packet/NettyPacketInfo;
+	public static synthetic fun copy$default (Ldev/slne/surf/cloud/api/common/netty/packet/NettyPacketInfo;Ldev/slne/surf/cloud/api/common/netty/network/Connection;ILjava/lang/Object;)Ldev/slne/surf/cloud/api/common/netty/packet/NettyPacketInfo;
 	public fun equals (Ljava/lang/Object;)Z
-	public static fun equals-impl (Ldev/slne/surf/cloud/api/common/netty/network/Connection;Ljava/lang/Object;)Z
-	public static final fun equals-impl0 (Ldev/slne/surf/cloud/api/common/netty/network/Connection;Ldev/slne/surf/cloud/api/common/netty/network/Connection;)Z
 	public final fun getOrigin ()Ldev/slne/surf/cloud/api/common/netty/network/Connection;
 	public fun hashCode ()I
-	public static fun hashCode-impl (Ldev/slne/surf/cloud/api/common/netty/network/Connection;)I
 	public fun toString ()Ljava/lang/String;
-	public static fun toString-impl (Ldev/slne/surf/cloud/api/common/netty/network/Connection;)Ljava/lang/String;
-	public final synthetic fun unbox-impl ()Ldev/slne/surf/cloud/api/common/netty/network/Connection;
 }
 
 public final class dev/slne/surf/cloud/api/common/netty/packet/Packet_extensionKt {

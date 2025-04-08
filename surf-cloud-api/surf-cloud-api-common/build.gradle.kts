@@ -10,6 +10,10 @@ dependencies {
 
     api(libs.aide.reflection)
     api(libs.netty.all)
+    api(libs.kotlin.byte.buf.serializer) {
+        exclude(group = "io.netty")
+    }
+
     api(libs.nbt)
     api(libs.datafixerupper) {
         isTransitive = false

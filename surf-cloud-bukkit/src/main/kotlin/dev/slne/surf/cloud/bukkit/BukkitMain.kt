@@ -6,7 +6,9 @@ import com.github.shynixn.mccoroutine.folia.launch
 import com.github.shynixn.mccoroutine.folia.ticks
 import dev.jorel.commandapi.CommandAPIBukkit
 import dev.jorel.commandapi.kotlindsl.*
+import dev.slne.surf.cloud.api.client.netty.packet.fireAndForget
 import dev.slne.surf.cloud.api.client.paper.player.toCloudOfflinePlayer
+import dev.slne.surf.cloud.api.common.TestPacket
 import dev.slne.surf.cloud.api.common.player.teleport.TeleportCause
 import dev.slne.surf.cloud.api.common.player.teleport.fineLocation
 import dev.slne.surf.cloud.api.common.player.toCloudPlayer
@@ -268,6 +270,13 @@ class BukkitMain : SuspendingJavaPlugin() {
                         }
                     }
                 }
+            }
+        }
+
+        commandAPICommand("send-test-packet") {
+            anyExecutor { sender, args ->
+                TestPacket.random().fireAndForget()
+                sender.sendPlainMessage("Test packet sent")
             }
         }
     }

@@ -1,5 +1,6 @@
 package dev.slne.surf.cloud.api.common.netty.packet
 
+import dev.slne.surf.bytebufserializer.Buf
 import dev.slne.surf.cloud.api.common.meta.PacketCodec
 import dev.slne.surf.cloud.api.common.meta.SurfNettyPacket
 import dev.slne.surf.cloud.api.common.netty.network.codec.StreamCodec
@@ -7,6 +8,9 @@ import dev.slne.surf.cloud.api.common.netty.network.codec.StreamDecoder
 import dev.slne.surf.cloud.api.common.netty.network.codec.StreamMemberEncoder
 import dev.slne.surf.cloud.api.common.util.mutableObject2ObjectMapOf
 import io.netty.buffer.ByteBuf
+import kotlinx.serialization.InternalSerializationApi
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.serializerOrNull
 import kotlin.reflect.KClass
 import kotlin.reflect.full.companionObject
 import kotlin.reflect.full.companionObjectInstance
@@ -69,9 +73,23 @@ private val codecCache = mutableObject2ObjectMapOf<KClass<out NettyPacket>, Stre
  *
  * @return The [StreamCodec] for the packet type, or `null` if not found.
  */
+@OptIn(InternalSerializationApi::class)
 @Suppress("UNCHECKED_CAST")
-fun <B : Any, V : Any> KClass<out NettyPacket>.findPacketCodec(): StreamCodec<in B, out V>? {
+fun <B : ByteBuf, V : NettyPacket> KClass<out V>.findPacketCodec(): StreamCodec<in B, out V>? {
     codecCache[this]?.let { return it as? StreamCodec<in B, out V> }
+
+    val serializer = serializerOrNull()
+    if (serializer != null) {
+        return object : StreamCodec<B, V> {
+            override fun decode(buf: B): V {
+                return Buf.decodeFromBuf(buf, serializer)
+            }
+
+            override fun encode(buf: B, value: V) {
+                Buf.encodeToBuf(buf, serializer as KSerializer<V>, value)
+            }
+        }
+    }
 
     val properties =
         declaredMemberProperties + (companionObject?.declaredMemberProperties ?: emptyList())

@@ -58,4 +58,24 @@ class CloudPlayerService : AbstractExposedDAOService<UUID, CloudPlayerEntity>({
             }
         }
     }
+
+    suspend fun createPlaytimeSession(uuid: UUID, serverName: String, category: String): Long {
+        var id: Long? = null
+        update(uuid, createIfMissing = true) {
+            id = CloudPlayerPlaytimesEntity.new {
+                this.serverName = serverName
+                this.category = category
+                this.player = this@update
+            }.id.value
+        }
+
+        return id ?: error("Failed to create playtime session for player $uuid")
+    }
+
+    suspend fun updatePlaytimeInSession(uuid: UUID, playtimeId: Long, playtimeSeconds: Long) =
+        withTransaction {
+            CloudPlayerPlaytimesEntity.findByIdAndUpdate(playtimeId) {
+                it.durationSeconds = playtimeSeconds
+            }
+        }
 }

@@ -122,20 +122,37 @@ class PlaytimeImpl(private val entries: ObjectList<PlaytimeEntry>) : Playtime {
         since: ZonedDateTime?
     ): Duration {
         if (since == null) {
-            return entries
+            val values = entries
                 .filter { category == null || it.category.equals(category, true) }
                 .groupBy { it.server }
                 .mapValuesTo(mutableObject2ObjectMapOf()) { (_, entry) -> entry.sumOf { it.durationSeconds } }
                 .values
+
+            if (values.isEmpty()) {
+                return Duration.ZERO
+            }
+
+            return values
                 .average()
                 .seconds
         }
 
-        return entries
-            .filter { (category == null || it.category.equals(category, true)) && it.createdAt.isAfter(since) }
+        val values = entries
+            .filter {
+                (category == null || it.category.equals(
+                    category,
+                    true
+                )) && it.createdAt.isAfter(since)
+            }
             .groupBy { it.server }
             .mapValuesTo(mutableObject2ObjectMapOf()) { (_, entry) -> entry.sumOf { it.durationSeconds } }
             .values
+
+        if (values.isEmpty()) {
+            return Duration.ZERO
+        }
+
+        return values
             .average()
             .seconds
     }

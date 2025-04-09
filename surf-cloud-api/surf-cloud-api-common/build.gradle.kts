@@ -9,7 +9,7 @@ dependencies {
     api(libs.bundles.spring.aop)
 
     api(libs.aide.reflection)
-    api(libs.netty.all)
+    api(libs.bundles.netty.all)
     api(libs.kotlin.byte.buf.serializer) {
         exclude(group = "io.netty")
     }

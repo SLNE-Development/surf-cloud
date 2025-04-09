@@ -2,7 +2,6 @@ package dev.slne.surf.cloud.standalone.netty.server.network
 
 import dev.slne.surf.cloud.core.common.netty.network.EncryptionManager
 import dev.slne.surf.cloud.core.common.netty.network.HandlerNames
-import dev.slne.surf.surfapi.core.api.util.logger
 import io.netty.channel.Channel
 import io.netty.handler.ssl.ClientAuth
 import io.netty.handler.ssl.SslContext
@@ -12,8 +11,6 @@ import java.security.cert.CertificateFactory
 import javax.net.ssl.TrustManagerFactory
 
 object ServerEncryptionManager : EncryptionManager() {
-    private val log = logger()
-
     private val serverCertificateFile = certificatesFolder.resolve("server.crt").toFile()
     private val serverKeyFile = certificatesFolder.resolve("server.key").toFile()
     private val clientCertificatesFolder =

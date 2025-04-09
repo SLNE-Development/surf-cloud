@@ -17,7 +17,6 @@ import dev.slne.surf.cloud.api.common.netty.protocol.buffer.types.VarLong
 import dev.slne.surf.cloud.api.common.util.codec.ExtraCodecs
 import dev.slne.surf.cloud.api.common.util.createUnresolvedInetSocketAddress
 import dev.slne.surf.cloud.api.common.util.fromJson
-import dev.slne.surf.surfapi.core.api.util.getCallerClass
 import io.netty.buffer.ByteBuf
 import io.netty.handler.codec.DecoderException
 import io.netty.handler.codec.EncoderException

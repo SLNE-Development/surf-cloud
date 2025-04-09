@@ -6,6 +6,7 @@ import dev.slne.surf.cloud.api.common.meta.SurfNettyPacket
 import dev.slne.surf.cloud.api.common.netty.network.codec.StreamCodec
 import dev.slne.surf.cloud.api.common.netty.network.codec.StreamDecoder
 import dev.slne.surf.cloud.api.common.netty.network.codec.StreamMemberEncoder
+import dev.slne.surf.cloud.api.common.netty.network.codec.kotlinx.SurfCloudBufSerializer
 import dev.slne.surf.cloud.api.common.util.mutableObject2ObjectMapOf
 import io.netty.buffer.ByteBuf
 import kotlinx.serialization.InternalSerializationApi
@@ -82,11 +83,11 @@ fun <B : ByteBuf, V : NettyPacket> KClass<out V>.findPacketCodec(): StreamCodec<
     if (serializer != null) {
         return object : StreamCodec<B, V> {
             override fun decode(buf: B): V {
-                return Buf.decodeFromBuf(buf, serializer)
+                return SurfCloudBufSerializer.serializer.decodeFromBuf(buf, serializer)
             }
 
             override fun encode(buf: B, value: V) {
-                Buf.encodeToBuf(buf, serializer as KSerializer<V>, value)
+                SurfCloudBufSerializer.serializer.encodeToBuf(buf, serializer as KSerializer<V>, value)
             }
         }
     }

@@ -12,6 +12,7 @@ class CloudPlayerEntity(id: EntityID<Long>) : AuditableLongEntity(id, CloudPlaye
     var lastSeen by CloudPlayerTable.lastSeen
     var lastIpAddress by CloudPlayerTable.lastIpAddress
     val nameHistories by CloudPlayerNameHistoryEntity referrersOn CloudPlayerNameHistoryTable.player
+    val playtimes by CloudPlayerPlaytimesEntity referrersOn CloudPlayerPlaytimesTable.player
 }
 
 class CloudPlayerNameHistoryEntity(id: EntityID<Long>) : AuditableLongEntity(
@@ -23,4 +24,17 @@ class CloudPlayerNameHistoryEntity(id: EntityID<Long>) : AuditableLongEntity(
 
     var name by CloudPlayerNameHistoryTable.name
     var player by CloudPlayerEntity referencedOn CloudPlayerNameHistoryTable.player
+}
+
+class CloudPlayerPlaytimesEntity(id: EntityID<Long>) : AuditableLongEntity(
+    id,
+    CloudPlayerPlaytimesTable
+) {
+    companion object :
+        AuditableLongEntityClass<CloudPlayerPlaytimesEntity>(CloudPlayerPlaytimesTable)
+
+    var serverName by CloudPlayerPlaytimesTable.serverName
+    var category by CloudPlayerPlaytimesTable.category
+    var durationSeconds by CloudPlayerPlaytimesTable.durationSeconds
+    var player by CloudPlayerEntity referencedOn CloudPlayerPlaytimesTable.player
 }

@@ -24,6 +24,10 @@ class OfflineCloudPlayerImpl(uuid: UUID) : CommonOfflineCloudPlayerImpl(uuid) {
         return request(DataRequestType.LAST_SEEN)
     }
 
+    override suspend fun firstSeen(): ZonedDateTime? {
+        return request(DataRequestType.FIRST_SEEN)
+    }
+
     override suspend fun latestIpAddress(): Inet4Address? {
         return request(DataRequestType.LATEST_IP_ADDRESS)
     }

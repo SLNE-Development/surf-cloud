@@ -37,6 +37,9 @@ class OfflineCloudPlayerImpl(uuid: UUID) : CommonOfflineCloudPlayerImpl(uuid) {
     override suspend fun lastSeen(): ZonedDateTime? =
         player?.lastSeen() ?: service.findLastSeen(uuid)
 
+    override suspend fun firstSeen(): ZonedDateTime? =
+        player?.firstSeen() ?: service.findFirstSeen(uuid)
+
     override suspend fun latestIpAddress(): Inet4Address? =
         player?.latestIpAddress() ?: service.findLastIpAddress(uuid)
 

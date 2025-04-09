@@ -26,6 +26,7 @@ class CloudPlayerService : AbstractExposedDAOService<UUID, CloudPlayerEntity>({
 
     suspend fun findLastServer(uuid: UUID) = find(uuid) { lastServer }
     suspend fun findLastSeen(uuid: UUID) = find(uuid) { lastSeen }
+    suspend fun findFirstSeen(uuid: UUID) = find(uuid) { createdAt }
     suspend fun findLastIpAddress(uuid: UUID) = find(uuid) { lastIpAddress }
 
     suspend fun updateOnDisconnect(player: StandaloneCloudPlayerImpl, oldServer: Long?) {

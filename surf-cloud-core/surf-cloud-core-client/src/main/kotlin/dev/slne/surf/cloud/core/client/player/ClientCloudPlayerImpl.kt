@@ -14,6 +14,7 @@ import dev.slne.surf.cloud.api.common.server.CloudServer
 import dev.slne.surf.cloud.core.client.util.luckperms
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.*
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ServerboundRequestPlayerDataPacket.DataRequestType
+import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ServerboundRequestPlayerDataResponse.FirstSeen
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ServerboundRequestPlayerDataResponse.IpAddress
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ServerboundRequestPlayerDataResponse.LastServer
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ServerboundRequestPlayerDataResponse.Name
@@ -36,6 +37,7 @@ import net.kyori.adventure.title.TitlePart
 import net.luckperms.api.model.user.User
 import net.luckperms.api.platform.PlayerAdapter
 import java.net.Inet4Address
+import java.time.ZonedDateTime
 import java.util.*
 import kotlin.time.Duration
 
@@ -68,6 +70,10 @@ abstract class ClientCloudPlayerImpl<PlatformPlayer : Audience>(uuid: UUID) :
 
     override suspend fun nameHistory(): NameHistory {
         return request<NameHistoryResponse>(DataRequestType.NAME_HISTORY).history
+    }
+
+    override suspend fun firstSeen(): ZonedDateTime? {
+        return request<FirstSeen>(DataRequestType.FIRST_SEEN).firstSeen
     }
 
     override suspend fun <R> withPersistentData(block: PersistentPlayerDataContainer.() -> R): R {

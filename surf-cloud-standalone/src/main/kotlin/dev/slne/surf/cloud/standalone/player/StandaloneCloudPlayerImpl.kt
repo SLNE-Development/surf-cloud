@@ -36,6 +36,7 @@ import net.kyori.adventure.title.Title
 import net.kyori.adventure.title.TitlePart
 import net.querz.nbt.tag.CompoundTag
 import java.net.Inet4Address
+import java.time.ZonedDateTime
 import java.util.*
 import java.util.concurrent.TimeUnit
 import kotlin.time.Duration
@@ -73,6 +74,8 @@ class StandaloneCloudPlayerImpl(uuid: UUID, val name: String, val ip: Inet4Addre
     private val ppdc = PersistentPlayerDataContainerImpl()
     private val ppdcMutex = Mutex()
 
+    private var firstSeenCache: ZonedDateTime? = null
+
     fun savePlayerData(tag: CompoundTag) {
         if (!ppdc.empty) {
             tag.put("ppdc", ppdc.toTagCompound())
@@ -105,6 +108,12 @@ class StandaloneCloudPlayerImpl(uuid: UUID, val name: String, val ip: Inet4Addre
 
     override suspend fun lastServerRaw(): String {
         return anyServer.name
+    }
+
+    override suspend fun firstSeen(): ZonedDateTime? {
+        return firstSeenCache ?: service.findFirstSeen(uuid).also {
+            firstSeenCache = it
+        }
     }
 
     override suspend fun nameHistory(): NameHistory {

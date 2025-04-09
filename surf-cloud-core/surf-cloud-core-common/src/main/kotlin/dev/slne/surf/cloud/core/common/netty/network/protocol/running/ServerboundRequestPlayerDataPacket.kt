@@ -55,6 +55,11 @@ class ServerboundRequestPlayerDataPacket(val uuid: UUID, val type: DataRequestTy
                 return LastSeen(player.lastSeen())
             }
         },
+        FIRST_SEEN(::FirstSeen) {
+            override suspend fun readData(player: OfflineCloudPlayer): DataResponse {
+                return FirstSeen(player.firstSeen())
+            }
+        },
         DISPLAY_NAME(::DisplayName) {
             override suspend fun readData(player: OfflineCloudPlayer): DataResponse {
                 return DisplayName(player.displayName())
@@ -123,6 +128,14 @@ class ServerboundRequestPlayerDataResponse(val data: DataResponse) : ResponseNet
         }
     }
 
+    class FirstSeen(val firstSeen: ZonedDateTime?) : DataResponse(DataRequestType.FIRST_SEEN) {
+        constructor(buf: SurfByteBuf) : this(buf.readNullable { it.readZonedDateTime() })
+
+        override fun write(buf: SurfByteBuf) {
+            buf.writeNullable(firstSeen) { buf, dateTime -> buf.writeZonedDateTime(dateTime) }
+        }
+    }
+
     class DisplayName(val displayName: Component?) : DataResponse(DataRequestType.DISPLAY_NAME) {
         constructor(buf: SurfByteBuf) : this(buf.readNullable { it.readComponent() })
 
@@ -152,6 +165,7 @@ inline fun <reified T> DataResponse.getGenericValue(): T = when (this) {
     is IpAddress -> check(T::class == Inet4Address::class) { "Expected Inet4Address" }.let { ip as T }
     is LastServer -> check(T::class == String::class) { "Expected String" }.let { server as T }
     is LastSeen -> check(T::class == ZonedDateTime::class) { "Expected ZonedDateTime" }.let { lastSeen as T }
+    is FirstSeen -> check(T::class == ZonedDateTime::class) { "Expected ZonedDateTime" }.let { firstSeen as T }
     is DisplayName -> check(T::class == Component::class) { "Expected Component" }.let { displayName as T }
     is Name -> check(T::class == String::class) { "Expected String" }.let { name as T }
     is NameHistory -> check(T::class == ApiNameHistory::class) { "Expected ApiNameHistory" }.let { history as T }

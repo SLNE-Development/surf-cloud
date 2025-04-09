@@ -17,6 +17,7 @@ interface OfflineCloudPlayer {
     suspend fun lastServerRaw(): String?
     suspend fun lastServer(): CloudServer?
     suspend fun lastSeen(): ZonedDateTime?
+    suspend fun firstSeen(): ZonedDateTime?
     suspend fun latestIpAddress(): Inet4Address?
 
     suspend fun playedBefore(): Boolean

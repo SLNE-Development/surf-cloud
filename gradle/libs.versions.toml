@@ -1,5 +1,5 @@
 [versions]
-velocity-version = "3.4.0-SNAPSHOT"
+velocity-version = "4.0.0-SNAPSHOT"
 aide-reflection = "1.3"
 netty = "4.2.0.Final"
 netty-tcnative = "2.0.70.Final"

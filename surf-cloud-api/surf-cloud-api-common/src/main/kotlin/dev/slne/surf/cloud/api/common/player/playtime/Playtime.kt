@@ -1,6 +1,7 @@
 package dev.slne.surf.cloud.api.common.player.playtime
 
 import dev.slne.surf.cloud.api.common.server.CloudServer
+import io.netty.buffer.ByteBuf
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap
 import it.unimi.dsi.fastutil.objects.ObjectList
 import it.unimi.dsi.fastutil.objects.ObjectSet
@@ -97,6 +98,8 @@ interface Playtime {
      */
     fun playtimesPerCategory(since: ZonedDateTime? = null): Object2ObjectMap<String, Duration>
 
+    fun playtimePerCategoryPerServer(since: ZonedDateTime? = null): Object2ObjectMap<String, Object2ObjectMap<String, Duration>>
+
     /**
      * Returns the average playtime per server, optionally filtered by category and start time.
      *
@@ -174,4 +177,6 @@ interface Playtime {
      * @return An [ObjectList] of pairs, each containing a category name and its corresponding playtime duration.
      */
     fun topCategories(limit: Int = 5, since: ZonedDateTime? = null): ObjectList<Pair<String, Duration>>
+
+    fun writeToByteBuf(buf: ByteBuf)
 }

@@ -1,7 +1,9 @@
 package dev.slne.surf.cloud.standalone.player.db.exposed
 
 import dev.slne.surf.cloud.api.common.player.name.NameHistoryFactory
+import dev.slne.surf.cloud.api.common.util.mutableObjectListOf
 import dev.slne.surf.cloud.api.server.exposed.service.AbstractExposedDAOService
+import dev.slne.surf.cloud.core.common.player.playtime.PlaytimeEntry
 import dev.slne.surf.cloud.standalone.player.StandaloneCloudPlayerImpl
 import dev.slne.surf.cloud.standalone.player.name.create
 import dev.slne.surf.cloud.standalone.server.serverManagerImpl
@@ -78,4 +80,16 @@ class CloudPlayerService : AbstractExposedDAOService<UUID, CloudPlayerEntity>({
                 it.durationSeconds = playtimeSeconds
             }
         }
+
+    suspend fun loadPlaytimeEntries(uuid: UUID) = withTransaction {
+        find(uuid)?.playtimes?.mapTo(mutableObjectListOf()) {
+            PlaytimeEntry(
+                id = it.id.value,
+                category = it.category,
+                server = it.serverName,
+                durationSeconds = it.durationSeconds,
+                createdAt = it.createdAt,
+            )
+        } ?: mutableObjectListOf()
+    }
 }

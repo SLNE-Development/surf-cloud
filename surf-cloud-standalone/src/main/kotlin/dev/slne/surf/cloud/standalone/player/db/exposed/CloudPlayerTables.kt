@@ -1,14 +1,9 @@
 package dev.slne.surf.cloud.standalone.player.db.exposed
 
-import dev.slne.surf.cloud.api.common.config.properties.CloudProperties
 import dev.slne.surf.cloud.api.server.exposed.columns.charUuid
 import dev.slne.surf.cloud.api.server.exposed.columns.inet
 import dev.slne.surf.cloud.api.server.exposed.columns.zonedDateTime
 import dev.slne.surf.cloud.api.server.exposed.table.AuditableLongIdTable
-import dev.slne.surf.cloud.standalone.player.db.exposed.CloudPlayerTable.uuid
-import org.hibernate.mapping.PrimaryKey
-import org.jetbrains.exposed.dao.id.LongIdTable
-import org.jetbrains.exposed.sql.javatime.timestampWithTimeZone
 import java.net.Inet4Address
 
 object CloudPlayerTable : AuditableLongIdTable("cloud_player") {

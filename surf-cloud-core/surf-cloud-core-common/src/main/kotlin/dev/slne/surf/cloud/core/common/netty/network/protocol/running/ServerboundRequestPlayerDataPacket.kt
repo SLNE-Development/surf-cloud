@@ -11,11 +11,13 @@ import dev.slne.surf.cloud.api.common.netty.protocol.buffer.readEnum
 import dev.slne.surf.cloud.api.common.player.OfflineCloudPlayer
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ServerboundRequestPlayerDataPacket.DataRequestType
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ServerboundRequestPlayerDataResponse.*
+import dev.slne.surf.cloud.core.common.player.playtime.PlaytimeImpl
 import net.kyori.adventure.text.Component
 import java.net.Inet4Address
 import java.time.ZonedDateTime
 import java.util.*
 import dev.slne.surf.cloud.api.common.player.name.NameHistory as ApiNameHistory
+import dev.slne.surf.cloud.api.common.player.playtime.Playtime as ApiPlaytime
 
 @SurfNettyPacket("cloud:request:player_data", PacketFlow.SERVERBOUND)
 class ServerboundRequestPlayerDataPacket(val uuid: UUID, val type: DataRequestType) :
@@ -73,6 +75,11 @@ class ServerboundRequestPlayerDataPacket(val uuid: UUID, val type: DataRequestTy
         NAME_HISTORY(::NameHistory) {
             override suspend fun readData(player: OfflineCloudPlayer): DataResponse {
                 return NameHistory(player.nameHistory())
+            }
+        },
+        PLAYTIME(::Playtime) {
+            override suspend fun readData(player: OfflineCloudPlayer): DataResponse {
+                return Playtime(player.playtime())
             }
         };
 
@@ -159,6 +166,14 @@ class ServerboundRequestPlayerDataResponse(val data: DataResponse) : ResponseNet
             history.writeToByteBuf(buf)
         }
     }
+
+    class Playtime(val playtime: ApiPlaytime) : DataResponse(DataRequestType.PLAYTIME) {
+        constructor(buf: SurfByteBuf) : this(PlaytimeImpl.readFromByteBuf(buf))
+
+        override fun write(buf: SurfByteBuf) {
+            playtime.writeToByteBuf(buf)
+        }
+    }
 }
 
 inline fun <reified T> DataResponse.getGenericValue(): T = when (this) {
@@ -169,5 +184,6 @@ inline fun <reified T> DataResponse.getGenericValue(): T = when (this) {
     is DisplayName -> check(T::class == Component::class) { "Expected Component" }.let { displayName as T }
     is Name -> check(T::class == String::class) { "Expected String" }.let { name as T }
     is NameHistory -> check(T::class == ApiNameHistory::class) { "Expected ApiNameHistory" }.let { history as T }
+    is Playtime -> check(T::class == ApiPlaytime::class) { "Expected ApiPlaytime" }.let { playtime as T }
     else -> error("Unknown DataResponse type: ${this::class.simpleName}")
 }

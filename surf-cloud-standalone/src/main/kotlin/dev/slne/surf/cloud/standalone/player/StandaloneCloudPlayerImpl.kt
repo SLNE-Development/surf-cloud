@@ -4,6 +4,7 @@ import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
 import dev.slne.surf.cloud.api.common.player.ConnectionResult
 import dev.slne.surf.cloud.api.common.player.ConnectionResultEnum
 import dev.slne.surf.cloud.api.common.player.name.NameHistory
+import dev.slne.surf.cloud.api.common.player.playtime.Playtime
 import dev.slne.surf.cloud.api.common.player.ppdc.PersistentPlayerDataContainer
 import dev.slne.surf.cloud.api.common.player.teleport.TeleportCause
 import dev.slne.surf.cloud.api.common.player.teleport.TeleportFlag
@@ -13,12 +14,17 @@ import dev.slne.surf.cloud.api.server.server.ServerCommonCloudServer
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.*
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ServerboundTransferPlayerPacketResponse.Status
 import dev.slne.surf.cloud.core.common.player.CommonCloudPlayerImpl
+import dev.slne.surf.cloud.core.common.player.playtime.PlaytimeEntry
+import dev.slne.surf.cloud.core.common.player.playtime.PlaytimeImpl
 import dev.slne.surf.cloud.core.common.player.ppdc.PersistentPlayerDataContainerImpl
 import dev.slne.surf.cloud.core.common.util.bean
 import dev.slne.surf.cloud.standalone.player.db.exposed.CloudPlayerService
 import dev.slne.surf.cloud.standalone.server.StandaloneCloudServerImpl
 import dev.slne.surf.cloud.standalone.server.StandaloneProxyCloudServerImpl
 import dev.slne.surf.surfapi.core.api.util.logger
+import dev.slne.surf.surfapi.core.api.util.mutableObjectListOf
+import dev.slne.surf.surfapi.core.api.util.toObjectList
+import it.unimi.dsi.fastutil.objects.ObjectList
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -47,6 +53,7 @@ class StandaloneCloudPlayerImpl(uuid: UUID, val name: String, val ip: Inet4Addre
     companion object {
         private val log = logger()
         private val service by lazy { bean<CloudPlayerService>() }
+        private val playtimeManager by lazy { bean<CloudPlayerPlaytimeManager>() }
     }
 
     @Volatile
@@ -104,6 +111,32 @@ class StandaloneCloudPlayerImpl(uuid: UUID, val name: String, val ip: Inet4Addre
 
     override suspend fun latestIpAddress(): Inet4Address {
         return ip
+    }
+
+    override suspend fun playtime(): Playtime {
+        val dbPlaytimes = service.loadPlaytimeEntries(uuid)
+        val memoryPlaytimes = createMemoryEntriesFromSessions()
+        dbPlaytimes.removeIf {db -> memoryPlaytimes.any { mem -> db.id == mem.id  } }
+        val allPlaytimes = dbPlaytimes + memoryPlaytimes
+
+        if (allPlaytimes.isEmpty()) {
+            return PlaytimeImpl.EMPTY
+        }
+
+        return PlaytimeImpl(allPlaytimes.toObjectList())
+    }
+
+    private suspend fun createMemoryEntriesFromSessions(): ObjectList<PlaytimeEntry> {
+        val session = playtimeManager.playtimeSessionFor(uuid) ?: return mutableObjectListOf()
+        return mutableObjectListOf(
+            PlaytimeEntry(
+                id = session.sessionId,
+                category = session.category,
+                server = session.serverName,
+                durationSeconds = session.accumulatedSeconds,
+                createdAt = session.startTime,
+            )
+        )
     }
 
     override suspend fun lastServerRaw(): String {

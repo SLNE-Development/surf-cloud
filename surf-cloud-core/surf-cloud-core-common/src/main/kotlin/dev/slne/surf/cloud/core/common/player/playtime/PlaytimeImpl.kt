@@ -1,9 +1,9 @@
 package dev.slne.surf.cloud.core.common.player.playtime
 
+import dev.slne.surf.cloud.api.common.netty.protocol.buffer.*
 import dev.slne.surf.cloud.api.common.player.playtime.Playtime
-import dev.slne.surf.cloud.api.common.util.mutableObject2ObjectMapOf
-import dev.slne.surf.cloud.api.common.util.mutableObjectSetOf
-import dev.slne.surf.cloud.api.common.util.toObjectList
+import dev.slne.surf.cloud.api.common.util.*
+import io.netty.buffer.ByteBuf
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap
 import it.unimi.dsi.fastutil.objects.ObjectList
 import it.unimi.dsi.fastutil.objects.ObjectSet
@@ -75,6 +75,17 @@ class PlaytimeImpl(private val entries: ObjectList<PlaytimeEntry>) : Playtime {
                 group.sumOf { it.durationSeconds }.seconds
             }
 
+    override fun playtimePerCategoryPerServer(since: ZonedDateTime?): Object2ObjectMap<String, Object2ObjectMap<String, Duration>> =
+        entries.filter { since == null || it.createdAt.isAfter(since) }
+            .groupBy { it.category }
+            .mapValuesTo(mutableObject2ObjectMapOf()) { (_, groupEntries) ->
+                groupEntries.groupBy { it.server }
+                    .mapValuesTo(mutableObject2ObjectMapOf()) { (_, serverEntries) ->
+                        serverEntries.sumOf { it.durationSeconds }.seconds
+                    }
+            }
+
+
     override fun averagePlaytimePerServer(
         category: String?,
         since: ZonedDateTime?
@@ -133,6 +144,22 @@ class PlaytimeImpl(private val entries: ObjectList<PlaytimeEntry>) : Playtime {
         .sortedByDescending { it.second }
         .take(limit)
         .toObjectList()
+
+    override fun writeToByteBuf(buf: ByteBuf) {
+        buf.writeCollection(entries) { buf, entry -> entry.writeToByteBuf(buf) }
+    }
+
+    companion object {
+        val EMPTY = PlaytimeImpl(objectListOf())
+
+        fun readFromByteBuf(buf: ByteBuf): PlaytimeImpl {
+            val entries = buf.readCollection(
+                { mutableObjectListOf(it) },
+                { PlaytimeEntry.readFromByteBuf(it) }
+            )
+            return PlaytimeImpl(entries)
+        }
+    }
 }
 
 /**
@@ -159,8 +186,28 @@ private fun floorToInterval(time: ZonedDateTime, interval: Duration): ZonedDateT
  */
 @Serializable
 data class PlaytimeEntry(
+    val id: Long?,
     val category: String,
     val server: String,
     val durationSeconds: Long,
     val createdAt: @Contextual ZonedDateTime,
-)
+) {
+    fun writeToByteBuf(buf: ByteBuf) {
+        buf.writeNullableLong(id)
+        buf.writeUtf(category)
+        buf.writeUtf(server)
+        buf.writeLong(durationSeconds)
+        buf.writeZonedDateTime(createdAt)
+    }
+
+    companion object {
+        fun readFromByteBuf(buf: ByteBuf): PlaytimeEntry {
+            val id = buf.readNullableLong()
+            val category = buf.readUtf()
+            val server = buf.readUtf()
+            val durationSeconds = buf.readLong()
+            val createdAt = buf.readZonedDateTime()
+            return PlaytimeEntry(id, category, server, durationSeconds, createdAt)
+        }
+    }
+}

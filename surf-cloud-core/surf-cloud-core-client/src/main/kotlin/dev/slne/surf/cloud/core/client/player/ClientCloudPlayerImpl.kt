@@ -6,6 +6,7 @@ import dev.slne.surf.cloud.api.client.netty.packet.fireAndForget
 import dev.slne.surf.cloud.api.common.netty.packet.DEFAULT_URGENT_TIMEOUT
 import dev.slne.surf.cloud.api.common.player.ConnectionResult
 import dev.slne.surf.cloud.api.common.player.name.NameHistory
+import dev.slne.surf.cloud.api.common.player.playtime.Playtime
 import dev.slne.surf.cloud.api.common.player.ppdc.PersistentPlayerDataContainer
 import dev.slne.surf.cloud.api.common.player.teleport.TeleportCause
 import dev.slne.surf.cloud.api.common.player.teleport.TeleportFlag
@@ -14,11 +15,7 @@ import dev.slne.surf.cloud.api.common.server.CloudServer
 import dev.slne.surf.cloud.core.client.util.luckperms
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.*
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ServerboundRequestPlayerDataPacket.DataRequestType
-import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ServerboundRequestPlayerDataResponse.FirstSeen
-import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ServerboundRequestPlayerDataResponse.IpAddress
-import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ServerboundRequestPlayerDataResponse.LastServer
-import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ServerboundRequestPlayerDataResponse.Name
-import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ServerboundRequestPlayerDataResponse.NameHistory as NameHistoryResponse
+import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ServerboundRequestPlayerDataResponse.*
 import dev.slne.surf.cloud.core.common.player.CommonCloudPlayerImpl
 import dev.slne.surf.cloud.core.common.player.ppdc.PersistentPlayerDataContainerImpl
 import dev.slne.surf.surfapi.core.api.messages.adventure.getPointer
@@ -40,6 +37,7 @@ import java.net.Inet4Address
 import java.time.ZonedDateTime
 import java.util.*
 import kotlin.time.Duration
+import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ServerboundRequestPlayerDataResponse.NameHistory as NameHistoryResponse
 
 abstract class ClientCloudPlayerImpl<PlatformPlayer : Audience>(uuid: UUID) :
     CommonCloudPlayerImpl(uuid) {
@@ -100,6 +98,10 @@ abstract class ClientCloudPlayerImpl<PlatformPlayer : Audience>(uuid: UUID) :
 
         return ServerboundRequestDisplayNamePacket(uuid).fireAndAwait(DEFAULT_URGENT_TIMEOUT)?.displayName
             ?: error("Failed to get display name (probably timed out)")
+    }
+
+    override suspend fun playtime(): Playtime {
+        return request<ServerboundRequestPlayerDataResponse.Playtime>(DataRequestType.PLAYTIME).playtime
     }
 
     override suspend fun name(): String {
@@ -324,7 +326,7 @@ abstract class ClientCloudPlayerImpl<PlatformPlayer : Audience>(uuid: UUID) :
         return block(luckperms.getPlayerAdapter(platformClass))
     }
 
-    private suspend inline fun <reified T : ServerboundRequestPlayerDataResponse.DataResponse> request(
+    private suspend inline fun <reified T : DataResponse> request(
         type: DataRequestType
     ): T {
         val response = ServerboundRequestPlayerDataPacket(uuid, type).fireAndAwaitOrThrow().data

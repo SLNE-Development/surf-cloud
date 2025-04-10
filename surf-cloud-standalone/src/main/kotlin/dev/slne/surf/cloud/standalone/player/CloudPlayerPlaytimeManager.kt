@@ -162,6 +162,8 @@ class CloudPlayerPlaytimeManager(private val service: CloudPlayerService) : Disp
         service.updatePlaytimeInSession(playerId, sessionId, session.accumulatedSeconds)
     }
 
+    suspend fun playtimeSessionFor(uuid: UUID) = sessionsMutex.withLock { sessions[uuid] }
+
     data class PlaytimeSession(
         var sessionId: Long?,
         val serverName: String,

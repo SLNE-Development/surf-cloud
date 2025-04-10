@@ -2,6 +2,7 @@ package dev.slne.surf.cloud.core.client.player
 
 import dev.slne.surf.cloud.api.client.netty.packet.fireAndAwaitOrThrow
 import dev.slne.surf.cloud.api.common.player.name.NameHistory
+import dev.slne.surf.cloud.api.common.player.playtime.Playtime
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ServerboundRequestPlayerDataPacket
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ServerboundRequestPlayerDataPacket.DataRequestType
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.getGenericValue
@@ -38,6 +39,10 @@ class OfflineCloudPlayerImpl(uuid: UUID) : CommonOfflineCloudPlayerImpl(uuid) {
 
     override suspend fun name(): String? {
         return request(DataRequestType.NAME)
+    }
+
+    override suspend fun playtime(): Playtime {
+        return request(DataRequestType.PLAYTIME)
     }
 
     override suspend fun <R> getLuckpermsMetaData(

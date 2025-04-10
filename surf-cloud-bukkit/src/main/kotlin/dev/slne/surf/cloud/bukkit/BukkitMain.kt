@@ -323,6 +323,26 @@ class BukkitMain : SuspendingJavaPlugin() {
                 }
             }
         }
+
+        commandAPICommand("lastSeen") {
+            offlinePlayerArgument("player")
+            anyExecutor { sender, args ->
+                val player: OfflinePlayer by args
+                val cloudPlayer = player.toCloudOfflinePlayer()
+                launch {
+                    val lastSeen = cloudPlayer.lastSeen()
+                    sender.sendText {
+                        appendPrefix()
+                        info("Last seen for player ${player.name} (${player.uniqueId})")
+                        appendNewPrefixedLine {
+                            variableKey("Last Seen")
+                            spacer(": ")
+                            variableValue(lastSeen?.toString() ?: "#Unknown")
+                        }
+                    }
+                }
+            }
+        }
     }
 
     @OptIn(ExperimentalContracts::class)

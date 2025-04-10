@@ -1,7 +1,9 @@
 package dev.slne.surf.cloud.standalone.player.db.exposed
 
 import dev.slne.surf.cloud.api.common.player.name.NameHistoryFactory
+import dev.slne.surf.cloud.api.common.util.mutableObjectListOf
 import dev.slne.surf.cloud.api.server.exposed.service.AbstractExposedDAOService
+import dev.slne.surf.cloud.core.common.player.playtime.PlaytimeEntry
 import dev.slne.surf.cloud.standalone.player.StandaloneCloudPlayerImpl
 import dev.slne.surf.cloud.standalone.player.name.create
 import dev.slne.surf.cloud.standalone.server.serverManagerImpl
@@ -26,6 +28,7 @@ class CloudPlayerService : AbstractExposedDAOService<UUID, CloudPlayerEntity>({
 
     suspend fun findLastServer(uuid: UUID) = find(uuid) { lastServer }
     suspend fun findLastSeen(uuid: UUID) = find(uuid) { lastSeen }
+    suspend fun findFirstSeen(uuid: UUID) = find(uuid) { createdAt }
     suspend fun findLastIpAddress(uuid: UUID) = find(uuid) { lastIpAddress }
 
     suspend fun updateOnDisconnect(player: StandaloneCloudPlayerImpl, oldServer: Long?) {
@@ -56,5 +59,37 @@ class CloudPlayerService : AbstractExposedDAOService<UUID, CloudPlayerEntity>({
                 }
             }
         }
+    }
+
+    suspend fun createPlaytimeSession(uuid: UUID, serverName: String, category: String): Long {
+        var id: Long? = null
+        update(uuid, createIfMissing = true) {
+            id = CloudPlayerPlaytimesEntity.new {
+                this.serverName = serverName
+                this.category = category
+                this.player = this@update
+            }.id.value
+        }
+
+        return id ?: error("Failed to create playtime session for player $uuid")
+    }
+
+    suspend fun updatePlaytimeInSession(uuid: UUID, playtimeId: Long, playtimeSeconds: Long) =
+        withTransaction {
+            CloudPlayerPlaytimesEntity.findByIdAndUpdate(playtimeId) {
+                it.durationSeconds = playtimeSeconds
+            }
+        }
+
+    suspend fun loadPlaytimeEntries(uuid: UUID) = withTransaction {
+        find(uuid)?.playtimes?.mapTo(mutableObjectListOf()) {
+            PlaytimeEntry(
+                id = it.id.value,
+                category = it.category,
+                server = it.serverName,
+                durationSeconds = it.durationSeconds,
+                createdAt = it.createdAt,
+            )
+        } ?: mutableObjectListOf()
     }
 }

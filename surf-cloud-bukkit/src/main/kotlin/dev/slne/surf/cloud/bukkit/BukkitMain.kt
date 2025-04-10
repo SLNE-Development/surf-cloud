@@ -16,6 +16,7 @@ import dev.slne.surf.cloud.api.common.server.CloudServerManager
 import dev.slne.surf.cloud.bukkit.player.BukkitClientCloudPlayerImpl
 import dev.slne.surf.cloud.core.common.handleEventuallyFatalError
 import dev.slne.surf.surfapi.bukkit.api.event.listen
+import dev.slne.surf.surfapi.core.api.messages.Colors
 import dev.slne.surf.surfapi.core.api.messages.CommonComponents
 import dev.slne.surf.surfapi.core.api.messages.adventure.buildText
 import dev.slne.surf.surfapi.core.api.messages.adventure.sendText
@@ -277,6 +278,89 @@ class BukkitMain : SuspendingJavaPlugin() {
             anyExecutor { sender, args ->
                 TestPacket.random().fireAndForget()
                 sender.sendPlainMessage("Test packet sent")
+            }
+        }
+
+        commandAPICommand("playtime") {
+            offlinePlayerArgument("player")
+            anyExecutor { sender, args ->
+                val player: OfflinePlayer by args
+                val cloudPlayer = player.toCloudOfflinePlayer()
+                launch {
+                    val playtime = cloudPlayer.playtime()
+                    val complete = playtime.sumPlaytimes()
+                    val playtimeMap = playtime.playtimePerCategoryPerServer()
+
+                    sender.sendText {
+                        appendPrefix()
+                        info("Playtime for player ${player.name} (${player.uniqueId})")
+                        appendNewPrefixedLine()
+                        appendNewPrefixedLine {
+                            variableKey("Total")
+                            spacer(": ")
+                            variableValue(complete.toString())
+                        }
+                        appendNewPrefixedLine()
+                        for ((group, groupServer) in playtimeMap) {
+                            appendNewPrefixedLine {
+                                spacer("- ")
+                                variableKey(group)
+                                spacer(": ")
+                                variableValue(playtime.sumByCategory(group).toString())
+
+                                for ((serverName, playtime) in groupServer) {
+                                    appendNewPrefixedLine {
+                                        text("    ")
+                                        variableKey(serverName)
+                                        spacer(": ")
+                                        variableValue(playtime.toString())
+                                    }
+                                }
+                                appendNewPrefixedLine()
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        commandAPICommand("lastSeen") {
+            offlinePlayerArgument("player")
+            anyExecutor { sender, args ->
+                val player: OfflinePlayer by args
+                val cloudPlayer = player.toCloudOfflinePlayer()
+                launch {
+                    val lastSeen = cloudPlayer.lastSeen()
+                    sender.sendText {
+                        appendPrefix()
+                        info("Last seen for player ${player.name} (${player.uniqueId})")
+                        appendNewPrefixedLine {
+                            variableKey("Last Seen")
+                            spacer(": ")
+                            variableValue(lastSeen?.toString() ?: "#Unknown")
+                        }
+                    }
+                }
+            }
+        }
+
+        commandAPICommand("currentSessionDuration") {
+            entitySelectorArgumentOnePlayer("player")
+            anyExecutor { sender, args ->
+                val player: Player by args
+                val cloudPlayer = player.toCloudPlayer()
+                launch {
+                    val currentSessionDuration = cloudPlayer?.currentSessionDuration()
+                    sender.sendText {
+                        appendPrefix()
+                        info("Current session duration for player ${player.name} (${player.uniqueId})")
+                        appendNewPrefixedLine {
+                            variableKey("Current Session Duration")
+                            spacer(": ")
+                            variableValue(currentSessionDuration?.toString() ?: "#Unknown")
+                        }
+                    }
+                }
             }
         }
     }

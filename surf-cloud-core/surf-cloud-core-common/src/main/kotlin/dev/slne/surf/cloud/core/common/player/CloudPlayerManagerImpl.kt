@@ -1,18 +1,21 @@
 package dev.slne.surf.cloud.core.common.player
 
 import dev.slne.surf.cloud.api.common.event.player.connection.CloudPlayerConnectToNetworkEvent
+import dev.slne.surf.cloud.api.common.event.player.connection.CloudPlayerDisconnectFromNetworkEvent
 import dev.slne.surf.cloud.api.common.player.CloudPlayerManager
 import dev.slne.surf.cloud.api.common.server.UserList
 import dev.slne.surf.cloud.api.common.server.UserListImpl
 import dev.slne.surf.cloud.api.common.util.mutableObject2ObjectMapOf
 import dev.slne.surf.cloud.api.common.util.synchronize
 import dev.slne.surf.cloud.core.common.util.publish
+import dev.slne.surf.surfapi.core.api.util.logger
 import it.unimi.dsi.fastutil.objects.Object2ObjectArrayMap
 import org.jetbrains.annotations.MustBeInvokedByOverriders
 import java.net.Inet4Address
 import java.util.*
 
 abstract class CloudPlayerManagerImpl<P : CommonCloudPlayerImpl> : CloudPlayerManager {
+    private val log = logger()
     protected val players = mutableObject2ObjectMapOf<UUID, P>().synchronize()
 
     override fun getPlayer(uuid: UUID?): P? {
@@ -118,11 +121,24 @@ abstract class CloudPlayerManagerImpl<P : CommonCloudPlayerImpl> : CloudPlayerMa
 
     @MustBeInvokedByOverriders
     open suspend fun onNetworkDisconnect(uuid: UUID, player: P, oldProxy: Long?, oldServer: Long?) {
+        try {
+            CloudPlayerDisconnectFromNetworkEvent(this, player).publish()
+        } catch (e: Throwable) {
+            log.atWarning()
+                .withCause(e)
+                .log("Failed to publish CloudPlayerDisconnectFromNetworkEvent")
+        }
     }
 
     @MustBeInvokedByOverriders
     open suspend fun onNetworkConnect(uuid: UUID, player: P) {
-        CloudPlayerConnectToNetworkEvent(this, player).publish()
+        try {
+            CloudPlayerConnectToNetworkEvent(this, player).publish()
+        } catch (e: Throwable) {
+            log.atWarning()
+                .withCause(e)
+                .log("Failed to publish CloudPlayerConnectToNetworkEvent")
+        }
     }
 
     open fun terminate() {}

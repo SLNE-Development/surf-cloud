@@ -17,7 +17,6 @@ import dev.slne.surf.cloud.api.common.netty.protocol.buffer.types.VarLong
 import dev.slne.surf.cloud.api.common.util.codec.ExtraCodecs
 import dev.slne.surf.cloud.api.common.util.createUnresolvedInetSocketAddress
 import dev.slne.surf.cloud.api.common.util.fromJson
-import dev.slne.surf.surfapi.core.api.util.getCallerClass
 import io.netty.buffer.ByteBuf
 import io.netty.handler.codec.DecoderException
 import io.netty.handler.codec.EncoderException
@@ -39,6 +38,8 @@ import java.util.function.Consumer
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
 import kotlin.reflect.KClass
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
 
 private const val NUMBER_BYTE: Byte = 0
 private const val NUMBER_SHORT: Byte = 1
@@ -661,6 +662,14 @@ open class SurfByteBuf(source: ByteBuf) : WrappedByteBuf(source) {
             return Class.forName(className, true, classLoader).kotlin.objectInstance
                 ?: throw DecoderException("Failed to read singleton: $className")
         }
+
+        fun <B: ByteBuf> writeDuration(buf: B, duration: Duration) {
+            buf.writeLong(duration.inWholeMilliseconds)
+        }
+
+        fun <B: ByteBuf> readDuration(buf: B): Duration {
+            return buf.readLong().milliseconds
+        }
     }
 
 
@@ -836,6 +845,8 @@ open class SurfByteBuf(source: ByteBuf) : WrappedByteBuf(source) {
     fun readInet4Address() = readInet4Address(this)
     fun writeSingleton(singleton: Any) = writeSingleton(this, singleton)
     fun readSingleton(classLoader: ClassLoader) = readSingleton(this, classLoader)
+    fun writeDuration(duration: Duration) = writeDuration(this, duration)
+    fun readDuration() = readDuration(this)
     // @formatter:on
 // endregion
 
@@ -1067,6 +1078,9 @@ fun <B : ByteBuf> B.writeInet4Address(address: Inet4Address) = SurfByteBuf.write
 
 fun <B : ByteBuf> B.readSingleton(classLoader: ClassLoader) = SurfByteBuf.readSingleton(this, classLoader)
 fun <B : ByteBuf> B.writeSingleton(singleton: Any) = SurfByteBuf.writeSingleton(this, singleton)
+
+fun <B : ByteBuf> B.writeDuration(duration: Duration) = SurfByteBuf.writeDuration(this, duration)
+fun <B : ByteBuf> B.readDuration() = SurfByteBuf.readDuration(this)
 
 fun ByteBuf.wrap() = SurfByteBuf(this)
 // endregion

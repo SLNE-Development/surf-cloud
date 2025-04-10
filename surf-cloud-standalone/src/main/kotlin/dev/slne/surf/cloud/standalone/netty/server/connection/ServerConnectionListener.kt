@@ -2,8 +2,11 @@ package dev.slne.surf.cloud.standalone.netty.server.connection
 
 import dev.slne.surf.cloud.api.common.netty.network.protocol.PacketFlow
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
-import dev.slne.surf.cloud.api.common.util.*
+import dev.slne.surf.cloud.api.common.util.DefaultUncaughtExceptionHandlerWithName
+import dev.slne.surf.cloud.api.common.util.mutableObjectListOf
 import dev.slne.surf.cloud.api.common.util.netty.suspend
+import dev.slne.surf.cloud.api.common.util.synchronize
+import dev.slne.surf.cloud.api.common.util.threadFactory
 import dev.slne.surf.cloud.core.common.config.cloudConfig
 import dev.slne.surf.cloud.core.common.coroutines.ConnectionManagementScope
 import dev.slne.surf.cloud.core.common.netty.network.ConnectionImpl
@@ -18,10 +21,10 @@ import dev.slne.surf.surfapi.core.api.util.logger
 import io.netty.bootstrap.ServerBootstrap
 import io.netty.channel.*
 import io.netty.channel.epoll.Epoll
-import io.netty.channel.epoll.EpollEventLoopGroup
+import io.netty.channel.epoll.EpollIoHandler
 import io.netty.channel.epoll.EpollServerDomainSocketChannel
 import io.netty.channel.epoll.EpollServerSocketChannel
-import io.netty.channel.nio.NioEventLoopGroup
+import io.netty.channel.nio.NioIoHandler
 import io.netty.channel.socket.nio.NioServerSocketChannel
 import io.netty.channel.unix.DomainSocketAddress
 import io.netty.handler.flush.FlushConsolidationHandler
@@ -215,22 +218,20 @@ class ServerConnectionListener(val server: NettyServerImpl) {
         private val log = logger()
 
         val SERVER_EVENT_GROUP by lazy {
-            NioEventLoopGroup(
-                threadFactory {
-                    nameFormat("Netty Server IO #%d")
-                    daemon(true)
-                    uncaughtExceptionHandler(DefaultUncaughtExceptionHandlerWithName(log))
-                }
-            )
+            MultiThreadIoEventLoopGroup(threadFactory {
+                nameFormat("Netty Server IO #%d")
+                daemon(true)
+                uncaughtExceptionHandler(DefaultUncaughtExceptionHandlerWithName(log))
+            }, NioIoHandler.newFactory())
         }
 
         val SERVER_EPOLL_EVENT_GROUP by lazy {
-            EpollEventLoopGroup(
+            MultiThreadIoEventLoopGroup(
                 threadFactory {
                     nameFormat("Netty Epoll Server IO #%d")
                     daemon(true)
                     uncaughtExceptionHandler(DefaultUncaughtExceptionHandlerWithName(log))
-                }
+                }, EpollIoHandler.newFactory()
             )
         }
     }

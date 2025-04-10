@@ -121,3 +121,8 @@ object PlayerDatabaseScope : BaseScope(
     dispatcher = newSingleThreadContext("player-database-thread"),
     name = "player-database"
 )
+
+object PlayerPlaytimeScope : BaseScope(
+    dispatcher = Dispatchers.IO,
+    name = "player-playtime"
+)

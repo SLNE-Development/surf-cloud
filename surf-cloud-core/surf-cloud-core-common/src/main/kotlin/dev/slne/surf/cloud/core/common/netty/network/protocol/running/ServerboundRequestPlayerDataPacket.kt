@@ -11,11 +11,14 @@ import dev.slne.surf.cloud.api.common.netty.protocol.buffer.readEnum
 import dev.slne.surf.cloud.api.common.player.OfflineCloudPlayer
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ServerboundRequestPlayerDataPacket.DataRequestType
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ServerboundRequestPlayerDataResponse.*
+import dev.slne.surf.cloud.core.common.player.playtime.PlaytimeImpl
 import net.kyori.adventure.text.Component
 import java.net.Inet4Address
 import java.time.ZonedDateTime
 import java.util.*
+import kotlin.time.Duration
 import dev.slne.surf.cloud.api.common.player.name.NameHistory as ApiNameHistory
+import dev.slne.surf.cloud.api.common.player.playtime.Playtime as ApiPlaytime
 
 @SurfNettyPacket("cloud:request:player_data", PacketFlow.SERVERBOUND)
 class ServerboundRequestPlayerDataPacket(val uuid: UUID, val type: DataRequestType) :
@@ -55,6 +58,11 @@ class ServerboundRequestPlayerDataPacket(val uuid: UUID, val type: DataRequestTy
                 return LastSeen(player.lastSeen())
             }
         },
+        FIRST_SEEN(::FirstSeen) {
+            override suspend fun readData(player: OfflineCloudPlayer): DataResponse {
+                return FirstSeen(player.firstSeen())
+            }
+        },
         DISPLAY_NAME(::DisplayName) {
             override suspend fun readData(player: OfflineCloudPlayer): DataResponse {
                 return DisplayName(player.displayName())
@@ -68,6 +76,23 @@ class ServerboundRequestPlayerDataPacket(val uuid: UUID, val type: DataRequestTy
         NAME_HISTORY(::NameHistory) {
             override suspend fun readData(player: OfflineCloudPlayer): DataResponse {
                 return NameHistory(player.nameHistory())
+            }
+        },
+        PLAYTIME(::Playtime) {
+            override suspend fun readData(player: OfflineCloudPlayer): DataResponse {
+                return Playtime(player.playtime())
+            }
+        },
+        IS_AFK(::IsAFK) {
+            override suspend fun readData(player: OfflineCloudPlayer): DataResponse {
+                val player= player.player ?: error("Player is not online")
+                return IsAFK(player.isAfk())
+            }
+        },
+        PLAYTIME_SESSION(::PlaytimeSession) {
+            override suspend fun readData(player: OfflineCloudPlayer): DataResponse {
+                val player= player.player ?: error("Player is not online")
+                return PlaytimeSession(player.currentSessionDuration())
             }
         };
 
@@ -123,6 +148,14 @@ class ServerboundRequestPlayerDataResponse(val data: DataResponse) : ResponseNet
         }
     }
 
+    class FirstSeen(val firstSeen: ZonedDateTime?) : DataResponse(DataRequestType.FIRST_SEEN) {
+        constructor(buf: SurfByteBuf) : this(buf.readNullable { it.readZonedDateTime() })
+
+        override fun write(buf: SurfByteBuf) {
+            buf.writeNullable(firstSeen) { buf, dateTime -> buf.writeZonedDateTime(dateTime) }
+        }
+    }
+
     class DisplayName(val displayName: Component?) : DataResponse(DataRequestType.DISPLAY_NAME) {
         constructor(buf: SurfByteBuf) : this(buf.readNullable { it.readComponent() })
 
@@ -146,14 +179,42 @@ class ServerboundRequestPlayerDataResponse(val data: DataResponse) : ResponseNet
             history.writeToByteBuf(buf)
         }
     }
+
+    class Playtime(val playtime: ApiPlaytime) : DataResponse(DataRequestType.PLAYTIME) {
+        constructor(buf: SurfByteBuf) : this(PlaytimeImpl.readFromByteBuf(buf))
+
+        override fun write(buf: SurfByteBuf) {
+            playtime.writeToByteBuf(buf)
+        }
+    }
+
+    class IsAFK(val isAfk: Boolean) : DataResponse(DataRequestType.IS_AFK) {
+        constructor(buf: SurfByteBuf) : this(buf.readBoolean())
+
+        override fun write(buf: SurfByteBuf) {
+            buf.writeBoolean(isAfk)
+        }
+    }
+
+    class PlaytimeSession(val playtime: Duration) : DataResponse(DataRequestType.PLAYTIME_SESSION) {
+        constructor(buf: SurfByteBuf) : this(buf.readDuration())
+
+        override fun write(buf: SurfByteBuf) {
+            buf.writeDuration(playtime)
+        }
+    }
 }
 
 inline fun <reified T> DataResponse.getGenericValue(): T = when (this) {
     is IpAddress -> check(T::class == Inet4Address::class) { "Expected Inet4Address" }.let { ip as T }
     is LastServer -> check(T::class == String::class) { "Expected String" }.let { server as T }
     is LastSeen -> check(T::class == ZonedDateTime::class) { "Expected ZonedDateTime" }.let { lastSeen as T }
+    is FirstSeen -> check(T::class == ZonedDateTime::class) { "Expected ZonedDateTime" }.let { firstSeen as T }
     is DisplayName -> check(T::class == Component::class) { "Expected Component" }.let { displayName as T }
     is Name -> check(T::class == String::class) { "Expected String" }.let { name as T }
     is NameHistory -> check(T::class == ApiNameHistory::class) { "Expected ApiNameHistory" }.let { history as T }
+    is Playtime -> check(T::class == ApiPlaytime::class) { "Expected ApiPlaytime" }.let { playtime as T }
+    is IsAFK -> check(T::class == Boolean::class) { "Expected Boolean" }.let { isAfk as T }
+    is PlaytimeSession -> check(T::class == Duration::class) { "Expected Duration" }.let { playtime as T }
     else -> error("Unknown DataResponse type: ${this::class.simpleName}")
 }

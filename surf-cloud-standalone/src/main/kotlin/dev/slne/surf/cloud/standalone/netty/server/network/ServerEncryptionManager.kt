@@ -6,15 +6,12 @@ import io.netty.channel.Channel
 import io.netty.handler.ssl.ClientAuth
 import io.netty.handler.ssl.SslContext
 import io.netty.handler.ssl.SslContextBuilder
-import java.security.KeyStore
-import java.security.cert.CertificateFactory
-import javax.net.ssl.TrustManagerFactory
+import kotlin.io.path.div
 
 object ServerEncryptionManager : EncryptionManager() {
-    private val serverCertificateFile = certificatesFolder.resolve("server.crt").toFile()
-    private val serverKeyFile = certificatesFolder.resolve("server.key").toFile()
-    private val clientCertificatesFolder =
-        certificatesFolder.resolve("clients").also { it.toFile().mkdirs() }
+    private val serverCertificateFile = (certificatesFolder / "server.crt").toFile()
+    private val serverKeyFile = (certificatesFolder / "server.key").toFile()
+    private val trustManagerFile = (certificatesFolder / "ca.crt").toFile()
 
     override fun setupEncryption(ch: Channel) {
         ch.pipeline().addFirst(
@@ -25,32 +22,32 @@ object ServerEncryptionManager : EncryptionManager() {
     }
 
     override suspend fun init() {
-        waitForFiles(serverCertificateFile, serverKeyFile)
+        waitForFiles(serverCertificateFile, serverKeyFile, trustManagerFile)
     }
 
     private fun buildSslContext(): SslContext {
         return SslContextBuilder
             .forServer(serverCertificateFile, serverKeyFile)
-            .trustManager(buildTrustManager())
+            .trustManager(trustManagerFile)
             .clientAuth(ClientAuth.REQUIRE)
             .build()
     }
 
-    private fun buildTrustManager(): TrustManagerFactory {
-        val keyStore = KeyStore.getInstance(KeyStore.getDefaultType()).apply { load(null, null) }
-
-        clientCertificatesFolder.toFile().listFiles { file -> file.extension == "crt" }
-            ?.forEachIndexed { index, certFile ->
-                certFile.inputStream().use { inputStream ->
-                    val certificate =
-                        CertificateFactory.getInstance("X.509").generateCertificate(inputStream)
-                    keyStore.setCertificateEntry("client-cert-$index", certificate)
-                }
-            }
-
-        val trustManagerFactory =
-            TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm())
-        trustManagerFactory.init(keyStore)
-        return trustManagerFactory
-    }
+//    private fun buildTrustManager(): TrustManagerFactory {
+//        val keyStore = KeyStore.getInstance(KeyStore.getDefaultType()).apply { load(null, null) }
+//
+//        clientCertificatesFolder.toFile().listFiles { file -> file.extension == "crt" }
+//            ?.forEachIndexed { index, certFile ->
+//                certFile.inputStream().use { inputStream ->
+//                    val certificate =
+//                        CertificateFactory.getInstance("X.509").generateCertificate(inputStream)
+//                    keyStore.setCertificateEntry("client-cert-$index", certificate)
+//                }
+//            }
+//
+//        val trustManagerFactory =
+//            TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm())
+//        trustManagerFactory.init(keyStore)
+//        return trustManagerFactory
+//    }
 }

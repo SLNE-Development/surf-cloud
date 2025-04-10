@@ -1,6 +1,7 @@
 package dev.slne.surf.cloud.api.common.player
 
 import dev.slne.surf.cloud.api.common.player.name.NameHistory
+import dev.slne.surf.cloud.api.common.player.playtime.Playtime
 import dev.slne.surf.cloud.api.common.server.CloudServer
 import net.kyori.adventure.text.Component
 import java.net.Inet4Address
@@ -17,9 +18,11 @@ interface OfflineCloudPlayer {
     suspend fun lastServerRaw(): String?
     suspend fun lastServer(): CloudServer?
     suspend fun lastSeen(): ZonedDateTime?
+    suspend fun firstSeen(): ZonedDateTime?
     suspend fun latestIpAddress(): Inet4Address?
 
     suspend fun playedBefore(): Boolean
+    suspend fun playtime(): Playtime
 
     /**
      * Returns the online player instance if the player is currently connected.

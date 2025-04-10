@@ -279,6 +279,10 @@ class ServerRunningPacketListenerImpl(
         )
     }
 
+    override fun handleUpdateAFKState(packet: ServerboundUpdateAFKState) {
+        withPlayer(packet.uuid) { updateAfkStatus(packet.isAfk) }
+    }
+
     override fun handlePacket(packet: NettyPacket) {
         val listeners = NettyListenerRegistry.getListeners(packet.javaClass) ?: return
         if (listeners.isEmpty()) return

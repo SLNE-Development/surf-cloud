@@ -3,8 +3,10 @@ package dev.slne.surf.cloud.standalone.player
 import dev.slne.surf.cloud.api.common.player.CloudPlayer
 import dev.slne.surf.cloud.api.common.player.CloudPlayerManager
 import dev.slne.surf.cloud.api.common.player.name.NameHistory
+import dev.slne.surf.cloud.api.common.player.playtime.Playtime
 import dev.slne.surf.cloud.api.common.server.CloudServer
 import dev.slne.surf.cloud.core.common.player.CommonOfflineCloudPlayerImpl
+import dev.slne.surf.cloud.core.common.player.playtime.PlaytimeImpl
 import dev.slne.surf.cloud.core.common.util.bean
 import dev.slne.surf.cloud.standalone.player.db.exposed.CloudPlayerService
 import dev.slne.surf.cloud.standalone.server.serverManagerImpl
@@ -37,8 +39,16 @@ class OfflineCloudPlayerImpl(uuid: UUID) : CommonOfflineCloudPlayerImpl(uuid) {
     override suspend fun lastSeen(): ZonedDateTime? =
         player?.lastSeen() ?: service.findLastSeen(uuid)
 
+    override suspend fun firstSeen(): ZonedDateTime? =
+        player?.firstSeen() ?: service.findFirstSeen(uuid)
+
     override suspend fun latestIpAddress(): Inet4Address? =
         player?.latestIpAddress() ?: service.findLastIpAddress(uuid)
+
+    override suspend fun playtime(): Playtime {
+        return player?.playtime() ?: service.loadPlaytimeEntries(uuid)
+            .let { if (it.isEmpty()) PlaytimeImpl.EMPTY else PlaytimeImpl(it) }
+    }
 
     override suspend fun displayName(): Component? {
         return player?.displayName() ?: serverManagerImpl.requestOfflineDisplayName(uuid)

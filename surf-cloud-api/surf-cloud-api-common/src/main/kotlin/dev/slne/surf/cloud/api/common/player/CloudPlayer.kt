@@ -9,6 +9,7 @@ import net.kyori.adventure.audience.Audience
 import net.kyori.adventure.text.Component
 import java.net.Inet4Address
 import java.util.*
+import kotlin.time.Duration
 
 /**
  * Represents a player connected to the cloud infrastructure.
@@ -34,6 +35,9 @@ interface CloudPlayer : Audience, OfflineCloudPlayer { // TODO: conversation but
      * Whether the player is connected to either a proxy or a server.
      */
     val connected get() = connectedToProxy || connectedToServer
+
+    suspend fun isAfk(): Boolean
+    suspend fun currentSessionDuration(): Duration
 
     /**
      * Performs modifications on the player's persistent data container.

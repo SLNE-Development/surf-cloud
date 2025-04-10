@@ -63,6 +63,8 @@ interface RunningServerPacketListener : ServerCommonPacketListener, TickablePack
     suspend fun handleShutdownServer(packet: ServerboundShutdownServerPacket)
 
     suspend fun handleRequestPlayerData(packet: ServerboundRequestPlayerDataPacket)
+
+    fun handleUpdateAFKState(packet: ServerboundUpdateAFKState)
     
     fun handlePacket(packet: NettyPacket)
 }

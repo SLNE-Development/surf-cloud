@@ -49,7 +49,6 @@ abstract class ClientCloudPlayerImpl<PlatformPlayer : Audience>(uuid: UUID) :
     override val connectedToProxy get() = proxyServerUid != null
 
     override val connectedToServer get() = serverUid != null
-
     /**
      * The audience for this player. If the player is on this server, this will point to
      * the bukkit / velocity player. Otherwise packets will be sent to the player via the network.
@@ -72,6 +71,10 @@ abstract class ClientCloudPlayerImpl<PlatformPlayer : Audience>(uuid: UUID) :
 
     override suspend fun firstSeen(): ZonedDateTime? {
         return request<FirstSeen>(DataRequestType.FIRST_SEEN).firstSeen
+    }
+
+    override suspend fun isAfk(): Boolean {
+        return request<IsAFK>(DataRequestType.IS_AFK).isAfk
     }
 
     override suspend fun <R> withPersistentData(block: PersistentPlayerDataContainer.() -> R): R {

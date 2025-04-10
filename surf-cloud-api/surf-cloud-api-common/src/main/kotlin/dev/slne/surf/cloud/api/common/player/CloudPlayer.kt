@@ -35,6 +35,8 @@ interface CloudPlayer : Audience, OfflineCloudPlayer { // TODO: conversation but
      */
     val connected get() = connectedToProxy || connectedToServer
 
+    suspend fun isAfk(): Boolean
+
     /**
      * Performs modifications on the player's persistent data container.
      *

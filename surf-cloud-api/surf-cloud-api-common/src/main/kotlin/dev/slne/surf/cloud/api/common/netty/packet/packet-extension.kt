@@ -1,16 +1,17 @@
 package dev.slne.surf.cloud.api.common.netty.packet
 
-import dev.slne.surf.bytebufserializer.Buf
 import dev.slne.surf.cloud.api.common.meta.PacketCodec
 import dev.slne.surf.cloud.api.common.meta.SurfNettyPacket
 import dev.slne.surf.cloud.api.common.netty.network.codec.StreamCodec
 import dev.slne.surf.cloud.api.common.netty.network.codec.StreamDecoder
 import dev.slne.surf.cloud.api.common.netty.network.codec.StreamMemberEncoder
 import dev.slne.surf.cloud.api.common.netty.network.codec.kotlinx.SurfCloudBufSerializer
+import dev.slne.surf.cloud.api.common.netty.protocol.buffer.SurfByteBuf
 import dev.slne.surf.cloud.api.common.util.mutableObject2ObjectMapOf
 import io.netty.buffer.ByteBuf
 import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.KSerializer
+import kotlinx.serialization.serializer
 import kotlinx.serialization.serializerOrNull
 import kotlin.reflect.KClass
 import kotlin.reflect.full.companionObject
@@ -65,6 +66,20 @@ private const val DEFAULT_STREAM_CODEC_NAME = "STREAM_CODEC"
 // Internal cache for codecs associated with packet classes.
 private val codecCache = mutableObject2ObjectMapOf<KClass<out NettyPacket>, StreamCodec<*, *>>()
 
+
+@OptIn(InternalSerializationApi::class)
+fun <P : NettyPacket> KClass<out P>.createCodec(): StreamCodec<SurfByteBuf, P> {
+    val serializer = serializer()
+    return object : StreamCodec<SurfByteBuf, P> {
+        override fun decode(buf: SurfByteBuf): P {
+            return SurfCloudBufSerializer.serializer.decodeFromBuf(buf, serializer)
+        }
+
+        override fun encode(buf: SurfByteBuf, value: P) {
+            SurfCloudBufSerializer.serializer.encodeToBuf(buf, serializer as KSerializer<P>, value)
+        }
+    }
+}
 
 /**
  * Finds a [StreamCodec] for the specified packet type if available.

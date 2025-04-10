@@ -1,6 +1,8 @@
 package dev.slne.surf.cloud.core.common.netty.network.protocol.running
 
 import dev.slne.surf.cloud.api.common.netty.network.ConnectionProtocol
+import dev.slne.surf.cloud.api.common.netty.packet.createCodec
+import dev.slne.surf.cloud.api.common.netty.packet.findPacketCodec
 import dev.slne.surf.cloud.api.common.netty.protocol.buffer.SurfByteBuf
 import dev.slne.surf.cloud.core.common.netty.network.protocol.ProtocolInfoBuilder
 import dev.slne.surf.cloud.core.common.netty.network.protocol.common.*
@@ -95,6 +97,7 @@ object RunningProtocols {
                 .addPacket(ServerboundShutdownServerPacket.STREAM_CODEC)
                 .addPacket(RequestOfflineDisplayNamePacket.STREAM_CODEC)
                 .addPacket(ServerboundRequestPlayerDataPacket.STREAM_CODEC)
+                .addPacket(ServerboundUpdateAFKState::class.createCodec())
         }
 
     val SERVERBOUND by lazy { SERVERBOUND_TEMPLATE.freeze().bind(::SurfByteBuf) }

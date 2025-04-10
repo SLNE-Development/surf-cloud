@@ -2,6 +2,7 @@ package dev.slne.surf.cloud.bukkit.processor
 
 import dev.slne.surf.cloud.api.common.util.isAnnotated
 import dev.slne.surf.cloud.api.common.util.isCandidateFor
+import dev.slne.surf.cloud.api.common.util.mutableObjectListOf
 import dev.slne.surf.cloud.api.common.util.selectFunctions
 import dev.slne.surf.cloud.api.common.util.ultimateTargetClass
 import org.bukkit.Bukkit
@@ -21,6 +22,8 @@ import java.lang.reflect.Method
 
 @Component
 class BukkitListenerProcessor : BeanPostProcessor {
+    private val listeners = mutableObjectListOf<ListenerMetaData>()
+
     override fun postProcessAfterInitialization(bean: Any, beanName: String): Any {
         if (bean is AopInfrastructureBean) return bean
 
@@ -52,7 +55,7 @@ class BukkitListenerProcessor : BeanPostProcessor {
             }
 
             val eventParam = params[0]
-            if (!eventParam.isAssignableFrom(Event::class.java)) {
+            if (!Event::class.java.isAssignableFrom(eventParam)) {
                 throw BeanCreationException(
                     beanName,
                     "Event handler method parameter must be a subclass of Event"
@@ -77,7 +80,26 @@ class BukkitListenerProcessor : BeanPostProcessor {
                     throw EventException(e, "Error invoking event handler")
                 }
             }
-            registerEventHandler(bean, eventClass, eventHandler, eventExecutor)
+
+            listeners.add(
+                ListenerMetaData(
+                    bean,
+                    eventClass,
+                    eventHandler,
+                    eventExecutor
+                )
+            )
+        }
+    }
+
+    fun registerListeners() {
+        for (listener in listeners) {
+            registerEventHandler(
+                listener.bean,
+                listener.event,
+                listener.eventHandler,
+                listener.eventExecutor
+            )
         }
     }
 
@@ -104,4 +126,11 @@ class BukkitListenerProcessor : BeanPostProcessor {
     private fun getPluginFromBean(bean: Any): JavaPlugin {
         return JavaPlugin.getProvidingPlugin(bean.javaClass)
     }
+
+    data class ListenerMetaData(
+        val bean: Any,
+        val event: Class<out Event>,
+        val eventHandler: EventHandler,
+        val eventExecutor: EventExecutor
+    )
 }

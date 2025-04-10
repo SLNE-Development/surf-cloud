@@ -21,6 +21,7 @@ import dev.slne.surf.cloud.core.common.util.bean
 import dev.slne.surf.cloud.standalone.player.db.exposed.CloudPlayerService
 import dev.slne.surf.cloud.standalone.server.StandaloneCloudServerImpl
 import dev.slne.surf.cloud.standalone.server.StandaloneProxyCloudServerImpl
+import dev.slne.surf.surfapi.core.api.messages.adventure.sendText
 import dev.slne.surf.surfapi.core.api.util.logger
 import dev.slne.surf.surfapi.core.api.util.mutableObjectListOf
 import dev.slne.surf.surfapi.core.api.util.toObjectList
@@ -79,9 +80,12 @@ class StandaloneCloudPlayerImpl(uuid: UUID, val name: String, val ip: Inet4Addre
         private set
 
     private val ppdc = PersistentPlayerDataContainerImpl()
-    private val ppdcMutex = Mutex()
 
+    private val ppdcMutex = Mutex()
     private var firstSeenCache: ZonedDateTime? = null
+
+    var afk = false
+        private set
 
     fun savePlayerData(tag: CompoundTag) {
         if (!ppdc.empty) {
@@ -93,6 +97,25 @@ class StandaloneCloudPlayerImpl(uuid: UUID, val name: String, val ip: Inet4Addre
         val ppdcTag = tag.get("ppdc")
         if (ppdcTag is CompoundTag) {
             ppdc.fromTagCompound(ppdcTag)
+        }
+    }
+
+    override suspend fun isAfk(): Boolean {
+        return afk
+    }
+
+    fun updateAfkStatus(newValue: Boolean) {
+        if (newValue == afk) return
+        afk = newValue
+
+        sendText {
+            appendPrefix()
+            info("Du bist nun ")
+            if (afk) {
+                info("AFK und erhältst keine weiteren Paychecks.")
+            } else {
+                info("nicht mehr AFK.")
+            }
         }
     }
 

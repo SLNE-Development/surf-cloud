@@ -81,6 +81,12 @@ class ServerboundRequestPlayerDataPacket(val uuid: UUID, val type: DataRequestTy
             override suspend fun readData(player: OfflineCloudPlayer): DataResponse {
                 return Playtime(player.playtime())
             }
+        },
+        IS_AFK(::IsAFK) {
+            override suspend fun readData(player: OfflineCloudPlayer): DataResponse {
+                val player= player.player ?: error("Player is not online")
+                return IsAFK(player.isAfk())
+            }
         };
 
         abstract suspend fun readData(player: OfflineCloudPlayer): DataResponse
@@ -174,6 +180,14 @@ class ServerboundRequestPlayerDataResponse(val data: DataResponse) : ResponseNet
             playtime.writeToByteBuf(buf)
         }
     }
+
+    class IsAFK(val isAfk: Boolean) : DataResponse(DataRequestType.IS_AFK) {
+        constructor(buf: SurfByteBuf) : this(buf.readBoolean())
+
+        override fun write(buf: SurfByteBuf) {
+            buf.writeBoolean(isAfk)
+        }
+    }
 }
 
 inline fun <reified T> DataResponse.getGenericValue(): T = when (this) {
@@ -185,5 +199,6 @@ inline fun <reified T> DataResponse.getGenericValue(): T = when (this) {
     is Name -> check(T::class == String::class) { "Expected String" }.let { name as T }
     is NameHistory -> check(T::class == ApiNameHistory::class) { "Expected ApiNameHistory" }.let { history as T }
     is Playtime -> check(T::class == ApiPlaytime::class) { "Expected ApiPlaytime" }.let { playtime as T }
+    is IsAFK -> check(T::class == Boolean::class) { "Expected Boolean" }.let { isAfk as T }
     else -> error("Unknown DataResponse type: ${this::class.simpleName}")
 }

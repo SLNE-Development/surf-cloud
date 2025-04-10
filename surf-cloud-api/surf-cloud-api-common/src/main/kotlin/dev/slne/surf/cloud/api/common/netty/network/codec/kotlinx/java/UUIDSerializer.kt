@@ -4,7 +4,7 @@ import dev.slne.surf.cloud.api.common.netty.network.codec.kotlinx.CloudBufSerial
 import dev.slne.surf.cloud.api.common.netty.protocol.buffer.SurfByteBuf
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.descriptors.buildClassSerialDescriptor
-import org.gradle.internal.impldep.kotlinx.serialization.descriptors.element
+import kotlinx.serialization.descriptors.element
 import java.util.UUID
 
 typealias SerializableUUID = @Serializable(with = UUIDSerializer::class) UUID

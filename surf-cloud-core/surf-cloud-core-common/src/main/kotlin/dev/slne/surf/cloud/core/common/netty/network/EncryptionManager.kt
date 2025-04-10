@@ -1,18 +1,18 @@
 package dev.slne.surf.cloud.core.common.netty.network
 
 import dev.slne.surf.cloud.core.common.coreCloudInstance
-import dev.slne.surf.surfapi.core.api.util.logger
 import io.netty.channel.Channel
 import kotlinx.coroutines.delay
 import java.io.File
 import java.nio.file.Path
+import kotlin.io.path.createDirectories
+import kotlin.io.path.div
 import kotlin.time.Duration.Companion.seconds
 
 abstract class EncryptionManager {
-    private val log = logger()
 
     protected val certificatesFolder: Path by lazy {
-        coreCloudInstance.dataFolder.resolve("certificates").also { it.toFile().mkdirs() }
+        (coreCloudInstance.dataFolder / "certificates").createDirectories()
     }
 
     abstract fun setupEncryption(ch: Channel)
@@ -24,8 +24,10 @@ abstract class EncryptionManager {
         val missingFiles = files.filter { !it.exists() }.toMutableList()
 
         while (missingFiles.isNotEmpty()) {
-            log.atInfo()
-                .log("Waiting for missing files: ${missingFiles.joinToString { it.path }}")
+//            log.atInfo()
+//                .log("Waiting for missing files: ${missingFiles.joinToString { it.path }}")
+
+            println("[INFO] ${this::class.simpleName}: Waiting for missing files: ${missingFiles.joinToString { it.path }}")
 
             delay(5.seconds)
             missingFiles.removeIf { it.exists() }

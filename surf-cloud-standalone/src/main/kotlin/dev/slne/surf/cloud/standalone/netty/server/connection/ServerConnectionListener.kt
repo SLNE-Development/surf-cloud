@@ -19,9 +19,11 @@ import io.netty.bootstrap.ServerBootstrap
 import io.netty.channel.*
 import io.netty.channel.epoll.Epoll
 import io.netty.channel.epoll.EpollEventLoopGroup
+import io.netty.channel.epoll.EpollIoHandler
 import io.netty.channel.epoll.EpollServerDomainSocketChannel
 import io.netty.channel.epoll.EpollServerSocketChannel
 import io.netty.channel.nio.NioEventLoopGroup
+import io.netty.channel.nio.NioIoHandler
 import io.netty.channel.socket.nio.NioServerSocketChannel
 import io.netty.channel.unix.DomainSocketAddress
 import io.netty.handler.flush.FlushConsolidationHandler
@@ -215,22 +217,20 @@ class ServerConnectionListener(val server: NettyServerImpl) {
         private val log = logger()
 
         val SERVER_EVENT_GROUP by lazy {
-            NioEventLoopGroup(
-                threadFactory {
-                    nameFormat("Netty Server IO #%d")
-                    daemon(true)
-                    uncaughtExceptionHandler(DefaultUncaughtExceptionHandlerWithName(log))
-                }
-            )
+            MultiThreadIoEventLoopGroup(threadFactory {
+                nameFormat("Netty Server IO #%d")
+                daemon(true)
+                uncaughtExceptionHandler(DefaultUncaughtExceptionHandlerWithName(log))
+            }, NioIoHandler.newFactory())
         }
 
         val SERVER_EPOLL_EVENT_GROUP by lazy {
-            EpollEventLoopGroup(
+            MultiThreadIoEventLoopGroup(
                 threadFactory {
                     nameFormat("Netty Epoll Server IO #%d")
                     daemon(true)
                     uncaughtExceptionHandler(DefaultUncaughtExceptionHandlerWithName(log))
-                }
+                }, EpollIoHandler.newFactory()
             )
         }
     }

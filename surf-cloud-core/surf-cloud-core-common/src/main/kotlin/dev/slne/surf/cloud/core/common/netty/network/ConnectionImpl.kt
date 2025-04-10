@@ -25,16 +25,15 @@ import dev.slne.surf.surfapi.core.api.util.logger
 import io.netty.bootstrap.Bootstrap
 import io.netty.channel.*
 import io.netty.channel.epoll.Epoll
-import io.netty.channel.epoll.EpollEventLoopGroup
+import io.netty.channel.epoll.EpollIoHandler
 import io.netty.channel.epoll.EpollSocketChannel
-import io.netty.channel.nio.NioEventLoopGroup
+import io.netty.channel.nio.NioIoHandler
 import io.netty.channel.socket.SocketChannel
 import io.netty.channel.socket.nio.NioSocketChannel
 import io.netty.handler.codec.EncoderException
 import io.netty.handler.codec.compression.ZstdDecoder
 import io.netty.handler.codec.compression.ZstdEncoder
 import io.netty.handler.flow.FlowControlHandler
-import io.netty.handler.logging.LogLevel
 import io.netty.handler.logging.LoggingHandler
 import io.netty.handler.timeout.ReadTimeoutHandler
 import io.netty.handler.timeout.TimeoutException
@@ -981,24 +980,22 @@ class ConnectionImpl(
     companion object {
         private val log = logger()
 
-        val NETWORK_WORKER_GROUP: NioEventLoopGroup by lazy {
-            NioEventLoopGroup(
+        val NETWORK_WORKER_GROUP: MultiThreadIoEventLoopGroup by lazy {
+            MultiThreadIoEventLoopGroup(
                 threadFactory {
                     nameFormat("Netty Client IO #%d")
                     daemon(true)
                     uncaughtExceptionHandler(DefaultUncaughtExceptionHandlerWithName(log))
-                }
+                }, NioIoHandler.newFactory()
             )
         }
 
-        val NETWORK_EPOLL_WORKER_GROUP: EpollEventLoopGroup by lazy {
-            EpollEventLoopGroup(
-                threadFactory {
-                    nameFormat("Netty Epoll Client IO #%d")
-                    daemon(true)
-                    uncaughtExceptionHandler(DefaultUncaughtExceptionHandlerWithName(log))
-                }
-            )
+        val NETWORK_EPOLL_WORKER_GROUP: MultiThreadIoEventLoopGroup by lazy {
+            MultiThreadIoEventLoopGroup(threadFactory {
+                nameFormat("Netty Epoll Client IO #%d")
+                daemon(true)
+                uncaughtExceptionHandler(DefaultUncaughtExceptionHandlerWithName(log))
+            }, EpollIoHandler.newFactory())
         }
 
         private val INITIAL_PROTOCOL = HandshakeProtocols.SERVERBOUND

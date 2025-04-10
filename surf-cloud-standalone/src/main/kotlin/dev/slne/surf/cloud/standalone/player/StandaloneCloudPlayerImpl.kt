@@ -44,9 +44,11 @@ import net.kyori.adventure.title.TitlePart
 import net.querz.nbt.tag.CompoundTag
 import java.net.Inet4Address
 import java.time.ZonedDateTime
+import java.time.temporal.ChronoUnit
 import java.util.*
 import java.util.concurrent.TimeUnit
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 
 class StandaloneCloudPlayerImpl(uuid: UUID, val name: String, val ip: Inet4Address) :
     CommonCloudPlayerImpl(uuid) {
@@ -87,6 +89,8 @@ class StandaloneCloudPlayerImpl(uuid: UUID, val name: String, val ip: Inet4Addre
     var afk = false
         private set
 
+    var sessionStartTime: ZonedDateTime = ZonedDateTime.now()
+
     fun savePlayerData(tag: CompoundTag) {
         if (!ppdc.empty) {
             tag.put("ppdc", ppdc.toTagCompound())
@@ -102,6 +106,11 @@ class StandaloneCloudPlayerImpl(uuid: UUID, val name: String, val ip: Inet4Addre
 
     override suspend fun isAfk(): Boolean {
         return afk
+    }
+
+    override suspend fun currentSessionDuration(): Duration {
+        val duration = sessionStartTime.until(ZonedDateTime.now(), ChronoUnit.SECONDS)
+        return duration.seconds
     }
 
     fun updateAfkStatus(newValue: Boolean) {

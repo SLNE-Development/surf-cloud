@@ -16,6 +16,7 @@ import net.kyori.adventure.text.Component
 import java.net.Inet4Address
 import java.time.ZonedDateTime
 import java.util.*
+import kotlin.time.Duration
 import dev.slne.surf.cloud.api.common.player.name.NameHistory as ApiNameHistory
 import dev.slne.surf.cloud.api.common.player.playtime.Playtime as ApiPlaytime
 
@@ -86,6 +87,12 @@ class ServerboundRequestPlayerDataPacket(val uuid: UUID, val type: DataRequestTy
             override suspend fun readData(player: OfflineCloudPlayer): DataResponse {
                 val player= player.player ?: error("Player is not online")
                 return IsAFK(player.isAfk())
+            }
+        },
+        PLAYTIME_SESSION(::PlaytimeSession) {
+            override suspend fun readData(player: OfflineCloudPlayer): DataResponse {
+                val player= player.player ?: error("Player is not online")
+                return PlaytimeSession(player.currentSessionDuration())
             }
         };
 
@@ -188,6 +195,14 @@ class ServerboundRequestPlayerDataResponse(val data: DataResponse) : ResponseNet
             buf.writeBoolean(isAfk)
         }
     }
+
+    class PlaytimeSession(val playtime: Duration) : DataResponse(DataRequestType.PLAYTIME_SESSION) {
+        constructor(buf: SurfByteBuf) : this(buf.readDuration())
+
+        override fun write(buf: SurfByteBuf) {
+            buf.writeDuration(playtime)
+        }
+    }
 }
 
 inline fun <reified T> DataResponse.getGenericValue(): T = when (this) {
@@ -200,5 +215,6 @@ inline fun <reified T> DataResponse.getGenericValue(): T = when (this) {
     is NameHistory -> check(T::class == ApiNameHistory::class) { "Expected ApiNameHistory" }.let { history as T }
     is Playtime -> check(T::class == ApiPlaytime::class) { "Expected ApiPlaytime" }.let { playtime as T }
     is IsAFK -> check(T::class == Boolean::class) { "Expected Boolean" }.let { isAfk as T }
+    is PlaytimeSession -> check(T::class == Duration::class) { "Expected Duration" }.let { playtime as T }
     else -> error("Unknown DataResponse type: ${this::class.simpleName}")
 }

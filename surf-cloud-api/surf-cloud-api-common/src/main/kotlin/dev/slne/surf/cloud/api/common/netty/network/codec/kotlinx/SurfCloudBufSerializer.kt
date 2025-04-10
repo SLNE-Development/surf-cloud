@@ -11,6 +11,7 @@ import dev.slne.surf.cloud.api.common.netty.network.codec.kotlinx.java.URISerial
 import dev.slne.surf.cloud.api.common.netty.network.codec.kotlinx.java.UUIDSerializer
 import dev.slne.surf.cloud.api.common.netty.network.codec.kotlinx.java.UtfStringSerializer
 import dev.slne.surf.cloud.api.common.netty.network.codec.kotlinx.java.ZonedDateTimeSerializer
+import dev.slne.surf.cloud.api.common.netty.network.codec.kotlinx.kotlin.DurationSerializer
 import dev.slne.surf.cloud.api.common.netty.network.codec.kotlinx.nbt.CompoundTagSerializer
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.contextual
@@ -30,6 +31,9 @@ object SurfCloudBufSerializer {
         contextual(InetSocketAddressSerializer)
         contextual(ZonedDateTimeSerializer)
         contextual(Inet4AddressSerializer)
+
+        // Kotlin
+        contextual(DurationSerializer)
 
         // NBT
         contextual(CompoundTagSerializer)

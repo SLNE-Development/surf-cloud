@@ -343,6 +343,26 @@ class BukkitMain : SuspendingJavaPlugin() {
                 }
             }
         }
+
+        commandAPICommand("currentSessionDuration") {
+            entitySelectorArgumentOnePlayer("player")
+            anyExecutor { sender, args ->
+                val player: Player by args
+                val cloudPlayer = player.toCloudPlayer()
+                launch {
+                    val currentSessionDuration = cloudPlayer?.currentSessionDuration()
+                    sender.sendText {
+                        appendPrefix()
+                        info("Current session duration for player ${player.name} (${player.uniqueId})")
+                        appendNewPrefixedLine {
+                            variableKey("Current Session Duration")
+                            spacer(": ")
+                            variableValue(currentSessionDuration?.toString() ?: "#Unknown")
+                        }
+                    }
+                }
+            }
+        }
     }
 
     @OptIn(ExperimentalContracts::class)

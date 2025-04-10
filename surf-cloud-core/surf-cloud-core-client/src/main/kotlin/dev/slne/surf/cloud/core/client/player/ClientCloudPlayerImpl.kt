@@ -77,6 +77,10 @@ abstract class ClientCloudPlayerImpl<PlatformPlayer : Audience>(uuid: UUID) :
         return request<IsAFK>(DataRequestType.IS_AFK).isAfk
     }
 
+    override suspend fun currentSessionDuration(): Duration {
+        return request<PlaytimeSession>(DataRequestType.PLAYTIME_SESSION).playtime
+    }
+
     override suspend fun <R> withPersistentData(block: PersistentPlayerDataContainer.() -> R): R {
         val response = ServerboundRequestPlayerPersistentDataContainer(uuid).fireAndAwaitOrThrow()
 

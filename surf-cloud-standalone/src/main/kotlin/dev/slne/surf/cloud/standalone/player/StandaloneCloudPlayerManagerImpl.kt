@@ -19,6 +19,7 @@ import dev.slne.surf.cloud.standalone.server.serverManagerImpl
 import dev.slne.surf.surfapi.core.api.util.logger
 import kotlinx.coroutines.*
 import java.net.Inet4Address
+import java.time.ZonedDateTime
 import java.util.*
 import kotlin.time.Duration.Companion.minutes
 
@@ -149,6 +150,7 @@ class StandaloneCloudPlayerManagerImpl : CloudPlayerManagerImpl<StandaloneCloudP
             )
         }
 
+        player.sessionStartTime = ZonedDateTime.now()
         super.onNetworkConnect(uuid, player)
     }
 

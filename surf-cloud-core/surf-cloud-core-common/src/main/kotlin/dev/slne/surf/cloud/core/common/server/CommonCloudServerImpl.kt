@@ -11,8 +11,13 @@ import dev.slne.surf.cloud.api.common.util.mutableObject2ObjectMapOf
 import dev.slne.surf.cloud.core.common.coreCloudInstance
 import dev.slne.surf.cloud.core.common.coroutines.PlayerBatchTransferScope
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ClientInformation
+import dev.slne.surf.cloud.core.common.sound.CommonSounds
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
+import net.kyori.adventure.sound.Sound
+import net.kyori.adventure.sound.Sound.Emitter
+import net.kyori.adventure.text.Component
 
 abstract class CommonCloudServerImpl(
     override val uid: Long,
@@ -50,6 +55,14 @@ abstract class CommonCloudServerImpl(
 
     override fun isInGroup(group: String): Boolean {
         return group.equals(group, ignoreCase = true)
+    }
+
+    override suspend fun broadcast(message: Component) {
+        sendMessage(message)
+        for (sound in CommonSounds.broadcastSounds) {
+            playSound(sound, Emitter.self())
+            delay(150)
+        }
     }
 
     override val maxPlayerCount get() = information.maxPlayerCount

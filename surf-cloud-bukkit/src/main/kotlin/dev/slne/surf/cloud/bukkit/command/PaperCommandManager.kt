@@ -1,5 +1,6 @@
 package dev.slne.surf.cloud.bukkit.command
 
+import dev.slne.surf.cloud.bukkit.command.broadcast.broadcastCommand
 import dev.slne.surf.cloud.bukkit.command.lastseen.lastSeenCommand
 import dev.slne.surf.cloud.bukkit.command.network.findCommand
 import dev.slne.surf.cloud.bukkit.command.network.sendCommand
@@ -13,5 +14,6 @@ object PaperCommandManager {
         sendCommand()
         playtimeCommand()
         lastSeenCommand()
+        broadcastCommand()
     }
 }

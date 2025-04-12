@@ -11,6 +11,7 @@ import dev.slne.surf.cloud.api.common.util.toObjectSet
 import it.unimi.dsi.fastutil.objects.ObjectCollection
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import net.kyori.adventure.text.Component
 
 abstract class CommonCloudServerManagerImpl<S : CommonCloudServer> : CloudServerManager {
     protected val servers = mutableLong2ObjectMapOf<S>().synchronize()
@@ -64,4 +65,14 @@ abstract class CommonCloudServerManagerImpl<S : CommonCloudServer> : CloudServer
     override suspend fun retrieveAllServers(): ObjectCollection<S> {
         return serversMutex.withLock { servers.values.toObjectSet() }
     }
+
+    override suspend fun broadcastToGroup(group: String, message: Component) =
+        serversMutex.withLock {
+            servers.values.filter { it.isInGroup(group) }.filterIsInstance<CloudServer>()
+        }.forEach { it.broadcast(message) }
+
+
+    override suspend fun broadcast(message: Component) = serversMutex.withLock {
+        servers.values.filterIsInstance<CloudServer>()
+    }.forEach { it.broadcast(message) }
 }

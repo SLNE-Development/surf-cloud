@@ -3,7 +3,12 @@ package dev.slne.surf.cloud.standalone.server
 import com.google.auto.service.AutoService
 import dev.slne.surf.cloud.api.common.netty.network.protocol.awaitOrThrowUrgent
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
+import dev.slne.surf.cloud.api.common.player.CloudPlayer
+import dev.slne.surf.cloud.api.common.player.ConnectionResultEnum
 import dev.slne.surf.cloud.api.common.server.CloudServerManager
+import dev.slne.surf.cloud.api.common.util.emptyObjectList
+import dev.slne.surf.cloud.api.common.util.freeze
+import dev.slne.surf.cloud.api.common.util.mutableObjectListOf
 import dev.slne.surf.cloud.api.server.server.ServerCloudServerManager
 import dev.slne.surf.cloud.api.server.server.ServerCommonCloudServer
 import dev.slne.surf.cloud.api.server.server.ServerProxyCloudServer
@@ -16,8 +21,11 @@ import dev.slne.surf.cloud.core.common.util.bean
 import dev.slne.surf.cloud.standalone.config.standaloneConfig
 import dev.slne.surf.cloud.standalone.netty.server.NettyServerImpl
 import dev.slne.surf.cloud.standalone.netty.server.ProxyServerAutoregistration
+import dev.slne.surf.cloud.standalone.player.StandaloneCloudPlayerImpl
+import it.unimi.dsi.fastutil.objects.ObjectList
 import kotlinx.coroutines.sync.withLock
 import net.kyori.adventure.text.Component
+import org.jetbrains.annotations.Unmodifiable
 import java.util.*
 
 @AutoService(CloudServerManager::class)
@@ -97,6 +105,66 @@ class StandaloneCloudServerManagerImpl : CommonCloudServerManagerImpl<ServerComm
             // I guess no one knows the name
             return null
         }
+    }
+
+    override suspend fun pullPlayersToGroup(
+        group: String,
+        players: Collection<CloudPlayer>
+    ): @Unmodifiable ObjectList<Pair<CloudPlayer, ConnectionResultEnum>> {
+        val toConnect = players
+            .filterNot { it.isInGroup(group) }
+            .filterIsInstance<StandaloneCloudPlayerImpl>()
+
+        if (toConnect.isEmpty()) {
+            return emptyObjectList()
+        }
+
+        val results = mutableObjectListOf<Pair<CloudPlayer, ConnectionResultEnum>>()
+        val serversInGroup = retrieveServersByCategory(group)
+            .filterIsInstance<StandaloneCloudServerImpl>()
+            .toMutableList()
+
+        if (serversInGroup.isEmpty()) {
+            toConnect.forEach { player ->
+                results += player to ConnectionResultEnum.SERVER_NOT_FOUND
+            }
+
+            return results.freeze()
+        }
+
+        val queue = ArrayDeque(toConnect)
+
+        while (queue.isNotEmpty() && serversInGroup.isNotEmpty()) {
+            serversInGroup.sortByDescending { server ->
+                val maxPlayers = server.maxPlayerCount
+                val expected = server.expectedPlayers
+                maxPlayers - expected
+            }
+
+            val bestServer = serversInGroup.first()
+            val freeSlots = bestServer.maxPlayerCount - bestServer.expectedPlayers
+
+            if (freeSlots <= 0) break
+
+            val subset = mutableObjectListOf<CloudPlayer>()
+            repeat(freeSlots) {
+                if (queue.isNotEmpty()) {
+                    subset += queue.removeFirst()
+                } else {
+                    return@repeat
+                }
+            }
+
+            val pullResult = bestServer.pullPlayers(subset)
+            results += pullResult
+        }
+
+        while (queue.isNotEmpty()) {
+            val leftoverPlayer = queue.removeFirst()
+            results += leftoverPlayer to ConnectionResultEnum.SERVER_FULL
+        }
+
+        return results.freeze()
     }
 
     private suspend fun singleProxyServer() =

@@ -1,10 +1,14 @@
 package dev.slne.surf.cloud.api.common.server
 
+import dev.slne.surf.cloud.api.common.player.CloudPlayer
+import dev.slne.surf.cloud.api.common.player.ConnectionResultEnum
 import dev.slne.surf.cloud.api.common.util.annotation.InternalApi
 import dev.slne.surf.surfapi.core.api.util.requiredService
 import it.unimi.dsi.fastutil.objects.ObjectCollection
 import it.unimi.dsi.fastutil.objects.ObjectList
+import net.kyori.adventure.text.Component
 import org.jetbrains.annotations.ApiStatus.NonExtendable
+import org.jetbrains.annotations.Unmodifiable
 
 
 /**
@@ -48,6 +52,12 @@ interface CloudServerManager {
      */
     suspend fun retrieveServerByName(name: String): CommonCloudServer?
 
+    @InternalApi
+    fun getServerByNameUnsafe(name: String): CloudServer?
+
+    @InternalApi
+    fun existsServerGroup(name: String): Boolean
+
     /**
      * Retrieves all servers in a specified category.
      *
@@ -57,6 +67,12 @@ interface CloudServerManager {
     suspend fun retrieveServersByCategory(category: String): ObjectList<out CommonCloudServer>
 
     suspend fun retrieveAllServers(): ObjectCollection<out CommonCloudServer>
+
+    suspend fun pullPlayersToGroup(
+        group: String,
+        players: Collection<CloudPlayer>
+    ): @Unmodifiable ObjectList<Pair<CloudPlayer, ConnectionResultEnum>>
+
 
     companion object : CloudServerManager by INSTANCE {
         @InternalApi

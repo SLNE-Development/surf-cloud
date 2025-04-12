@@ -5,6 +5,7 @@ import dev.slne.surf.cloud.api.common.player.teleport.TeleportCause
 import dev.slne.surf.cloud.api.common.player.teleport.TeleportFlag
 import dev.slne.surf.cloud.api.common.player.teleport.TeleportLocation
 import dev.slne.surf.cloud.api.common.server.CloudServer
+import dev.slne.surf.surfapi.core.api.messages.adventure.buildText
 import net.kyori.adventure.audience.Audience
 import net.kyori.adventure.text.Component
 import java.net.Inet4Address
@@ -19,6 +20,8 @@ import kotlin.time.Duration
  * it enables sending messages or components to the player.
  */
 interface CloudPlayer : Audience, OfflineCloudPlayer { // TODO: conversation but done correctly?
+    val name: String
+
     override suspend fun latestIpAddress(): Inet4Address
     override suspend fun lastServerRaw(): String
 
@@ -97,6 +100,9 @@ interface CloudPlayer : Audience, OfflineCloudPlayer { // TODO: conversation but
      */
     suspend fun connectToServerOrQueue(group: String): ConnectionResult
 
+    fun isOnServer(server: CloudServer): Boolean
+    fun isInGroup(group: String): Boolean
+
     /**
      * Disconnects the player from the network with a specified reason.
      *
@@ -145,6 +151,8 @@ interface CloudPlayer : Audience, OfflineCloudPlayer { // TODO: conversation but
         vararg flags: TeleportFlag,
     ) = teleport(TeleportLocation(world, x, y, z, yaw, pitch), teleportCause, *flags)
 
+    suspend fun teleport(target: CloudPlayer): Boolean
+
     override suspend fun displayName(): Component
     override suspend fun name(): String
 }
@@ -152,20 +160,23 @@ interface CloudPlayer : Audience, OfflineCloudPlayer { // TODO: conversation but
 /**
  * Enum representing the result of a player's connection attempt to a server.
  */
-enum class ConnectionResultEnum {
-    SUCCESS,
-    SERVER_NOT_FOUND,
-    SERVER_FULL,
-    CATEGORY_FULL,
-    SERVER_OFFLINE,
-    ALREADY_CONNECTED,
-    CANNOT_SWITCH_PROXY,
-    OTHER_SERVER_CANNOT_ACCEPT_TRANSFER_PACKET,
-    CANNOT_COMMUNICATE_WITH_PROXY,
-    CONNECTION_IN_PROGRESS,
-    CONNECTION_CANCELLED,
-    SERVER_DISCONNECTED,
-    CANNOT_CONNECT_TO_PROXY,
+enum class ConnectionResultEnum(
+    val message: Component,
+    val isSuccess: Boolean = false
+) {
+    SUCCESS(buildText { success("Du hast dich erfolgreich Verbunden.") }, isSuccess = true),
+    SERVER_NOT_FOUND(buildText { error("Der Server wurde nicht gefunden.") }),
+    SERVER_FULL(buildText { error("Der Server ist voll.") }),
+    CATEGORY_FULL(buildText { error("Die Kategorie ist voll.") }),
+    SERVER_OFFLINE(buildText { error("Der Server ist offline.") }),
+    ALREADY_CONNECTED(buildText { error("Du bist bereits mit diesem Server verbunden.") }),
+    CANNOT_SWITCH_PROXY(buildText { error("Du kannst nicht zu diesem Server wechseln, da dieser unter einem anderen Proxy läuft.") }),
+    OTHER_SERVER_CANNOT_ACCEPT_TRANSFER_PACKET(buildText { error("Der Server kann das Transfer-Paket nicht akzeptieren.") }),
+    CANNOT_COMMUNICATE_WITH_PROXY(buildText { error("Der Proxy kann nicht erreicht werden.") }),
+    CONNECTION_IN_PROGRESS(buildText { error("Du versucht bereits eine Verbindung zu einem Server herzustellen.") }),
+    CONNECTION_CANCELLED(buildText { error("Die Verbindung wurde abgebrochen.") }),
+    SERVER_DISCONNECTED(buildText { error("Der Server hat die Verbindung getrennt.") }),
+    CANNOT_CONNECT_TO_PROXY(buildText { error("Der Proxy kann nicht erreicht werden.") }),
 }
 
 /**

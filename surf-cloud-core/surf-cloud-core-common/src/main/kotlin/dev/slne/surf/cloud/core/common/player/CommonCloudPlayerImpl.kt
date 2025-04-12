@@ -8,7 +8,7 @@ import dev.slne.surf.cloud.api.common.server.CloudServerManager
 import java.time.ZonedDateTime
 import java.util.*
 
-abstract class CommonCloudPlayerImpl(uuid: UUID) : CommonOfflineCloudPlayerImpl(uuid), CloudPlayer {
+abstract class CommonCloudPlayerImpl(uuid: UUID, override val name: String) : CommonOfflineCloudPlayerImpl(uuid), CloudPlayer {
 
     override suspend fun connectToServer(
         group: String,

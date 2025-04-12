@@ -102,6 +102,8 @@ interface CommonCloudServer : ForwardingAudience {
 
     suspend fun sendAll(category: String): BatchTransferResult
 
+    fun isInGroup(group: String): Boolean
+
     /**
      * Shuts down the server.
      *

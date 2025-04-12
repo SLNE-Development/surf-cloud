@@ -1,0 +1,16 @@
+package dev.slne.surf.cloud.bukkit.permission
+
+import dev.slne.surf.surfapi.bukkit.api.permission.PermissionRegistry
+
+object CloudPermissionRegistry: PermissionRegistry() {
+    private const val COMMAND_PREFIX = "surfcloud.command"
+
+    val FIND_COMMAND = create("$COMMAND_PREFIX.find")
+    val FIND_COMMAND_TELEPORT = create("$COMMAND_PREFIX.find.teleport")
+    val SERVER_COMMAND = create("$COMMAND_PREFIX.server")
+    const val SPECIFIC_SERVER_PERMISSION_PREFIX = "$COMMAND_PREFIX.server."
+    const val ALL_SERVER_PERMISSION = "$COMMAND_PREFIX.server.*"
+    val PLAYTIME_COMMAND = create("$COMMAND_PREFIX.playtime")
+    val PLAYTIME_COMMAND_OTHER = create("$COMMAND_PREFIX.playtime.other")
+    val LAST_SEEN_COMMAND = create("$COMMAND_PREFIX.lastseen")
+}

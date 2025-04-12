@@ -53,6 +53,7 @@ object RunningProtocols {
                 .addPacket(RequestOfflineDisplayNamePacket.STREAM_CODEC)
                 .addPacket(ClientboundBatchUpdateServer.STREAM_CODEC)
                 .addPacket(ServerboundRequestPlayerDataResponse.STREAM_CODEC)
+                .addPacket(PullPlayersToGroupResponsePacket::class.createCodec())
         }
 
     val CLIENTBOUND by lazy { CLIENTBOUND_TEMPLATE.freeze().bind(::SurfByteBuf) }
@@ -98,6 +99,7 @@ object RunningProtocols {
                 .addPacket(RequestOfflineDisplayNamePacket.STREAM_CODEC)
                 .addPacket(ServerboundRequestPlayerDataPacket.STREAM_CODEC)
                 .addPacket(ServerboundUpdateAFKState::class.createCodec())
+                .addPacket(ServerboundPullPlayersToGroupPacket::class.createCodec())
         }
 
     val SERVERBOUND by lazy { SERVERBOUND_TEMPLATE.freeze().bind(::SurfByteBuf) }

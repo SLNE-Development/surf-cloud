@@ -27,6 +27,8 @@ interface CloudPlayerManager {
      */
     fun getPlayer(uuid: UUID?): CloudPlayer?
 
+    fun getPlayer(name: String): CloudPlayer?
+
     fun getOfflinePlayer(uuid: UUID): OfflineCloudPlayer
 
     fun getOnlinePlayers(): UserList

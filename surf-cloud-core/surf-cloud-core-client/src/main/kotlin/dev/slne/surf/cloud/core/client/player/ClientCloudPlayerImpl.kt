@@ -12,6 +12,7 @@ import dev.slne.surf.cloud.api.common.player.teleport.TeleportCause
 import dev.slne.surf.cloud.api.common.player.teleport.TeleportFlag
 import dev.slne.surf.cloud.api.common.player.teleport.TeleportLocation
 import dev.slne.surf.cloud.api.common.server.CloudServer
+import dev.slne.surf.cloud.core.client.server.serverManagerImpl
 import dev.slne.surf.cloud.core.client.util.luckperms
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.*
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ServerboundRequestPlayerDataPacket.DataRequestType
@@ -79,6 +80,18 @@ abstract class ClientCloudPlayerImpl<PlatformPlayer : Audience>(uuid: UUID) :
 
     override suspend fun currentSessionDuration(): Duration {
         return request<PlaytimeSession>(DataRequestType.PLAYTIME_SESSION).playtime
+    }
+
+    override fun isOnServer(server: CloudServer): Boolean {
+        return server.uid == serverUid
+    }
+
+    override fun isInGroup(group: String): Boolean {
+        val currentServer = serverUid
+        return currentServer != null && serverManagerImpl.getServerByIdUnsafe(currentServer)?.group?.equals(
+            group,
+            ignoreCase = true
+        ) == true
     }
 
     override suspend fun <R> withPersistentData(block: PersistentPlayerDataContainer.() -> R): R {

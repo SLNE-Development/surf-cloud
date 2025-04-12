@@ -2,7 +2,9 @@ package dev.slne.surf.cloud.core.common.player
 
 import dev.slne.surf.cloud.api.common.event.player.connection.CloudPlayerConnectToNetworkEvent
 import dev.slne.surf.cloud.api.common.event.player.connection.CloudPlayerDisconnectFromNetworkEvent
+import dev.slne.surf.cloud.api.common.player.CloudPlayer
 import dev.slne.surf.cloud.api.common.player.CloudPlayerManager
+import dev.slne.surf.cloud.api.common.server.CloudServerManager
 import dev.slne.surf.cloud.api.common.server.UserList
 import dev.slne.surf.cloud.api.common.server.UserListImpl
 import dev.slne.surf.cloud.api.common.util.mutableObject2ObjectMapOf
@@ -10,6 +12,8 @@ import dev.slne.surf.cloud.api.common.util.synchronize
 import dev.slne.surf.cloud.core.common.util.publish
 import dev.slne.surf.surfapi.core.api.util.logger
 import it.unimi.dsi.fastutil.objects.Object2ObjectArrayMap
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 import org.jetbrains.annotations.MustBeInvokedByOverriders
 import java.net.Inet4Address
 import java.util.*
@@ -21,6 +25,9 @@ abstract class CloudPlayerManagerImpl<P : CommonCloudPlayerImpl> : CloudPlayerMa
     override fun getPlayer(uuid: UUID?): P? {
         return players[uuid]
     }
+
+    override fun getPlayer(name: String): CloudPlayer? =
+        players.values.find { it.name.equals(name, ignoreCase = true) }
 
     abstract suspend fun createPlayer(
         uuid: UUID,
@@ -113,10 +120,28 @@ abstract class CloudPlayerManagerImpl<P : CommonCloudPlayerImpl> : CloudPlayerMa
     }
 
     open suspend fun onServerConnect(uuid: UUID, player: P, serverUid: Long) {
+        coroutineScope {
+            launch {
+                val userList = CloudServerManager.retrieveServerById(serverUid)?.users ?: return@launch
+                if (userList !is UserListImpl || !userList.add(uuid)) {
+                    log.atWarning()
+                        .log("Failed to add player to server user list: $userList")
+                }
+            }
+        }
     }
 
     @MustBeInvokedByOverriders
     open suspend fun onServerDisconnect(uuid: UUID, player: P, serverUid: Long) {
+        coroutineScope {
+            launch {
+                val userList = CloudServerManager.retrieveServerById(serverUid)?.users ?: return@launch
+                if (userList !is UserListImpl || !userList.remove(uuid)) {
+                    log.atWarning()
+                        .log("Failed to remove player from server user list: $userList")
+                }
+            }
+        }
     }
 
     @MustBeInvokedByOverriders

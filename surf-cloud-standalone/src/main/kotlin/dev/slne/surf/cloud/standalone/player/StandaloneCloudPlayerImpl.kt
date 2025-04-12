@@ -71,7 +71,7 @@ class StandaloneCloudPlayerImpl(uuid: UUID, val name: String, val ip: Inet4Addre
         get() = server ?: proxyServer ?: error("Player is not connected to a server")
 
     @Volatile
-    private var connecting = false
+    var connecting = false
 
     @Volatile
     var connectionQueueCallback: CompletableDeferred<ConnectionResult>? = null
@@ -79,7 +79,6 @@ class StandaloneCloudPlayerImpl(uuid: UUID, val name: String, val ip: Inet4Addre
 
     @Volatile
     var connectingToServer: StandaloneCloudServerImpl? = null
-        private set
 
     private val ppdc = PersistentPlayerDataContainerImpl()
 
@@ -196,33 +195,35 @@ class StandaloneCloudPlayerImpl(uuid: UUID, val name: String, val ip: Inet4Addre
     override suspend fun connectToServer(server: CloudServer): ConnectionResult {
         check(server is StandaloneCloudServerImpl) { "Server must be a StandaloneCloudServerImpl" }
 
-        if (connecting) {
-            return ConnectionResultEnum.CONNECTION_IN_PROGRESS to null
-        }
+        return server.pullPlayer(this) to null
 
-        connecting = true
-
-        // is user connected through proxy?
-        // yes
-        //   -> Is new server managed by the same proxy?
-        //      yes
-        //        -> Send connect packet
-        //      no
-        //        -> Return ConnectionResult.CANNOT_SWITCH_PROXY
-        // no
-        //   -> try send transfer packet
-        //   -> if failed, return ConnectionResult.OTHER_SERVER_CANNOT_ACCEPT_TRANSFER_PACKET
-        //   -> if succeeded, return ConnectionResult.SUCCESS
-
-        val proxy = proxyServer
-        if (proxy != null) {
-            connectingToServer = server
-            return switchServerUnderSameProxy(proxy, server).also {
-                connecting = false; connectingToServer = null
-            }
-        }
-
-        error("NOT SUPPORTED")
+//        if (connecting) {
+//            return ConnectionResultEnum.CONNECTION_IN_PROGRESS to null
+//        }
+//
+//        connecting = true
+//
+//        // is user connected through proxy?
+//        // yes
+//        //   -> Is new server managed by the same proxy?
+//        //      yes
+//        //        -> Send connect packet
+//        //      no
+//        //        -> Return ConnectionResult.CANNOT_SWITCH_PROXY
+//        // no
+//        //   -> try send transfer packet
+//        //   -> if failed, return ConnectionResult.OTHER_SERVER_CANNOT_ACCEPT_TRANSFER_PACKET
+//        //   -> if succeeded, return ConnectionResult.SUCCESS
+//
+//        val proxy = proxyServer
+//        if (proxy != null) {
+//            connectingToServer = server
+//            return switchServerUnderSameProxy(proxy, server).also {
+//                connecting = false; connectingToServer = null
+//            }
+//        }
+//
+//        error("NOT SUPPORTED")
 //        return switchServerUnderNoProxy(server).also { connecting = false }
     }
 

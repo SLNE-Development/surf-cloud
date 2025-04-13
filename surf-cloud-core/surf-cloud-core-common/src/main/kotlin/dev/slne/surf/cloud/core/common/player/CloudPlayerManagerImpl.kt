@@ -119,29 +119,12 @@ abstract class CloudPlayerManagerImpl<P : CommonCloudPlayerImpl> : CloudPlayerMa
         }
     }
 
+    @MustBeInvokedByOverriders
     open suspend fun onServerConnect(uuid: UUID, player: P, serverUid: Long) {
-        coroutineScope {
-            launch {
-                val userList = CloudServerManager.retrieveServerById(serverUid)?.users ?: return@launch
-                if (userList !is UserListImpl || !userList.add(uuid)) {
-                    log.atWarning()
-                        .log("Failed to add player to server user list: $userList")
-                }
-            }
-        }
     }
 
     @MustBeInvokedByOverriders
     open suspend fun onServerDisconnect(uuid: UUID, player: P, serverUid: Long) {
-        coroutineScope {
-            launch {
-                val userList = CloudServerManager.retrieveServerById(serverUid)?.users ?: return@launch
-                if (userList !is UserListImpl || !userList.remove(uuid)) {
-                    log.atWarning()
-                        .log("Failed to remove player from server user list: $userList")
-                }
-            }
-        }
     }
 
     @MustBeInvokedByOverriders

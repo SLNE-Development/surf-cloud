@@ -1,8 +1,6 @@
 package dev.slne.surf.cloud.bukkit.command.broadcast
 
 import com.github.shynixn.mccoroutine.folia.launch
-import dev.jorel.commandapi.CommandTree
-import dev.jorel.commandapi.arguments.Argument
 import dev.jorel.commandapi.kotlindsl.*
 import dev.slne.surf.cloud.api.client.paper.command.args.cloudServerArgument
 import dev.slne.surf.cloud.api.client.paper.command.args.cloudServerGroupArgument
@@ -13,8 +11,10 @@ import dev.slne.surf.cloud.bukkit.plugin
 import dev.slne.surf.surfapi.bukkit.api.command.args.MiniMessageArgument
 import dev.slne.surf.surfapi.core.api.messages.Colors
 import dev.slne.surf.surfapi.core.api.messages.adventure.sendText
+import kotlinx.coroutines.launch
 import net.kyori.adventure.text.Component
 import org.bukkit.command.CommandSender
+import java.util.function.BiFunction
 
 @Suppress("DuplicatedCode")
 fun broadcastCommand() = commandTree("broadcast") {
@@ -137,15 +137,17 @@ private fun executeBroadcast(
 ) = plugin.launch{
     val prefix = prefix ?: Colors.PREFIX
     val message = message.replaceText {
-        it.match("(?m)^")
+        it.match("(?m)^|\\A")
             .replacement(prefix)
             .replaceInsideHoverEvents(false)
     }
 
-    when {
-        server != null -> server.sendMessage(message)
-        group != null -> CloudServerManager.broadcastToGroup(group, message)
-        else -> CloudServerManager.broadcast(message)
+    launch {
+        when {
+            server != null -> server.broadcast(message)
+            group != null -> CloudServerManager.broadcastToGroup(group, message)
+            else -> CloudServerManager.broadcast(message)
+        }
     }
 
     sender.sendText {

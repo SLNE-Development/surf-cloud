@@ -52,6 +52,8 @@ interface CloudServerManager {
      */
     suspend fun retrieveServerByName(name: String): CommonCloudServer?
 
+    suspend fun retrieveServersInGroup(group: String): ObjectList<out CommonCloudServer>
+
     @InternalApi
     fun getServerByNameUnsafe(name: String): CloudServer?
 

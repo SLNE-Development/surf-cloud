@@ -1,6 +1,8 @@
 package dev.slne.surf.cloud.standalone.player
 
+import dev.slne.surf.cloud.api.common.netty.network.protocol.await
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
+import dev.slne.surf.cloud.api.common.player.CloudPlayer
 import dev.slne.surf.cloud.api.common.player.ConnectionResult
 import dev.slne.surf.cloud.api.common.player.ConnectionResultEnum
 import dev.slne.surf.cloud.api.common.player.name.NameHistory
@@ -50,8 +52,8 @@ import java.util.concurrent.TimeUnit
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
-class StandaloneCloudPlayerImpl(uuid: UUID, val name: String, val ip: Inet4Address) :
-    CommonCloudPlayerImpl(uuid) {
+class StandaloneCloudPlayerImpl(uuid: UUID, name: String, val ip: Inet4Address) :
+    CommonCloudPlayerImpl(uuid, name) {
 
     companion object {
         private val log = logger()
@@ -134,6 +136,10 @@ class StandaloneCloudPlayerImpl(uuid: UUID, val name: String, val ip: Inet4Addre
 
     override fun disconnect(reason: Component) {
         proxyServer?.connection?.send(DisconnectPlayerPacket(uuid, reason))
+    }
+
+    override fun disconnectSilent() {
+        server?.connection?.send(SilentDisconnectPlayerPacket(uuid))
     }
 
     suspend fun getPersistentData() = ppdcMutex.withLock { ppdc.toTagCompound() }
@@ -274,6 +280,23 @@ class StandaloneCloudPlayerImpl(uuid: UUID, val name: String, val ip: Inet4Addre
 //        return switchServerOrQueueUnderNoProxy(server).also { connecting = false }
     }
 
+    override fun isOnServer(server: CloudServer): Boolean {
+        if (server !is StandaloneCloudServerImpl) {
+            return false
+        }
+
+        return server == this.server
+    }
+
+    override fun isInGroup(group: String): Boolean {
+        val server = server
+        if (server == null) {
+            return false
+        }
+
+        return server.group == group
+    }
+
     override suspend fun getLuckpermsMetaData(key: String): String? {
         return RequestLuckpermsMetaDataPacket(uuid, key).fireAndAwait(anyServer.connection)?.data
     }
@@ -409,6 +432,25 @@ class StandaloneCloudPlayerImpl(uuid: UUID, val name: String, val ip: Inet4Addre
             teleportCause,
             *flags
         ).fireAndAwait(server.connection)?.result == true
+    }
+
+    override suspend fun teleport(target: CloudPlayer): Boolean {
+        require(target is StandaloneCloudPlayerImpl) { "Target must be a StandaloneCloudPlayerImpl" }
+
+        val targetServer = target.server
+        if (targetServer == null || targetServer != this.server) {
+            val (result) = this.connectToServer(targetServer ?: return false)
+            if (!result.isSuccess) {
+                this.sendMessage(result.message)
+                return false
+            }
+        }
+
+        val result = TeleportPlayerToPlayerPacket(
+            this.uuid,
+            target.uuid
+        ).await(targetServer.connection) == true
+        return result
     }
 
     private fun send(packet: NettyPacket) {

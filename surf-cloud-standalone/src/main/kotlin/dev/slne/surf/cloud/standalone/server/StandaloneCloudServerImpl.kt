@@ -85,23 +85,6 @@ class StandaloneCloudServerImpl(
             Status.SERVER_DISCONNECTED -> ConnectionResultEnum.SERVER_DISCONNECTED
         }
     }
-
-    override suspend fun pullPlayers(players: Collection<CloudPlayer>): ObjectList<Pair<CloudPlayer, ConnectionResultEnum>> {
-        if (players.isEmpty()) return emptyObjectList()
-        if (players.size == 1) {
-            val player = players.first()
-            val (result, _) = player.connectToServer(this)
-            return objectListOf(player to result)
-        }
-
-        val results = players.mapAsync { it to it.connectToServer(this) }.awaitAll()
-            .map { (player, rawResult) ->
-                val (result, _) = rawResult
-                player to result
-            }
-
-        return objectListOf(*results.toTypedArray())
-    }
 }
 
 fun ServerCommonCloudServer?.asStandaloneServer() = this as? StandaloneCloudServerImpl

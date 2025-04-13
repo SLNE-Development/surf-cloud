@@ -6,10 +6,12 @@ import dev.slne.surf.cloud.api.common.player.toCloudPlayer
 import dev.slne.surf.cloud.api.common.player.teleport.TeleportLocation
 import dev.slne.surf.cloud.api.common.player.teleport.TeleportCause
 import dev.slne.surf.cloud.api.common.player.teleport.TeleportFlag
+import dev.slne.surf.cloud.bukkit.listener.player.SilentDisconnectListener
 import dev.slne.surf.cloud.bukkit.plugin
 import dev.slne.surf.cloud.core.client.netty.network.PlatformSpecificPacketListenerExtension
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.RegistrationInfo
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ServerboundTransferPlayerPacketResponse
+import kotlinx.coroutines.future.await
 import net.kyori.adventure.text.Component
 import org.bukkit.Bukkit
 import java.net.InetSocketAddress
@@ -31,6 +33,11 @@ object BukkitSpecificPacketListenerExtension : PlatformSpecificPacketListenerExt
         error("Requested wrong server! This packet can only be acknowledged on a proxy!")
     }
 
+    override fun silentDisconnectPlayer(playerUuid: UUID) {
+        val player = Bukkit.getPlayer(playerUuid) ?: return
+        SilentDisconnectListener.silentDisconnect(player)
+    }
+
     override suspend fun teleportPlayer(
         uuid: UUID,
         location: TeleportLocation,
@@ -45,6 +52,16 @@ object BukkitSpecificPacketListenerExtension : PlatformSpecificPacketListenerExt
 
     override fun registerCloudServersToProxy(packets: Array<RegistrationInfo>) {
         error("Requested wrong server! This packet can only be acknowledged on a proxy!")
+    }
+
+    override suspend fun teleportPlayerToPlayer(
+        uuid: UUID,
+        target: UUID
+    ): Boolean {
+        val player = Bukkit.getPlayer(uuid) ?: return false
+        val targetPlayer = Bukkit.getPlayer(target) ?: return false
+
+        return player.teleportAsync(targetPlayer.location).await()
     }
 
     override fun triggerShutdown() {

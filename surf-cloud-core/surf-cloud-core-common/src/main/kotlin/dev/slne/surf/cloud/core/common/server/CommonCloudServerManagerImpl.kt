@@ -9,6 +9,7 @@ import dev.slne.surf.cloud.api.common.util.mutableObjectListOf
 import dev.slne.surf.cloud.api.common.util.synchronize
 import dev.slne.surf.cloud.api.common.util.toObjectSet
 import it.unimi.dsi.fastutil.objects.ObjectCollection
+import it.unimi.dsi.fastutil.objects.ObjectList
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import net.kyori.adventure.text.Component
@@ -32,7 +33,7 @@ abstract class CommonCloudServerManagerImpl<S : CommonCloudServer> : CloudServer
         name: String
     ) = serversMutex.withLock {
         servers.values.asSequence()
-            .filter { it.group.equals(category, true) && it.name.equals(name, true) }
+            .filter { it.isInGroup(category) && it.name.equals(name, true) }
             .minByOrNull { it.currentPlayerCount }
     }
 
@@ -46,6 +47,11 @@ abstract class CommonCloudServerManagerImpl<S : CommonCloudServer> : CloudServer
         servers.values.asSequence()
             .filter { it.name.equals(name, ignoreCase = true) }
             .minByOrNull { it.currentPlayerCount } as? CloudServer
+
+    override suspend fun retrieveServersInGroup(group: String): ObjectList<out CommonCloudServer> =
+        serversMutex.withLock {
+            servers.values.filterTo(mutableObjectListOf()) { it.isInGroup(group) }
+        }
 
 
     @InternalApi

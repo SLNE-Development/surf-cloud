@@ -210,6 +210,10 @@ class ClientRunningPacketListenerImpl(
         platformExtension.disconnectPlayer(packet.uuid, packet.reason)
     }
 
+    override fun handleSilentDisconnectPlayer(packet: SilentDisconnectPlayerPacket) {
+        platformExtension.silentDisconnectPlayer(packet.uuid)
+    }
+
     override suspend fun handleTeleportPlayer(packet: TeleportPlayerPacket) {
         val result = platformExtension.teleportPlayer(
             packet.uuid,
@@ -219,6 +223,10 @@ class ClientRunningPacketListenerImpl(
         )
 
         packet.respond(TeleportPlayerResultPacket(result))
+    }
+
+    override suspend fun handleTeleportPlayerToPlayer(packet: TeleportPlayerToPlayerPacket) {
+        packet.respond(platformExtension.teleportPlayerToPlayer(packet.uuid, packet.target))
     }
 
     override fun handleRegisterCloudServersToProxy(packet: ClientboundRegisterCloudServersToProxyPacket) {

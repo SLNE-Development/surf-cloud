@@ -1,5 +1,6 @@
 package dev.slne.surf.cloud.api.common.util
 
+import it.unimi.dsi.fastutil.objects.ObjectList
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -146,7 +147,7 @@ private fun createFileDeletedCheck(path: Path): () -> Boolean = {
 
 fun Method.isSuspending() = kotlinFunction?.isSuspend == true
 
-suspend inline fun <T, R> Iterable<T>.mapAsync(crossinline transform: suspend (T) -> R): List<Deferred<R>> =
+suspend inline fun <T, R> Iterable<T>.mapAsync(crossinline transform: suspend (T) -> R): ObjectList<Deferred<R>> =
     coroutineScope {
-        map { async { transform(it) } }
+        mapTo(mutableObjectListOf()) { async { transform(it) } }
     }

@@ -1,9 +1,11 @@
 package dev.slne.surf.cloud.core.client.player
 
+import dev.slne.surf.cloud.api.client.netty.packet.awaitOrThrow
 import dev.slne.surf.cloud.api.client.netty.packet.fireAndAwait
 import dev.slne.surf.cloud.api.client.netty.packet.fireAndAwaitOrThrow
 import dev.slne.surf.cloud.api.client.netty.packet.fireAndForget
 import dev.slne.surf.cloud.api.common.netty.packet.DEFAULT_URGENT_TIMEOUT
+import dev.slne.surf.cloud.api.common.player.CloudPlayer
 import dev.slne.surf.cloud.api.common.player.ConnectionResult
 import dev.slne.surf.cloud.api.common.player.name.NameHistory
 import dev.slne.surf.cloud.api.common.player.playtime.Playtime
@@ -40,8 +42,8 @@ import java.util.*
 import kotlin.time.Duration
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ServerboundRequestPlayerDataResponse.NameHistory as NameHistoryResponse
 
-abstract class ClientCloudPlayerImpl<PlatformPlayer : Audience>(uuid: UUID) :
-    CommonCloudPlayerImpl(uuid) {
+abstract class ClientCloudPlayerImpl<PlatformPlayer : Audience>(uuid: UUID, name: String) :
+    CommonCloudPlayerImpl(uuid, name) {
     @Volatile
     var proxyServerUid: Long? = null
 
@@ -335,6 +337,10 @@ abstract class ClientCloudPlayerImpl<PlatformPlayer : Audience>(uuid: UUID) :
         teleportCause: TeleportCause,
         vararg flags: TeleportFlag
     ) = TeleportPlayerPacket(uuid, location, teleportCause, *flags).fireAndAwaitOrThrow().result
+
+    override suspend fun teleport(target: CloudPlayer): Boolean {
+        return TeleportPlayerToPlayerPacket(uuid, target.uuid).awaitOrThrow()
+    }
 
     protected fun <R> withLuckpermsOrThrow(block: (User) -> R): R {
         val user = luckperms.userManager.getUser(uuid)

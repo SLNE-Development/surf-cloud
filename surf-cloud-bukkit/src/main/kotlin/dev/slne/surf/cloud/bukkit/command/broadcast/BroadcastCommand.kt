@@ -8,6 +8,7 @@ import dev.slne.surf.cloud.api.client.paper.command.args.cloudServerArgument
 import dev.slne.surf.cloud.api.client.paper.command.args.cloudServerGroupArgument
 import dev.slne.surf.cloud.api.common.server.CloudServer
 import dev.slne.surf.cloud.api.common.server.CloudServerManager
+import dev.slne.surf.cloud.bukkit.permission.CloudPermissionRegistry
 import dev.slne.surf.cloud.bukkit.plugin
 import dev.slne.surf.surfapi.bukkit.api.command.args.MiniMessageArgument
 import dev.slne.surf.surfapi.core.api.messages.Colors
@@ -17,6 +18,8 @@ import org.bukkit.command.CommandSender
 
 @Suppress("DuplicatedCode")
 fun broadcastCommand() = commandTree("broadcast") {
+    withPermission(CloudPermissionRegistry.BROADCAST_COMMAND)
+
     literalArgument("--server") {
         cloudServerArgument("server") {
             literalArgument("--message") {

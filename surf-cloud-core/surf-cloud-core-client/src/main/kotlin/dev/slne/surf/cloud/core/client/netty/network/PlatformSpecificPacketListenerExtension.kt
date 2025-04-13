@@ -20,6 +20,8 @@ interface PlatformSpecificPacketListenerExtension {
 
     fun disconnectPlayer(playerUuid: UUID, reason: Component)
 
+    fun silentDisconnectPlayer(playerUuid: UUID)
+
     suspend fun teleportPlayer(
         uuid: UUID,
         location: TeleportLocation,
@@ -28,6 +30,7 @@ interface PlatformSpecificPacketListenerExtension {
     ): Boolean
 
     fun registerCloudServersToProxy(packets: Array<RegistrationInfo>)
+    suspend fun teleportPlayerToPlayer(uuid: UUID, target: UUID): Boolean
 
     fun triggerShutdown()
 }

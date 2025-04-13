@@ -13,4 +13,7 @@ object CloudPermissionRegistry: PermissionRegistry() {
     val PLAYTIME_COMMAND = create("$COMMAND_PREFIX.playtime")
     val PLAYTIME_COMMAND_OTHER = create("$COMMAND_PREFIX.playtime.other")
     val LAST_SEEN_COMMAND = create("$COMMAND_PREFIX.lastseen")
+    val BROADCAST_COMMAND = create("$COMMAND_PREFIX.broadcast")
+    val GLIST_COMMAND = create("$COMMAND_PREFIX.glist")
+    val SILENT_DISCONNECT_COMMAND = create("$COMMAND_PREFIX.silentdisconnect")
 }

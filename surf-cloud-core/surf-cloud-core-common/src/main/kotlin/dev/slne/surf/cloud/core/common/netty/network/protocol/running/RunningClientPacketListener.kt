@@ -63,7 +63,11 @@ interface RunningClientPacketListener : ClientCommonPacketListener {
 
     fun handleDisconnectPlayer(packet: DisconnectPlayerPacket)
 
+    fun handleSilentDisconnectPlayer(packet: SilentDisconnectPlayerPacket)
+
     suspend fun handleTeleportPlayer(packet: TeleportPlayerPacket)
+
+    suspend fun handleTeleportPlayerToPlayer(packet: TeleportPlayerToPlayerPacket)
 
     fun handleRegisterCloudServersToProxy(packet: ClientboundRegisterCloudServersToProxyPacket)
 

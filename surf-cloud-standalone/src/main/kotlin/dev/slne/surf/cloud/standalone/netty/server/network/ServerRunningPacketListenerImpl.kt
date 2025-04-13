@@ -3,6 +3,7 @@ package dev.slne.surf.cloud.standalone.netty.server.network
 import dev.slne.surf.cloud.api.common.netty.network.protocol.respond
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacketInfo
+import dev.slne.surf.cloud.api.common.player.CloudPlayerManager
 import dev.slne.surf.cloud.api.common.player.ConnectionResultEnum
 import dev.slne.surf.cloud.api.common.server.CloudServer
 import dev.slne.surf.cloud.api.common.server.CloudServerManager
@@ -250,6 +251,10 @@ class ServerRunningPacketListenerImpl(
         withPlayer(packet.uuid) { disconnect(packet.reason) }
     }
 
+    override fun handleSilentDisconnectPlayer(packet: SilentDisconnectPlayerPacket) {
+        withPlayer(packet.uuid) { disconnectSilent() }
+    }
+
     override suspend fun handleTeleportPlayer(packet: TeleportPlayerPacket) {
         withPlayer(packet.uuid) {
             val result = teleport(
@@ -260,6 +265,18 @@ class ServerRunningPacketListenerImpl(
 
             packet.respond(TeleportPlayerResultPacket(result))
         }
+    }
+
+    override suspend fun handleTeleportPlayerToPlayer(packet: TeleportPlayerToPlayerPacket) {
+        val player = CloudPlayerManager.getPlayer(packet.uuid)
+        val targetPlayer = CloudPlayerManager.getPlayer(packet.target)
+
+        if (player == null || targetPlayer == null) {
+            packet.respond(false)
+            return
+        }
+
+        packet.respond(player.teleport(targetPlayer))
     }
 
     override suspend fun handleShutdownServer(packet: ServerboundShutdownServerPacket) {

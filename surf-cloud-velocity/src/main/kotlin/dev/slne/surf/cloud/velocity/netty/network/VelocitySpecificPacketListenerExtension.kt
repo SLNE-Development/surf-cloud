@@ -43,6 +43,10 @@ object VelocitySpecificPacketListenerExtension : PlatformSpecificPacketListenerE
         player.disconnect(reason)
     }
 
+    override fun silentDisconnectPlayer(playerUuid: UUID) {
+        error("Silent disconnect is not supported on Velocity")
+    }
+
     override suspend fun teleportPlayer(
         uuid: UUID,
         location: TeleportLocation,
@@ -55,6 +59,13 @@ object VelocitySpecificPacketListenerExtension : PlatformSpecificPacketListenerE
     override fun registerCloudServersToProxy(servers: Array<RegistrationInfo>) {
         servers.map { (name, address) -> ServerInfo(name, address) }
             .forEach { proxy.registerServer(it) }
+    }
+
+    override suspend fun teleportPlayerToPlayer(
+        uuid: UUID,
+        target: UUID
+    ): Boolean {
+        error("Teleporting players is not supported on Velocity")
     }
 
     override fun triggerShutdown() {

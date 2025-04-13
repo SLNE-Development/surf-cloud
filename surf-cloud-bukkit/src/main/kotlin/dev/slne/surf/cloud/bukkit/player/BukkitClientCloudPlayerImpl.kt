@@ -7,6 +7,7 @@ import dev.slne.surf.cloud.api.client.paper.toLocation
 import dev.slne.surf.cloud.api.common.player.teleport.TeleportCause
 import dev.slne.surf.cloud.api.common.player.teleport.TeleportFlag
 import dev.slne.surf.cloud.api.common.player.teleport.TeleportLocation
+import dev.slne.surf.cloud.bukkit.listener.player.SilentDisconnectListener
 import dev.slne.surf.cloud.bukkit.plugin
 import dev.slne.surf.cloud.core.client.player.ClientCloudPlayerImpl
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.DisconnectPlayerPacket
@@ -17,12 +18,25 @@ import org.bukkit.conversations.*
 import org.bukkit.entity.Player
 import java.util.*
 
-class BukkitClientCloudPlayerImpl(uuid: UUID) : ClientCloudPlayerImpl<Player>(uuid) {
-    override val audience: Player? get() = Bukkit.getPlayer(uuid)
+class BukkitClientCloudPlayerImpl(uuid: UUID, name: String) : ClientCloudPlayerImpl<Player>(uuid,
+    name
+) {
+    public override val audience: Player? get() = Bukkit.getPlayer(uuid)
     override val platformClass: Class<Player> = Player::class.java
 
     override fun disconnect(reason: Component) {
         DisconnectPlayerPacket(uuid, reason).fireAndForget()
+    }
+
+    override fun disconnectSilent() {
+        val player = audience
+
+        if (player == null) {
+            // TODO: 13.04.2025 14:05 - send packet
+            return
+        }
+
+        SilentDisconnectListener.silentDisconnect(this)
     }
 
     fun test() {

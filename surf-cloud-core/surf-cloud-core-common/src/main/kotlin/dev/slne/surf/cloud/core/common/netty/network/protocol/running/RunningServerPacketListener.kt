@@ -58,7 +58,11 @@ interface RunningServerPacketListener : ServerCommonPacketListener, TickablePack
 
     fun handleDisconnectPlayer(packet: DisconnectPlayerPacket)
 
+    fun handleSilentDisconnectPlayer(packet: SilentDisconnectPlayerPacket)
+
     suspend fun handleTeleportPlayer(packet: TeleportPlayerPacket)
+
+    suspend fun handleTeleportPlayerToPlayer(packet: TeleportPlayerToPlayerPacket)
 
     suspend fun handleShutdownServer(packet: ServerboundShutdownServerPacket)
 

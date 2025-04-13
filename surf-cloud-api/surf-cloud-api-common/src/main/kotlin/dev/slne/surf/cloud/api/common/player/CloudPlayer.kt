@@ -111,6 +111,13 @@ interface CloudPlayer : Audience, OfflineCloudPlayer { // TODO: conversation but
     fun disconnect(reason: Component)
 
     /**
+     * Disconnects the player from the network silently.
+     *
+     * The player will think they are timed out.
+     */
+    fun disconnectSilent()
+
+    /**
      * Teleports the player to a specified location.
      *
      * @param location The target location for teleportation.

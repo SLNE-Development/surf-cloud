@@ -8,8 +8,8 @@ import dev.slne.surf.cloud.api.common.player.CloudPlayer
 import dev.slne.surf.cloud.bukkit.permission.CloudPermissionRegistry
 import dev.slne.surf.surfapi.core.api.messages.adventure.sendText
 
-fun silentDisconnectPlayerCommand() = commandTree("silentdisconnect") { // TODO: 13.04.2025 14:15 - better name
-    withPermission(CloudPermissionRegistry.SILENT_DISCONNECT_COMMAND)
+fun timeoutPlayerCommand() = commandTree("timeout") {
+    withPermission(CloudPermissionRegistry.TIMEOUT_COMMAND)
 
     onlineCloudPlayerArgument("player") {
         anyExecutor { sender, args ->

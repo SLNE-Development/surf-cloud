@@ -20,6 +20,7 @@ import dev.slne.surf.cloud.core.common.player.playtime.PlaytimeEntry
 import dev.slne.surf.cloud.core.common.player.playtime.PlaytimeImpl
 import dev.slne.surf.cloud.core.common.player.ppdc.PersistentPlayerDataContainerImpl
 import dev.slne.surf.cloud.core.common.util.bean
+import dev.slne.surf.cloud.standalone.netty.server.NettyServerImpl
 import dev.slne.surf.cloud.standalone.player.db.exposed.CloudPlayerService
 import dev.slne.surf.cloud.standalone.server.StandaloneCloudServerImpl
 import dev.slne.surf.cloud.standalone.server.StandaloneProxyCloudServerImpl
@@ -59,6 +60,7 @@ class StandaloneCloudPlayerImpl(uuid: UUID, name: String, val ip: Inet4Address) 
         private val log = logger()
         private val service by lazy { bean<CloudPlayerService>() }
         private val playtimeManager by lazy { bean<CloudPlayerPlaytimeManager>() }
+        private val nettyServer by lazy { bean<NettyServerImpl>() }
     }
 
     @Volatile
@@ -105,7 +107,7 @@ class StandaloneCloudPlayerImpl(uuid: UUID, name: String, val ip: Inet4Address) 
         }
     }
 
-    override suspend fun isAfk(): Boolean {
+    override fun isAfk(): Boolean {
         return afk
     }
 
@@ -117,6 +119,8 @@ class StandaloneCloudPlayerImpl(uuid: UUID, name: String, val ip: Inet4Address) 
     fun updateAfkStatus(newValue: Boolean) {
         if (newValue == afk) return
         afk = newValue
+
+        nettyServer.connection.broadcast(UpdateAFKStatePacket(uuid, afk))
 
         sendText {
             appendPrefix()

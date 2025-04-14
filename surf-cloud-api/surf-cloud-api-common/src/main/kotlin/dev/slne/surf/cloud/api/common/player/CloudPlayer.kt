@@ -39,7 +39,7 @@ interface CloudPlayer : Audience, OfflineCloudPlayer { // TODO: conversation but
      */
     val connected get() = connectedToProxy || connectedToServer
 
-    suspend fun isAfk(): Boolean
+    fun isAfk(): Boolean
     suspend fun currentSessionDuration(): Duration
 
     /**

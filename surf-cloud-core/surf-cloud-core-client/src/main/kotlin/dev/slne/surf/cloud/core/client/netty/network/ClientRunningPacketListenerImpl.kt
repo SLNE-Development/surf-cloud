@@ -6,6 +6,7 @@ import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacketInfo
 import dev.slne.surf.cloud.api.common.server.UserListImpl
 import dev.slne.surf.cloud.core.client.netty.ClientNettyClientImpl
+import dev.slne.surf.cloud.core.client.player.ClientCloudPlayerImpl
 import dev.slne.surf.cloud.core.client.player.commonPlayerManagerImpl
 import dev.slne.surf.cloud.core.client.server.serverManagerImpl
 import dev.slne.surf.cloud.core.client.util.getOrLoadUser
@@ -245,6 +246,13 @@ class ClientRunningPacketListenerImpl(
                 CloudServerImpl(it.serverId, it.group, it.name)
             }
         })
+    }
+
+    override fun handleUpdateAFKState(packet: UpdateAFKStatePacket) {
+        playerManagerImpl.getPlayer(packet.uuid)?.let { player ->
+            require(player is ClientCloudPlayerImpl<*>) { "Player $player is not a client player" }
+            player.afk = packet.isAfk
+        }
     }
 
     override fun handlePacket(packet: NettyPacket) {

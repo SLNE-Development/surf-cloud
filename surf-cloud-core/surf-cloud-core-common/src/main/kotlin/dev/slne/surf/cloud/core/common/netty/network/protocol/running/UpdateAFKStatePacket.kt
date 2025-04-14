@@ -7,6 +7,6 @@ import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
 import java.util.*
 
-@SurfNettyPacket("cloud:serverbound:update_afk_state", PacketFlow.SERVERBOUND)
+@SurfNettyPacket("cloud:bidirectional:update_afk_state", PacketFlow.BIDIRECTIONAL)
 @Serializable
-class ServerboundUpdateAFKState(val uuid: @Contextual UUID, val isAfk: Boolean) : NettyPacket()
+class UpdateAFKStatePacket(val uuid: @Contextual UUID, val isAfk: Boolean) : NettyPacket()

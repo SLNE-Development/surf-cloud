@@ -49,6 +49,10 @@ abstract class ClientCloudPlayerImpl<PlatformPlayer : Audience>(uuid: UUID, name
 
     @Volatile
     var serverUid: Long? = null
+
+    @Volatile
+    var afk: Boolean = false
+
     override val connectedToProxy get() = proxyServerUid != null
 
     override val connectedToServer get() = serverUid != null
@@ -76,8 +80,8 @@ abstract class ClientCloudPlayerImpl<PlatformPlayer : Audience>(uuid: UUID, name
         return request<FirstSeen>(DataRequestType.FIRST_SEEN).firstSeen
     }
 
-    override suspend fun isAfk(): Boolean {
-        return request<IsAFK>(DataRequestType.IS_AFK).isAfk
+    override fun isAfk(): Boolean {
+        return afk
     }
 
     override suspend fun currentSessionDuration(): Duration {

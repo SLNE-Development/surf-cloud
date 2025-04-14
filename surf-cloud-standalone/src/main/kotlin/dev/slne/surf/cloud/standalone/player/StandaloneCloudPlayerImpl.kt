@@ -135,7 +135,8 @@ class StandaloneCloudPlayerImpl(uuid: UUID, name: String, val ip: Inet4Address) 
         }
 
     override fun disconnect(reason: Component) {
-        proxyServer?.connection?.send(DisconnectPlayerPacket(uuid, reason))
+        val connection = proxyServer?.connection ?: server?.connection
+        connection?.send(DisconnectPlayerPacket(uuid, reason))
     }
 
     override fun disconnectSilent() {

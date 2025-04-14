@@ -30,7 +30,8 @@ object BukkitSpecificPacketListenerExtension : PlatformSpecificPacketListenerExt
     }
 
     override fun disconnectPlayer(playerUuid: UUID, reason: Component) {
-        error("Requested wrong server! This packet can only be acknowledged on a proxy!")
+        val player = Bukkit.getPlayer(playerUuid) ?: return
+        player.kick(reason)
     }
 
     override fun silentDisconnectPlayer(playerUuid: UUID) {

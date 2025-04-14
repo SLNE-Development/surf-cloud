@@ -21,11 +21,6 @@ object SilentDisconnectListener : NmsClientboundPacketListener<DisconnectPacket>
         return PacketListenerResult.CANCEL
     }
 
-    fun silentDisconnect(player: BukkitClientCloudPlayerImpl) {
-        val player = player.audience ?: return
-        silentDisconnect(player)
-    }
-
     fun silentDisconnect(player: Player) {
         silentDisconnects.add(player.uniqueId)
         player.kick()

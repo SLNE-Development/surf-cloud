@@ -13,6 +13,7 @@ import kotlinx.coroutines.future.await
 import net.kyori.adventure.text.Component
 import java.net.InetSocketAddress
 import java.util.*
+import kotlin.jvm.optionals.getOrNull
 
 object VelocitySpecificPacketListenerExtension : PlatformSpecificPacketListenerExtension {
     override fun isServerManagedByThisProxy(address: InetSocketAddress) =
@@ -38,8 +39,7 @@ object VelocitySpecificPacketListenerExtension : PlatformSpecificPacketListenerE
     }
 
     override fun disconnectPlayer(playerUuid: UUID, reason: Component) {
-        val player =
-            proxy.getPlayer(playerUuid).orElseThrow { error("Player $playerUuid not found") }
+        val player = proxy.getPlayer(playerUuid).getOrNull() ?: return
         player.disconnect(reason)
     }
 

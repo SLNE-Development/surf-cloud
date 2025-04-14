@@ -40,14 +40,14 @@ object Bootstrap {
                 }
             })
         } catch (e: Throwable) {
-            e.handleEventuallyFatalError({
+            e.handleEventuallyFatalError {
                 val context = standaloneCloudInstance.dataContext
                 if (context.isActive) {
                     SpringApplication.exit(context, it)
                 } else {
                     exitProcess(it.exitCode)
                 }
-            })
+            }
         }
     }
 }

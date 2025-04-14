@@ -13,6 +13,7 @@ import dev.slne.surf.surfapi.core.api.messages.Colors
 import dev.slne.surf.surfapi.core.api.messages.adventure.sendText
 import kotlinx.coroutines.launch
 import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.TextComponent
 import org.bukkit.command.CommandSender
 import java.util.function.BiFunction
 
@@ -136,10 +137,14 @@ private fun executeBroadcast(
     group: String? = null
 ) = plugin.launch{
     val prefix = prefix ?: Colors.PREFIX
-    val message = message.replaceText {
-        it.match("(?m)^|\\A")
-            .replacement(prefix)
-            .replaceInsideHoverEvents(false)
+    val message = if (message is TextComponent && !message.content().contains("\n")) {
+        prefix.append(message)
+    } else {
+        message.replaceText {
+            it.match("(?m)^|\\A")
+                .replacement(prefix)
+                .replaceInsideHoverEvents(false)
+        }
     }
 
     launch {

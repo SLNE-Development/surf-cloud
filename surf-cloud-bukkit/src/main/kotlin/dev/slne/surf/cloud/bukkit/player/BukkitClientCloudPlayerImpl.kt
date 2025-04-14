@@ -11,6 +11,7 @@ import dev.slne.surf.cloud.bukkit.listener.player.SilentDisconnectListener
 import dev.slne.surf.cloud.bukkit.plugin
 import dev.slne.surf.cloud.core.client.player.ClientCloudPlayerImpl
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.DisconnectPlayerPacket
+import dev.slne.surf.cloud.core.common.netty.network.protocol.running.SilentDisconnectPlayerPacket
 import kotlinx.coroutines.future.await
 import net.kyori.adventure.text.Component
 import org.bukkit.Bukkit
@@ -29,14 +30,9 @@ class BukkitClientCloudPlayerImpl(uuid: UUID, name: String) : ClientCloudPlayerI
     }
 
     override fun disconnectSilent() {
-        val player = audience
-
-        if (player == null) {
-            // TODO: 13.04.2025 14:05 - send packet
-            return
-        }
-
-        SilentDisconnectListener.silentDisconnect(this)
+        SilentDisconnectListener.silentDisconnect(
+            audience ?: return SilentDisconnectPlayerPacket(uuid).fireAndForget()
+        )
     }
 
     fun test() {

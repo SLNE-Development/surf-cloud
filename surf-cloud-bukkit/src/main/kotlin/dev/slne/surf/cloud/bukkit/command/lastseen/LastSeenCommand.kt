@@ -12,6 +12,7 @@ import dev.slne.surf.cloud.bukkit.plugin
 import dev.slne.surf.surfapi.core.api.messages.adventure.buildText
 import dev.slne.surf.surfapi.core.api.messages.adventure.sendText
 import dev.slne.surf.surfapi.core.api.messages.builder.SurfComponentBuilder
+import kotlinx.coroutines.Deferred
 import org.bukkit.command.CommandSender
 import java.time.ZoneId
 import java.time.ZonedDateTime
@@ -30,13 +31,14 @@ fun lastSeenCommand() = commandTree("lastseen") {
     withPermission(CloudPermissionRegistry.LAST_SEEN_COMMAND)
     offlineCloudPlayerArgument("player") {
         anyExecutor { sender, args ->
-            val player: OfflineCloudPlayer? by args
-            player?.let { sendLastSeen(sender, it) }
+            val player: Deferred<OfflineCloudPlayer?> by args
+            sendLastSeen(sender, player)
         }
     }
 }
 
-private fun sendLastSeen(sender: CommandSender, player: OfflineCloudPlayer) = plugin.launch {
+private fun sendLastSeen(sender: CommandSender, player: Deferred<OfflineCloudPlayer?>) = plugin.launch {
+    val player = player.await() ?: return@launch
     val lastSeen = player.lastSeen()
     val onlinePlayer = player.player
 

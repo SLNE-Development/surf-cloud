@@ -2,7 +2,7 @@
 
 Docs: [https://surf-cloud-docs.netlify.app/](https://surf-cloud-docs.netlify.app/)
 
-![logo](https://github.com/SLNE-Development/assets/blob/master/logos/surf-cloud/surf-cloud-logo-bg-removed.png?raw=true)
+![logo](https://github.com/SLNE-Development/assets/blob/master/logos/surf-cloud/cloud-logo-new.png?raw=true)
 
 https://chatgpt.com/g/g-67f7a61dc2208191bea4663d0771d6dd-flyway-migration-generator
 

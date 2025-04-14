@@ -296,7 +296,7 @@ class ServerRunningPacketListenerImpl(
         )
     }
 
-    override fun handleUpdateAFKState(packet: ServerboundUpdateAFKState) {
+    override fun handleUpdateAFKState(packet: UpdateAFKStatePacket) {
         withPlayer(packet.uuid) { updateAfkStatus(packet.isAfk) }
     }
 

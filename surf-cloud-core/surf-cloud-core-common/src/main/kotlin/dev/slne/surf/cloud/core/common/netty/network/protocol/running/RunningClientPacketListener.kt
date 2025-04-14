@@ -75,5 +75,7 @@ interface RunningClientPacketListener : ClientCommonPacketListener {
 
     suspend fun handleBatchUpdateServer(packet: ClientboundBatchUpdateServer)
 
+    fun handleUpdateAFKState(packet: UpdateAFKStatePacket)
+
     fun handlePacket(packet: NettyPacket)
 }

@@ -345,7 +345,7 @@ class ConnectionImpl(
                         is TeleportPlayerToPlayerPacket -> listener.handleTeleportPlayerToPlayer(msg)
                         is ServerboundShutdownServerPacket -> listener.handleShutdownServer(msg)
                         is ServerboundRequestPlayerDataPacket -> listener.handleRequestPlayerData(msg)
-                        is ServerboundUpdateAFKState -> listener.handleUpdateAFKState(msg)
+                        is UpdateAFKStatePacket -> listener.handleUpdateAFKState(msg)
 
                         else -> listener.handlePacket(msg) // handle other packets
                     }
@@ -471,6 +471,7 @@ class ConnectionImpl(
                         )
                         is ClientboundTriggerShutdownPacket -> listener.handleTriggerShutdown(msg)
                         is ClientboundBatchUpdateServer -> listener.handleBatchUpdateServer(msg)
+                        is UpdateAFKStatePacket -> listener.handleUpdateAFKState(msg)
 
                         else -> listener.handlePacket(msg)
                     }

@@ -20,7 +20,7 @@ class BukkitBootstrap : PluginBootstrap {
                 )
             )
         } catch (e: Throwable) {
-            e.handleEventuallyFatalError({ exitProcess(it.exitCode) })
+            e.handleEventuallyFatalError { exitProcess(it.exitCode) }
         }
     }
 

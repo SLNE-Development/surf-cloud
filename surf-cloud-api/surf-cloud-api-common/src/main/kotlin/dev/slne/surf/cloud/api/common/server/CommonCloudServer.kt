@@ -5,6 +5,7 @@ import dev.slne.surf.cloud.api.common.player.ConnectionResult
 import dev.slne.surf.cloud.api.common.server.state.ServerState
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap
 import net.kyori.adventure.audience.ForwardingAudience
+import net.kyori.adventure.text.Component
 import org.jetbrains.annotations.ApiStatus
 
 /**
@@ -101,6 +102,10 @@ interface CommonCloudServer : ForwardingAudience {
     suspend fun sendAll(server: CloudServer, filter: (CloudPlayer) -> Boolean): BatchTransferResult
 
     suspend fun sendAll(category: String): BatchTransferResult
+
+    fun isInGroup(group: String): Boolean
+
+    suspend fun broadcast(message: Component)
 
     /**
      * Shuts down the server.

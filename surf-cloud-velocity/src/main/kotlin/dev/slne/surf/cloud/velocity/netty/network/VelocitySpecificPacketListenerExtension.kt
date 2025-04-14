@@ -13,6 +13,7 @@ import kotlinx.coroutines.future.await
 import net.kyori.adventure.text.Component
 import java.net.InetSocketAddress
 import java.util.*
+import kotlin.jvm.optionals.getOrNull
 
 object VelocitySpecificPacketListenerExtension : PlatformSpecificPacketListenerExtension {
     override fun isServerManagedByThisProxy(address: InetSocketAddress) =
@@ -38,9 +39,12 @@ object VelocitySpecificPacketListenerExtension : PlatformSpecificPacketListenerE
     }
 
     override fun disconnectPlayer(playerUuid: UUID, reason: Component) {
-        val player =
-            proxy.getPlayer(playerUuid).orElseThrow { error("Player $playerUuid not found") }
+        val player = proxy.getPlayer(playerUuid).getOrNull() ?: return
         player.disconnect(reason)
+    }
+
+    override fun silentDisconnectPlayer(playerUuid: UUID) {
+        error("Silent disconnect is not supported on Velocity")
     }
 
     override suspend fun teleportPlayer(
@@ -55,6 +59,13 @@ object VelocitySpecificPacketListenerExtension : PlatformSpecificPacketListenerE
     override fun registerCloudServersToProxy(servers: Array<RegistrationInfo>) {
         servers.map { (name, address) -> ServerInfo(name, address) }
             .forEach { proxy.registerServer(it) }
+    }
+
+    override suspend fun teleportPlayerToPlayer(
+        uuid: UUID,
+        target: UUID
+    ): Boolean {
+        error("Teleporting players is not supported on Velocity")
     }
 
     override fun triggerShutdown() {

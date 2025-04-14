@@ -2,6 +2,7 @@ package dev.slne.surf.cloud.bukkit
 
 import com.google.auto.service.AutoService
 import dev.slne.surf.cloud.api.common.CloudInstance
+import dev.slne.surf.cloud.bukkit.command.PaperCommandManager
 import dev.slne.surf.cloud.bukkit.listener.ListenerManager
 import dev.slne.surf.cloud.bukkit.netty.BukkitNettyManager
 import dev.slne.surf.cloud.bukkit.processor.BukkitListenerProcessor
@@ -19,6 +20,7 @@ class CloudBukkitInstance : ClientCommonCloudInstance(BukkitNettyManager) {
     override suspend fun onEnable() {
         super.onEnable()
 
+        PaperCommandManager.registerCommands()
         bean<BukkitListenerProcessor>().registerListeners()
         ListenerManager.registerListeners()
     }

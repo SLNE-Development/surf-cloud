@@ -339,15 +339,16 @@ class ConnectionImpl(
                         )
 
                         is DisconnectPlayerPacket -> listener.handleDisconnectPlayer(msg)
+                        is SilentDisconnectPlayerPacket -> listener.handleSilentDisconnectPlayer(msg)
 
                         is TeleportPlayerPacket -> listener.handleTeleportPlayer(msg)
+                        is TeleportPlayerToPlayerPacket -> listener.handleTeleportPlayerToPlayer(msg)
                         is ServerboundShutdownServerPacket -> listener.handleShutdownServer(msg)
                         is ServerboundRequestPlayerDataPacket -> listener.handleRequestPlayerData(msg)
                         is ServerboundUpdateAFKState -> listener.handleUpdateAFKState(msg)
 
                         else -> listener.handlePacket(msg) // handle other packets
                     }
-
                 }
             }
 
@@ -462,7 +463,9 @@ class ConnectionImpl(
                         )
 
                         is DisconnectPlayerPacket -> listener.handleDisconnectPlayer(msg)
+                        is SilentDisconnectPlayerPacket -> listener.handleSilentDisconnectPlayer(msg)
                         is TeleportPlayerPacket -> listener.handleTeleportPlayer(msg)
+                        is TeleportPlayerToPlayerPacket -> listener.handleTeleportPlayerToPlayer(msg)
                         is ClientboundRegisterCloudServersToProxyPacket -> listener.handleRegisterCloudServersToProxy(
                             msg
                         )

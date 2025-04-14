@@ -23,7 +23,7 @@ class VelocityCloudPlayerManagerImpl :
         ip: Inet4Address,
         serverUid: Long
     ): VelocityClientCloudPlayerImpl {
-        return VelocityClientCloudPlayerImpl(uuid).also {
+        return VelocityClientCloudPlayerImpl(uuid, name).also {
             if (proxy) {
                 it.proxyServerUid = serverUid
             } else {

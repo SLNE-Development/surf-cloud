@@ -22,7 +22,7 @@ class BukkitCloudPlayerManagerImpl : CommonClientCloudPlayerManagerImpl<Player, 
         proxy: Boolean,
         ip: Inet4Address,
         serverUid: Long
-    ) = BukkitClientCloudPlayerImpl(uuid).also {
+    ) = BukkitClientCloudPlayerImpl(uuid, name).also {
         if (proxy) {
             it.proxyServerUid = serverUid
         } else {

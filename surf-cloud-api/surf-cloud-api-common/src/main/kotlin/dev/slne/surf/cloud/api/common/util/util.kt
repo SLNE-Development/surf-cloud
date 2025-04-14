@@ -1,5 +1,9 @@
 package dev.slne.surf.cloud.api.common.util
 
+import it.unimi.dsi.fastutil.objects.ObjectList
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger
 import java.lang.reflect.Method
 import java.nio.file.Path
@@ -7,10 +11,8 @@ import java.util.*
 import java.util.function.ToIntFunction
 import kotlin.io.path.deleteIfExists
 import kotlin.io.path.exists
-import kotlin.io.path.fileVisitor
 import kotlin.io.path.isRegularFile
 import kotlin.io.path.moveTo
-import kotlin.io.path.visitFileTree
 import kotlin.reflect.jvm.kotlinFunction
 
 const val LINEAR_LOOKUP_THRESHOLD = 8
@@ -144,3 +146,8 @@ private fun createFileDeletedCheck(path: Path): () -> Boolean = {
 }
 
 fun Method.isSuspending() = kotlinFunction?.isSuspend == true
+
+suspend inline fun <T, R> Iterable<T>.mapAsync(crossinline transform: suspend (T) -> R): ObjectList<Deferred<R>> =
+    coroutineScope {
+        mapTo(mutableObjectListOf()) { async { transform(it) } }
+    }

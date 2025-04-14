@@ -126,3 +126,8 @@ object PlayerPlaytimeScope : BaseScope(
     dispatcher = Dispatchers.IO,
     name = "player-playtime"
 )
+
+object CloudServerCleanupScope : BaseScope(
+    dispatcher = Dispatchers.Default,
+    name = "cloud-server-cleanup"
+)

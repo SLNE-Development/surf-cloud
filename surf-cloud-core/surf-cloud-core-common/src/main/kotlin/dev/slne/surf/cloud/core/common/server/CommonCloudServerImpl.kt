@@ -11,8 +11,13 @@ import dev.slne.surf.cloud.api.common.util.mutableObject2ObjectMapOf
 import dev.slne.surf.cloud.core.common.coreCloudInstance
 import dev.slne.surf.cloud.core.common.coroutines.PlayerBatchTransferScope
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ClientInformation
+import dev.slne.surf.cloud.core.common.sound.CommonSounds
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
+import net.kyori.adventure.sound.Sound
+import net.kyori.adventure.sound.Sound.Emitter
+import net.kyori.adventure.text.Component
 
 abstract class CommonCloudServerImpl(
     override val uid: Long,
@@ -48,6 +53,18 @@ abstract class CommonCloudServerImpl(
     override suspend fun sendAll(category: String): BatchTransferResult =
         executeBatchTransfer { PlayerBatchTransferScope.async { it.connectToServer(category) } }
 
+    override fun isInGroup(group: String): Boolean {
+        return group.equals(group, ignoreCase = true)
+    }
+
+    override suspend fun broadcast(message: Component) {
+        sendMessage(message)
+        for (sound in CommonSounds.broadcastSounds) {
+            playSound(sound, Emitter.self())
+            delay(150)
+        }
+    }
+
     override val maxPlayerCount get() = information.maxPlayerCount
     override val currentPlayerCount get() = users.size
     override val state get() = information.state
@@ -58,7 +75,22 @@ abstract class CommonCloudServerImpl(
         coreCloudInstance.shutdownServer(this)
     }
 
+
+
     override fun toString(): String {
         return "CloudServerImpl(group='$group', uid=$uid, name='$name, users=$users, information=$information, maxPlayerCount=$maxPlayerCount, currentPlayerCount=$currentPlayerCount, state=$state)"
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is CommonCloudServerImpl) return false
+
+        if (uid != other.uid) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        return uid.hashCode()
     }
 }

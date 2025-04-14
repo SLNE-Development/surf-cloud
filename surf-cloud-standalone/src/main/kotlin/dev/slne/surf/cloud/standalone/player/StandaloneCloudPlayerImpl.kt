@@ -1,6 +1,8 @@
 package dev.slne.surf.cloud.standalone.player
 
+import dev.slne.surf.cloud.api.common.netty.network.protocol.await
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
+import dev.slne.surf.cloud.api.common.player.CloudPlayer
 import dev.slne.surf.cloud.api.common.player.ConnectionResult
 import dev.slne.surf.cloud.api.common.player.ConnectionResultEnum
 import dev.slne.surf.cloud.api.common.player.name.NameHistory
@@ -50,8 +52,8 @@ import java.util.concurrent.TimeUnit
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
-class StandaloneCloudPlayerImpl(uuid: UUID, val name: String, val ip: Inet4Address) :
-    CommonCloudPlayerImpl(uuid) {
+class StandaloneCloudPlayerImpl(uuid: UUID, name: String, val ip: Inet4Address) :
+    CommonCloudPlayerImpl(uuid, name) {
 
     companion object {
         private val log = logger()
@@ -71,7 +73,7 @@ class StandaloneCloudPlayerImpl(uuid: UUID, val name: String, val ip: Inet4Addre
         get() = server ?: proxyServer ?: error("Player is not connected to a server")
 
     @Volatile
-    private var connecting = false
+    var connecting = false
 
     @Volatile
     var connectionQueueCallback: CompletableDeferred<ConnectionResult>? = null
@@ -79,7 +81,6 @@ class StandaloneCloudPlayerImpl(uuid: UUID, val name: String, val ip: Inet4Addre
 
     @Volatile
     var connectingToServer: StandaloneCloudServerImpl? = null
-        private set
 
     private val ppdc = PersistentPlayerDataContainerImpl()
 
@@ -134,7 +135,12 @@ class StandaloneCloudPlayerImpl(uuid: UUID, val name: String, val ip: Inet4Addre
         }
 
     override fun disconnect(reason: Component) {
-        proxyServer?.connection?.send(DisconnectPlayerPacket(uuid, reason))
+        val connection = proxyServer?.connection ?: server?.connection
+        connection?.send(DisconnectPlayerPacket(uuid, reason))
+    }
+
+    override fun disconnectSilent() {
+        server?.connection?.send(SilentDisconnectPlayerPacket(uuid))
     }
 
     suspend fun getPersistentData() = ppdcMutex.withLock { ppdc.toTagCompound() }
@@ -196,33 +202,35 @@ class StandaloneCloudPlayerImpl(uuid: UUID, val name: String, val ip: Inet4Addre
     override suspend fun connectToServer(server: CloudServer): ConnectionResult {
         check(server is StandaloneCloudServerImpl) { "Server must be a StandaloneCloudServerImpl" }
 
-        if (connecting) {
-            return ConnectionResultEnum.CONNECTION_IN_PROGRESS to null
-        }
+        return server.pullPlayer(this) to null
 
-        connecting = true
-
-        // is user connected through proxy?
-        // yes
-        //   -> Is new server managed by the same proxy?
-        //      yes
-        //        -> Send connect packet
-        //      no
-        //        -> Return ConnectionResult.CANNOT_SWITCH_PROXY
-        // no
-        //   -> try send transfer packet
-        //   -> if failed, return ConnectionResult.OTHER_SERVER_CANNOT_ACCEPT_TRANSFER_PACKET
-        //   -> if succeeded, return ConnectionResult.SUCCESS
-
-        val proxy = proxyServer
-        if (proxy != null) {
-            connectingToServer = server
-            return switchServerUnderSameProxy(proxy, server).also {
-                connecting = false; connectingToServer = null
-            }
-        }
-
-        error("NOT SUPPORTED")
+//        if (connecting) {
+//            return ConnectionResultEnum.CONNECTION_IN_PROGRESS to null
+//        }
+//
+//        connecting = true
+//
+//        // is user connected through proxy?
+//        // yes
+//        //   -> Is new server managed by the same proxy?
+//        //      yes
+//        //        -> Send connect packet
+//        //      no
+//        //        -> Return ConnectionResult.CANNOT_SWITCH_PROXY
+//        // no
+//        //   -> try send transfer packet
+//        //   -> if failed, return ConnectionResult.OTHER_SERVER_CANNOT_ACCEPT_TRANSFER_PACKET
+//        //   -> if succeeded, return ConnectionResult.SUCCESS
+//
+//        val proxy = proxyServer
+//        if (proxy != null) {
+//            connectingToServer = server
+//            return switchServerUnderSameProxy(proxy, server).also {
+//                connecting = false; connectingToServer = null
+//            }
+//        }
+//
+//        error("NOT SUPPORTED")
 //        return switchServerUnderNoProxy(server).also { connecting = false }
     }
 
@@ -271,6 +279,23 @@ class StandaloneCloudPlayerImpl(uuid: UUID, val name: String, val ip: Inet4Addre
 
         error("NOT SUPPORTED")
 //        return switchServerOrQueueUnderNoProxy(server).also { connecting = false }
+    }
+
+    override fun isOnServer(server: CloudServer): Boolean {
+        if (server !is StandaloneCloudServerImpl) {
+            return false
+        }
+
+        return server == this.server
+    }
+
+    override fun isInGroup(group: String): Boolean {
+        val server = server
+        if (server == null) {
+            return false
+        }
+
+        return server.group == group
     }
 
     override suspend fun getLuckpermsMetaData(key: String): String? {
@@ -408,6 +433,25 @@ class StandaloneCloudPlayerImpl(uuid: UUID, val name: String, val ip: Inet4Addre
             teleportCause,
             *flags
         ).fireAndAwait(server.connection)?.result == true
+    }
+
+    override suspend fun teleport(target: CloudPlayer): Boolean {
+        require(target is StandaloneCloudPlayerImpl) { "Target must be a StandaloneCloudPlayerImpl" }
+
+        val targetServer = target.server
+        if (targetServer == null || targetServer != this.server) {
+            val (result) = this.connectToServer(targetServer ?: return false)
+            if (!result.isSuccess) {
+                this.sendMessage(result.message)
+                return false
+            }
+        }
+
+        val result = TeleportPlayerToPlayerPacket(
+            this.uuid,
+            target.uuid
+        ).await(targetServer.connection) == true
+        return result
     }
 
     private fun send(packet: NettyPacket) {

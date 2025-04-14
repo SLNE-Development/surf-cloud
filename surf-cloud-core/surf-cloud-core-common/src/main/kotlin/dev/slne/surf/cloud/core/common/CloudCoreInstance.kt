@@ -201,9 +201,9 @@ inline fun FatalSurfError.handle(additionalHandling: (FatalSurfError) -> Unit) {
 }
 
 inline fun Throwable.handleEventuallyFatalError(
-    additionalHandling: (FatalSurfError) -> Unit,
     log: Boolean = true,
-    handleTimeout: Boolean = true
+    handleTimeout: Boolean = true,
+    additionalHandling: (FatalSurfError) -> Unit
 ): Boolean {
     if (this is OutOfMemoryError) {
         throw this

@@ -17,6 +17,6 @@ object SurfFatalErrorExceptionListener : Listener {
         if (e.cause?.handle() == true) return
     }
 
-    private fun Throwable.handle() = handleEventuallyFatalError(handler, false, false)
+    private fun Throwable.handle() = handleEventuallyFatalError(false, false, handler)
 
 }

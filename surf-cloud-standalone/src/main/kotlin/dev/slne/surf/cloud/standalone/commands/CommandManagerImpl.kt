@@ -7,7 +7,6 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException
 import dev.slne.surf.cloud.api.server.command.CommandException
 import dev.slne.surf.cloud.api.server.command.CommandResultCallback
 import dev.slne.surf.cloud.api.server.command.CommandSource
-import dev.slne.surf.cloud.core.common.coroutines.ConsoleCommandHandlerScope
 import dev.slne.surf.cloud.standalone.commands.execution.ExecutionContext
 import dev.slne.surf.cloud.standalone.commands.impl.ShutdownCommand
 import dev.slne.surf.cloud.standalone.commands.impl.TestCommand
@@ -15,13 +14,8 @@ import dev.slne.surf.surfapi.core.api.messages.Colors
 import dev.slne.surf.surfapi.core.api.messages.adventure.appendText
 import dev.slne.surf.surfapi.core.api.messages.adventure.buildText
 import dev.slne.surf.surfapi.core.api.util.logger
-import jakarta.annotation.PostConstruct
-import jakarta.annotation.PreDestroy
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import net.kyori.adventure.text.event.ClickEvent
+import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 import java.util.concurrent.ConcurrentLinkedQueue
 
@@ -30,7 +24,6 @@ class CommandManagerImpl {
 
     val dispatcher = CommandDispatcher<CommandSource>()
     private val serverCommandQueue = ConcurrentLinkedQueue<ConsoleInput>()
-    private lateinit var task: Job
 
     init {
         ShutdownCommand.register(dispatcher)
@@ -45,7 +38,8 @@ class CommandManagerImpl {
         serverCommandQueue.add(ConsoleInput(command, source))
     }
 
-    private fun handleConsoleInputs() {
+    @Scheduled(fixedRate = 20)
+    protected fun handleConsoleInputs() {
         while (serverCommandQueue.isNotEmpty()) {
             val (msg, source) = serverCommandQueue.poll()
             dispatchServerCommand(source, msg)
@@ -151,26 +145,6 @@ class CommandManagerImpl {
         } catch (e: Throwable) {
             throw CommandException("Unhandled exception executing '$commandLine'", e)
         }
-    }
-
-    private fun launchConsoleInputProcessingTask() = ConsoleCommandHandlerScope.launch {
-        while (true) {
-            delay(20)
-            handleConsoleInputs()
-        }
-    }
-
-    @Suppress("ProtectedInFinal") // IJ being dumb
-    @PostConstruct
-    protected fun init() {
-        task = launchConsoleInputProcessingTask()
-    }
-
-    @Suppress("ProtectedInFinal") // IJ being dumb
-    @PreDestroy
-    protected fun destroy() = runBlocking {
-        task.cancel()
-        task.join()
     }
 
     companion object {

@@ -3,8 +3,6 @@ package dev.slne.surf.cloud.standalone.netty.server
 import dev.slne.surf.cloud.api.common.util.mutableObjectListOf
 import dev.slne.surf.cloud.api.common.util.synchronize
 import dev.slne.surf.cloud.core.common.config.cloudConfig
-import dev.slne.surf.cloud.core.common.coroutines.ConnectionTickScope
-import dev.slne.surf.cloud.core.common.util.encryption.Crypt
 import dev.slne.surf.cloud.standalone.netty.server.connection.ServerConnectionListener
 import dev.slne.surf.cloud.standalone.netty.server.network.ServerEncryptionManager
 import dev.slne.surf.cloud.standalone.server.StandaloneCloudServerImpl
@@ -13,59 +11,48 @@ import dev.slne.surf.cloud.standalone.server.serverManagerImpl
 import dev.slne.surf.surfapi.core.api.util.logger
 import io.netty.channel.epoll.Epoll
 import io.netty.channel.unix.DomainSocketAddress
-import jakarta.annotation.PostConstruct
-import jakarta.annotation.PreDestroy
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
+import org.springframework.beans.factory.DisposableBean
+import org.springframework.beans.factory.InitializingBean
 import org.springframework.context.annotation.Profile
+import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 import java.net.InetAddress
 import java.net.InetSocketAddress
 import java.net.SocketAddress
-import java.security.KeyPair
-import kotlin.time.Duration.Companion.seconds
+import java.util.concurrent.TimeUnit
 
 @Component
 @Profile("server")
-class NettyServerImpl {
+class NettyServerImpl : InitializingBean, DisposableBean {
     val log = logger()
 
     private lateinit var localIp: String
     private var port = -1
 
     val connection by lazy { ServerConnectionListener(this) }
-    private val clients = mutableObjectListOf<ServerClientImpl>().synchronize()
+    private val clients = mutableObjectListOf<ServerClientImpl>()
     private val clientsLock = Mutex()
     private val schedules = mutableObjectListOf<() -> Unit>().synchronize()
-
-    lateinit var keyPair: KeyPair
 
     @Volatile
     private var running = false
 
-    @PostConstruct
-    protected fun init(): Unit = runBlocking {
+    override fun afterPropertiesSet() = runBlocking {
         ServerEncryptionManager
-
         initServer()
         finalizeServer()
-
-        ConnectionTickScope.launch {
-            while (isActive && running) {
-                delay(1.seconds)
-                tick()
-            }
-        }
     }
 
-    @PreDestroy
-    protected fun destroy(): Unit = runBlocking {
+    override fun destroy() = runBlocking {
         stopServer()
     }
 
     suspend fun initServer(): Boolean = withContext(Dispatchers.IO) {
-
         val config = cloudConfig.connectionConfig.nettyConfig
         localIp = config.host
 
@@ -107,24 +94,18 @@ class NettyServerImpl {
     }
 
     suspend fun finalizeServer() {
-        initKeyPair()
         running = true
         connection.acceptConnections()
     }
-
-    private fun initKeyPair() {
-        log.atInfo().log("Generating key pair...")
-        keyPair = Crypt.generateKeyPair()
-    }
-
 
     suspend fun stopServer() {
         connection.stop()
         running = false
     }
 
-
-    private suspend fun tick() {
+    @Scheduled(fixedRate = 1, timeUnit = TimeUnit.SECONDS)
+    protected suspend fun tick() {
+        if (!running) return
         connection.connections.forEach { it.tick() }
         connection.tick()
         schedules.removeAll { function ->

@@ -14,7 +14,6 @@ abstract class NettyManager {
 
     @MustBeInvokedByOverriders
     open suspend fun bootstrap() {
-        log.atInfo().log("Bootstrapping NettyManager...")
     }
 
     @MustBeInvokedByOverriders

@@ -15,7 +15,7 @@ abstract class BaseScope(
     companion object {
         private val scopes = mutableObjectListOf<BaseScope>()
         fun terminateAll() {
-            scopes.forEach { it.cancel() }
+            scopes.forEach { it.cancel("Shutdown") }
         }
     }
 
@@ -95,11 +95,6 @@ object ServerShutdownScope : BaseScope(
         daemon(false)
     }).asCoroutineDispatcher(),
     name = "server-shutdown"
-)
-
-object ConsoleCommandHandlerScope : BaseScope(
-    dispatcher = Dispatchers.IO,
-    name = "console-command-handler"
 )
 
 object ConsoleCommandInputScope : BaseScope(

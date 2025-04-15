@@ -58,6 +58,13 @@ inline fun Any.measureWithStopWatch(taskName: String, block: () -> Unit): StopWa
     return stopWatch
 }
 
+inline fun <R> StopWatch.measure(taskName: String, block: () -> R): R {
+    start(taskName)
+    val result = block()
+    stop()
+    return result
+}
+
 /**
  * Default dispatcher used for coroutine-based transactional execution.
  * Limits the number of concurrent transactional operations to 8,

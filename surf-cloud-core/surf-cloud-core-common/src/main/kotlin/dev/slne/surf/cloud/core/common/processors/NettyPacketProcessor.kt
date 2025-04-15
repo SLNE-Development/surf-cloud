@@ -91,7 +91,7 @@ object NettyPacketProcessor : ApplicationListener<ContextRefreshedEvent> {
     }
 
     private fun logRegistration(packet: KClass<out NettyPacket>, packetMeta: SurfNettyPacket) {
-        log.atInfo()
+        log.atFine()
             .log(buildString {
                 append("Registered packet: ")
                 append(packet.simpleName)

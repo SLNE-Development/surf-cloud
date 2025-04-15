@@ -1,21 +1,20 @@
 package dev.slne.surf.cloud.standalone.commands.impl
 
 import com.mojang.brigadier.CommandDispatcher
-import dev.slne.surf.cloud.api.common.exceptions.ExitCodes
 import dev.slne.surf.cloud.api.server.command.CommandSource
 import dev.slne.surf.cloud.api.server.command.ConsoleCommand
 import dev.slne.surf.cloud.api.server.command.literal
-import kotlin.system.exitProcess
+import dev.slne.surf.cloud.core.common.coroutines.ServerShutdownScope
+import dev.slne.surf.cloud.standalone.standaloneCloudInstance
+import kotlinx.coroutines.launch
 
 object ShutdownCommand: ConsoleCommand {
     fun register(dispatcher: CommandDispatcher<CommandSource>) {
-        repeat(20) {
-            println("This is a fake loop")
-        }
         dispatcher.register(literal("stop") {
             executes { context ->
                 context.source.sendSuccess("Stopping standalone server...")
-                exitProcess(ExitCodes.NORMAL)
+                ServerShutdownScope.launch { standaloneCloudInstance.shutdown() }
+                1
             }
         })
     }

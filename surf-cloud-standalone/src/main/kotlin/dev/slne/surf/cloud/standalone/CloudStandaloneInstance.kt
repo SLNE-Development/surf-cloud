@@ -2,6 +2,7 @@ package dev.slne.surf.cloud.standalone
 
 import com.google.auto.service.AutoService
 import dev.slne.surf.cloud.api.common.CloudInstance
+import dev.slne.surf.cloud.api.common.util.TimeLogger
 import dev.slne.surf.cloud.api.server.CloudServerInstance
 import dev.slne.surf.cloud.api.server.export.RootExportPlayerData
 import dev.slne.surf.cloud.api.server.plugin.PluginManager
@@ -24,7 +25,10 @@ import org.bson.BsonDocument
 import org.bson.BsonDocumentWriter
 import org.bson.codecs.EncoderContext
 import org.bson.codecs.kotlinx.KotlinSerializerCodec
+import org.springframework.boot.SpringApplication
+import org.springframework.util.StopWatch
 import java.util.*
+import kotlin.system.exitProcess
 
 @AutoService(CloudInstance::class)
 class CloudStandaloneInstance : CloudCoreInstance(StandaloneNettyManager),
@@ -35,16 +39,20 @@ class CloudStandaloneInstance : CloudCoreInstance(StandaloneNettyManager),
         checkInstantiationByServiceLoader()
     }
 
-    override suspend fun preBootstrap() {
-        super.preBootstrap()
-        ServerEncryptionManager.init()
+    override suspend fun preBootstrap(timeLogger: TimeLogger) {
+        timeLogger.measureStep("Setup server encryption manager") {
+            ServerEncryptionManager.init()
+        }
 
-        PluginInitializerManager.load()
+        timeLogger.measureStep("Initializing plugins") {
+            PluginInitializerManager.load()
+        }
     }
 
-    override suspend fun bootstrap(data: BootstrapData) {
-        super.bootstrap(data)
-        LaunchEntryPointHandler.enterBootstrappers()
+    override suspend fun onBootstrap(timeLogger: TimeLogger) {
+        timeLogger.measureStep("Enter plugin bootstrappers") {
+            LaunchEntryPointHandler.enterBootstrappers()
+        }
     }
 
     override suspend fun onLoad() {
@@ -158,6 +166,11 @@ class CloudStandaloneInstance : CloudCoreInstance(StandaloneNettyManager),
 
         standaloneDelete.await()
         pluginDelete.awaitAll()
+    }
+
+    fun shutdown(): Nothing {
+        val exitCode = SpringApplication.exit(internalContext)
+        exitProcess(exitCode)
     }
 
     companion object {

@@ -1,23 +1,20 @@
 package dev.slne.surf.cloud.standalone.console
 
-import dev.slne.surf.cloud.api.common.exceptions.ExitCodes
 import dev.slne.surf.cloud.core.common.coroutines.ConsoleCommandInputScope
 import dev.slne.surf.cloud.standalone.commands.CommandManagerImpl
-import dev.slne.surf.surfapi.core.api.util.logger
 import jakarta.annotation.PostConstruct
 import kotlinx.coroutines.launch
 import net.minecrell.terminalconsole.SimpleTerminalConsole
 import org.jline.reader.LineReader
 import org.jline.reader.LineReaderBuilder
-import org.springframework.context.event.ContextClosedEvent
-import org.springframework.context.event.EventListener
+import org.springframework.beans.factory.DisposableBean
+import org.springframework.beans.factory.InitializingBean
 import org.springframework.stereotype.Component
 import kotlin.io.path.Path
-import kotlin.system.exitProcess
 
 @Component
 class StandaloneConsole(private val commandManager: CommandManagerImpl) :
-    SimpleTerminalConsole() {
+    SimpleTerminalConsole(), DisposableBean, InitializingBean {
     @Volatile
     private var running = true
 
@@ -45,19 +42,14 @@ class StandaloneConsole(private val commandManager: CommandManagerImpl) :
     }
 
     override fun shutdown() {
-        exitProcess(ExitCodes.NORMAL)
+//        exitProcess(ExitCodes.NORMAL)
     }
 
-    @Suppress("ProtectedInFinal") // IJ being dumb
-    @EventListener(ContextClosedEvent::class)
-    protected fun onContextClose() {
+    override fun destroy() {
         running = false
-        logger().atInfo().log("Shutting down console")
     }
 
-    @Suppress("ProtectedInFinal") // IJ being dumb
-    @PostConstruct
-    protected fun init() {
+    override fun afterPropertiesSet() {
         ConsoleCommandInputScope.launch {
             start()
         }

@@ -5,7 +5,9 @@ import dev.slne.surf.cloud.api.common.CloudInstance
 import dev.slne.surf.cloud.api.common.exceptions.ExitCodes
 import dev.slne.surf.cloud.api.common.exceptions.FatalSurfError
 import dev.slne.surf.cloud.api.common.startSpringApplication
+import dev.slne.surf.cloud.api.common.util.TimeLogger
 import dev.slne.surf.cloud.api.common.util.classloader.JoinClassLoader
+import dev.slne.surf.cloud.api.common.util.measure
 import dev.slne.surf.cloud.core.common.netty.NettyManager
 import dev.slne.surf.cloud.core.common.player.playerManagerImpl
 import dev.slne.surf.cloud.core.common.processors.NettyPacketProcessor
@@ -23,6 +25,7 @@ import org.springframework.boot.builder.SpringApplicationBuilder
 import org.springframework.context.ConfigurableApplicationContext
 import org.springframework.core.NestedRuntimeException
 import org.springframework.core.io.DefaultResourceLoader
+import org.springframework.util.StopWatch
 import java.nio.file.Path
 import javax.annotation.OverridingMethodsMustInvokeSuper
 import kotlin.time.Duration.Companion.minutes
@@ -35,27 +38,42 @@ abstract class CloudCoreInstance(protected val nettyManager: NettyManager) : Clo
     lateinit var dataFolder: Path
     protected open val springProfile = "client"
 
-    @MustBeInvokedByOverriders
-    open suspend fun bootstrap(data: BootstrapData) {
-        log.atInfo().log("Bootstrapping SurfCloudCoreInstance...")
-        setupDefaultUncaughtExceptionHandler()
-        initBootstrapData(data)
+    suspend fun bootstrap(data: BootstrapData) {
+        val timeLogger = TimeLogger("SurfCloud Bootstrap")
 
-        preBootstrap()
-        withTimeout(1.minutes) {
-            startSpringApplication()
-            nettyManager.bootstrap()
-
-            log.atInfo().log("SurfCloudCoreInstance bootstrapped.")
+        timeLogger.measureStep("Setup uncaught exception handler") {
+            setupDefaultUncaughtExceptionHandler()
         }
+
+        timeLogger.measureStep("Initialize bootstrap data") {
+            initBootstrapData(data)
+        }
+
+
+        preBootstrap(timeLogger)
+
+        withTimeout(1.minutes) {
+            timeLogger.measureStep("Start Spring application") {
+                startSpringApplication()
+            }
+
+            timeLogger.measureStep("Bootstrap Netty Manager") {
+                nettyManager.bootstrap()
+            }
+        }
+
+        onBootstrap(timeLogger)
+        timeLogger.printSummary()
     }
 
-    open suspend fun preBootstrap() {
+    open suspend fun preBootstrap(timeLogger: TimeLogger) {
+    }
+
+    open suspend fun onBootstrap(timeLogger: TimeLogger) {
 
     }
 
     private fun setupDefaultUncaughtExceptionHandler() {
-        log.atInfo().log("Setting up default uncaught exception handler...")
         Thread.setDefaultUncaughtExceptionHandler { thread, e ->
             log.atSevere()
                 .withCause(e)
@@ -75,7 +93,6 @@ abstract class CloudCoreInstance(protected val nettyManager: NettyManager) : Clo
     }
 
     private fun startSpringApplication() {
-        log.atInfo().log("Starting Spring application...")
         try {
             internalContext = startSpringApplication(SurfCloudMainApplication::class) {
                 listeners(NettyPacketProcessor)

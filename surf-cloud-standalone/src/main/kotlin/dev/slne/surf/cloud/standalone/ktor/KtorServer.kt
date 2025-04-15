@@ -15,6 +15,7 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.websocket.*
 import io.ktor.websocket.*
+import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.channels.consumeEach
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -44,6 +45,10 @@ object KtorServer {
                 }
             }
         }.start(wait = true)
+    }
+
+    fun stop() {
+        KtorScope.coroutineContext.cancelChildren()
     }
 
     private fun StatusPagesConfig.configure() {

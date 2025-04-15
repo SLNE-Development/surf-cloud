@@ -6,7 +6,6 @@ import dev.slne.surf.surfapi.core.api.util.logger
 import dev.slne.surf.surfapi.standalone.SurfApiStandaloneBootstrap
 import kotlinx.coroutines.runBlocking
 import org.springframework.boot.SpringApplication
-import kotlin.concurrent.thread
 import kotlin.io.path.Path
 import kotlin.system.exitProcess
 
@@ -29,16 +28,6 @@ object Bootstrap {
             )
             standaloneCloudInstance.onLoad()
             standaloneCloudInstance.onEnable()
-
-            Runtime.getRuntime().addShutdownHook(thread(start = false) {
-                runBlocking {
-                    repeat(20) {
-                        println("Running shutdown hook")
-                    }
-                    standaloneCloudInstance.onDisable()
-                    SurfApiStandaloneBootstrap.shutdown()
-                }
-            })
         } catch (e: Throwable) {
             e.handleEventuallyFatalError {
                 val context = standaloneCloudInstance.dataContext

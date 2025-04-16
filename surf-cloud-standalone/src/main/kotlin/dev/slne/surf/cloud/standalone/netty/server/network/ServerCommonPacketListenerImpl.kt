@@ -1,9 +1,11 @@
 package dev.slne.surf.cloud.standalone.netty.server.network
 
+import dev.slne.surf.cloud.api.common.netty.network.protocol.respond
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
 import dev.slne.surf.cloud.core.common.coroutines.ConnectionManagementScope
 import dev.slne.surf.cloud.core.common.netty.network.CommonTickablePacketListener
 import dev.slne.surf.cloud.core.common.netty.network.ConnectionImpl
+import dev.slne.surf.cloud.core.common.netty.network.DisconnectReason
 import dev.slne.surf.cloud.core.common.netty.network.DisconnectionDetails
 import dev.slne.surf.cloud.core.common.netty.network.protocol.common.*
 import dev.slne.surf.cloud.core.common.netty.network.protocol.common.ServerCommonPacketListener
@@ -14,11 +16,7 @@ import dev.slne.surf.cloud.standalone.netty.server.ServerClientImpl
 import dev.slne.surf.surfapi.core.api.util.logger
 import kotlinx.coroutines.launch
 import javax.annotation.OverridingMethodsMustInvokeSuper
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.seconds
 
-private val KEEP_ALIVE_TIME = KeepAliveTime(15.seconds)
-private val KEEP_ALIVE_TIMEOUT = KeepAliveTime(30.seconds)
 
 /**
  * Implementation of the server-side common packet listener that manages keep-alive checks,
@@ -35,9 +33,14 @@ abstract class ServerCommonPacketListenerImpl(
 ) : CommonTickablePacketListener(), ServerCommonPacketListener {
     private val log = logger()
 
-    private var keepAliveTime = KeepAliveTime.now()
-    private var keepAlivePending = false
-    private var keepAliveChallenge = KeepAliveTime(0)
+    private val keepAlive = KeepAliveHandler(
+        connection,
+        { disconnect(it) },
+        { processedDisconnect },
+        { closed },
+        { closedListenerTime }
+    )
+
     var processedDisconnect = false
         private set
     private var closedListenerTime: Long = 0
@@ -47,15 +50,13 @@ abstract class ServerCommonPacketListenerImpl(
     var suspendFlushingOnServerThread = false
         private set
 
-    var latency = 0
-        private set
-
+    val latency get() = keepAlive.latency
     var keepConnectionAlive = true
 
     @OverridingMethodsMustInvokeSuper
     override suspend fun tick0() {
         if (keepConnectionAlive) {
-            keepConnectionAlive()
+            keepAlive.keepConnectionAlive()
         }
     }
 
@@ -74,42 +75,18 @@ abstract class ServerCommonPacketListenerImpl(
         }
     }
 
+    override suspend fun handleKeepAlivePacket(packet: KeepAlivePacket) {
+        packet.respond(packet.keepAliveId)
+    }
+
     private fun handleBroadcastPacket(packets: List<NettyPacket>) {
         if (packets.isEmpty()) return
         val packet = if (packets.size == 1) packets.first() else ClientboundBundlePacket(packets)
         broadcast(packet)
     }
 
-    override suspend fun handleKeepAlivePacket(packet: ServerboundKeepAlivePacket) {
-        if (keepAlivePending && packet.keepAliveId == keepAliveChallenge.time) {
-            val elapsedTime = KeepAliveTime.now() - keepAliveTime
-
-            this.latency = ((latency * 3 + elapsedTime) / 4).toInt()
-            this.keepAlivePending = false
-        } else {
-            disconnect("Invalid keep alive")
-        }
-    }
-
-
     override fun handlePingRequest(packet: ServerboundPingRequestPacket) {
         send(ClientboundPongResponsePacket(packet.time))
-    }
-
-    private suspend fun keepConnectionAlive() {
-        val currentTime = KeepAliveTime.now()
-        val elapsedTime = currentTime - keepAliveTime
-
-        if (KEEP_ALIVE_TIME.isExpired(elapsedTime)) {
-            if (keepAlivePending && KEEP_ALIVE_TIMEOUT.isExpired(elapsedTime)) {
-                disconnect("Timed out")
-            } else if (checkIfClosed(currentTime)) {
-                keepAlivePending = true
-                keepAliveTime = currentTime
-                keepAliveChallenge = currentTime
-                send(ClientboundKeepAlivePacket(keepAliveChallenge.time))
-            }
-        }
     }
 
     /**
@@ -148,7 +125,7 @@ abstract class ServerCommonPacketListenerImpl(
      *
      * @param reason the reason for the disconnection.
      */
-    suspend fun disconnect(reason: String) {
+    suspend fun disconnect(reason: DisconnectReason) {
         disconnect(DisconnectionDetails(reason))
     }
 
@@ -178,19 +155,7 @@ abstract class ServerCommonPacketListenerImpl(
         server.unregisterClient(client)
 
         log.atInfo()
-            .log("${client.displayName} lost connection: ${details.reason}")
-    }
-
-    private suspend fun checkIfClosed(time: KeepAliveTime): Boolean {
-        if (closed) {
-            if (KEEP_ALIVE_TIME.isExpired(time - closedListenerTime)) {
-                disconnect("Timed out")
-            }
-
-            return false
-        }
-
-        return true
+            .log("${client.displayName} lost connection: ${details.buildMessage()}")
     }
 
     protected fun close() {
@@ -217,47 +182,3 @@ abstract class ServerCommonPacketListenerImpl(
     }
 }
 
-/**
- * Inline value class representing a keep-alive timestamp.
- *
- * @property time the timestamp in milliseconds.
- */
-@JvmInline
-value class KeepAliveTime(val time: Long) {
-
-    /**
-     * Checks if the given elapsed time has exceeded this time.
-     *
-     * @param elapsedTime the elapsed time to check.
-     * @return `true` if expired, `false` otherwise.
-     */
-    fun isExpired(elapsedTime: KeepAliveTime) = elapsedTime >= this
-
-    operator fun compareTo(other: KeepAliveTime) = time.compareTo(other.time)
-    operator fun minus(other: KeepAliveTime) = KeepAliveTime(time - other.time)
-    operator fun minus(other: Long) = KeepAliveTime(time - other)
-
-    companion object {
-        /**
-         * Returns the current time as a [KeepAliveTime].
-         */
-        fun now() = KeepAliveTime(System.currentTimeMillis())
-    }
-}
-
-/**
- * Constructs a [KeepAliveTime] from a [Duration].
- *
- * @param duration the duration to convert.
- * @return the resulting [KeepAliveTime].
- */
-fun KeepAliveTime(duration: Duration) = KeepAliveTime(duration.inWholeMilliseconds)
-
-/**
- * Adds a [KeepAliveTime] to an integer value.
- *
- * @receiver the integer value.
- * @param time the [KeepAliveTime] to add.
- * @return the resulting sum.
- */
-operator fun Int.plus(time: KeepAliveTime) = this + time.time

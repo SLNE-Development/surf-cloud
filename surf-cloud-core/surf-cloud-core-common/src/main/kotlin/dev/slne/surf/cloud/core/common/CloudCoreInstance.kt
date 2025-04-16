@@ -1,5 +1,6 @@
 package dev.slne.surf.cloud.core.common
 
+import com.google.auto.service.AutoService
 import dev.slne.surf.cloud.SurfCloudMainApplication
 import dev.slne.surf.cloud.api.common.CloudInstance
 import dev.slne.surf.cloud.api.common.exceptions.ExitCodes
@@ -7,36 +8,49 @@ import dev.slne.surf.cloud.api.common.exceptions.FatalSurfError
 import dev.slne.surf.cloud.api.common.startSpringApplication
 import dev.slne.surf.cloud.api.common.util.TimeLogger
 import dev.slne.surf.cloud.api.common.util.classloader.JoinClassLoader
-import dev.slne.surf.cloud.api.common.util.measure
-import dev.slne.surf.cloud.core.common.netty.NettyManager
-import dev.slne.surf.cloud.core.common.player.playerManagerImpl
+import dev.slne.surf.cloud.api.common.util.forEachOrdered
+import dev.slne.surf.cloud.core.common.netty.network.EncryptionManager
 import dev.slne.surf.cloud.core.common.processors.NettyPacketProcessor
-import dev.slne.surf.cloud.core.common.server.CommonCloudServerImpl
+import dev.slne.surf.cloud.core.common.spring.CloudLifecycleAware
 import dev.slne.surf.cloud.core.common.spring.SurfSpringBanner
 import dev.slne.surf.cloud.core.common.spring.event.RootSpringContextInitialized
 import dev.slne.surf.cloud.core.common.util.getCallerClass
 import dev.slne.surf.cloud.core.common.util.tempChangeSystemClassLoader
+import dev.slne.surf.surfapi.core.api.util.checkInstantiationByServiceLoader
 import dev.slne.surf.surfapi.core.api.util.logger
 import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.withTimeout
-import org.jetbrains.annotations.MustBeInvokedByOverriders
+import org.springframework.beans.factory.ObjectProvider
+import org.springframework.beans.factory.getBeanProvider
 import org.springframework.boot.Banner
 import org.springframework.boot.builder.SpringApplicationBuilder
 import org.springframework.context.ConfigurableApplicationContext
 import org.springframework.core.NestedRuntimeException
+import org.springframework.core.io.ClassPathResource
 import org.springframework.core.io.DefaultResourceLoader
-import org.springframework.util.StopWatch
+import java.nio.charset.StandardCharsets
 import java.nio.file.Path
-import javax.annotation.OverridingMethodsMustInvokeSuper
 import kotlin.time.Duration.Companion.minutes
 
-abstract class CloudCoreInstance(protected val nettyManager: NettyManager) : CloudInstance {
-    protected val log = logger()
+@AutoService(CloudInstance::class)
+class CloudCoreInstance : CloudInstance {
+    private val log = logger()
 
     val dataContext get() = internalContext ?: error("Data context is not initialized yet.")
 
     lateinit var dataFolder: Path
-    protected open val springProfile = "client"
+    private lateinit var lifecycles: ObjectProvider<CloudLifecycleAware>
+
+    init {
+        checkInstantiationByServiceLoader()
+    }
+
+    val springProfile by lazy {
+        ClassPathResource("spring.profile").getContentAsString(
+            StandardCharsets.UTF_8
+        )
+    }
 
     suspend fun bootstrap(data: BootstrapData) {
         val timeLogger = TimeLogger("SurfCloud Bootstrap")
@@ -49,28 +63,18 @@ abstract class CloudCoreInstance(protected val nettyManager: NettyManager) : Clo
             initBootstrapData(data)
         }
 
-
-        preBootstrap(timeLogger)
+        timeLogger.measureStep("Setup encryption manager") {
+            EncryptionManager.instance.init()
+        }
 
         withTimeout(1.minutes) {
             timeLogger.measureStep("Start Spring application") {
                 startSpringApplication()
             }
-
-            timeLogger.measureStep("Bootstrap Netty Manager") {
-                nettyManager.bootstrap()
-            }
         }
 
-        onBootstrap(timeLogger)
+        lifecycles.forEachOrdered { it.onBootstrap(data, timeLogger) }
         timeLogger.printSummary()
-    }
-
-    open suspend fun preBootstrap(timeLogger: TimeLogger) {
-    }
-
-    open suspend fun onBootstrap(timeLogger: TimeLogger) {
-
     }
 
     private fun setupDefaultUncaughtExceptionHandler() {
@@ -96,6 +100,8 @@ abstract class CloudCoreInstance(protected val nettyManager: NettyManager) : Clo
         try {
             internalContext = startSpringApplication(SurfCloudMainApplication::class) {
                 listeners(NettyPacketProcessor)
+            }.also { context ->
+                lifecycles = context.getBeanProvider<CloudLifecycleAware>()
             }
         } catch (e: Throwable) {
             if (e is FatalSurfError || e is OutOfMemoryError) {
@@ -125,44 +131,28 @@ abstract class CloudCoreInstance(protected val nettyManager: NettyManager) : Clo
         internalContext?.publishEvent(RootSpringContextInitialized(this))
     }
 
-    @MustBeInvokedByOverriders
-    open suspend fun onLoad() {
-        log.atInfo().log("Loading SurfCloudCoreInstance...")
-
-        nettyManager.onLoad()
-
-        log.atInfo().log("SurfCloudCoreInstance loaded.")
+    suspend fun onLoad() {
+        val timeLogger = TimeLogger("SurfCloud load")
+        lifecycles.forEachOrdered { it.onLoad(timeLogger) }
+        timeLogger.printSummary()
     }
 
-    @OverridingMethodsMustInvokeSuper
-    open suspend fun onEnable() {
-        log.atInfo().log("Enabling SurfCloudCoreInstance...")
-
-        nettyManager.blockPlayerConnections()
-        nettyManager.onEnable()
-
-        log.atInfo().log("SurfCloudCoreInstance enabled.")
+    suspend fun onEnable() {
+        val timeLogger = TimeLogger("SurfCloud enable")
+        lifecycles.forEachOrdered { it.onEnable(timeLogger) }
+        timeLogger.printSummary()
     }
 
-    @OverridingMethodsMustInvokeSuper
-    open suspend fun onDisable() {
-        log.atInfo().log("Disabling SurfCloudCoreInstance...")
-
-        playerManagerImpl.terminate()
-        nettyManager.stop()
-//        if (internalContext?.isActive == true) internalContext?.close()
-
-        log.atInfo().log("SurfCloudCoreInstance disabled.")
+    suspend fun afterStart() {
+        val timeLogger = TimeLogger("SurfCloud afterStart")
+        lifecycles.forEachOrdered { it.afterStart(timeLogger) }
+        timeLogger.printSummary()
     }
 
-    @MustBeInvokedByOverriders
-    open suspend fun afterStart() {
-        log.atInfo().log("Running afterStart...")
-
-        nettyManager.afterStart()
-        nettyManager.unblockPlayerConnections()
-
-        log.atInfo().log("afterStart completed.")
+    suspend fun onDisable() {
+        val timeLogger = TimeLogger("SurfCloud disable")
+        lifecycles.forEachOrdered { it.onDisable(timeLogger) }
+        timeLogger.printSummary()
     }
 
     override fun startSpringApplication(
@@ -190,8 +180,6 @@ abstract class CloudCoreInstance(protected val nettyManager: NettyManager) : Clo
         }
     }
 
-    abstract fun shutdownServer(server: CommonCloudServerImpl)
-
 
     fun isRunning(): Boolean {
         return internalContext?.isActive == true
@@ -208,30 +196,28 @@ abstract class CloudCoreInstance(protected val nettyManager: NettyManager) : Clo
 val coreCloudInstance: CloudCoreInstance
     get() = CloudInstance.instance as CloudCoreInstance
 
-inline fun FatalSurfError.handle(additionalHandling: (FatalSurfError) -> Unit) {
+fun FatalSurfError.handle(): Int {
     val log = logger()
     log.atSevere().log("A fatal error occurred: ")
     log.atSevere()
         .withCause(cause)
         .log(buildMessage())
-    additionalHandling(this)
+    return exitCode
 }
 
-inline fun Throwable.handleEventuallyFatalError(
+suspend inline fun Throwable.handleEventuallyFatalError(
     log: Boolean = true,
     handleTimeout: Boolean = true,
-    additionalHandling: (FatalSurfError) -> Unit
-): Boolean {
+    shutdown: (exitCode: Int) -> Unit
+) {
     if (this is OutOfMemoryError) {
         throw this
     }
 
-    if (this is FatalSurfError) {
-        handle(additionalHandling)
-        return true
+    val exitCode = if (this is FatalSurfError) {
+        handle()
     } else if (this is NestedRuntimeException && this.rootCause is FatalSurfError) {
-        (this.rootCause as FatalSurfError).handle(additionalHandling)
-        return true
+        (this.rootCause as FatalSurfError).handle()
     } else if (this is TimeoutCancellationException && handleTimeout) {
         val fatalError = FatalSurfError {
             simpleErrorMessage("An operation timed out")
@@ -240,13 +226,16 @@ inline fun Throwable.handleEventuallyFatalError(
             additionalInformation("Error occurred in: " + getCallerClass()?.simpleName)
             exitCode(ExitCodes.TIMEOUT)
         }
-        fatalError.handle(additionalHandling)
-        return true
+        fatalError.handle()
     } else {
         if (log) {
             logger().atSevere().withCause(this).log("An unexpected error occurred")
         }
+        ExitCodes.UNKNOWN_ERROR
     }
 
-    return false
+    logger().atWarning()
+        .log("Waiting for 1 minute before exiting with code $exitCode")
+    delay(1.minutes)
+    shutdown(exitCode)
 }

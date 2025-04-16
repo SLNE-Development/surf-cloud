@@ -1,17 +1,18 @@
 package dev.slne.surf.cloud.bukkit.netty
 
 import dev.slne.surf.cloud.bukkit.netty.listener.NettyPlayerConnectionBlocker
-import dev.slne.surf.cloud.bukkit.netty.network.BukkitSpecificPacketListenerExtension
-import dev.slne.surf.cloud.bukkit.netty.sync.ClientInformationUpdaterSyncer
 import dev.slne.surf.cloud.core.client.netty.NettyCommonClientManager
+import dev.slne.surf.cloud.core.client.netty.network.PlatformSpecificPacketListenerExtension
+import dev.slne.surf.cloud.core.common.spring.CloudLifecycleAware
 import dev.slne.surf.surfapi.bukkit.api.event.register
 import dev.slne.surf.surfapi.bukkit.api.event.unregister
+import org.springframework.core.annotation.Order
+import org.springframework.stereotype.Component
 
-object BukkitNettyManager : NettyCommonClientManager(false, BukkitSpecificPacketListenerExtension) {
-    override suspend fun afterStart() {
-        super.afterStart()
-        ClientInformationUpdaterSyncer
-    }
+@Component
+@Order(CloudLifecycleAware.NETTY_MANAGER_PRIORITY)
+class BukkitNettyManager(platformExtension: PlatformSpecificPacketListenerExtension) :
+    NettyCommonClientManager(false, platformExtension) {
 
     override fun blockPlayerConnections() {
         NettyPlayerConnectionBlocker.register()

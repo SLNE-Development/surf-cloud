@@ -71,12 +71,6 @@ abstract class CommonCloudServerImpl(
 
     override fun audiences() = users
 
-    override fun shutdown() {
-        coreCloudInstance.shutdownServer(this)
-    }
-
-
-
     override fun toString(): String {
         return "CloudServerImpl(group='$group', uid=$uid, name='$name, users=$users, information=$information, maxPlayerCount=$maxPlayerCount, currentPlayerCount=$currentPlayerCount, state=$state)"
     }

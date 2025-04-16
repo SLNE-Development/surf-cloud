@@ -2,6 +2,7 @@ package dev.slne.surf.cloud.standalone.netty.server.network
 
 import dev.slne.surf.cloud.core.common.netty.network.CommonTickablePacketListener
 import dev.slne.surf.cloud.core.common.netty.network.ConnectionImpl
+import dev.slne.surf.cloud.core.common.netty.network.DisconnectReason
 import dev.slne.surf.cloud.core.common.netty.network.DisconnectionDetails
 import dev.slne.surf.cloud.core.common.netty.network.protocol.login.*
 import dev.slne.surf.cloud.core.common.netty.network.protocol.prerunning.PreRunningProtocols
@@ -35,7 +36,7 @@ class ServerLoginPacketListenerImpl(val server: NettyServerImpl, val connection:
         }
 
         if (seconds++ == MAX_LOGIN_TIME) {
-            disconnect("Took too long to log in")
+            disconnect(DisconnectReason.TOOK_TOO_LONG)
         }
     }
 
@@ -52,7 +53,7 @@ class ServerLoginPacketListenerImpl(val server: NettyServerImpl, val connection:
         state = State.VERIFYING
 
         if (proxy && standaloneConfig.useSingleProxySetup && ProxyServerAutoregistration.hasProxy) {
-            disconnect("Proxy already connected")
+            disconnect(DisconnectReason.PROXY_ALREADY_CONNECTED)
         }
     }
 
@@ -77,20 +78,20 @@ class ServerLoginPacketListenerImpl(val server: NettyServerImpl, val connection:
     }
 
     override suspend fun onDisconnect(details: DisconnectionDetails) {
-        log.atInfo().log("${client?.displayName} lost connection: ${details.reason}")
+        log.atInfo().log("${client?.displayName} lost connection: ${details.buildMessage()}")
     }
 
     override fun isAcceptingMessages(): Boolean {
         return connection.connected
     }
 
-    fun disconnect(reason: String) {
+    fun disconnect(reason: DisconnectReason) {
         disconnect(DisconnectionDetails(reason))
     }
 
     fun disconnect(details: DisconnectionDetails) {
         runCatching {
-            log.atInfo().log("Disconnecting ${client?.displayName}: ${details.reason}")
+            log.atInfo().log("Disconnecting ${client?.displayName}: ${details.buildMessage()}")
             connection.send(ClientboundLoginDisconnectPacket(details))
             connection.disconnect(details)
         }.onFailure {

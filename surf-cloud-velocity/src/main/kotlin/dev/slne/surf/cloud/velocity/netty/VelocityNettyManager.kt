@@ -1,13 +1,18 @@
 package dev.slne.surf.cloud.velocity.netty
 
 import dev.slne.surf.cloud.core.client.netty.NettyCommonClientManager
+import dev.slne.surf.cloud.core.client.netty.network.PlatformSpecificPacketListenerExtension
+import dev.slne.surf.cloud.core.common.spring.CloudLifecycleAware
 import dev.slne.surf.cloud.velocity.netty.listener.NettyPlayerConnectionBlocker
-import dev.slne.surf.cloud.velocity.netty.network.VelocitySpecificPacketListenerExtension
 import dev.slne.surf.cloud.velocity.plugin
+import org.springframework.core.annotation.Order
+import org.springframework.stereotype.Component
 import dev.slne.surf.cloud.velocity.proxy as velocityProxy
 
-object VelocityNettyManager :
-    NettyCommonClientManager(true, VelocitySpecificPacketListenerExtension) {
+@Component
+@Order(CloudLifecycleAware.NETTY_MANAGER_PRIORITY)
+class VelocityNettyManager(platformExtension: PlatformSpecificPacketListenerExtension) :
+    NettyCommonClientManager(true, platformExtension) {
     override fun blockPlayerConnections() {
         velocityProxy.eventManager.register(plugin, NettyPlayerConnectionBlocker)
     }

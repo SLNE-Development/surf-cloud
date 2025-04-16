@@ -1,6 +1,7 @@
 package dev.slne.surf.cloud.bukkit
 
 import dev.slne.surf.cloud.core.common.CloudCoreInstance.BootstrapData
+import dev.slne.surf.cloud.core.common.coreCloudInstance
 import dev.slne.surf.cloud.core.common.handleEventuallyFatalError
 import io.papermc.paper.plugin.bootstrap.BootstrapContext
 import io.papermc.paper.plugin.bootstrap.PluginBootstrap
@@ -14,13 +15,15 @@ class BukkitBootstrap : PluginBootstrap {
 
     override fun bootstrap(context: BootstrapContext): Unit = runBlocking {
         try {
-            bukkitCloudInstance.bootstrap(
+            coreCloudInstance.bootstrap(
                 BootstrapData(
                     dataFolder = context.dataDirectory
                 )
             )
         } catch (e: Throwable) {
-            e.handleEventuallyFatalError { exitProcess(it.exitCode) }
+            e.handleEventuallyFatalError {
+                exitProcess(it)
+            }
         }
     }
 

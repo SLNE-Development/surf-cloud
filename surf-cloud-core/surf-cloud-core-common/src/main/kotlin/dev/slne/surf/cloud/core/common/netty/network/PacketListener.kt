@@ -9,8 +9,8 @@ interface PacketListener {
     val protocol: ConnectionProtocol
 
     suspend fun onDisconnect(details: DisconnectionDetails)
-    fun createDisconnectionInfo(reason: String, throwable: Throwable?): DisconnectionDetails =
-        DisconnectionDetails(reason)
+    fun createDisconnectionInfo(reason: DisconnectReason, additionalInfo: String? = null): DisconnectionDetails =
+        DisconnectionDetails(reason, additionalInfo)
 
     fun onPacketError(packet: NettyPacket, exception: Throwable) {}
 

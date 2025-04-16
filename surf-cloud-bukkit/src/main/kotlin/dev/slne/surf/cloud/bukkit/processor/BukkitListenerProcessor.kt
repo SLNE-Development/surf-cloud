@@ -1,10 +1,12 @@
 package dev.slne.surf.cloud.bukkit.processor
 
+import dev.slne.surf.cloud.api.common.util.TimeLogger
 import dev.slne.surf.cloud.api.common.util.isAnnotated
 import dev.slne.surf.cloud.api.common.util.isCandidateFor
 import dev.slne.surf.cloud.api.common.util.mutableObjectListOf
 import dev.slne.surf.cloud.api.common.util.selectFunctions
 import dev.slne.surf.cloud.api.common.util.ultimateTargetClass
+import dev.slne.surf.cloud.core.common.spring.CloudLifecycleAware
 import org.bukkit.Bukkit
 import org.bukkit.event.Event
 import org.bukkit.event.EventException
@@ -16,12 +18,14 @@ import org.springframework.aop.framework.AopInfrastructureBean
 import org.springframework.beans.factory.BeanCreationException
 import org.springframework.beans.factory.config.BeanPostProcessor
 import org.springframework.core.annotation.AnnotationUtils
+import org.springframework.core.annotation.Order
 import org.springframework.stereotype.Component
 import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Method
 
 @Component
-class BukkitListenerProcessor : BeanPostProcessor {
+@Order(CloudLifecycleAware.MISC_PRIORITY)
+class BukkitListenerProcessor : BeanPostProcessor, CloudLifecycleAware {
     private val listeners = mutableObjectListOf<ListenerMetaData>()
 
     override fun postProcessAfterInitialization(bean: Any, beanName: String): Any {
@@ -89,6 +93,12 @@ class BukkitListenerProcessor : BeanPostProcessor {
                     eventExecutor
                 )
             )
+        }
+    }
+
+    override suspend fun onEnable(timeLogger: TimeLogger) {
+        timeLogger.measureStep("Registering Bukkit listeners from Spring beans") {
+            registerListeners()
         }
     }
 

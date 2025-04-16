@@ -3,8 +3,9 @@ package dev.slne.surf.cloud.standalone.netty.server
 import dev.slne.surf.cloud.api.common.util.mutableObjectListOf
 import dev.slne.surf.cloud.api.common.util.synchronize
 import dev.slne.surf.cloud.core.common.config.cloudConfig
+import dev.slne.surf.cloud.core.common.netty.network.DisconnectReason
+import dev.slne.surf.cloud.core.common.netty.network.DisconnectionDetails
 import dev.slne.surf.cloud.standalone.netty.server.connection.ServerConnectionListener
-import dev.slne.surf.cloud.standalone.netty.server.network.ServerEncryptionManager
 import dev.slne.surf.cloud.standalone.server.StandaloneCloudServerImpl
 import dev.slne.surf.cloud.standalone.server.StandaloneProxyCloudServerImpl
 import dev.slne.surf.cloud.standalone.server.serverManagerImpl
@@ -43,7 +44,6 @@ class NettyServerImpl : InitializingBean, DisposableBean {
     private var running = false
 
     override fun afterPropertiesSet() = runBlocking {
-        ServerEncryptionManager
         initServer()
         finalizeServer()
     }
@@ -123,7 +123,12 @@ class NettyServerImpl : InitializingBean, DisposableBean {
             if (clients.any { it.serverName == client.serverName }) {
                 log.atSevere()
                     .log("Client with name ${client.serverName} already exists")
-                client.connection.disconnect("Client with name ${client.serverName} already exists")
+                client.connection.disconnect(
+                    DisconnectionDetails(
+                        DisconnectReason.CLIENT_NAME_ALREADY_EXISTS,
+                        client.serverName
+                    )
+                )
                 return
             }
 

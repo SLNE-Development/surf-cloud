@@ -1,6 +1,7 @@
 package dev.slne.surf.cloud.standalone.netty.server.network
 
 import dev.slne.surf.cloud.core.common.netty.network.ConnectionImpl
+import dev.slne.surf.cloud.core.common.netty.network.DisconnectReason
 import dev.slne.surf.cloud.core.common.netty.network.DisconnectionDetails
 import dev.slne.surf.cloud.core.common.netty.network.protocol.handshake.ClientIntent
 import dev.slne.surf.cloud.core.common.netty.network.protocol.handshake.PROTOCOL_VERSION
@@ -31,7 +32,7 @@ class ServerHandshakePacketListenerImpl(val server: NettyServerImpl, val connect
 
         if (packet.protocolVersion != PROTOCOL_VERSION) {
             val reason =
-                if (packet.protocolVersion > PROTOCOL_VERSION) "Outdated server" else "Outdated client"
+                if (packet.protocolVersion > PROTOCOL_VERSION) DisconnectReason.OUTDATED_SERVER else DisconnectReason.OUTDATED_CLIENT
             connection.send(ClientboundLoginDisconnectPacket(reason))
             connection.disconnect(reason)
 

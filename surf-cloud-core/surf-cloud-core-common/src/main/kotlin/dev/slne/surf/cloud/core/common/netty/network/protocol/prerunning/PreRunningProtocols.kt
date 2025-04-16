@@ -1,6 +1,8 @@
 package dev.slne.surf.cloud.core.common.netty.network.protocol.prerunning
 
 import dev.slne.surf.cloud.api.common.netty.network.ConnectionProtocol
+import dev.slne.surf.cloud.api.common.netty.network.protocol.long.LongResponse
+import dev.slne.surf.cloud.api.common.netty.packet.createCodec
 import dev.slne.surf.cloud.api.common.netty.protocol.buffer.SurfByteBuf
 import dev.slne.surf.cloud.core.common.netty.network.protocol.ProtocolInfoBuilder
 import dev.slne.surf.cloud.core.common.netty.network.protocol.common.*
@@ -12,7 +14,8 @@ object PreRunningProtocols {
         ) { builder ->
             builder.withBundlePacket(::ClientboundBundlePacket, ClientboundBundleDelimiterPacket())
             // TODO: disconnect packet - needed?
-            builder.addPacket(ClientboundKeepAlivePacket.STREAM_CODEC)
+            builder.addPacket(KeepAlivePacket::class.createCodec())
+                .addPacket(LongResponse.STREAM_CODEC)
                 .addPacket(ClientboundPongResponsePacket.STREAM_CODEC)
                 .addPacket(ClientboundPreRunningFinishedPacket.STREAM_CODEC)
                 .addPacket(ClientboundReadyToRunPacket.STREAM_CODEC)
@@ -25,7 +28,8 @@ object PreRunningProtocols {
             ConnectionProtocol.PRE_RUNNING
         ) { builder ->
             builder.withBundlePacket(::ServerboundBundlePacket, ServerboundBundleDelimiterPacket())
-            builder.addPacket(ServerboundKeepAlivePacket.STREAM_CODEC)
+            builder.addPacket(KeepAlivePacket::class.createCodec())
+                .addPacket(LongResponse.STREAM_CODEC)
                 .addPacket(ServerboundPingRequestPacket.STREAM_CODEC)
                 .addPacket(ServerboundPreRunningAcknowledgedPacket.STREAM_CODEC)
                 .addPacket(ServerboundReadyToRunPacket.STREAM_CODEC)

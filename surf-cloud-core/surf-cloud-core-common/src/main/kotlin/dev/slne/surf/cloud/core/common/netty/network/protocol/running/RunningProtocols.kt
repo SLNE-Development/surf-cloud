@@ -13,7 +13,7 @@ object RunningProtocols {
         ) { builder ->
             builder.withBundlePacket(::ClientboundBundlePacket, ClientboundBundleDelimiterPacket())
             builder.addPacket(ClientboundDisconnectPacket.STREAM_CODEC)
-                .addPacket(ClientboundKeepAlivePacket.STREAM_CODEC)
+                .addPacket(KeepAlivePacket::class.createCodec())
                 .addPacket(ClientboundPingPacket.STREAM_CODEC)
                 .addPacket(ClientboundPongResponsePacket.STREAM_CODEC)
                 .addPacket(ClientboundSendMessagePacket.STREAM_CODEC)
@@ -64,7 +64,7 @@ object RunningProtocols {
         ProtocolInfoBuilder.mutableServerboundProtocol<RunningServerPacketListener, SurfByteBuf>(
             ConnectionProtocol.RUNNING
         ) { builder ->
-            builder.addPacket(ServerboundKeepAlivePacket.STREAM_CODEC)
+            builder.addPacket(KeepAlivePacket::class.createCodec())
                 .addPacket(ServerboundPingRequestPacket.STREAM_CODEC)
                 .addPacket(ServerboundPongPacket.STREAM_CODEC)
                 .addPacket(ServerboundSendMessagePacket.STREAM_CODEC)

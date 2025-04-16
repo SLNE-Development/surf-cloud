@@ -14,7 +14,9 @@ import dev.slne.surf.cloud.core.common.coroutines.ConnectionTickScope
 import dev.slne.surf.cloud.core.common.data.CloudPersistentData
 import dev.slne.surf.cloud.core.common.netty.CommonNettyClientImpl
 import dev.slne.surf.cloud.core.common.netty.network.ConnectionImpl
+import dev.slne.surf.cloud.core.common.netty.network.DisconnectReason
 import dev.slne.surf.cloud.core.common.netty.network.DisconnectionDetails
+import dev.slne.surf.cloud.core.common.netty.network.EncryptionManager
 import dev.slne.surf.cloud.core.common.netty.network.protocol.common.ServerboundBundlePacket
 import dev.slne.surf.cloud.core.common.netty.network.protocol.initialize.ClientInitializePacketListener
 import dev.slne.surf.cloud.core.common.netty.network.protocol.initialize.ClientboundInitializeIdResponsePacket
@@ -90,12 +92,21 @@ class ClientNettyClientImpl(
 
         try {
             val inetSocketAddress = InetSocketAddress(serverAddress)
-            val connection = ConnectionImpl(PacketFlow.CLIENTBOUND, ClientEncryptionManager)
+            val connection = ConnectionImpl(PacketFlow.CLIENTBOUND, EncryptionManager.instance)
             ConnectionImpl.connect(
                 inetSocketAddress,
                 cloudConfig.connectionConfig.nettyConfig.useEpoll,
                 connection
             )
+
+            ConnectionTickScope.launch {
+                while (connection.connected && isActive) {
+                    connection.tick()
+                    delay(1.seconds)
+                }
+
+                connection.handleDisconnection()
+            }
 
             connection.initiateServerboundRunningConnection(
                 inetSocketAddress.hostName,
@@ -177,7 +188,7 @@ class ClientNettyClientImpl(
                 connection.sendWithIndication(ServerboundInitializeRequestIdPacket)
                 internalServerId = responseId.await()
                 CloudPersistentData.SERVER_ID = (internalServerId)
-                connection.disconnect("Server ID fetched")
+                connection.disconnect(DisconnectionDetails(DisconnectReason.SERVER_ID_FETCHED))
             } catch (e: Throwable) {
                 throw FatalSurfError {
                     simpleErrorMessage("Couldn't fetch server ID")
@@ -207,7 +218,7 @@ class ClientNettyClientImpl(
         address: InetSocketAddress,
         useEpoll: Boolean,
     ): ConnectionImpl {
-        val connection = ConnectionImpl(PacketFlow.CLIENTBOUND, ClientEncryptionManager)
+        val connection = ConnectionImpl(PacketFlow.CLIENTBOUND, EncryptionManager.instance)
         ConnectionImpl.connect(address, useEpoll, connection)
         return connection
     }
@@ -224,6 +235,6 @@ class ClientNettyClientImpl(
         }
 
         listener.close()
-        connection.disconnect("Client shutdown")
+        connection.disconnect(DisconnectReason.CLIENT_SHUTDOWN)
     }
 }

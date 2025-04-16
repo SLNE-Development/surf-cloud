@@ -8,6 +8,8 @@ import dev.slne.surf.cloud.api.common.server.UserListImpl
 import dev.slne.surf.cloud.core.client.netty.ClientNettyClientImpl
 import dev.slne.surf.cloud.core.client.player.ClientCloudPlayerImpl
 import dev.slne.surf.cloud.core.client.player.commonPlayerManagerImpl
+import dev.slne.surf.cloud.core.client.server.ClientCloudServerImpl
+import dev.slne.surf.cloud.core.client.server.ClientProxyCloudServerImpl
 import dev.slne.surf.cloud.core.client.server.serverManagerImpl
 import dev.slne.surf.cloud.core.client.util.getOrLoadUser
 import dev.slne.surf.cloud.core.client.util.luckperms
@@ -16,8 +18,8 @@ import dev.slne.surf.cloud.core.common.netty.network.ConnectionImpl
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.*
 import dev.slne.surf.cloud.core.common.netty.registry.listener.NettyListenerRegistry
 import dev.slne.surf.cloud.core.common.player.playerManagerImpl
-import dev.slne.surf.cloud.core.common.server.CloudServerImpl
-import dev.slne.surf.cloud.core.common.server.ProxyCloudServerImpl
+import dev.slne.surf.cloud.core.common.server.AbstractCloudServer
+import dev.slne.surf.cloud.core.common.server.AbstractProxyCloudServer
 import dev.slne.surf.surfapi.core.api.messages.adventure.getPointer
 import dev.slne.surf.surfapi.core.api.messages.adventure.text
 import dev.slne.surf.surfapi.core.api.util.logger
@@ -27,18 +29,14 @@ import net.kyori.adventure.identity.Identity
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.title.Title
 import net.kyori.adventure.title.TitlePart
-import java.io.Closeable
 import java.util.*
 
 class ClientRunningPacketListenerImpl(
     connection: ConnectionImpl,
     val client: ClientNettyClientImpl,
     val platformExtension: PlatformSpecificPacketListenerExtension
-) : ClientCommonPacketListenerImpl(connection), RunningClientPacketListener, Closeable {
+) : ClientCommonPacketListenerImpl(connection), RunningClientPacketListener {
     private val log = logger()
-
-    @Volatile
-    private var closed = false
 
     override suspend fun handlePlayerConnectToServer(packet: PlayerConnectToServerPacket) {
         playerManagerImpl.updateOrCreatePlayer(
@@ -155,13 +153,13 @@ class ClientRunningPacketListenerImpl(
 
     override suspend fun handleRegisterServerPacket(packet: ClientboundRegisterServerPacket) {
         val server = if (packet.proxy) {
-            ProxyCloudServerImpl(
+            ClientProxyCloudServerImpl(
                 packet.serverId,
                 packet.group,
                 packet.name,
             )
         } else {
-            CloudServerImpl(
+            ClientCloudServerImpl(
                 packet.serverId,
                 packet.group,
                 packet.name,
@@ -241,9 +239,9 @@ class ClientRunningPacketListenerImpl(
     override suspend fun handleBatchUpdateServer(packet: ClientboundBatchUpdateServer) {
         serverManagerImpl.batchUpdateServer(packet.servers.map {
             if (it.proxy) {
-                ProxyCloudServerImpl(it.serverId, it.group, it.name)
+                ClientProxyCloudServerImpl(it.serverId, it.group, it.name)
             } else {
-                CloudServerImpl(it.serverId, it.group, it.name)
+                ClientCloudServerImpl(it.serverId, it.group, it.name)
             }
         })
     }
@@ -298,11 +296,15 @@ class ClientRunningPacketListenerImpl(
         audience.block()
     }
 
-    override fun close() {
-        closed = true
-    }
-
     override fun isAcceptingMessages(): Boolean {
         return connection.connected && !closed
+    }
+
+    override fun restart() {
+        platformExtension.restart()
+    }
+
+    override fun shutdown() {
+        platformExtension.shutdown()
     }
 }

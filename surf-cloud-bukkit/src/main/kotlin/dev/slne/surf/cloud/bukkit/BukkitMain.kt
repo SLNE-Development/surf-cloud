@@ -1,7 +1,6 @@
 package dev.slne.surf.cloud.bukkit
 
 import com.github.shynixn.mccoroutine.folia.SuspendingJavaPlugin
-import com.github.shynixn.mccoroutine.folia.globalRegionDispatcher
 import com.github.shynixn.mccoroutine.folia.launch
 import dev.jorel.commandapi.CommandAPIBukkit
 import dev.jorel.commandapi.kotlindsl.*
@@ -11,11 +10,11 @@ import dev.slne.surf.cloud.api.common.player.teleport.TeleportCause
 import dev.slne.surf.cloud.api.common.player.teleport.fineLocation
 import dev.slne.surf.cloud.api.common.player.toCloudPlayer
 import dev.slne.surf.cloud.api.common.server.CloudServerManager
+import dev.slne.surf.cloud.core.common.coreCloudInstance
 import dev.slne.surf.cloud.core.common.handleEventuallyFatalError
 import dev.slne.surf.surfapi.bukkit.api.event.listen
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
-import org.bukkit.Bukkit
 import org.bukkit.Location
 import org.bukkit.entity.Player
 import org.bukkit.event.server.ServerLoadEvent
@@ -25,17 +24,17 @@ import kotlin.contracts.contract
 class BukkitMain : SuspendingJavaPlugin() {
     override suspend fun onLoadAsync() {
         try {
-            bukkitCloudInstance.onLoad()
+            coreCloudInstance.onLoad()
         } catch (t: Throwable) {
-            t.handleEventuallyFatalError { Bukkit.shutdown() }
+            t.handleEventuallyFatalError { server.restart() }
         }
     }
 
     override suspend fun onEnableAsync() {
         try {
-            bukkitCloudInstance.onEnable()
+            coreCloudInstance.onEnable()
         } catch (t: Throwable) {
-            t.handleEventuallyFatalError { Bukkit.shutdown() }
+            t.handleEventuallyFatalError { server.restart() }
         }
 
         var serverLoaded = false
@@ -43,24 +42,14 @@ class BukkitMain : SuspendingJavaPlugin() {
             if (serverLoaded) return@listen
             serverLoaded = true
 
-            launch(globalRegionDispatcher) {
+            launch {
                 try {
-                    bukkitCloudInstance.afterStart()
+                    coreCloudInstance.afterStart()
                 } catch (t: Throwable) {
-                    t.handleEventuallyFatalError { Bukkit.shutdown() }
+                    t.handleEventuallyFatalError { server.restart() }
                 }
             }
         }
-
-        // TODO: does this actually delay until the server is fully loaded?
-//        launch(globalRegionDispatcher) {
-//            delay(1.ticks)
-//            try {
-//                bukkitCloudInstance.afterStart()
-//            } catch (t: Throwable) {
-//                t.handleEventuallyFatalError({ Bukkit.shutdown() })
-//            }
-//        }
 
         commandAPICommand("deport") {
             entitySelectorArgumentOnePlayer("target")
@@ -133,7 +122,7 @@ class BukkitMain : SuspendingJavaPlugin() {
 
     override suspend fun onDisableAsync() {
         try {
-            bukkitCloudInstance.onDisable()
+            coreCloudInstance.onDisable()
         } catch (t: Throwable) {
             t.handleEventuallyFatalError {}
         }

@@ -1,5 +1,6 @@
 package dev.slne.surf.cloud.core.client.netty.network
 
+import com.google.auto.service.AutoService
 import dev.slne.surf.cloud.core.common.config.cloudConfig
 import dev.slne.surf.cloud.core.common.netty.network.EncryptionManager
 import dev.slne.surf.cloud.core.common.netty.network.HandlerNames
@@ -10,7 +11,8 @@ import io.netty.handler.ssl.SslContextBuilder
 import io.netty.handler.ssl.SslProvider
 import kotlin.io.path.div
 
-object ClientEncryptionManager : EncryptionManager() {
+@AutoService(EncryptionManager::class)
+class ClientEncryptionManager : EncryptionManager() {
     private lateinit var sslContext: SslContext
 
     private val clientCertificateFile = (certificatesFolder / "client.crt").toFile()

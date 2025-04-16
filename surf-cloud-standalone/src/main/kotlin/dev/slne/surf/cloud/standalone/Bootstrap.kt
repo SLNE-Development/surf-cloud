@@ -1,6 +1,8 @@
 package dev.slne.surf.cloud.standalone
 
+import dev.slne.surf.cloud.core.common.CloudCoreInstance
 import dev.slne.surf.cloud.core.common.CloudCoreInstance.BootstrapData
+import dev.slne.surf.cloud.core.common.coreCloudInstance
 import dev.slne.surf.cloud.core.common.handleEventuallyFatalError
 import dev.slne.surf.surfapi.core.api.util.logger
 import dev.slne.surf.surfapi.standalone.SurfApiStandaloneBootstrap
@@ -21,22 +23,29 @@ object Bootstrap {
             SurfApiStandaloneBootstrap.bootstrap()
             SurfApiStandaloneBootstrap.enable()
 
-            standaloneCloudInstance.bootstrap(
+            coreCloudInstance.bootstrap(
                 BootstrapData(
                     dataFolder = Path("")
                 )
             )
-            standaloneCloudInstance.onLoad()
-            standaloneCloudInstance.onEnable()
+            coreCloudInstance.onLoad()
+            coreCloudInstance.onEnable()
+            coreCloudInstance.afterStart()
+            log.atInfo()
+                .log("Standalone instance is ready!")
         } catch (e: Throwable) {
             e.handleEventuallyFatalError {
-                val context = standaloneCloudInstance.dataContext
-                if (context.isActive) {
-                    SpringApplication.exit(context, it)
-                } else {
-                    exitProcess(it.exitCode)
-                }
+                shutdown(it)
             }
         }
+    }
+
+    suspend fun shutdown(exitCode: Int): Nothing {
+        coreCloudInstance.onDisable()
+
+        val context = CloudCoreInstance.internalContext
+        val exitCode =
+            if (context != null) SpringApplication.exit(context, { exitCode }) else exitCode
+        exitProcess(exitCode)
     }
 }

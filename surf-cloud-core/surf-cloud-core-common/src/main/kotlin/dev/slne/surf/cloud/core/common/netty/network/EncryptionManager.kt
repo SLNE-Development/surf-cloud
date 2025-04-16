@@ -1,6 +1,7 @@
 package dev.slne.surf.cloud.core.common.netty.network
 
 import dev.slne.surf.cloud.core.common.coreCloudInstance
+import dev.slne.surf.surfapi.core.api.util.requiredService
 import io.netty.channel.Channel
 import kotlinx.coroutines.delay
 import java.io.File
@@ -10,6 +11,9 @@ import kotlin.io.path.div
 import kotlin.time.Duration.Companion.seconds
 
 abstract class EncryptionManager {
+    companion object {
+        val instance = requiredService<EncryptionManager>()
+    }
 
     protected val certificatesFolder: Path by lazy {
         (coreCloudInstance.dataFolder / "certificates").createDirectories()

@@ -9,9 +9,11 @@ import com.velocitypowered.api.plugin.PluginManager
 import com.velocitypowered.api.plugin.annotation.DataDirectory
 import com.velocitypowered.api.proxy.ProxyServer
 import dev.slne.surf.cloud.core.common.CloudCoreInstance
+import dev.slne.surf.cloud.core.common.coreCloudInstance
 import dev.slne.surf.cloud.core.common.handleEventuallyFatalError
 import kotlinx.coroutines.runBlocking
 import java.nio.file.Path
+import kotlin.Nothing
 import kotlin.system.exitProcess
 
 //@Plugin(
@@ -32,32 +34,40 @@ class VelocityMain @Inject constructor(
         try {
             instance = this
             runBlocking {
-                velocityCloudInstance.bootstrap(
+                coreCloudInstance.bootstrap(
                     CloudCoreInstance.BootstrapData(
                         dataFolder = dataPath
                     )
                 )
-                velocityCloudInstance.onLoad()
+                coreCloudInstance.onLoad()
             }
         } catch (e: Throwable) {
-            e.handleEventuallyFatalError { exitProcess(it.exitCode) }
+            runBlocking {
+                e.handleEventuallyFatalError {
+                    server.shutdown()
+                }
+            }
         }
     }
 
     @Subscribe
     suspend fun onProxyInitialize(ignored: ProxyInitializeEvent?) {
         try {
-            velocityCloudInstance.onEnable()
-            velocityCloudInstance.afterStart()
+            coreCloudInstance.onEnable()
+            coreCloudInstance.afterStart()
         } catch (e: Throwable) {
-            e.handleEventuallyFatalError { exitProcess(it.exitCode) }
+            runBlocking {
+                e.handleEventuallyFatalError {
+                    server.shutdown()
+                }
+            }
         }
     }
 
     @Subscribe
     suspend fun onProxyShutdown(ignored: ProxyShutdownEvent?) {
         try {
-            velocityCloudInstance.onDisable()
+            coreCloudInstance.onDisable()
         } catch (e: Throwable) {
             e.handleEventuallyFatalError {}
         }

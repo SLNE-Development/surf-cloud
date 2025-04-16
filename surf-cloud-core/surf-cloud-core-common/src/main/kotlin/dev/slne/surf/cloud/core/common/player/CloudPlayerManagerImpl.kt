@@ -4,17 +4,18 @@ import dev.slne.surf.cloud.api.common.event.player.connection.CloudPlayerConnect
 import dev.slne.surf.cloud.api.common.event.player.connection.CloudPlayerDisconnectFromNetworkEvent
 import dev.slne.surf.cloud.api.common.player.CloudPlayer
 import dev.slne.surf.cloud.api.common.player.CloudPlayerManager
-import dev.slne.surf.cloud.api.common.server.CloudServerManager
 import dev.slne.surf.cloud.api.common.server.UserList
 import dev.slne.surf.cloud.api.common.server.UserListImpl
+import dev.slne.surf.cloud.api.common.util.TimeLogger
 import dev.slne.surf.cloud.api.common.util.mutableObject2ObjectMapOf
 import dev.slne.surf.cloud.api.common.util.synchronize
+import dev.slne.surf.cloud.core.common.spring.CloudLifecycleAware
 import dev.slne.surf.cloud.core.common.util.publish
 import dev.slne.surf.surfapi.core.api.util.logger
 import it.unimi.dsi.fastutil.objects.Object2ObjectArrayMap
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.launch
 import org.jetbrains.annotations.MustBeInvokedByOverriders
+import org.springframework.core.annotation.Order
+import org.springframework.stereotype.Component
 import java.net.Inet4Address
 import java.util.*
 
@@ -153,3 +154,13 @@ abstract class CloudPlayerManagerImpl<P : CommonCloudPlayerImpl> : CloudPlayerMa
 }
 
 val playerManagerImpl get() = CloudPlayerManager.instance as CloudPlayerManagerImpl<*>
+
+@Component
+@Order(CloudLifecycleAware.MISC_PRIORITY)
+class CloudPlayerManagerLifecycle : CloudLifecycleAware {
+    override suspend fun onDisable(timeLogger: TimeLogger) {
+        timeLogger.measureStep("Terminate player manager") {
+            playerManagerImpl.terminate()
+        }
+    }
+}

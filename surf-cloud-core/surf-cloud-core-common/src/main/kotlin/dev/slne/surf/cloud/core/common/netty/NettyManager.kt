@@ -1,51 +1,22 @@
 package dev.slne.surf.cloud.core.common.netty
 
-import dev.slne.surf.surfapi.core.api.util.logger
-import org.jetbrains.annotations.MustBeInvokedByOverriders
+import dev.slne.surf.cloud.api.common.util.TimeLogger
+import dev.slne.surf.cloud.core.common.spring.CloudLifecycleAware
 
-lateinit var nettyManager: NettyManager
-abstract class NettyManager {
+abstract class NettyManager : CloudLifecycleAware {
 
-    private val log = logger()
-
-    init {
-        nettyManager = this
-    }
-
-    @MustBeInvokedByOverriders
-    open suspend fun bootstrap() {
-    }
-
-    @MustBeInvokedByOverriders
-    open suspend fun onLoad() {
-        log.atInfo().log("Loading NettyManager...")
-    }
-
-    @MustBeInvokedByOverriders
-    open suspend fun onEnable() {
-        log.atInfo().log("Enabling NettyManager...")
-    }
-
-    @MustBeInvokedByOverriders
-    open suspend fun afterStart() {
-        log.atInfo().log("NettyManager started.")
-    }
-
-    @MustBeInvokedByOverriders
-    open fun stop() {
-        log.atInfo().log("Stopping NettyManager...")
-        for (thread in Thread.getAllStackTraces().keys) {
-            println("${thread.name} - ${thread.state}")
+    override suspend fun onEnable(timeLogger: TimeLogger) {
+        timeLogger.measureStep("Blocking player connections") {
+            blockPlayerConnections()
         }
     }
 
-    @MustBeInvokedByOverriders
-    open fun blockPlayerConnections() {
-        log.atInfo().log("Blocking player connections...")
+    override suspend fun afterStart(timeLogger: TimeLogger) {
+        timeLogger.measureStep("Unblocking player connections") {
+            unblockPlayerConnections()
+        }
     }
 
-    @MustBeInvokedByOverriders
-    open fun unblockPlayerConnections() {
-        log.atInfo().log("Unblocking player connections...")
-    }
+    abstract fun blockPlayerConnections()
+    abstract fun unblockPlayerConnections()
 }

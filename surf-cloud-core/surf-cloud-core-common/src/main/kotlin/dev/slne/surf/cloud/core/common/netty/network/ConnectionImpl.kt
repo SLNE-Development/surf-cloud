@@ -5,6 +5,7 @@ import dev.slne.surf.cloud.api.common.netty.network.Connection
 import dev.slne.surf.cloud.api.common.netty.network.ConnectionProtocol
 import dev.slne.surf.cloud.api.common.netty.network.protocol.PacketFlow
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
+import dev.slne.surf.cloud.api.common.netty.packet.ResponseNettyPacket
 import dev.slne.surf.cloud.api.common.util.DefaultUncaughtExceptionHandlerWithName
 import dev.slne.surf.cloud.api.common.util.math.lerp
 import dev.slne.surf.cloud.api.common.util.netty.suspend
@@ -132,7 +133,7 @@ class ConnectionImpl(
     }
 
     override fun channelInactive(ctx: ChannelHandlerContext) {
-        disconnect("End of stream")
+        disconnect(DisconnectReason.END_OF_STREAM)
     }
 
     override fun exceptionCaught(ctx: ChannelHandlerContext, e: Throwable?) {
@@ -171,12 +172,12 @@ class ConnectionImpl(
             if (channel.isOpen) {
                 if (throwable is TimeoutException) {
                     log.atFine().withCause(throwable).log("Timeout")
-                    disconnect("Timed out")
+                    disconnect(DisconnectReason.TIMEOUT)
                 } else {
                     val reason = "Internal Exception: ${throwable?.message}"
                     val disconnectionDetails =
-                        _packetListener?.createDisconnectionInfo(reason, throwable)
-                            ?: DisconnectionDetails("Internal Exception: ${throwable?.message}")
+                        _packetListener?.createDisconnectionInfo(DisconnectReason.INTERNAL_EXCEPTION, reason)
+                            ?: DisconnectionDetails(DisconnectReason.INTERNAL_EXCEPTION, reason)
 
                     if (previousHandlingFault) {
                         log.atFine().withCause(throwable).log("Failed to sent packet")
@@ -234,8 +235,10 @@ class ConnectionImpl(
                 if (listener is ServerCommonPacketListener) {
                     val handled = when (msg) {
                         is ServerboundBundlePacket -> listener.handleBundlePacket(msg)
-                        is ServerboundKeepAlivePacket -> listener.handleKeepAlivePacket(msg)
+                        is KeepAlivePacket -> listener.handleKeepAlivePacket(msg)
                         is ServerboundPingRequestPacket -> listener.handlePingRequest(msg)
+                        is ResponseNettyPacket -> {}
+
                         else -> null
                     }
 
@@ -356,9 +359,10 @@ class ConnectionImpl(
                 if (listener is ClientCommonPacketListener) {
                     val handled = when (msg) {
                         is ClientboundBundlePacket -> listener.handleBundlePacket(msg)
-                        is ClientboundKeepAlivePacket -> listener.handleKeepAlive(msg)
+                        is KeepAlivePacket -> listener.handleKeepAlive(msg)
                         is ClientboundPingPacket -> listener.handlePing(msg)
                         is ClientboundDisconnectPacket -> listener.handleDisconnect(msg)
+                        is ResponseNettyPacket -> {}
                         else -> null
                     }
                     if (handled != null) return@withContext
@@ -722,7 +726,7 @@ class ConnectionImpl(
         } catch (e: Exception) {
             log.atSevere().withCause(e).log("NetworkException: ")
             deferred?.completeExceptionally(e)
-            disconnect("Internal Exception: ${e.message}")
+            disconnect(DisconnectionDetails(DisconnectReason.INTERNAL_EXCEPTION, e.message))
         }
     }
 
@@ -822,7 +826,7 @@ class ConnectionImpl(
         this.receivedPackets = 0
     }
 
-    fun disconnect(reason: String) {
+    fun disconnect(reason: DisconnectReason) {
         disconnect(DisconnectionDetails(reason))
     }
 
@@ -841,17 +845,6 @@ class ConnectionImpl(
             channel.close()
             this.disconnectionDetails = reason
         }
-    }
-
-    suspend fun reconnect(reason: DisconnectionDetails) {
-        val host = cloudConfig.connectionConfig.nettyConfig.host
-        val port = cloudConfig.connectionConfig.nettyConfig.port
-        val epoll = Epoll.isAvailable()
-
-        val address = InetSocketAddress(host, port)
-
-        disconnect(reason)
-        connect(address, epoll, this)
     }
 
     fun clearPacketQueue() {
@@ -890,7 +883,7 @@ class ConnectionImpl(
         if (disconnectionHandled) return
 
         disconnectionHandled = true
-        _packetListener?.onDisconnect(disconnectionDetails ?: DisconnectionDetails("Disconnected"))
+        _packetListener?.onDisconnect(disconnectionDetails ?: DisconnectionDetails(DisconnectReason.UNKNOWN))
 
         clearPacketQueue()
     }
@@ -909,7 +902,7 @@ class ConnectionImpl(
                     || packet is ClientboundClearTitlePacket
                     || packet is ClientboundDisconnectPacket
                     || packet is ClientboundHideBossBarPacket
-                    || packet is ClientboundKeepAlivePacket
+                    || packet is KeepAlivePacket
                     || packet is ClientboundOpenBookPacket
                     || packet is ClientboundPingPacket
                     || packet is ClientboundPlaySoundPacket
@@ -935,7 +928,6 @@ class ConnectionImpl(
                     || packet is ServerboundClearTitlePacket
                     || packet is ServerboundClientInformationPacket
                     || packet is ServerboundHideBossBarPacket
-                    || packet is ServerboundKeepAlivePacket
                     || packet is ServerboundOpenBookPacket
                     || packet is ServerboundPingRequestPacket
                     || packet is ServerboundPlaySoundPacket

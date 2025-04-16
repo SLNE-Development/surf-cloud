@@ -56,9 +56,17 @@ class ClientPreRunningPacketListenerImpl(
     override suspend fun onDisconnect(details: DisconnectionDetails) {
         throw FatalSurfError {
             simpleErrorMessage("Client disconnected from the server before the connection was fully established.")
-            detailedErrorMessage("Reason: ${details.reason}")
+            detailedErrorMessage("Reason: ${details.buildMessage()}")
             possibleSolution("Try restarting the client.")
         }
+    }
+
+    override fun restart() {
+        platformExtension.restart()
+    }
+
+    override fun shutdown() {
+        platformExtension.shutdown()
     }
 
     override fun isAcceptingMessages(): Boolean {

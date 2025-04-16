@@ -10,7 +10,9 @@ import dev.slne.surf.cloud.api.common.util.threadFactory
 import dev.slne.surf.cloud.core.common.config.cloudConfig
 import dev.slne.surf.cloud.core.common.coroutines.ConnectionManagementScope
 import dev.slne.surf.cloud.core.common.netty.network.ConnectionImpl
+import dev.slne.surf.cloud.core.common.netty.network.DisconnectReason
 import dev.slne.surf.cloud.core.common.netty.network.DisconnectionDetails
+import dev.slne.surf.cloud.core.common.netty.network.EncryptionManager
 import dev.slne.surf.cloud.core.common.netty.network.HandlerNames
 import dev.slne.surf.cloud.core.common.netty.network.protocol.common.ClientboundBundlePacket
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ClientboundDisconnectPacket
@@ -104,7 +106,7 @@ class ServerConnectionListener(val server: NettyServerImpl) {
                             )
 
                             val connection =
-                                ConnectionImpl(PacketFlow.SERVERBOUND, ServerEncryptionManager)
+                                ConnectionImpl(PacketFlow.SERVERBOUND, EncryptionManager.instance)
 
                             pending.add(connection)
                             connection.configurePacketHandler(channel, pipeline)
@@ -132,9 +134,37 @@ class ServerConnectionListener(val server: NettyServerImpl) {
         }
     }
 
-    @Blocking
     suspend fun stop() {
         this.running = false
+
+        suspend fun disconnect(connection: ConnectionImpl) {
+            try {
+                val details = DisconnectionDetails(DisconnectReason.SERVER_SHUTDOWN)
+                connection.sendWithIndication(ClientboundDisconnectPacket(details))
+                connection.disconnect(details)
+            } catch (_: Throwable) {
+                try {
+                    connection.channel.close().sync()
+                } catch (e: InterruptedException) {
+                    log.atSevere().withCause(e).log("Interrupted whilst closing channel")
+                } catch (e: Exception) {
+                    log.atSevere().withCause(e).log("Failed to close channel")
+                }
+            }
+        }
+
+
+        connectionsMutex.withLock {
+            for (connection in connections) {
+                disconnect(connection)
+            }
+        }
+        connections.clear()
+
+        for (pending in pending) {
+            disconnect(pending)
+        }
+        pending.clear()
 
         channelsMutex.withLock {
             for (future in channels) {
@@ -176,7 +206,7 @@ class ServerConnectionListener(val server: NettyServerImpl) {
                             .log("Failed to handle packet for ${connection.getLoggableAddress(logIps)}")
 
                         ConnectionManagementScope.launch {
-                            val details = DisconnectionDetails("Internal server error")
+                            val details = DisconnectionDetails(DisconnectReason.INTERNAL_EXCEPTION, e.message)
                             connection.sendWithIndication(ClientboundDisconnectPacket(details))
                             connection.disconnect(details)
                         }

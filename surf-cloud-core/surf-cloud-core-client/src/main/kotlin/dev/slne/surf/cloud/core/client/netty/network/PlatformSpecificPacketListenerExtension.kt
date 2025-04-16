@@ -33,4 +33,7 @@ interface PlatformSpecificPacketListenerExtension {
     suspend fun teleportPlayerToPlayer(uuid: UUID, target: UUID): Boolean
 
     fun triggerShutdown()
+
+    fun restart()
+    fun shutdown()
 }

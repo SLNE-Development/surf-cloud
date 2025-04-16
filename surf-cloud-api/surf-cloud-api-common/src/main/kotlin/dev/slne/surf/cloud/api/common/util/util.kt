@@ -151,3 +151,5 @@ suspend inline fun <T, R> Iterable<T>.mapAsync(crossinline transform: suspend (T
     coroutineScope {
         mapTo(mutableObjectListOf()) { async { transform(it) } }
     }
+
+fun <T : Any> T?.asOptional(): Optional<T> = Optional.ofNullable(this)

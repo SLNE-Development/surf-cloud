@@ -1,8 +1,10 @@
 package dev.slne.surf.cloud.standalone.ktor
 
+import dev.slne.surf.cloud.api.common.util.TimeLogger
 import dev.slne.surf.cloud.api.server.plugin.KtorPlugin
 import dev.slne.surf.cloud.api.server.plugin.PluginManager
 import dev.slne.surf.cloud.core.common.coroutines.KtorScope
+import dev.slne.surf.cloud.core.common.spring.CloudLifecycleAware
 import dev.slne.surf.cloud.standalone.config.standaloneConfig
 import io.ktor.http.*
 import io.ktor.server.application.*
@@ -11,25 +13,36 @@ import io.ktor.server.html.*
 import io.ktor.server.netty.*
 import io.ktor.server.plugins.*
 import io.ktor.server.plugins.statuspages.*
-import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.websocket.*
-import io.ktor.websocket.*
-import kotlinx.coroutines.cancelChildren
-import kotlinx.coroutines.channels.consumeEach
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 import kotlinx.html.*
+import org.springframework.core.annotation.Order
+import org.springframework.stereotype.Component
 import kotlin.time.Duration.Companion.seconds
 
+@Component
+@Order(CloudLifecycleAware.KTOR_SERVER_PRIORITY)
+class KtorServer : CloudLifecycleAware {
+    private lateinit var server: EmbeddedServer<NettyApplicationEngine, NettyApplicationEngine.Configuration>
 
-object KtorServer {
+    override suspend fun onEnable(timeLogger: TimeLogger) {
+        timeLogger.measureStep("Starting Ktor server") {
+            start()
+        }
+    }
+
+    override suspend fun onDisable(timeLogger: TimeLogger) {
+        timeLogger.measureStep("Stopping Ktor server") {
+            server.stop()
+        }
+    }
+
     fun start() = KtorScope.launch {
         val (port, host) = standaloneConfig.ktor
         val plugins = PluginManager.instance.getPlugins().filterIsInstance<KtorPlugin>()
 
-        embeddedServer(Netty, port = port, host = host) {
+        server = embeddedServer(Netty, port = port, host = host) {
             install(StatusPages) { configure() }
             install(WebSockets) {
                 pingPeriod = 15.seconds
@@ -44,11 +57,8 @@ object KtorServer {
                     plugin.apply { installRoutes() }
                 }
             }
-        }.start(wait = true)
-    }
-
-    fun stop() {
-        KtorScope.coroutineContext.cancelChildren()
+        }
+        server.start(wait = true)
     }
 
     private fun StatusPagesConfig.configure() {

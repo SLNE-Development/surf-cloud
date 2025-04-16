@@ -6,10 +6,12 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.springframework.aop.framework.AopProxyUtils
 import org.springframework.beans.factory.ObjectFactory
+import org.springframework.beans.factory.ObjectProvider
 import org.springframework.core.MethodIntrospector
 import org.springframework.core.annotation.AnnotatedElementUtils
 import org.springframework.core.annotation.AnnotationUtils
 import org.springframework.core.type.AnnotationMetadata
+import org.springframework.stereotype.Component
 import org.springframework.transaction.TransactionStatus
 import org.springframework.transaction.support.TransactionOperations
 import org.springframework.util.StopWatch
@@ -116,4 +118,9 @@ suspend inline fun <T> TransactionOperations.executeAndAwait(
             }
         } as T
     }
+}
+
+
+inline fun <T> ObjectProvider<T>.forEachOrdered(action: (T) -> Unit) {
+    orderedStream().iterator().forEach(action)
 }

@@ -2,9 +2,9 @@ package dev.slne.surf.cloud.velocity.netty.network
 
 import com.velocitypowered.api.proxy.ConnectionRequestBuilder
 import com.velocitypowered.api.proxy.server.ServerInfo
-import dev.slne.surf.cloud.api.common.player.teleport.TeleportLocation
 import dev.slne.surf.cloud.api.common.player.teleport.TeleportCause
 import dev.slne.surf.cloud.api.common.player.teleport.TeleportFlag
+import dev.slne.surf.cloud.api.common.player.teleport.TeleportLocation
 import dev.slne.surf.cloud.core.client.netty.network.PlatformSpecificPacketListenerExtension
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.RegistrationInfo
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ServerboundTransferPlayerPacketResponse.Status
@@ -14,8 +14,10 @@ import net.kyori.adventure.text.Component
 import java.net.InetSocketAddress
 import java.util.*
 import kotlin.jvm.optionals.getOrNull
+import org.springframework.stereotype.Component as SpringComponent
 
-object VelocitySpecificPacketListenerExtension : PlatformSpecificPacketListenerExtension {
+@SpringComponent
+class VelocitySpecificPacketListenerExtension : PlatformSpecificPacketListenerExtension {
     override fun isServerManagedByThisProxy(address: InetSocketAddress) =
         proxy.allServers.any { it.serverInfo.address == address } // TODO: Check if this is correct
 
@@ -69,6 +71,14 @@ object VelocitySpecificPacketListenerExtension : PlatformSpecificPacketListenerE
     }
 
     override fun triggerShutdown() {
+        proxy.shutdown()
+    }
+
+    override fun restart() {
+        proxy.shutdown()
+    }
+
+    override fun shutdown() {
         proxy.shutdown()
     }
 }

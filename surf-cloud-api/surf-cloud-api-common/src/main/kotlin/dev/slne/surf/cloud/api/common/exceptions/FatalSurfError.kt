@@ -1,5 +1,6 @@
 package dev.slne.surf.cloud.api.common.exceptions
 
+import dev.slne.surf.cloud.api.common.util.annotation.InternalApi
 import org.apache.commons.lang3.StringUtils
 import org.apache.commons.text.WordUtils
 import org.springframework.boot.ExitCodeGenerator
@@ -21,6 +22,7 @@ private const val LINE_WIDTH = 80
  * @property possibleSolutions Suggestions for resolving the error.
  * @property exitCode The exit code to return when terminating the application.
  */
+@InternalApi
 class FatalSurfError private constructor(
     private val simpleErrorMessage: String?,
     private val detailedErrorMessage: String?,

@@ -45,7 +45,6 @@ class VelocityListenerProcessor : BeanPostProcessor {
 
         internal fun registerListeners() {
             for (listener in candidates) {
-                println("Registering listener: $listener")
                 try {
                     plugin.eventManager.register(plugin, listener)
                 } catch (e: Throwable) {

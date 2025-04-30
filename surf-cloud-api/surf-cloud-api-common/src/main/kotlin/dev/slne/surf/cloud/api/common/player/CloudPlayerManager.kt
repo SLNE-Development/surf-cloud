@@ -59,6 +59,16 @@ fun Audience?.toCloudPlayer(): CloudPlayer? {
  * @return The [OfflineCloudPlayer] if the [Audience] represents a player,
  * or `null` if the [Audience] is not a player or cannot be resolved.
  */
-fun Audience?.toOfflineCloudPlayer(): OfflineCloudPlayer? {
-    return this?.pointers()?.get(Identity.UUID)?.getOrNull()?.let { CloudPlayerManager.getOfflinePlayer(it) }
+@JvmName("toOfflineCloudPlayerNullable")
+fun Audience?.toOfflineCloudPlayer(): OfflineCloudPlayer? = this?.toOfflineCloudPlayer()
+
+fun Audience.toOfflineCloudPlayer(): OfflineCloudPlayer? {
+    return this.pointers().get(Identity.UUID).getOrNull()?.let { CloudPlayerManager.getOfflinePlayer(it) }
 }
+
+fun UUID.toOfflineCloudPlayer(): OfflineCloudPlayer =
+    CloudPlayerManager.getOfflinePlayer(this)
+
+@JvmName("toOfflineCloudPlayerNullable")
+fun UUID?.toOfflineCloudPlayer(): OfflineCloudPlayer? =
+    this?.let { CloudPlayerManager.getOfflinePlayer(it) }

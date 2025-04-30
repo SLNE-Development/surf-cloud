@@ -2,8 +2,13 @@ package dev.slne.surf.cloud.api.server.plugin
 
 import org.jetbrains.exposed.spring.autoconfigure.ExposedAutoConfiguration
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
+import org.springframework.boot.autoconfigure.condition.SearchStrategy
 import org.springframework.cache.annotation.EnableCaching
 import org.springframework.context.annotation.*
+import org.springframework.context.support.PropertySourcesPlaceholderConfigurer
+import org.springframework.core.Ordered
+import org.springframework.core.annotation.Order
 import org.springframework.data.auditing.DateTimeProvider
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories
@@ -28,6 +33,8 @@ import javax.sql.DataSource
 @EnableAsync(mode = AdviceMode.ASPECTJ)
 @EnableCaching(mode = AdviceMode.ASPECTJ)
 annotation class AdditionalStandaloneConfiguration
+
+//@Configur1
 
 @EnableJpaAuditing(dateTimeProviderRef = "auditingDateTimeProvider")
 @Configuration

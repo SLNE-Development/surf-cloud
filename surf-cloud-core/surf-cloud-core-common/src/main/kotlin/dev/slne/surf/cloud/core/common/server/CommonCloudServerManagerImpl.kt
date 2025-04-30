@@ -48,7 +48,7 @@ abstract class CommonCloudServerManagerImpl<S : CommonCloudServer> : CloudServer
             .filter { it.name.equals(name, ignoreCase = true) }
             .minByOrNull { it.currentPlayerCount } as? CloudServer
 
-    override suspend fun retrieveServersInGroup(group: String): ObjectList<out CommonCloudServer> =
+    override suspend fun retrieveServersInGroup(group: String): ObjectList<out S> =
         serversMutex.withLock {
             servers.values.filterTo(mutableObjectListOf()) { it.isInGroup(group) }
         }
@@ -72,13 +72,13 @@ abstract class CommonCloudServerManagerImpl<S : CommonCloudServer> : CloudServer
         return serversMutex.withLock { servers.values.toObjectSet() }
     }
 
-    override suspend fun broadcastToGroup(group: String, message: Component) =
+    override suspend fun broadcastToGroup(group: String, message: Component, permission: String?, playSound: Boolean) =
         serversMutex.withLock {
             servers.values.filter { it.isInGroup(group) }.filterIsInstance<CloudServer>()
-        }.forEach { it.broadcast(message) }
+        }.forEach { it.broadcast(message, permission, playSound) }
 
 
-    override suspend fun broadcast(message: Component) = serversMutex.withLock {
+    override suspend fun broadcast(message: Component, permission: String?, playSound: Boolean) = serversMutex.withLock {
         servers.values.filterIsInstance<CloudServer>()
-    }.forEach { it.broadcast(message) }
+    }.forEach { it.broadcast(message, permission, playSound) }
 }

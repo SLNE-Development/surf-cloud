@@ -26,6 +26,10 @@ data class StandaloneConfig(
     @Comment("Configuration for the logging.")
     @Setting("logging")
     val logging: LoggingConfig = LoggingConfig(),
+
+    @Comment("common configuration for punishments")
+    @Setting("punish")
+    val punish: PunishmentConfig = PunishmentConfig(),
 )
 
 @ConfigSerializable
@@ -37,4 +41,9 @@ data class KtorConfig(
 @ConfigSerializable
 data class LoggingConfig(
     val logPlayerConnections: Boolean = true,
+)
+
+@ConfigSerializable
+data class PunishmentConfig(
+    val webhookUrls: List<String> = listOf()
 )

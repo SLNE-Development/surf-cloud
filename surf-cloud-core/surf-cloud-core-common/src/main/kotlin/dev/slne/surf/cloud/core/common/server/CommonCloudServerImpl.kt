@@ -57,11 +57,27 @@ abstract class CommonCloudServerImpl(
         return group.equals(group, ignoreCase = true)
     }
 
-    override suspend fun broadcast(message: Component) {
-        sendMessage(message)
-        for (sound in CommonSounds.broadcastSounds) {
-            playSound(sound, Emitter.self())
-            delay(150)
+    override suspend fun broadcast(message: Component, permission: String?, playSound: Boolean) {
+        if (permission == null) {
+            sendMessage(message)
+            if (playSound) {
+                for (sound in CommonSounds.broadcastSounds) {
+                    playSound(sound, Emitter.self())
+                    delay(150)
+                }
+            }
+        } else {
+            users.forEach { user ->
+                user.sendMessage(message, permission)
+            }
+            if (playSound) {
+                for (sound in CommonSounds.broadcastSounds) {
+                    users.forEach { user ->
+                        user.playSound(sound, Emitter.self(), permission)
+                    }
+                    delay(150)
+                }
+            }
         }
     }
 

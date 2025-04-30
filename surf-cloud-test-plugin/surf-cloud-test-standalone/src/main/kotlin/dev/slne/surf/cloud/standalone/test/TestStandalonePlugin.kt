@@ -2,9 +2,7 @@ package dev.slne.surf.cloud.standalone.test
 
 import dev.slne.surf.cloud.api.server.plugin.KtorPlugin
 import dev.slne.surf.cloud.api.server.plugin.StandalonePlugin
-import io.ktor.server.routing.Routing
-import io.ktor.server.routing.get
-import io.ktor.server.websocket.webSocket
+import io.ktor.server.routing.*
 import kotlinx.coroutines.delay
 import org.apache.commons.io.FileSystemUtils
 import kotlin.time.Duration.Companion.seconds
@@ -29,7 +27,6 @@ class TestStandalonePlugin : StandalonePlugin(), KtorPlugin {
             delay(5.seconds)
             logger.info("Hello from coroutine after delay")
             delay(5.seconds)
-            throw RuntimeException("Test exception")
         }
     }
 

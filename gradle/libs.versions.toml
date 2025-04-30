@@ -5,7 +5,7 @@ netty = "4.2.0.Final"
 netty-tcnative = "2.0.70.Final"
 nbt = "6.1"
 datafixerupper = "8.0.16"
-byte-buddy = "1.15.10"
+#byte-buddy = "1.15.10"
 exposed = "0.61.0"
 maven-impl = "4.0.0-rc-2"
 maven-resolver = "2.0.5"
@@ -19,6 +19,8 @@ luckperms-api = "5.4"
 reactive-streams = "1.0.4"
 ehcache = "3.10.8"
 kotlin-byte-buf-serializer = "1.0.0"
+voicechat-api = "2.5.27"
+discord-webhooks = "1.0"
 
 
 [libraries]
@@ -34,10 +36,11 @@ netty-tcnative = { module = "io.netty:netty-tcnative", version.ref = "netty-tcna
 nbt = { module = "com.github.Querz:NBT", version.ref = "nbt" }
 spring-data-jpa = { module = "org.springframework.data:spring-data-jpa" }
 datafixerupper = { module = "com.mojang:datafixerupper", version.ref = "datafixerupper" }
-byte-buddy = { module = "net.bytebuddy:byte-buddy", version.ref = "byte-buddy" }
+byte-buddy = { module = "net.bytebuddy:byte-buddy" }
 jakarta-persistence-api = { module = "jakarta.persistence:jakarta.persistence-api" }
 exposed-spring-boot-starter = { module = "org.jetbrains.exposed:exposed-spring-boot-starter", version.ref = "exposed" }
 exposed-java-time = { module = "org.jetbrains.exposed:exposed-java-time", version.ref = "exposed" }
+exposed-migration = { module = "org.jetbrains.exposed:exposed-migration", version.ref = "exposed" }
 maven-impl = { module = "org.apache.maven:maven-impl", version.ref = "maven-impl" }
 maven-resolver = { module = "org.apache.maven.resolver:maven-resolver-supplier-mvn4", version.ref = "maven-resolver" }
 jline = { module = "org.jline:jline", version.ref = "jline" }
@@ -47,6 +50,7 @@ ktor-server-core-jvm = { module = "io.ktor:ktor-server-core-jvm" }
 ktor-server-netty = { module = "io.ktor:ktor-server-netty" }
 ktor-server-core = { module = "io.ktor:ktor-server-core" }
 ktor-server-html-builder = { module = "io.ktor:ktor-server-html-builder" }
+ktor-server-resources = { module = "io.ktor:ktor-server-resources" }
 kotlin-css = { module = "org.jetbrains.kotlin-wrappers:kotlin-css" }
 ktor-server-websockets = { module = "io.ktor:ktor-server-websockets" }
 ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx-json" }
@@ -69,7 +73,8 @@ flyway-core = { module = "org.flywaydb:flyway-core" }
 flyway-mysql = { module = "org.flywaydb:flyway-mysql" }
 spring-instrument = { module = "org.springframework:spring-instrument" }
 kotlin-byte-buf-serializer = { module = "dev.slne.surf:kotlin-byte-buf-serializer", version.ref = "kotlin-byte-buf-serializer" }
-
+voicechat-api = { module = "de.maxhenkel.voicechat:voicechat-api", version.ref = "voicechat-api" }
+discord-webhooks = { module = "com.github.BinaryWriter:discord-webhooks", version.ref = "discord-webhooks"}
 
 [plugins]
 spring-boot = { id = "org.springframework.boot" }
@@ -79,8 +84,8 @@ netty-all = ["netty-all", "netty-tcnative"]
 spring-aop = ["spring-aop", "aspectjweaver", "aspectjrt", "spring-aspects"]
 spring-api-common = ["spring-boot-starter", "spring-boot-starter-cache"]
 jackson-api-common = ["jackson-core", "jackson-databind", "jackson-module-kotlin"]
-exposed-api-server = ["exposed-spring-boot-starter", "exposed-java-time"]
+exposed-api-server = ["exposed-spring-boot-starter", "exposed-java-time", "exposed-migration"]
 maven-libraries = ["maven-impl", "maven-resolver"]
 console-api = ["jline", "brigadier", "terminalconsoleappender"]
-ktor-api-server = ["ktor-server-core-jvm", "ktor-server-netty", "ktor-server-core", "ktor-server-html-builder", "kotlin-css", "ktor-server-websockets", "ktor-serialization-kotlinx-json"]
+ktor-api-server = ["ktor-server-core-jvm", "ktor-server-netty", "ktor-server-core", "ktor-server-html-builder", "kotlin-css", "ktor-server-websockets", "ktor-serialization-kotlinx-json", "ktor-server-resources"]
 flyway = ["flyway-core", "flyway-mysql"]

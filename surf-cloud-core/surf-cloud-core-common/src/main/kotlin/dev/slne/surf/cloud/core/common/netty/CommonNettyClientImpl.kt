@@ -41,7 +41,7 @@ abstract class CommonNettyClientImpl(
 
     override val connection get() = _connection ?: error("connection not yet set")
 
-    val displayName get() = "${serverCategory}/${serverId} $serverName (${_connection?.hostname})"
+    val displayName get() = "${serverCategory}/${serverId} $serverName (${_connection?.getLoggableAddress()})"
 
     override fun fireAndForget(packet: NettyPacket) {
         val connection = _connection

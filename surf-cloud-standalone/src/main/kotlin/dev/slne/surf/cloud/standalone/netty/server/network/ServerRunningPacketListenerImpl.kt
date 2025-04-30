@@ -5,14 +5,18 @@ import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacketInfo
 import dev.slne.surf.cloud.api.common.player.CloudPlayerManager
 import dev.slne.surf.cloud.api.common.player.ConnectionResultEnum
+import dev.slne.surf.cloud.api.common.player.punishment.type.PunishmentType
 import dev.slne.surf.cloud.api.common.server.CloudServer
 import dev.slne.surf.cloud.api.common.server.CloudServerManager
 import dev.slne.surf.cloud.api.common.util.mutableIntSetOf
 import dev.slne.surf.cloud.core.common.coroutines.PacketHandlerScope
+import dev.slne.surf.cloud.core.common.coroutines.PunishmentHandlerScope
 import dev.slne.surf.cloud.core.common.netty.network.ConnectionImpl
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.*
 import dev.slne.surf.cloud.core.common.netty.registry.listener.NettyListenerRegistry
+import dev.slne.surf.cloud.core.common.player.PunishmentManager
 import dev.slne.surf.cloud.core.common.player.playerManagerImpl
+import dev.slne.surf.cloud.core.common.util.bean
 import dev.slne.surf.cloud.core.common.util.random
 import dev.slne.surf.cloud.standalone.netty.server.NettyServerImpl
 import dev.slne.surf.cloud.standalone.netty.server.ServerClientImpl
@@ -39,14 +43,17 @@ class ServerRunningPacketListenerImpl(
     private val log = logger()
 
     override suspend fun handlePlayerConnectToServer(packet: PlayerConnectToServerPacket) {
-        playerManagerImpl.updateOrCreatePlayer(
+        val result = playerManagerImpl.updateOrCreatePlayer(
             packet.uuid,
             packet.name,
             packet.proxy,
             packet.playerIp,
             packet.serverUid
         )
-        broadcast(packet)
+
+        packet.respond(PlayerConnectToServerResponsePacket(result))
+
+        broadcast(packet.copy())
         serverManagerImpl.getCommonStandaloneServerByUid(packet.serverUid)
             ?.handlePlayerConnect(packet.uuid)
     }
@@ -121,12 +128,19 @@ class ServerRunningPacketListenerImpl(
             val x = packet.x
             val y = packet.y
             val z = packet.z
+            val permission = packet.permission
 
             if (emitter != null) {
-                playSound(packet.sound, emitter)
+                if (permission == null) {
+                    playSound(packet.sound, emitter)
+                } else {
+                    playSound(packet.sound, emitter, permission)
+                }
             } else if (x != null && y != null && z != null) {
+                require(permission == null) { "Permission not implemented for this sound play action" }
                 playSound(packet.sound, x, y, z)
             } else {
+                require(permission == null) { "Permission not implemented for this sound play action" }
                 playSound(packet.sound)
             }
         }
@@ -137,7 +151,16 @@ class ServerRunningPacketListenerImpl(
     }
 
     override fun handleSendMessage(packet: ServerboundSendMessagePacket) {
-        withPlayer(packet.uuid) { sendMessage(packet.message) }
+        withPlayer(packet.uuid) {
+            val message = packet.message
+            val permission = packet.permission
+
+            if (permission == null) {
+                sendMessage(message)
+            } else {
+                sendMessage(message, permission)
+            }
+        }
     }
 
     override fun handleSendActionBar(packet: ServerboundSendActionBarPacket) {
@@ -298,6 +321,155 @@ class ServerRunningPacketListenerImpl(
 
     override fun handleUpdateAFKState(packet: UpdateAFKStatePacket) {
         withPlayer(packet.uuid) { updateAfkStatus(packet.isAfk) }
+    }
+
+    override fun handleGeneratePunishmentId(packet: ServerboundGeneratePunishmentIdPacket) {
+        PunishmentHandlerScope.launch {
+            packet.respond(bean<PunishmentManager>().generatePunishmentId())
+        }
+    }
+
+    override fun handleCreateKick(packet: ServerboundCreateKickPacket) {
+        PunishmentHandlerScope.launch {
+            val punishment = bean<PunishmentManager>().createKick(
+                punishedUuid = packet.punishedUuid,
+                issuerUuid = packet.issuerUuid,
+                reason = packet.reason,
+                initialNotes = packet.initialNotes
+            )
+
+            packet.respond(ClientboundCreatedPunishmentResponsePacket(punishment))
+        }
+    }
+
+    override fun handleCreateWarn(packet: ServerboundCreateWarnPacket) {
+        PunishmentHandlerScope.launch {
+            val punishment = bean<PunishmentManager>().createWarn(
+                punishedUuid = packet.punishedUuid,
+                issuerUuid = packet.issuerUuid,
+                reason = packet.reason,
+                initialNotes = packet.initialNotes
+            )
+
+            packet.respond(ClientboundCreatedPunishmentResponsePacket(punishment))
+        }
+    }
+
+    override fun handleCreateMute(packet: ServerboundCreateMutePacket) {
+        PunishmentHandlerScope.launch {
+            val punishment = bean<PunishmentManager>().createMute(
+                punishedUuid = packet.punishedUuid,
+                issuerUuid = packet.issuerUuid,
+                reason = packet.reason,
+                permanent = packet.permanent,
+                expirationDate = packet.expirationDate,
+                initialNotes = packet.initialNotes
+            )
+
+            packet.respond(ClientboundCreatedPunishmentResponsePacket(punishment))
+        }
+    }
+
+    override fun handleCreateBan(packet: ServerboundCreateBanPacket) {
+        PunishmentHandlerScope.launch {
+            val punishment = bean<PunishmentManager>().createBan(
+                punishedUuid = packet.punishedUuid,
+                issuerUuid = packet.issuerUuid,
+                reason = packet.reason,
+                permanent = packet.permanent,
+                expirationDate = packet.expirationDate,
+                securityBan = packet.securityBan,
+                raw = packet.raw,
+                initialNotes = packet.initialNotes,
+                initialIpAddresses = packet.initialIpAddresses
+            )
+
+            packet.respond(ClientboundCreatedPunishmentResponsePacket(punishment))
+        }
+    }
+
+    override fun handleAttachIpAddressToBan(packet: ServerboundAttachIpAddressToBanPacket) {
+        PunishmentHandlerScope.launch {
+            packet.respond(bean<PunishmentManager>().attachIpAddressToBan(packet.banId, packet.rawIp))
+        }
+    }
+
+    override fun handleAttachNoteToPunishment(packet: ServerboundAttachNoteToPunishmentPacket) {
+        PunishmentHandlerScope.launch {
+            val (id, rawNote, type) = packet
+            val manager = bean<PunishmentManager>()
+            val note = when (type) {
+                PunishmentType.BAN -> manager.attachNoteToBan(id, rawNote)
+                PunishmentType.MUTE -> manager.attachNoteToMute(id, rawNote)
+                PunishmentType.KICK -> manager.attachNoteToKick(id, rawNote)
+                PunishmentType.WARN -> manager.attachNoteToWarn(id, rawNote)
+            }
+
+            packet.respond(ClientboundAttachedNoteToPunishmentResponse(note))
+        }
+    }
+
+    override fun handleFetchNotesFromPunishment(packet: ServerboundFetchNotesFromPunishmentPacket) {
+        PunishmentHandlerScope.launch {
+            val (id, type) = packet
+            val manager = bean<PunishmentManager>()
+            val notes = when (type) {
+                PunishmentType.BAN -> manager.fetchNotesForBan(id)
+                PunishmentType.MUTE -> manager.fetchNotesForMute(id)
+                PunishmentType.KICK -> manager.fetchNotesForKick(id)
+                PunishmentType.WARN -> manager.fetchNotesForWarn(id)
+            }
+            packet.respond(ClientboundFetchNotesFromPunishmentResponse(notes))
+        }
+    }
+
+    override fun handleFetchMutes(packet: ServerboundFetchMutesPacket) {
+        PunishmentHandlerScope.launch {
+            val mutes = bean<PunishmentManager>().fetchMutes(packet.punishedUuid, packet.onlyActive)
+            packet.respond(ClientboundFetchedPunishmentsResponsePacket(mutes))
+        }
+    }
+
+    override fun handleFetchBans(packet: ServerboundFetchBansPacket) {
+        PunishmentHandlerScope.launch {
+            val bans = bean<PunishmentManager>().fetchBans(packet.punishedUuid, packet.onlyActive)
+            packet.respond(ClientboundFetchedPunishmentsResponsePacket(bans))
+        }
+    }
+
+    override fun handleFetchKicks(packet: ServerboundFetchKicksPacket) {
+        PunishmentHandlerScope.launch {
+            val kicks = bean<PunishmentManager>().fetchKicks(packet.punishedUuid)
+            packet.respond(ClientboundFetchedPunishmentsResponsePacket(kicks))
+        }
+    }
+
+    override fun handleFetchWarns(packet: ServerboundFetchWarnsPacket) {
+        PunishmentHandlerScope.launch {
+            val warns = bean<PunishmentManager>().fetchWarnings(packet.punishedUuid)
+            packet.respond(ClientboundFetchedPunishmentsResponsePacket(warns))
+        }
+    }
+
+    override fun handleGetCurrentLoginValidationPunishmentCache(packet: ServerboundGetCurrentLoginValidationPunishmentCachePacket) {
+        PunishmentHandlerScope.launch {
+            val cache = bean<PunishmentManager>().getCurrentLoginValidationPunishmentCache(packet.uuid)
+            packet.respond(ClientboundGetCurrentLoginValidationPunishmentCacheResponsePacket(cache))
+        }
+    }
+
+    override fun handleFetchIpAddressesForBan(packet: ServerboundFetchIpAddressesForBanPacket) {
+        PunishmentHandlerScope.launch {
+            val ipAddresses = bean<PunishmentManager>().fetchIpAddressesForBan(packet.banId)
+            packet.respond(ClientboundFetchIpAddressesResponsePacket(ipAddresses))
+        }
+    }
+
+    override fun handleFetchIpBans(packet: ServerboundFetchIpBansPacket) {
+        PunishmentHandlerScope.launch {
+            val bans = bean<PunishmentManager>().fetchIpBans(packet.ip, packet.onlyActive)
+            packet.respond(ClientboundFetchedPunishmentsResponsePacket(bans))
+        }
     }
 
     override fun handlePacket(packet: NettyPacket) {

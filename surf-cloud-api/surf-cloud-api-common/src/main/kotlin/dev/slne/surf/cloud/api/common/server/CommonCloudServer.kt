@@ -73,6 +73,9 @@ interface CommonCloudServer : ForwardingAudience {
      */
     val users: UserList
 
+    val displayName: String
+    get() = "$group/$uid $name"
+
     /**
      * Provides the list of audiences corresponding to the server's users.
      *
@@ -105,7 +108,7 @@ interface CommonCloudServer : ForwardingAudience {
 
     fun isInGroup(group: String): Boolean
 
-    suspend fun broadcast(message: Component)
+    suspend fun broadcast(message: Component, permission: String? = null, playSound: Boolean = true)
 
     /**
      * Shuts down the server.

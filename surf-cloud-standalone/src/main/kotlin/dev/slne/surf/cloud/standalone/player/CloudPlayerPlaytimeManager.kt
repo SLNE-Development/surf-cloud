@@ -1,5 +1,6 @@
 package dev.slne.surf.cloud.standalone.player
 
+import dev.slne.surf.cloud.api.common.event.CloudEventHandler
 import dev.slne.surf.cloud.api.common.event.player.connection.CloudPlayerDisconnectFromNetworkEvent
 import dev.slne.surf.cloud.api.common.util.mutableObject2ObjectMapOf
 import dev.slne.surf.cloud.api.common.util.mutableObjectListOf
@@ -119,7 +120,8 @@ class CloudPlayerPlaytimeManager(private val service: CloudPlayerService) : Disp
     /**
      * On player disconnect, remove session from memory and flush final time to DB.
      */
-    @EventListener
+    @Suppress("unused")
+    @CloudEventHandler
     fun onPlayerDisconnect(event: CloudPlayerDisconnectFromNetworkEvent) {
         val uuid = event.player.uuid
         PlayerPlaytimeScope.launch {

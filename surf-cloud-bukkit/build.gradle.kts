@@ -1,4 +1,5 @@
 import dev.slne.surf.surfapi.gradle.util.registerRequired
+import dev.slne.surf.surfapi.gradle.util.registerSoft
 
 plugins {
     id("dev.slne.surf.surfapi.gradle.paper-plugin")
@@ -13,6 +14,7 @@ surfPaperPluginApi {
 
     serverDependencies {
         registerRequired("LuckPerms")
+        registerSoft("voicechat")
     }
 
     runServer {
@@ -20,9 +22,15 @@ surfPaperPluginApi {
     }
 }
 
+repositories {
+    maven("https://maven.maxhenkel.de/repository/public")
+}
+
 dependencies {
     api(project(":surf-cloud-core:surf-cloud-core-client"))
     api(project(":surf-cloud-api:surf-cloud-api-client:surf-cloud-api-client-paper"))
+
+    compileOnly(libs.voicechat.api)
 
 //    api("org.springframework.boot:spring-boot-starter-data-jpa")
 }

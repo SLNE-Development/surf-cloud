@@ -6,8 +6,12 @@ import dev.slne.surf.cloud.api.common.player.OfflineCloudPlayer
 import dev.slne.surf.cloud.api.server.export.PlayerDataExport
 import dev.slne.surf.cloud.api.server.export.PlayerDataExportEmpty
 import dev.slne.surf.cloud.core.common.coroutines.PlayerDataSaveScope
+import dev.slne.surf.cloud.core.common.messages.MessageManager
+import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ClientboundRunPrePlayerJoinTasksPacket
 import dev.slne.surf.cloud.core.common.player.CloudPlayerManagerImpl
 import dev.slne.surf.cloud.core.common.player.playerManagerImpl
+import dev.slne.surf.cloud.core.common.player.task.PrePlayerJoinTask
+import dev.slne.surf.cloud.core.common.player.task.PrePlayerJoinTaskManager
 import dev.slne.surf.cloud.core.common.util.bean
 import dev.slne.surf.cloud.core.common.util.checkInstantiationByServiceLoader
 import dev.slne.surf.cloud.standalone.persistent.PlayerDataStorage
@@ -43,6 +47,47 @@ class StandaloneCloudPlayerManagerImpl : CloudPlayerManagerImpl<StandaloneCloudP
             forEachPlayer { PlayerDataStorage.save(it) }
         }
     }
+
+    override suspend fun preJoin(player: StandaloneCloudPlayerImpl): PrePlayerJoinTask.Result {
+        val serverResult = bean<PrePlayerJoinTaskManager>().runTasks(player)
+        if (serverResult !is PrePlayerJoinTask.Result.ALLOWED) return serverResult
+        val connections = serverManagerImpl.retrieveAllServers().map { it.connection }
+
+        for (connection in connections) {
+            val resultPacket =
+                ClientboundRunPrePlayerJoinTasksPacket(player.uuid).fireAndAwait(connection)
+
+            if (resultPacket == null) {
+                log.atWarning()
+                    .log("Pre player join tasks for player ${player.uuid} took too long to complete")
+                return PrePlayerJoinTask.Result.ERROR
+            }
+
+            val result = resultPacket.result
+            if (result !is PrePlayerJoinTask.Result.ALLOWED) {
+                return result
+            }
+        }
+
+        return PrePlayerJoinTask.Result.ALLOWED
+    }
+
+    private fun handleResult(
+        result: PrePlayerJoinTask.Result,
+        player: StandaloneCloudPlayerImpl
+    ): Boolean = when (result) {
+        PrePlayerJoinTask.Result.ALLOWED -> true
+        is PrePlayerJoinTask.Result.DENIED -> {
+            player.disconnect(result.reason)
+            false
+        }
+
+        PrePlayerJoinTask.Result.ERROR -> {
+            player.disconnect(MessageManager.unknownErrorDuringLogin)
+            false
+        }
+    }
+
 
     override suspend fun createPlayer(
         uuid: UUID,

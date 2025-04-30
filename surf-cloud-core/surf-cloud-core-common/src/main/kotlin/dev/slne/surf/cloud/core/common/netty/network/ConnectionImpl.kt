@@ -349,6 +349,21 @@ class ConnectionImpl(
                         is ServerboundShutdownServerPacket -> listener.handleShutdownServer(msg)
                         is ServerboundRequestPlayerDataPacket -> listener.handleRequestPlayerData(msg)
                         is UpdateAFKStatePacket -> listener.handleUpdateAFKState(msg)
+                        is ServerboundGeneratePunishmentIdPacket -> listener.handleGeneratePunishmentId(msg)
+                        is ServerboundCreateKickPacket -> listener.handleCreateKick(msg)
+                        is ServerboundCreateWarnPacket -> listener.handleCreateWarn(msg)
+                        is ServerboundCreateMutePacket -> listener.handleCreateMute(msg)
+                        is ServerboundCreateBanPacket -> listener.handleCreateBan(msg)
+                        is ServerboundAttachIpAddressToBanPacket -> listener.handleAttachIpAddressToBan(msg)
+                        is ServerboundAttachNoteToPunishmentPacket -> listener.handleAttachNoteToPunishment(msg)
+                        is ServerboundFetchNotesFromPunishmentPacket -> listener.handleFetchNotesFromPunishment(msg)
+                        is ServerboundFetchMutesPacket -> listener.handleFetchMutes(msg)
+                        is ServerboundFetchBansPacket -> listener.handleFetchBans(msg)
+                        is ServerboundFetchKicksPacket -> listener.handleFetchKicks(msg)
+                        is ServerboundFetchWarnsPacket -> listener.handleFetchWarns(msg)
+                        is ServerboundGetCurrentLoginValidationPunishmentCachePacket -> listener.handleGetCurrentLoginValidationPunishmentCache(msg)
+                        is ServerboundFetchIpAddressesForBanPacket -> listener.handleFetchIpAddressesForBan(msg)
+                        is ServerboundFetchIpBansPacket -> listener.handleFetchIpBans(msg)
 
                         else -> listener.handlePacket(msg) // handle other packets
                     }
@@ -476,6 +491,11 @@ class ConnectionImpl(
                         is ClientboundTriggerShutdownPacket -> listener.handleTriggerShutdown(msg)
                         is ClientboundBatchUpdateServer -> listener.handleBatchUpdateServer(msg)
                         is UpdateAFKStatePacket -> listener.handleUpdateAFKState(msg)
+                        is ClientboundRunPrePlayerJoinTasksPacket -> listener.handleRunPlayerPreJoinTasks(
+                            msg
+                        )
+                        is ClientboundTriggerPunishmentUpdateEventPacket -> listener.handleTriggerPunishmentUpdateEvent(msg)
+                        is ClientboundTriggerPunishmentCreatedEventPacket -> listener.handleTriggerPunishmentCreatedEvent(msg)
 
                         else -> listener.handlePacket(msg)
                     }

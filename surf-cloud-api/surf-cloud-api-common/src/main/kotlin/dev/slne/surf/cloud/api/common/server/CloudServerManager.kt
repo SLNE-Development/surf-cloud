@@ -75,8 +75,8 @@ interface CloudServerManager {
         players: Collection<CloudPlayer>
     ): @Unmodifiable ObjectList<Pair<CloudPlayer, ConnectionResultEnum>>
 
-    suspend fun broadcastToGroup(group: String, message: Component)
-    suspend fun broadcast(message: Component)
+    suspend fun broadcastToGroup(group: String, message: Component, permission: String? = null, playSound: Boolean = true)
+    suspend fun broadcast(message: Component, permission: String? = null, playSound: Boolean = true)
 
     companion object : CloudServerManager by INSTANCE {
         @InternalApi

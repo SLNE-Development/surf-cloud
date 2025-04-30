@@ -10,6 +10,7 @@ import dev.slne.surf.cloud.bukkit.command.network.glistCommand
 import dev.slne.surf.cloud.bukkit.command.network.sendCommand
 import dev.slne.surf.cloud.bukkit.command.network.serverCommand
 import dev.slne.surf.cloud.bukkit.command.playtime.playtimeCommand
+import dev.slne.surf.cloud.bukkit.command.punish.anticheatBanCommand
 import dev.slne.surf.cloud.core.common.spring.CloudLifecycleAware
 import org.springframework.core.annotation.Order
 import org.springframework.stereotype.Component
@@ -34,5 +35,6 @@ class PaperCommandManager : CloudLifecycleAware {
         glistCommand()
         timeoutPlayerCommand()
         disconnectPlayerCommand()
+        anticheatBanCommand()
     }
 }

@@ -5,4 +5,7 @@ import dev.slne.surf.cloud.api.common.server.CommonCloudServer
 
 interface ServerCommonCloudServer: CommonCloudServer {
     val connection: Connection
+
+    override val displayName: String
+        get() = super.displayName + " (${connection.getLoggableAddress()})"
 }

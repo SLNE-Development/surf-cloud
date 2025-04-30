@@ -9,6 +9,8 @@ import dev.slne.surf.cloud.api.common.server.UserListImpl
 import dev.slne.surf.cloud.api.common.util.TimeLogger
 import dev.slne.surf.cloud.api.common.util.mutableObject2ObjectMapOf
 import dev.slne.surf.cloud.api.common.util.synchronize
+import dev.slne.surf.cloud.core.common.player.task.PrePlayerJoinTask
+import dev.slne.surf.cloud.core.common.player.task.PrePlayerJoinTaskManager
 import dev.slne.surf.cloud.core.common.spring.CloudLifecycleAware
 import dev.slne.surf.cloud.core.common.util.publish
 import dev.slne.surf.surfapi.core.api.util.logger
@@ -75,11 +77,13 @@ abstract class CloudPlayerManagerImpl<P : CommonCloudPlayerImpl> : CloudPlayerMa
         proxy: Boolean,
         ip: Inet4Address,
         serverUid: Long
-    ) {
+    ): PrePlayerJoinTask.Result {
         val player = players[uuid]
 
         if (player == null) {
             createPlayer(uuid, name, proxy, ip, serverUid).also {
+                val preJoinResult = preJoin(it)
+                if (preJoinResult !is PrePlayerJoinTask.Result.ALLOWED) return preJoinResult
                 onNetworkConnect(uuid, it)
                 onServerConnect(uuid, it, serverUid)
                 addPlayer(it)
@@ -92,6 +96,12 @@ abstract class CloudPlayerManagerImpl<P : CommonCloudPlayerImpl> : CloudPlayerMa
             }
             onServerConnect(uuid, player, serverUid)
         }
+
+        return PrePlayerJoinTask.Result.ALLOWED
+    }
+
+    protected open suspend fun preJoin(player: P): PrePlayerJoinTask.Result {
+        return PrePlayerJoinTask.Result.ALLOWED
     }
 
     /**
@@ -131,7 +141,7 @@ abstract class CloudPlayerManagerImpl<P : CommonCloudPlayerImpl> : CloudPlayerMa
     @MustBeInvokedByOverriders
     open suspend fun onNetworkDisconnect(uuid: UUID, player: P, oldProxy: Long?, oldServer: Long?) {
         try {
-            CloudPlayerDisconnectFromNetworkEvent(this, player).publish()
+            CloudPlayerDisconnectFromNetworkEvent(this, player).post()
         } catch (e: Throwable) {
             log.atWarning()
                 .withCause(e)
@@ -142,7 +152,7 @@ abstract class CloudPlayerManagerImpl<P : CommonCloudPlayerImpl> : CloudPlayerMa
     @MustBeInvokedByOverriders
     open suspend fun onNetworkConnect(uuid: UUID, player: P) {
         try {
-            CloudPlayerConnectToNetworkEvent(this, player).publish()
+            CloudPlayerConnectToNetworkEvent(this, player).post()
         } catch (e: Throwable) {
             log.atWarning()
                 .withCause(e)
@@ -153,7 +163,7 @@ abstract class CloudPlayerManagerImpl<P : CommonCloudPlayerImpl> : CloudPlayerMa
     open fun terminate() {}
 }
 
-val playerManagerImpl get() = CloudPlayerManager.instance as CloudPlayerManagerImpl<*>
+val playerManagerImpl get() = CloudPlayerManager.instance as CloudPlayerManagerImpl<out CommonCloudPlayerImpl>
 
 @Component
 @Order(CloudLifecycleAware.MISC_PRIORITY)

@@ -24,6 +24,7 @@ interface ExpirablePunishment: Punishment, Comparable<ExpirablePunishment> {
         if (this.permanent) return -1
         if (other.permanent) return 1
 
+        if (this.expirationDate == null && other.expirationDate == null) return 0
         val thisExpirationDate = this.expirationDate ?: return -1
         val otherExpirationDate = other.expirationDate ?: return 1
 

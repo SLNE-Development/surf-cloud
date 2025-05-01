@@ -8,7 +8,8 @@
     <color-preset>vivid</color-preset>
     <header-logo>surf-cloud-logo.png</header-logo>
     <custom-favicons>surf-cloud-logo.png</custom-favicons>
-    <primary-color>deep-ocean</primary-color>
+    <primary-color>metallic</primary-color>
+    <custom-css>custom.css</custom-css>
   </variables>
 
   <shortcuts>

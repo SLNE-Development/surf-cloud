@@ -1,6 +1,8 @@
 package dev.slne.surf.cloud.core.client.netty.network
 
 import com.google.common.flogger.StackSize
+import dev.slne.surf.cloud.api.common.event.offlineplayer.punishment.CloudPlayerPunishEvent
+import dev.slne.surf.cloud.api.common.event.offlineplayer.punishment.CloudPlayerPunishmentUpdatedEvent
 import dev.slne.surf.cloud.api.common.netty.network.protocol.respond
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacketInfo
@@ -18,8 +20,9 @@ import dev.slne.surf.cloud.core.common.netty.network.ConnectionImpl
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.*
 import dev.slne.surf.cloud.core.common.netty.registry.listener.NettyListenerRegistry
 import dev.slne.surf.cloud.core.common.player.playerManagerImpl
-import dev.slne.surf.cloud.core.common.server.AbstractCloudServer
-import dev.slne.surf.cloud.core.common.server.AbstractProxyCloudServer
+import dev.slne.surf.cloud.core.common.player.task.PrePlayerJoinTaskManager
+import dev.slne.surf.cloud.core.common.util.bean
+import dev.slne.surf.cloud.core.common.util.hasPermission
 import dev.slne.surf.surfapi.core.api.messages.adventure.getPointer
 import dev.slne.surf.surfapi.core.api.messages.adventure.text
 import dev.slne.surf.surfapi.core.api.util.logger
@@ -113,12 +116,21 @@ class ClientRunningPacketListenerImpl(
             val x = packet.x
             val y = packet.y
             val z = packet.z
+            val permission = packet.permission
 
             if (emitter != null) {
-                playSound(packet.sound, emitter)
+                if (permission == null) {
+                    playSound(packet.sound, emitter)
+                } else {
+                    if (hasPermission(permission)) {
+                        playSound(packet.sound, emitter)
+                    }
+                }
             } else if (x != null && y != null && z != null) {
+                require(permission == null) { "Permission is not supported for this play sound type" }
                 playSound(packet.sound, x, y, z)
             } else {
+                require(permission == null) { "Permission is not supported for this play sound type" }
                 playSound(packet.sound)
             }
         }
@@ -129,7 +141,18 @@ class ClientRunningPacketListenerImpl(
     }
 
     override fun handleSendMessage(packet: ClientboundSendMessagePacket) {
-        withAudience(packet.uuid) { sendMessage(packet.message) }
+        withAudience(packet.uuid) {
+            val message = packet.message
+            val permission = packet.permission
+
+            if (permission == null) {
+                sendMessage(message)
+            } else {
+                if (hasPermission(permission)) {
+                    sendMessage(message)
+                }
+            }
+        }
     }
 
     override fun handleSendActionBar(packet: ClientboundSendActionBarPacket) {
@@ -250,6 +273,43 @@ class ClientRunningPacketListenerImpl(
         playerManagerImpl.getPlayer(packet.uuid)?.let { player ->
             require(player is ClientCloudPlayerImpl<*>) { "Player $player is not a client player" }
             player.afk = packet.isAfk
+        }
+    }
+
+    override suspend fun handleRunPlayerPreJoinTasks(packet: ClientboundRunPrePlayerJoinTasksPacket) {
+        val player = commonPlayerManagerImpl.getOfflinePlayer(packet.uuid)
+        val result = bean<PrePlayerJoinTaskManager>().runTasks(player)
+        packet.respond(RunPrePlayerJoinTasksResultPacket(result))
+    }
+
+    override suspend fun handleTriggerPunishmentUpdateEvent(packet: ClientboundTriggerPunishmentUpdateEventPacket) {
+        val (updatedPunishment, operation) = packet
+        try {
+            CloudPlayerPunishmentUpdatedEvent(
+                this,
+                updatedPunishment.punishedPlayer(),
+                updatedPunishment,
+                operation
+            ).post()
+        } catch (e: Throwable) {
+            log.atWarning()
+                .withCause(e)
+                .log("Failed to publish punishment update event for punishment $updatedPunishment from packet")
+        }
+    }
+
+    override suspend fun handleTriggerPunishmentCreatedEvent(packet: ClientboundTriggerPunishmentCreatedEventPacket) {
+        val punishment = packet.createdPunishment
+        try {
+            CloudPlayerPunishEvent(
+                this,
+                punishment.punishedPlayer(),
+                punishment,
+            ).post()
+        } catch (e: Throwable) {
+            log.atWarning()
+                .withCause(e)
+                .log("Failed to publish punishment created event for punishment $punishment from packet")
         }
     }
 

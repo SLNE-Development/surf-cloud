@@ -7,7 +7,9 @@ import dev.slne.surf.cloud.api.common.player.teleport.TeleportLocation
 import dev.slne.surf.cloud.api.common.server.CloudServer
 import dev.slne.surf.surfapi.core.api.messages.adventure.buildText
 import net.kyori.adventure.audience.Audience
+import net.kyori.adventure.sound.Sound
 import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.ComponentLike
 import java.net.Inet4Address
 import java.util.*
 import kotlin.time.Duration
@@ -162,6 +164,9 @@ interface CloudPlayer : Audience, OfflineCloudPlayer { // TODO: conversation but
 
     override suspend fun displayName(): Component
     override suspend fun name(): String
+
+    fun sendMessage(message: ComponentLike, permission: String)
+    fun playSound(sound: Sound, emitter: Sound.Emitter, permission: String)
 }
 
 /**

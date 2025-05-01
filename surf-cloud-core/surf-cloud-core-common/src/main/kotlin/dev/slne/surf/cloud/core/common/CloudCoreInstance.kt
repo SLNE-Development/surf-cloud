@@ -9,7 +9,11 @@ import dev.slne.surf.cloud.api.common.startSpringApplication
 import dev.slne.surf.cloud.api.common.util.TimeLogger
 import dev.slne.surf.cloud.api.common.util.classloader.JoinClassLoader
 import dev.slne.surf.cloud.api.common.util.forEachOrdered
+import dev.slne.surf.cloud.api.common.util.objectListOf
+import dev.slne.surf.cloud.api.common.util.spring.JoinResourceLoader
+import dev.slne.surf.cloud.core.common.event.CloudEventListenerBeanPostProcessor
 import dev.slne.surf.cloud.core.common.netty.network.EncryptionManager
+import dev.slne.surf.cloud.core.common.player.punishment.CloudPlayerPunishmentManagerBridgeImpl
 import dev.slne.surf.cloud.core.common.processors.NettyPacketProcessor
 import dev.slne.surf.cloud.core.common.spring.CloudLifecycleAware
 import dev.slne.surf.cloud.core.common.spring.SurfSpringBanner
@@ -161,16 +165,49 @@ class CloudCoreInstance : CloudInstance {
         vararg parentClassLoader: ClassLoader,
         customizer: SpringApplicationBuilder.() -> Unit
     ): ConfigurableApplicationContext {
-        val joinClassLoader = JoinClassLoader(classLoader, parentClassLoader)
+        val joinClassLoader = JoinClassLoader(
+            classLoader,
+            listOfNotNull(
+                CloudCoreInstance::class.java.classLoader,
+                *parentClassLoader,
+            ).toTypedArray()
+        )
         return tempChangeSystemClassLoader(joinClassLoader) {
+            val parentContext = internalContext
+            val resourceLoader = if (parentContext == null) {
+                JoinResourceLoader(
+                    DefaultResourceLoader(joinClassLoader)
+                )
+            } else {
+                JoinResourceLoader(
+                    DefaultResourceLoader(joinClassLoader),
+                    objectListOf(parentContext)
+                )
+            }
+
             val builder = SpringApplicationBuilder(applicationClass)
-                .resourceLoader(DefaultResourceLoader(joinClassLoader))
+                .resourceLoader(resourceLoader)
                 .bannerMode(Banner.Mode.CONSOLE)
                 .banner(SurfSpringBanner())
                 .profiles(springProfile)
 
-            if (internalContext != null) {
-                builder.parent(internalContext)
+            if (parentContext != null) {
+                builder.parent(parentContext)
+                builder.properties(
+                    mapOf(
+                        "spring.autoconfigure.exclude" to "org.springframework.boot.autoconfigure.context.PropertyPlaceholderAutoConfiguration"
+                    )
+                )
+                builder.initializers({ ctx ->
+                    ctx.beanFactory.registerSingleton(
+                        "cloudEventBpp",
+                        CloudEventListenerBeanPostProcessor()
+                    )
+                    ctx.beanFactory.registerSingleton(
+                        "loginValidationAutoRegistrationHandler",
+                        CloudPlayerPunishmentManagerBridgeImpl.LoginValidationAutoRegistrationHandler()
+                    )
+                })
             }
 
             customizer(builder)

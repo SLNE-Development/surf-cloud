@@ -7,6 +7,8 @@ import dev.slne.surf.cloud.core.common.netty.network.protocol.running.Serverboun
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ServerboundRequestPlayerDataPacket.DataRequestType
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.getGenericValue
 import dev.slne.surf.cloud.core.common.player.CommonOfflineCloudPlayerImpl
+import dev.slne.surf.surfapi.core.api.messages.Colors
+import dev.slne.surf.surfapi.core.api.messages.adventure.text
 import net.kyori.adventure.text.Component
 import java.net.Inet4Address
 import java.time.ZonedDateTime
@@ -33,8 +35,8 @@ class OfflineCloudPlayerImpl(uuid: UUID) : CommonOfflineCloudPlayerImpl(uuid) {
         return request(DataRequestType.LATEST_IP_ADDRESS)
     }
 
-    override suspend fun displayName(): Component? {
-        return request(DataRequestType.DISPLAY_NAME)
+    override suspend fun displayName(): Component {
+        return request(DataRequestType.DISPLAY_NAME) ?: text(uuid.toString(), Colors.VARIABLE_VALUE)
     }
 
     override suspend fun name(): String? {

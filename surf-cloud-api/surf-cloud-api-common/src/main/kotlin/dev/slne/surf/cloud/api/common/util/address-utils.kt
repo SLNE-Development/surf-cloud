@@ -157,7 +157,7 @@ fun updateInetSocketAddressPort(address: (() -> SocketAddress)?, port: Int): Ine
     return createUnresolvedInetSocketAddress(socketAddress.address?.hostAddress ?: socketAddress.hostName, port)
 }
 
-private fun attemptParsingIpString(address: String): InetAddress? =
+fun attemptParsingIpString(address: String): InetAddress? =
     NetUtil.createByteArrayFromIpAddressString(address)?.run {
         if (size == 4) {
             Inet4Address.getByAddress(this)

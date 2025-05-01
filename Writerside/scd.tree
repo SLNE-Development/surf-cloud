@@ -6,8 +6,26 @@
                  name="surf-cloud-docs"
                  start-page="starter-topic.md">
 
-    <toc-element topic="starter-topic.md"/>
-    <toc-element topic="Overview.md"/>
+  <toc-element topic="starter-topic.md"/>
+  <toc-element topic="API_Reference.topic">
+    <toc-element toc-title="Punish">
+      <toc-element topic="Schemas.topic">
+        <toc-element topic="WarnPunishment.topic"/>
+        <toc-element topic="MutePunishment.topic"/>
+        <toc-element topic="KickPunishment.topic"/>
+        <toc-element topic="BanPunishment.topic"/>
+      </toc-element>
+      <toc-element topic="Broadcast_a_new_ban_punishment.topic"/>
+      <toc-element topic="Broadcast_a_new_kick_punishment.topic"/>
+      <toc-element topic="Broadcast_a_new_mute_punishment.topic"/>
+      <toc-element topic="Broadcast_a_new_warn_punishment.topic"/>
+      <toc-element topic="Update_an_existing_ban_punishment.topic"/>
+      <toc-element topic="Update_an_existing_kick_punishment.topic"/>
+      <toc-element topic="Update_an_existing_mute_punishment.topic"/>
+      <toc-element topic="Update_an_existing_warn_punishment.topic"/>
+    </toc-element>
+  </toc-element>
+  <toc-element topic="Overview.md"/>
     <toc-element topic="Installation-guide.md"/>
     <toc-element topic="Style-guide.md"/>
     <toc-element toc-title="How-to">

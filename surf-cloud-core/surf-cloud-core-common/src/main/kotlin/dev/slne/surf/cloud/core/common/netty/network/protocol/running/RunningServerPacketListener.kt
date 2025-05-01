@@ -69,6 +69,36 @@ interface RunningServerPacketListener : ServerCommonPacketListener, TickablePack
     suspend fun handleRequestPlayerData(packet: ServerboundRequestPlayerDataPacket)
 
     fun handleUpdateAFKState(packet: UpdateAFKStatePacket)
-    
+
+    fun handleGeneratePunishmentId(packet: ServerboundGeneratePunishmentIdPacket)
+
+    fun handleCreateKick(packet: ServerboundCreateKickPacket)
+
+    fun handleCreateWarn(packet: ServerboundCreateWarnPacket)
+
+    fun handleCreateMute(packet: ServerboundCreateMutePacket)
+
+    fun handleCreateBan(packet: ServerboundCreateBanPacket)
+
+    fun handleAttachIpAddressToBan(packet: ServerboundAttachIpAddressToBanPacket)
+
+    fun handleAttachNoteToPunishment(packet: ServerboundAttachNoteToPunishmentPacket)
+
+    fun handleFetchNotesFromPunishment(packet: ServerboundFetchNotesFromPunishmentPacket)
+
+    fun handleFetchMutes(packet: ServerboundFetchMutesPacket)
+
+    fun handleFetchBans(packet: ServerboundFetchBansPacket)
+
+    fun handleFetchKicks(packet: ServerboundFetchKicksPacket)
+
+    fun handleFetchWarns(packet: ServerboundFetchWarnsPacket)
+
+    fun handleGetCurrentLoginValidationPunishmentCache(packet: ServerboundGetCurrentLoginValidationPunishmentCachePacket)
+
+    fun handleFetchIpAddressesForBan(packet: ServerboundFetchIpAddressesForBanPacket)
+
+    fun handleFetchIpBans(packet: ServerboundFetchIpBansPacket)
+
     fun handlePacket(packet: NettyPacket)
 }

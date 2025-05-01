@@ -1,6 +1,8 @@
 package dev.slne.surf.cloud.api.common.server
 
 import dev.slne.surf.cloud.api.common.player.CloudPlayer
+import it.unimi.dsi.fastutil.objects.ObjectSet
+import java.util.*
 
 /**
  * Represents a list of users currently connected to a server.
@@ -9,6 +11,8 @@ import dev.slne.surf.cloud.api.common.player.CloudPlayer
  * The list itself does not directly modify the state of the server.
  */
 interface UserList : Collection<CloudPlayer> {
+
+    val references: ObjectSet<UUID>
 
     /**
      * Creates a mutable snapshot of the current user list.

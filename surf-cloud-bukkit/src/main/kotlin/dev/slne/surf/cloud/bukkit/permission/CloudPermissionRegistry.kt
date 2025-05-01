@@ -1,9 +1,10 @@
 package dev.slne.surf.cloud.bukkit.permission
 
+import dev.slne.surf.cloud.core.common.permission.CommonCloudPermissions
 import dev.slne.surf.surfapi.bukkit.api.permission.PermissionRegistry
 
 object CloudPermissionRegistry: PermissionRegistry() {
-    private const val COMMAND_PREFIX = "surfcloud.command"
+    private const val COMMAND_PREFIX = "${CommonCloudPermissions.PREFIX}.command"
 
     val FIND_COMMAND = create("$COMMAND_PREFIX.find")
     val FIND_COMMAND_TELEPORT = create("$COMMAND_PREFIX.find.teleport")
@@ -16,4 +17,6 @@ object CloudPermissionRegistry: PermissionRegistry() {
     val BROADCAST_COMMAND = create("$COMMAND_PREFIX.broadcast")
     val GLIST_COMMAND = create("$COMMAND_PREFIX.glist")
     val TIMEOUT_COMMAND = create("$COMMAND_PREFIX.timeout")
+    val ANTICHEAT_BAN_COMMAND = create("$COMMAND_PREFIX.acban")
+    val PUNISH_COMMAND = create("$COMMAND_PREFIX.punish")
 }

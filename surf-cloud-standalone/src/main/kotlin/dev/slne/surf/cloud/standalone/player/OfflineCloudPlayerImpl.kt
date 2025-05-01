@@ -10,6 +10,8 @@ import dev.slne.surf.cloud.core.common.player.playtime.PlaytimeImpl
 import dev.slne.surf.cloud.core.common.util.bean
 import dev.slne.surf.cloud.standalone.player.db.exposed.CloudPlayerService
 import dev.slne.surf.cloud.standalone.server.serverManagerImpl
+import dev.slne.surf.surfapi.core.api.messages.Colors
+import dev.slne.surf.surfapi.core.api.messages.adventure.text
 import dev.slne.surf.surfapi.core.api.service.PlayerLookupService
 import net.kyori.adventure.text.Component
 import java.net.Inet4Address
@@ -50,8 +52,11 @@ class OfflineCloudPlayerImpl(uuid: UUID) : CommonOfflineCloudPlayerImpl(uuid) {
             .let { if (it.isEmpty()) PlaytimeImpl.EMPTY else PlaytimeImpl(it) }
     }
 
-    override suspend fun displayName(): Component? {
-        return player?.displayName() ?: serverManagerImpl.requestOfflineDisplayName(uuid)
+    override suspend fun displayName(): Component {
+        return player?.displayName() ?: serverManagerImpl.requestOfflineDisplayName(uuid) ?: text(
+            uuid.toString(),
+            Colors.VARIABLE_VALUE
+        )
     }
 
     override suspend fun name(): String? {

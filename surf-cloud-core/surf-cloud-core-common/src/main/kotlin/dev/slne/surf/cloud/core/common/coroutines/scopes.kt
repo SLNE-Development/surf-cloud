@@ -4,9 +4,7 @@ import dev.slne.surf.cloud.api.common.util.mutableObjectListOf
 import dev.slne.surf.cloud.api.common.util.threadFactory
 import dev.slne.surf.surfapi.core.api.util.logger
 import kotlinx.coroutines.*
-import org.gradle.internal.declarativedsl.language.This
 import java.util.concurrent.Executors
-import kotlin.coroutines.CoroutineContext
 
 abstract class BaseScope(
     dispatcher: CoroutineDispatcher,
@@ -125,4 +123,34 @@ object PlayerPlaytimeScope : BaseScope(
 object CloudServerCleanupScope : BaseScope(
     dispatcher = Dispatchers.Default,
     name = "cloud-server-cleanup"
+)
+
+object PunishmentHandlerScope : BaseScope(
+    dispatcher = Dispatchers.Default,
+    name = "common-punishment-handlers"
+)
+
+object PunishmentDatabaseScope : BaseScope(
+    dispatcher = Dispatchers.IO,
+    name = "punishment-database"
+)
+
+object PrePlayerJoinTaskScope : BaseScope(
+    dispatcher = Dispatchers.IO,
+    name = "pre-player-join-task"
+)
+
+object CloudEventBusScope : BaseScope(
+    dispatcher = Dispatchers.Default,
+    name = "cloud-event-bus"
+)
+
+object CloudConnectionVerificationScope : BaseScope(
+    dispatcher = Dispatchers.Default,
+    name = "cloud-connection-verification"
+)
+
+object PunishmentCacheRefreshScope : BaseScope(
+    dispatcher = Dispatchers.Default,
+    name = "punishment-cache-refresh"
 )

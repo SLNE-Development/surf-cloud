@@ -7,6 +7,7 @@ import dev.slne.surf.cloud.api.common.player.CloudPlayerManager
 import dev.slne.surf.cloud.api.common.util.annotation.InternalApi
 import dev.slne.surf.cloud.api.common.util.mutableObjectSetOf
 import dev.slne.surf.cloud.api.common.util.synchronize
+import dev.slne.surf.cloud.api.common.util.toObjectSet
 import it.unimi.dsi.fastutil.objects.ObjectSet
 import java.util.*
 
@@ -27,6 +28,8 @@ open class UserListImpl : UserList {
     internal val playerReferences: ObjectSet<UUID>
 
     override val size get() = playerReferences.size
+    override val references: ObjectSet<UUID>
+        get() = playerReferences.toObjectSet()
 
     constructor() {
         playerReferences = mutableObjectSetOf<UUID>().synchronize()

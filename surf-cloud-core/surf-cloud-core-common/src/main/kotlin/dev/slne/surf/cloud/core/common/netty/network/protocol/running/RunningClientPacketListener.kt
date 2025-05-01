@@ -77,5 +77,11 @@ interface RunningClientPacketListener : ClientCommonPacketListener {
 
     fun handleUpdateAFKState(packet: UpdateAFKStatePacket)
 
+    suspend fun handleRunPlayerPreJoinTasks(packet: ClientboundRunPrePlayerJoinTasksPacket)
+
+    suspend fun handleTriggerPunishmentUpdateEvent(packet: ClientboundTriggerPunishmentUpdateEventPacket)
+
+    suspend fun handleTriggerPunishmentCreatedEvent(packet: ClientboundTriggerPunishmentCreatedEventPacket)
+
     fun handlePacket(packet: NettyPacket)
 }

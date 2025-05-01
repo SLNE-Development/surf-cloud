@@ -21,17 +21,21 @@ import dev.slne.surf.cloud.core.common.netty.network.protocol.running.Serverboun
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ServerboundRequestPlayerDataResponse.*
 import dev.slne.surf.cloud.core.common.player.CommonCloudPlayerImpl
 import dev.slne.surf.cloud.core.common.player.ppdc.PersistentPlayerDataContainerImpl
+import dev.slne.surf.cloud.core.common.util.hasPermission
 import dev.slne.surf.surfapi.core.api.messages.adventure.getPointer
 import net.kyori.adventure.audience.Audience
 import net.kyori.adventure.audience.MessageType
 import net.kyori.adventure.bossbar.BossBar
 import net.kyori.adventure.identity.Identity
 import net.kyori.adventure.inventory.Book
+import net.kyori.adventure.permission.PermissionChecker
+import net.kyori.adventure.pointer.Pointer
 import net.kyori.adventure.resource.ResourcePackRequest
 import net.kyori.adventure.sound.Sound
 import net.kyori.adventure.sound.Sound.Emitter
 import net.kyori.adventure.sound.SoundStop
 import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.ComponentLike
 import net.kyori.adventure.title.Title
 import net.kyori.adventure.title.TitlePart
 import net.luckperms.api.model.user.User
@@ -172,6 +176,21 @@ abstract class ClientCloudPlayerImpl<PlatformPlayer : Audience>(uuid: UUID, name
         ServerboundSendMessagePacket(uuid, message).fireAndForget()
     }
 
+    override fun sendMessage(
+        message: ComponentLike,
+        permission: String
+    ) {
+        val audience = audience
+        if (audience != null) {
+            if (audience.hasPermission(permission)) {
+                audience.sendMessage(message)
+            }
+            return
+        }
+
+        ServerboundSendMessagePacket(uuid, message.asComponent(), permission).fireAndForget()
+    }
+
     override fun sendActionBar(message: Component) {
         val audience = audience
         if (audience != null) {
@@ -274,6 +293,26 @@ abstract class ClientCloudPlayerImpl<PlatformPlayer : Audience>(uuid: UUID, name
         }
 
         ServerboundPlaySoundPacket(uuid, sound, emitter).fireAndForget()
+    }
+
+    override fun playSound(
+        sound: Sound,
+        emitter: Emitter,
+        permission: String
+    ) {
+        val audience = audience
+        if (audience != null) {
+            if (audience.hasPermission(permission)) {
+                audience.playSound(sound, emitter)
+            }
+            return
+        }
+
+        if (emitter != Emitter.self()) {
+            throw UnsupportedOperationException("Only self emitters are supported")
+        }
+
+        ServerboundPlaySoundPacket(uuid, sound, emitter, permission).fireAndForget()
     }
 
     override fun playSound(sound: Sound, x: Double, y: Double, z: Double) {

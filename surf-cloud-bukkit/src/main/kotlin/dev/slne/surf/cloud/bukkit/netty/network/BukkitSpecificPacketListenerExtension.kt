@@ -12,6 +12,7 @@ import dev.slne.surf.cloud.core.client.netty.network.PlatformSpecificPacketListe
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.RegistrationInfo
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ServerboundTransferPlayerPacketResponse
 import dev.slne.surf.surfapi.bukkit.api.extensions.server
+import dev.slne.surf.surfapi.bukkit.api.util.dispatcher
 import kotlinx.coroutines.future.await
 import net.kyori.adventure.text.Component
 import org.bukkit.Bukkit
@@ -34,7 +35,9 @@ class BukkitSpecificPacketListenerExtension : PlatformSpecificPacketListenerExte
 
     override fun disconnectPlayer(playerUuid: UUID, reason: Component) {
         val player = Bukkit.getPlayer(playerUuid) ?: return
-        player.kick(reason)
+        plugin.launch(player.dispatcher()) {
+            player.kick(reason)
+        }
     }
 
     override fun silentDisconnectPlayer(playerUuid: UUID) {

@@ -6,6 +6,7 @@ import dev.slne.surf.cloud.api.server.plugin.PluginManager
 import dev.slne.surf.cloud.core.common.coroutines.KtorScope
 import dev.slne.surf.cloud.core.common.spring.CloudLifecycleAware
 import dev.slne.surf.cloud.standalone.config.standaloneConfig
+import dev.slne.surf.cloud.standalone.ktor.routes.punish.punishRoutes
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
@@ -13,6 +14,7 @@ import io.ktor.server.html.*
 import io.ktor.server.netty.*
 import io.ktor.server.plugins.*
 import io.ktor.server.plugins.statuspages.*
+import io.ktor.server.resources.Resources
 import io.ktor.server.routing.*
 import io.ktor.server.websocket.*
 import kotlinx.coroutines.launch
@@ -47,6 +49,7 @@ class KtorServer : CloudLifecycleAware {
             install(WebSockets) {
                 pingPeriod = 15.seconds
             }
+            install(Resources)
 
             for (plugin in plugins) {
                 plugin.apply { configure() }
@@ -56,6 +59,8 @@ class KtorServer : CloudLifecycleAware {
                 for (plugin in plugins) {
                     plugin.apply { installRoutes() }
                 }
+
+                punishRoutes()
             }
         }
         server.start(wait = true)

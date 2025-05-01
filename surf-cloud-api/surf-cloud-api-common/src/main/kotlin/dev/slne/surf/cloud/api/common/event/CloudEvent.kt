@@ -1,6 +1,5 @@
 package dev.slne.surf.cloud.api.common.event
 
-import org.springframework.context.ApplicationEvent
 import java.io.Serial
 
 /**
@@ -8,9 +7,13 @@ import java.io.Serial
  *
  * @param source The object on which the event initially occurred.
  */
-abstract class CloudEvent(source: Any) : ApplicationEvent(source) {
+abstract class CloudEvent(source: Any) {
     companion object {
         @Serial
         private const val serialVersionUID: Long = -3330199602759544854L
+    }
+
+    suspend fun post() {
+        CloudEventBus.instance.post(this)
     }
 }

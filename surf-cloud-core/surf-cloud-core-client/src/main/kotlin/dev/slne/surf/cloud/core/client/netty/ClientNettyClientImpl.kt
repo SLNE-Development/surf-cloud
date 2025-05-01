@@ -51,6 +51,7 @@ class ClientNettyClientImpl(
         }
 
     val listener get() = _listener ?: error("listener not yet set")
+    val connected get() = _listener?.connection?.connected ?: false
 
     private val awaitPreRunning = CompletableDeferred<Unit>()
     private val finalizeHandler = mutableObjectListOf<suspend () -> Unit>()

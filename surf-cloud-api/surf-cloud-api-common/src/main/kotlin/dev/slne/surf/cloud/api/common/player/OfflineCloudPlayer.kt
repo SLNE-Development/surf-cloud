@@ -2,6 +2,7 @@ package dev.slne.surf.cloud.api.common.player
 
 import dev.slne.surf.cloud.api.common.player.name.NameHistory
 import dev.slne.surf.cloud.api.common.player.playtime.Playtime
+import dev.slne.surf.cloud.api.common.player.punishment.CloudPlayerPunishmentManager
 import dev.slne.surf.cloud.api.common.server.CloudServer
 import net.kyori.adventure.text.Component
 import java.net.Inet4Address
@@ -29,12 +30,14 @@ interface OfflineCloudPlayer {
      */
     val player: CloudPlayer?
 
+    val punishmentManager: CloudPlayerPunishmentManager
+
     /**
      * Suspends until the display name of the player is retrieved.
      *
      * @return The [Component] representing the player's display name.
      */
-    suspend fun displayName(): Component?
+    suspend fun displayName(): Component
 
     suspend fun name(): String?
 

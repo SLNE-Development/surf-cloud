@@ -18,19 +18,23 @@ class ClientboundSendMessagePacket : NettyPacket {
 
     val uuid: UUID
     val message: Component
+    val permission: String?
 
-    constructor(uuid: UUID, message: Component) {
+    constructor(uuid: UUID, message: Component, permission: String? = null) {
         this.uuid = uuid
         this.message = message
+        this.permission = permission
     }
 
     private constructor(buffer: SurfByteBuf) {
         uuid = buffer.readUuid()
         message = buffer.readComponent()
+        permission = buffer.readNullableString()
     }
 
     private fun write(buffer: SurfByteBuf) {
         buffer.writeUuid(uuid)
         buffer.writeComponent(message)
+        buffer.writeNullable(permission)
     }
 }

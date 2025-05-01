@@ -42,6 +42,7 @@ import net.kyori.adventure.sound.Sound
 import net.kyori.adventure.sound.Sound.Emitter
 import net.kyori.adventure.sound.SoundStop
 import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.ComponentLike
 import net.kyori.adventure.title.Title
 import net.kyori.adventure.title.TitlePart
 import net.querz.nbt.tag.CompoundTag
@@ -330,6 +331,13 @@ class StandaloneCloudPlayerImpl(uuid: UUID, name: String, val ip: Inet4Address) 
         send(ClientboundSendMessagePacket(uuid, message))
     }
 
+    override fun sendMessage(
+        message: ComponentLike,
+        permission: String
+    ) {
+        send(ClientboundSendMessagePacket(uuid, message.asComponent(), permission))
+    }
+
     override fun sendActionBar(message: Component) {
         send(ClientboundSendActionBarPacket(uuid, message))
     }
@@ -392,6 +400,18 @@ class StandaloneCloudPlayerImpl(uuid: UUID, name: String, val ip: Inet4Address) 
         }
 
         send(ClientboundPlaySoundPacket(uuid, sound, emitter))
+    }
+
+    override fun playSound(
+        sound: Sound,
+        emitter: Emitter,
+        permission: String
+    ) {
+        if (emitter != Emitter.self()) {
+            throw UnsupportedOperationException("Only self emitters are supported")
+        }
+
+        send(ClientboundPlaySoundPacket(uuid, sound, emitter, permission))
     }
 
     override fun playSound(sound: Sound) {

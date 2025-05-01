@@ -1,0 +1,330 @@
+openapi: 3.1.0
+info:
+  title: Cloud Punishment API
+  version: 1.0.0
+  description: Endpoints für Broadcasting und Aktualisierung von Spieler-Punishments.
+servers:
+  - url: https://{host}:{port}
+    description: Dev-Server
+    variables:
+      host:
+        default: localhost
+      port:
+        default: "8080"
+
+paths:
+  /punish/create/ban:
+    post:
+      summary: Broadcast a new ban punishment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BanPunishment'
+      responses:
+        '200':
+          description: Ban punishment broadcasted successfully.
+          content:
+            text/plain:
+              schema:
+                type: string
+
+  /punish/create/kick:
+    post:
+      summary: Broadcast a new kick punishment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/KickPunishment'
+      responses:
+        '200':
+          description: Kick punishment broadcasted successfully.
+          content:
+            text/plain:
+              schema:
+                type: string
+
+  /punish/create/mute:
+    post:
+      summary: Broadcast a new mute punishment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MutePunishment'
+      responses:
+        '200':
+          description: Mute punishment broadcasted successfully.
+          content:
+            text/plain:
+              schema:
+                type: string
+
+  /punish/create/warn:
+    post:
+      summary: Broadcast a new warn punishment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WarnPunishment'
+      responses:
+        '200':
+          description: Warn punishment broadcasted successfully.
+          content:
+            text/plain:
+              schema:
+                type: string
+
+  /punish/update/ban:
+    post:
+      summary: Update an existing ban punishment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BanPunishment'
+      responses:
+        '200':
+          description: Ban punishment updated successfully.
+          content:
+            text/plain:
+              schema:
+                type: string
+
+  /punish/update/kick:
+    post:
+      summary: Update an existing kick punishment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/KickPunishment'
+      responses:
+        '200':
+          description: Kick punishment updated successfully.
+          content:
+            text/plain:
+              schema:
+                type: string
+
+  /punish/update/mute:
+    post:
+      summary: Update an existing mute punishment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MutePunishment'
+      responses:
+        '200':
+          description: Mute punishment updated successfully.
+          content:
+            text/plain:
+              schema:
+                type: string
+
+  /punish/update/warn:
+    post:
+      summary: Update an existing warn punishment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WarnPunishment'
+      responses:
+        '200':
+          description: Warn punishment updated successfully.
+          content:
+            text/plain:
+              schema:
+                type: string
+
+components:
+  schemas:
+    # Reusable Patterns
+    UUIDPattern:
+      type: string
+      pattern: ^([0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}|[0-9A-Fa-f]{32})$
+    DateTime:
+      type: string
+      format: date-time
+
+    BanPunishment:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        punishmentId:
+          type: string
+          minLength: 8
+          maxLength: 8
+        punishedUuid:
+          $ref: '#/components/schemas/UUIDPattern'
+        issuerUuid:
+          type:
+            - string
+            - "null"
+          allOf:
+            - $ref: '#/components/schemas/UUIDPattern'
+        reason:
+          type:
+            - string
+            - "null"
+        permanent:
+          type: boolean
+          default: false
+        securityBan:
+          type: boolean
+          default: false
+        raw:
+          type: boolean
+          default: false
+        expirationDate:
+          type:
+            - string
+            - "null"
+          format: date-time
+        punishmentDate:
+          $ref: '#/components/schemas/DateTime'
+        unpunished:
+          type: boolean
+          default: false
+        unpunishedDate:
+          type:
+            - string
+            - "null"
+          format: date-time
+        unpunisherUuid:
+          type:
+            - string
+            - "null"
+          allOf:
+            - $ref: '#/components/schemas/UUIDPattern'
+      required:
+        - id
+        - punishmentId
+        - punishedUuid
+        - punishmentDate
+
+    KickPunishment:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        punishmentId:
+          type: string
+          minLength: 8
+          maxLength: 8
+        punishedUuid:
+          $ref: '#/components/schemas/UUIDPattern'
+        issuerUuid:
+          type:
+            - string
+            - "null"
+          allOf:
+            - $ref: '#/components/schemas/UUIDPattern'
+        reason:
+          type:
+            - string
+            - "null"
+        punishmentDate:
+          $ref: '#/components/schemas/DateTime'
+      required:
+        - id
+        - punishmentId
+        - punishedUuid
+        - punishmentDate
+
+    MutePunishment:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        punishmentId:
+          type: string
+          minLength: 8
+          maxLength: 8
+        punishedUuid:
+          $ref: '#/components/schemas/UUIDPattern'
+        issuerUuid:
+          type:
+            - string
+            - "null"
+          allOf:
+            - $ref: '#/components/schemas/UUIDPattern'
+        reason:
+          type:
+            - string
+            - "null"
+        permanent:
+          type: boolean
+          default: false
+        expirationDate:
+          type:
+            - string
+            - "null"
+          format: date-time
+        punishmentDate:
+          $ref: '#/components/schemas/DateTime'
+        unpunished:
+          type: boolean
+          default: false
+        unpunishedDate:
+          type:
+            - string
+            - "null"
+          format: date-time
+        unpunisherUuid:
+          type:
+            - string
+            - "null"
+          allOf:
+            - $ref: '#/components/schemas/UUIDPattern'
+      required:
+        - id
+        - punishmentId
+        - punishedUuid
+        - punishmentDate
+
+    WarnPunishment:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        punishmentId:
+          type: string
+          minLength: 8
+          maxLength: 8
+        punishedUuid:
+          $ref: '#/components/schemas/UUIDPattern'
+        issuerUuid:
+          type:
+            - string
+            - "null"
+          allOf:
+            - $ref: '#/components/schemas/UUIDPattern'
+        reason:
+          type:
+            - string
+            - "null"
+        punishmentDate:
+          $ref: '#/components/schemas/DateTime'
+      required:
+        - id
+        - punishmentId
+        - punishedUuid
+        - punishmentDate

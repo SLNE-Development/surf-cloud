@@ -21,6 +21,7 @@ import kotlinx.coroutines.launch
 import kotlinx.html.*
 import org.springframework.core.annotation.Order
 import org.springframework.stereotype.Component
+import java.security.MessageDigest
 
 @Component
 @Order(CloudLifecycleAware.KTOR_SERVER_PRIORITY)
@@ -53,7 +54,7 @@ class KtorServer : CloudLifecycleAware {
                 bearer {
                     realm = "Access to the '/' path"
                     authenticate {tokenCredential ->
-                        if (tokenCredential.token == standaloneConfig.ktor.bearerToken) {
+                        if (MessageDigest.isEqual(tokenCredential.token.toByteArray(), standaloneConfig.ktor.bearerToken.toByteArray())) {
                             UserIdPrincipal("Bearer")
                         } else {
                             null

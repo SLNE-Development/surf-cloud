@@ -149,3 +149,8 @@ object CloudConnectionVerificationScope : BaseScope(
     dispatcher = Dispatchers.Default,
     name = "cloud-connection-verification"
 )
+
+object PunishmentCacheRefreshScope : BaseScope(
+    dispatcher = Dispatchers.Default,
+    name = "punishment-cache-refresh"
+)

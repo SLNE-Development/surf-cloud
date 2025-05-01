@@ -85,7 +85,6 @@ interface CloudPlayerPunishmentManager {
         punish(PunishType.BAN.Permanent(banBuilder), ANTICHEAT_BAN_REASON)
 }
 
-@org.springframework.stereotype.Component
 interface PunishmentLoginValidation {
 
     @ApiStatus.OverrideOnly

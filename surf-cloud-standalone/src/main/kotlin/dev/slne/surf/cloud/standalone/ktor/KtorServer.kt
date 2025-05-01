@@ -9,19 +9,19 @@ import dev.slne.surf.cloud.standalone.config.standaloneConfig
 import dev.slne.surf.cloud.standalone.ktor.routes.punish.punishRoutes
 import io.ktor.http.*
 import io.ktor.server.application.*
+import io.ktor.server.auth.*
 import io.ktor.server.engine.*
 import io.ktor.server.html.*
 import io.ktor.server.netty.*
 import io.ktor.server.plugins.*
 import io.ktor.server.plugins.statuspages.*
-import io.ktor.server.resources.Resources
+import io.ktor.server.resources.*
 import io.ktor.server.routing.*
-import io.ktor.server.websocket.*
 import kotlinx.coroutines.launch
 import kotlinx.html.*
 import org.springframework.core.annotation.Order
 import org.springframework.stereotype.Component
-import kotlin.time.Duration.Companion.seconds
+import java.security.MessageDigest
 
 @Component
 @Order(CloudLifecycleAware.KTOR_SERVER_PRIORITY)
@@ -46,21 +46,34 @@ class KtorServer : CloudLifecycleAware {
 
         server = embeddedServer(Netty, port = port, host = host) {
             install(StatusPages) { configure() }
-            install(WebSockets) {
-                pingPeriod = 15.seconds
-            }
+//            install(WebSockets) {
+//                pingPeriod = 15.seconds
+//            }
             install(Resources)
+            authentication {
+                bearer {
+                    realm = "Access to the '/' path"
+                    authenticate {tokenCredential ->
+                        if (MessageDigest.isEqual(tokenCredential.token.toByteArray(), standaloneConfig.ktor.bearerToken.toByteArray())) {
+                            UserIdPrincipal("Bearer")
+                        } else {
+                            null
+                        }
+                    }
+                }
+            }
 
             for (plugin in plugins) {
                 plugin.apply { configure() }
             }
 
             routing {
-                for (plugin in plugins) {
-                    plugin.apply { installRoutes() }
+                authenticate {
+                    for (plugin in plugins) {
+                        plugin.apply { installRoutes() }
+                    }
+                    punishRoutes()
                 }
-
-                punishRoutes()
             }
         }
         server.start(wait = true)

@@ -37,7 +37,7 @@ interface OfflineCloudPlayer {
      *
      * @return The [Component] representing the player's display name.
      */
-    suspend fun displayName(): Component?
+    suspend fun displayName(): Component
 
     suspend fun name(): String?
 

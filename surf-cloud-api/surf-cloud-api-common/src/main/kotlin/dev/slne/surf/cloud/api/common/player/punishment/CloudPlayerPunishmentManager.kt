@@ -68,13 +68,13 @@ interface CloudPlayerPunishmentManager {
 
     suspend fun <P : Punishment, Spec : PunishSpec<P, Spec, Builder>, Builder : NoteBuilder> punish(
         type: PunishType<P, Spec, Builder>,
-        reason: String,
+        reason: String?,
         issuerUuid: UUID? = null
     ): P = punish(type.emptySpec(), reason, issuerUuid)
 
     suspend fun <P : Punishment, Spec : PunishSpec<P, Spec, Builder>, Builder : NoteBuilder> punish(
         spec: Spec,
-        reason: String,
+        reason: String?,
         issuerUuid: UUID? = null
     ): P
 

@@ -42,11 +42,14 @@ data class KtorConfig(
 ) {
     companion object {
         private fun generateBearerToken(length: Int = 32): String {
+            // The default token length of 32 provides a good balance between security and usability.
+            // A minimum length of 16 is enforced to ensure sufficient entropy for security purposes.
             require(length >= 16) { "Token should be at least 16 characters long" }
 
             val randomBytes = ByteArray(length)
             random.nextBytes(randomBytes)
 
+            // Base64 encoding is used to make the token URL-safe and compact while preserving randomness.
             val token = Base64.getUrlEncoder().withoutPadding().encodeToString(randomBytes)
             return token
         }

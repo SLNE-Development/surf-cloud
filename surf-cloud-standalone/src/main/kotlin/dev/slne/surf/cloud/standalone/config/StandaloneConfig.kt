@@ -48,7 +48,7 @@ data class KtorConfig(
             random.nextBytes(randomBytes)
 
             val token = Base64.getUrlEncoder().withoutPadding().encodeToString(randomBytes)
-            return "Bearer $token"
+            return token
         }
     }
 }

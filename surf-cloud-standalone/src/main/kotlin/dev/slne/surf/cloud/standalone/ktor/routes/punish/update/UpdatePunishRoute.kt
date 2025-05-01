@@ -16,7 +16,7 @@ import io.ktor.server.routing.Routing
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
 
-fun Routing.createPunishRoutes() = route("/update") {
+fun Routing.updatePunishRoute() = route("/update") {
     post<UpdateBanPunishmentRoute> { banMeta ->
         bean<PunishmentManager>().broadcastBanUpdate(
             PunishmentBanImpl(

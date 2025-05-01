@@ -35,7 +35,7 @@ fun main() {
             MutePunishmentNoteTable,
             WarnPunishmentNoteTable,
             scriptDirectory = "src/main/resources/db/migration",
-            scriptName = "V3__add_punishment_tables",
+            scriptName = "V4__add_punishment_table_indexes",
         )
     }
 }

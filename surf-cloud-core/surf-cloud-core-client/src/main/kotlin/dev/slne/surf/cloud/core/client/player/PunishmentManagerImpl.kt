@@ -83,6 +83,38 @@ class PunishmentManagerImpl : PunishmentManager {
         initialIpAddresses
     ).fireAndAwaitOrThrow().punishment as PunishmentBanImpl
 
+    override suspend fun broadcastBan(ban: PunishmentBanImpl) {
+        error("Can only be used on server")
+    }
+
+    override suspend fun broadcastMute(mute: PunishmentMuteImpl) {
+        error("Can only be used on server")
+    }
+
+    override suspend fun broadcastKick(kick: PunishmentKickImpl) {
+        error("Can only be used on server")
+    }
+
+    override suspend fun broadcastWarn(warn: PunishmentWarnImpl) {
+        error("Can only be used on server")
+    }
+
+    override suspend fun broadcastBanUpdate(ban: PunishmentBanImpl) {
+        error("Can only be used on server")
+    }
+
+    override suspend fun broadcastMuteUpdate(mute: PunishmentMuteImpl) {
+        error("Can only be used on server")
+    }
+
+    override suspend fun broadcastKickUpdate(kick: PunishmentKickImpl) {
+        error("Can only be used on server")
+    }
+
+    override suspend fun broadcastWarnUpdate(warn: PunishmentWarnImpl) {
+        error("Can only be used on server")
+    }
+
     override suspend fun attachIpAddressToBan(id: Long, rawIp: String): Boolean {
         return ServerboundAttachIpAddressToBanPacket(id, rawIp).awaitOrThrow()
     }

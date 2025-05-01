@@ -9,4 +9,9 @@ abstract class AbstractUnpunishableExpirablePunishmentTable(name: String) : Abst
     val unpunisherUuid = charUuid("unpunisher_uuid").nullable().default(null)
     val expirationDate = zonedDateTime("expiration_date").nullable().default(null)
     val permanent = bool("permanent").default(false)
+
+    init {
+        index("idx_punished_uuid_unpunished", false, punishedUuid, unpunished)
+        index("idx_permanent_exp", false, permanent, expirationDate)
+    }
 }

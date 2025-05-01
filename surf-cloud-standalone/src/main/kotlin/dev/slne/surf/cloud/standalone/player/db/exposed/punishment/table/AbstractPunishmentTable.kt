@@ -8,4 +8,8 @@ abstract class AbstractPunishmentTable(name: String): AuditableLongIdTable(name)
     val punishedUuid = charUuid("punished_uuid")
     val issuerUuid = charUuid("issuer_uuid").nullable()
     val reason = largeText("reason").nullable()
+
+    init {
+        index("idx_punished_uuid", false, punishedUuid)
+    }
 }

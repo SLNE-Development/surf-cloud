@@ -1,5 +1,6 @@
 package dev.slne.surf.cloud.core.common.player.punishment.type
 
+import com.google.common.net.InetAddresses
 import dev.slne.surf.cloud.api.common.player.punishment.type.PunishmentAttachedIpAddress
 import dev.slne.surf.cloud.api.common.player.punishment.type.ban.PunishmentBan
 import dev.slne.surf.cloud.api.common.player.punishment.type.note.PunishmentNote
@@ -35,6 +36,7 @@ data class PunishmentBanImpl(
     override val punishmentUrlReplacer: String = "bans"
 
     override suspend fun attachIpAddress(rawIp: String): Boolean {
+        require(InetAddresses.isInetAddress(rawIp)) { "Invalid IP address: $rawIp" }
        return bean<PunishmentManager>().attachIpAddressToBan(id, rawIp)
     }
 

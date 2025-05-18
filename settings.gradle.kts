@@ -35,7 +35,8 @@ findProject(":surf-cloud-api:surf-cloud-api-client:surf-cloud-api-client-paper")
 include("surf-cloud-api:surf-cloud-api-client:surf-cloud-api-client-velocity")
 findProject(":surf-cloud-api:surf-cloud-api-client:surf-cloud-api-client-velocity")?.name = "surf-cloud-api-client-velocity"
 
+include("surf-cloud-bom")
+
 if (!ci) {
     include(":surf-cloud-test-plugin:surf-cloud-test-standalone")
 }
-

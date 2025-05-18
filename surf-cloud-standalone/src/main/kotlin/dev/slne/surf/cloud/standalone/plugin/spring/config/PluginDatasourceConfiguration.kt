@@ -25,7 +25,7 @@ class PluginDatasourceConfiguration {
     data class ConfigJdbcConnectionDetails(private val meta: PluginMeta) :
         JdbcConnectionDetails {
         private val config =
-            createDatabaseConfig(PluginInitializerManager.Companion.pluginDirectoryPath / meta.name)
+            createDatabaseConfig(PluginInitializerManager.pluginDirectoryPath / meta.name)
 
         override fun getUsername() = config.user
         override fun getPassword() = config.password

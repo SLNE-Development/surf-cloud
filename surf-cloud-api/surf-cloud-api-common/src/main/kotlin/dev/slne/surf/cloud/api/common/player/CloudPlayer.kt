@@ -64,7 +64,7 @@ interface CloudPlayer : Audience, OfflineCloudPlayer { // TODO: conversation but
      * Connects the player to a specified server.
      *
      * @param server The target server to connect to.
-     * @return A [ConnectionResult] indicating the result of the connection attempt.
+     * @return A [ConnectionResultEnum] indicating the result of the connection attempt.
      */
     suspend fun connectToServer(server: CloudServer): ConnectionResultEnum
 
@@ -250,7 +250,7 @@ sealed class ConnectionResultEnum(
 
     @Serializable
     object CONNECTION_IN_PROGRESS : ConnectionResultEnum(
-        buildText { error("Du versucht bereits eine Verbindung zu einem Server herzustellen.") }
+        buildText { error("Du versuchst bereits eine Verbindung zu einem Server herzustellen.") }
     )
 
     @Serializable

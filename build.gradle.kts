@@ -40,6 +40,12 @@ allprojects {
     tasks {
         configureShadowJar()
         configureJar()
+
+        javadoc {
+            val options = options as StandardJavadocDocletOptions
+            options.use()
+            options.tags("implNote:a:Implementation Note:")
+        }
     }
 
     setupPublishing()

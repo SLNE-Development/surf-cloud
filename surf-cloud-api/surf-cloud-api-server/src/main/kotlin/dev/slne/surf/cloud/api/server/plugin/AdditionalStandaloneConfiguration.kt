@@ -1,61 +1,217 @@
 package dev.slne.surf.cloud.api.server.plugin
 
-import org.jetbrains.exposed.spring.autoconfigure.ExposedAutoConfiguration
-import org.springframework.boot.autoconfigure.ImportAutoConfiguration
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
-import org.springframework.boot.autoconfigure.condition.SearchStrategy
+import dev.slne.surf.cloud.api.server.plugin.utils.PluginUtilProxies
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.reactive.awaitFirstOrNull
+import kotlinx.coroutines.suspendCancellableCoroutine
+import org.aspectj.lang.ProceedingJoinPoint
+import org.aspectj.lang.annotation.Around
+import org.aspectj.lang.annotation.Aspect
+import org.aspectj.lang.reflect.MethodSignature
+import org.jetbrains.exposed.spring.SpringTransactionManager
+import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
+import org.reactivestreams.Publisher
+import org.springframework.beans.factory.getBean
+import org.springframework.boot.autoconfigure.AutoConfigurationPackages
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration
+import org.springframework.boot.autoconfigure.liquibase.LiquibaseAutoConfiguration
+import org.springframework.boot.autoconfigure.orm.jpa.HibernatePropertiesCustomizer
 import org.springframework.cache.annotation.EnableCaching
-import org.springframework.context.annotation.*
-import org.springframework.context.support.PropertySourcesPlaceholderConfigurer
+import org.springframework.context.ApplicationContext
+import org.springframework.context.ConfigurableApplicationContext
+import org.springframework.context.annotation.AdviceMode
+import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.Import
+import org.springframework.core.KotlinDetector
 import org.springframework.core.Ordered
+import org.springframework.core.PriorityOrdered
+import org.springframework.core.annotation.AnnotatedElementUtils
 import org.springframework.core.annotation.Order
 import org.springframework.data.auditing.DateTimeProvider
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories
-import org.springframework.data.repository.util.TxUtils
-import org.springframework.jdbc.datasource.DataSourceTransactionManager
 import org.springframework.scheduling.annotation.EnableAsync
-import org.springframework.transaction.PlatformTransactionManager
+import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.EnableTransactionManagement
-import org.springframework.transaction.aspectj.AnnotationTransactionAspect
-import org.springframework.transaction.support.TransactionOperations
-import org.springframework.transaction.support.TransactionTemplate
+import java.lang.reflect.Method
 import java.time.ZonedDateTime
 import java.util.*
-import javax.sql.DataSource
+import kotlin.coroutines.Continuation
+import kotlin.coroutines.intrinsics.COROUTINE_SUSPENDED
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
+import kotlin.coroutines.startCoroutine
 
 @Target(AnnotationTarget.CLASS)
 @Retention(AnnotationRetention.RUNTIME)
 @EnableJpaRepositories
 @Configuration
-@Import(TransactionConfiguration::class, JpaAuditingConfiguration::class)
-@ImportAutoConfiguration(ExposedAutoConfiguration::class)
+@Import(JpaAuditingConfiguration::class, CoroutineTransactionalAspect::class)
 @EnableAsync(mode = AdviceMode.ASPECTJ)
 @EnableCaching(mode = AdviceMode.ASPECTJ)
+@EnableAutoConfiguration(
+    exclude = [
+        LiquibaseAutoConfiguration::class,
+    ]
+)
 annotation class AdditionalStandaloneConfiguration
 
-//@Configur1
-
 @EnableJpaAuditing(dateTimeProviderRef = "auditingDateTimeProvider")
-@Configuration
-class JpaAuditingConfiguration {
+@Configuration(proxyBeanMethods = false)
+class JpaAuditingConfiguration : PriorityOrdered {
     @Bean
     fun auditingDateTimeProvider() = DateTimeProvider { Optional.of(ZonedDateTime.now()) }
+
+    @Bean
+    fun enhanceScopeInitializer(ctx: ConfigurableApplicationContext): HibernatePropertiesCustomizer {
+        val bases = AutoConfigurationPackages.get(ctx)
+        val joined = bases.joinToString(separator = ",")
+
+        return HibernatePropertiesCustomizer { props ->
+            props["hibernate.enhance.scan.packages"] = joined
+            props["hibernate.enhance.managed.packages"] = joined
+        }
+    }
+
+    override fun getOrder(): Int {
+        return PriorityOrdered.HIGHEST_PRECEDENCE
+    }
 }
 
 @EnableTransactionManagement(mode = AdviceMode.ASPECTJ)
 @Configuration
-@EnableLoadTimeWeaving(aspectjWeaving = EnableLoadTimeWeaving.AspectJWeaving.ENABLED)
-class TransactionConfiguration {
+class TransactionConfiguration
 
-    @Bean(TxUtils.DEFAULT_TRANSACTION_MANAGER)
-    @Primary
-    fun txManager(dataSource: DataSource) = DataSourceTransactionManager(dataSource).also {
-        AnnotationTransactionAspect.aspectOf().transactionManager = it
+
+/**
+ * **Internal** Aspect that wraps every *suspending* call annotated (directly or
+ * transitively) with [CoroutineTransactional] in an Exposed
+ * `newSuspendedTransaction`.
+ *
+ * ### Execution order
+ * Marked `@Order(Ordered.LOWEST_PRECEDENCE)` so that **every other Spring
+ * advice (e.g. `@Transactional`) runs first**.
+ * This guarantees the method body we intercept is the *real* business code,
+ * not a reactive proxy returned by Spring.
+ *
+ * ### Core algorithm
+ * 1.  Detect a suspending method.
+ * 2.  Replace the **last JVM argument** (the original `Continuation`) with one
+ *     we control, so we can resume the outer coroutine after the TX finishes.
+ * 3.  Start a new suspending Exposed transaction on the *same* coroutine
+ *     context.
+ *     *Isolation* and *read-only* flags come from the annotation.
+ * 4.  Forward the call (`proceed`) inside that transaction.
+ * 5.  Handle three possible return shapes:
+ *     * immediate value   → resume outer continuation immediately
+ *     * `COROUTINE_SUSPENDED` → Kotlin will resume it later
+ *     * Reactor `Publisher`  → subscribe and bridge to coroutine via
+ *       `awaitFirstOrNull()`
+ *
+ * ### Thread-local safety
+ * Exposed keeps its transaction in coroutine-local state, therefore switching
+ * dispatchers inside the service code is *safe* as long as the coroutine
+ * `Context` element travels with it (default behaviour of Kotlin coroutines).
+ *
+ * ### Note for maintainers
+ * This aspect is **implementation detail** of the Cloud project.
+ * API consumers only need the annotation; they should never depend on this
+ * type directly.
+ */
+@Aspect
+@Component
+@Order(Ordered.LOWEST_PRECEDENCE)
+class CoroutineTransactionalAspect(private val context: ApplicationContext) {
+
+    /**
+     * Around-advice for any method or class annotated with
+     * [CoroutineTransactional].
+     */
+    @Suppress("UNCHECKED_CAST")
+    @Around("execution(* *(..)) && (@annotation(dev.slne.surf.cloud.api.server.plugin.CoroutineTransactional) || @within(dev.slne.surf.cloud.api.server.plugin.CoroutineTransactional))")
+    fun wrapSuspendTx(pjp: ProceedingJoinPoint): Any? {
+        val method = (pjp.signature as MethodSignature).method
+        // Skip non-suspending functions early.
+        if (!KotlinDetector.isSuspendingFunction(method)) return pjp.proceed()
+
+        // Outer continuation = continuation passed in by Kotlin call-site.
+        val outerCont = pjp.args.last() as Continuation<Any?>
+        val ctxOuter = outerCont.context
+        val annotation =
+            findAnnotation(method, pjp) ?: error("CoroutineTransactional annotation not found")
+
+        // Build suspending lambda, which encloses the Exposed transaction.
+        val job: suspend () -> Any? = {
+            newSuspendedTransaction(
+                context = ctxOuter, // preserve caller context
+                db = PluginUtilProxies.springTransactionManagerProxy.getCurrentDatabase(
+                    resolveTxManager(annotation)
+                ),
+                transactionIsolation = annotation.transactionIsolation.takeIf { it != -1 },
+                readOnly = annotation.readOnly.value,
+            ) {
+                // Actual business invocation inside the transaction
+                pjp.proceedSuspend()
+            }
+        }
+
+        // Start the lambda *without* blocking and wire its completion to outer continuation.
+        job.startCoroutine(object : Continuation<Any?> {
+            override val context = ctxOuter
+            override fun resumeWith(result: Result<Any?>) {
+                result.fold(outerCont::resume, outerCont::resumeWithException)
+            }
+        })
+
+        // Tell Kotlin the original call is now suspended.
+        return COROUTINE_SUSPENDED
     }
 
-    @Bean
-    fun transactionOperations(txManager: PlatformTransactionManager): TransactionOperations {
-        return TransactionTemplate(txManager)
+    /**
+     * Bridge `proceed` into a suspending world and deal with possible
+     * Spring-reactive wrappers (`Mono`/`Flux`).
+     */
+    private suspend fun ProceedingJoinPoint.proceedSuspend(): Any? =
+        suspendCancellableCoroutine { cont ->
+            try {
+                val forwarded = args.clone()
+                forwarded[forwarded.lastIndex] = cont
+
+                when (val result = proceed(forwarded)) {
+                    // Reactive return type – subscribe and await the first element
+                    is Publisher<*> -> CoroutineScope(cont.context).launch {
+                        try {
+                            cont.resume(result.awaitFirstOrNull())
+                        } catch (e: Throwable) {
+                            cont.resumeWithException(e)
+                        }
+                    }
+
+                    COROUTINE_SUSPENDED -> {} // Will be resumed by Kotlin
+                    else -> cont.resume(result) // Immediate value
+                }
+            } catch (e: Throwable) {
+                cont.resumeWithException(e)
+            }
+        }
+
+    private fun resolveTxManager(annotation: CoroutineTransactional) =
+        if (annotation.transactionManager.isBlank()) {
+            context.getBean<SpringTransactionManager>()
+        } else {
+            context.getBean<SpringTransactionManager>(annotation.transactionManager)
+        }
+
+    private fun findAnnotation(method: Method, pjp: ProceedingJoinPoint): CoroutineTransactional? {
+        return AnnotatedElementUtils.findMergedAnnotation(
+            method,
+            CoroutineTransactional::class.java
+        ) ?: AnnotatedElementUtils.findMergedAnnotation(
+            pjp.target.javaClass,
+            CoroutineTransactional::class.java
+        )
     }
+
 }

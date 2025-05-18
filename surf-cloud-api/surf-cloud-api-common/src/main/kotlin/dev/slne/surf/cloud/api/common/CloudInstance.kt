@@ -33,6 +33,9 @@ interface CloudInstance {
         customizer: SpringApplicationBuilder.() -> Unit = {}
     ): ConfigurableApplicationContext
 
+    @InternalApi
+    fun <B> getBean(beanClass: Class<B>): B
+
     companion object : CloudInstance by INSTANCE {
         @InternalApi
         val instance = INSTANCE

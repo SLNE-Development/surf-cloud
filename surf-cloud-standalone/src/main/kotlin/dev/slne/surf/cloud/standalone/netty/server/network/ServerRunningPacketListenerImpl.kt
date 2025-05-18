@@ -11,6 +11,7 @@ import dev.slne.surf.cloud.api.common.server.CloudServerManager
 import dev.slne.surf.cloud.api.common.util.mutableIntSetOf
 import dev.slne.surf.cloud.core.common.coroutines.PacketHandlerScope
 import dev.slne.surf.cloud.core.common.coroutines.PunishmentHandlerScope
+import dev.slne.surf.cloud.core.common.coroutines.QueueConnectionScope
 import dev.slne.surf.cloud.core.common.netty.network.ConnectionImpl
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.*
 import dev.slne.surf.cloud.core.common.netty.registry.listener.NettyListenerRegistry
@@ -26,6 +27,7 @@ import dev.slne.surf.cloud.standalone.server.StandaloneProxyCloudServerImpl
 import dev.slne.surf.cloud.standalone.server.serverManagerImpl
 import dev.slne.surf.surfapi.core.api.util.logger
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.title.Title
 import net.kyori.adventure.title.TitlePart
@@ -205,7 +207,6 @@ class ServerRunningPacketListenerImpl(
             server.information = packet.information
         } else if (server is StandaloneCloudServerImpl) {
             server.information = packet.information
-            server.queue.handleServerUpdate()
         }
 
         broadcast(ClientboundUpdateServerInformationPacket(packet.serverId, packet.information))
@@ -247,23 +248,26 @@ class ServerRunningPacketListenerImpl(
     }
 
     override suspend fun handleConnectPlayerToServer(packet: ServerboundConnectPlayerToServerPacket) {
-        withPlayer(packet.uuid) {
-            val server = CloudServerManager.retrieveServerById(packet.serverId)
-
-            if (server == null) {
-                packet.respond(ClientboundConnectPlayerToServerResponse(ConnectionResultEnum.SERVER_NOT_FOUND to null))
-                return
+        val (uuid, serverId, queue, sendQueuedMessage) = packet
+        withPlayer(uuid) {
+            val result = when (val server = CloudServerManager.retrieveServerById(serverId)) {
+                null -> ConnectionResultEnum.SERVER_NOT_FOUND(serverId.toString())
+                !is CloudServer -> ConnectionResultEnum.CANNOT_CONNECT_TO_PROXY
+                else -> withContext(QueueConnectionScope.context) {
+                    if (queue) connectToServerOrQueue(server, sendQueuedMessage)
+                    else connectToServer(server)
+                }
             }
 
-            if (server !is CloudServer) {
-                packet.respond(ClientboundConnectPlayerToServerResponse(ConnectionResultEnum.CANNOT_CONNECT_TO_PROXY to null))
-                return
-            }
+            packet.respond(ClientboundConnectPlayerToServerResponse(result))
+        }
+    }
 
-            val result = if (packet.queue) {
-                connectToServerOrQueue(server)
-            } else {
-                connectToServer(server)
+    override suspend fun handleQueuePlayerToGroup(packet: ServerboundQueuePlayerToGroupPacket) {
+        val (uuid, group, sendQueuedMessage) = packet
+        withPlayer(uuid) {
+            val result = withContext(QueueConnectionScope.context) {
+                connectToServerOrQueue(group, sendQueuedMessage)
             }
 
             packet.respond(ClientboundConnectPlayerToServerResponse(result))
@@ -390,7 +394,12 @@ class ServerRunningPacketListenerImpl(
 
     override fun handleAttachIpAddressToBan(packet: ServerboundAttachIpAddressToBanPacket) {
         PunishmentHandlerScope.launch {
-            packet.respond(bean<PunishmentManager>().attachIpAddressToBan(packet.banId, packet.rawIp))
+            packet.respond(
+                bean<PunishmentManager>().attachIpAddressToBan(
+                    packet.banId,
+                    packet.rawIp
+                )
+            )
         }
     }
 
@@ -453,7 +462,8 @@ class ServerRunningPacketListenerImpl(
 
     override fun handleGetCurrentLoginValidationPunishmentCache(packet: ServerboundGetCurrentLoginValidationPunishmentCachePacket) {
         PunishmentHandlerScope.launch {
-            val cache = bean<PunishmentManager>().getCurrentLoginValidationPunishmentCache(packet.uuid)
+            val cache =
+                bean<PunishmentManager>().getCurrentLoginValidationPunishmentCache(packet.uuid)
             packet.respond(ClientboundGetCurrentLoginValidationPunishmentCacheResponsePacket(cache))
         }
     }
@@ -469,6 +479,12 @@ class ServerRunningPacketListenerImpl(
         PunishmentHandlerScope.launch {
             val bans = bean<PunishmentManager>().fetchIpBans(packet.ip, packet.onlyActive)
             packet.respond(ClientboundFetchedPunishmentsResponsePacket(bans))
+        }
+    }
+
+    override suspend fun handleRequestPlayerPermission(packet: RequestPlayerPermissionPacket) {
+        withPlayer(packet.uuid) {
+            packet.respond(hasPermission(packet.permission))
         }
     }
 

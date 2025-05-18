@@ -1,7 +1,7 @@
 package dev.slne.surf.cloud.api.common.server
 
 import dev.slne.surf.cloud.api.common.player.CloudPlayer
-import dev.slne.surf.cloud.api.common.player.ConnectionResult
+import dev.slne.surf.cloud.api.common.player.ConnectionResultEnum
 import dev.slne.surf.cloud.api.common.server.state.ServerState
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap
 import net.kyori.adventure.audience.ForwardingAudience
@@ -14,7 +14,7 @@ import org.jetbrains.annotations.ApiStatus
  * The result is a pair of a boolean indicating the overall success of the operation,
  * and a map of [CloudPlayer]s to [ConnectionResult]s indicating the result of each transfer.
  */
-typealias BatchTransferResult = Pair<Boolean, Object2ObjectMap<CloudPlayer, ConnectionResult>>
+typealias BatchTransferResult = Pair<Boolean, Object2ObjectMap<CloudPlayer, ConnectionResultEnum>>
 
 /**
  * Represents a server within the cloud infrastructure.
@@ -74,7 +74,7 @@ interface CommonCloudServer : ForwardingAudience {
     val users: UserList
 
     val displayName: String
-    get() = "$group/$uid $name"
+        get() = "$group/$uid $name"
 
     /**
      * Provides the list of audiences corresponding to the server's users.

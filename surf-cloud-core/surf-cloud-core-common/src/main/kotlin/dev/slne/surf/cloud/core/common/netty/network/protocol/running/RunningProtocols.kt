@@ -44,7 +44,7 @@ object RunningProtocols {
                 .addPacket(RequestLuckpermsMetaDataPacket.STREAM_CODEC)
                 .addPacket(LuckpermsMetaDataResponsePacket.STREAM_CODEC)
                 .addPacket(ClientboundPlayerPersistentDataContainerResponse.STREAM_CODEC)
-                .addPacket(ClientboundConnectPlayerToServerResponse.STREAM_CODEC)
+                .addPacket(ClientboundConnectPlayerToServerResponse::class.createCodec())
                 .addPacket(DisconnectPlayerPacket.STREAM_CODEC)
                 .addPacket(TeleportPlayerPacket.STREAM_CODEC)
                 .addPacket(TeleportPlayerResultPacket.STREAM_CODEC)
@@ -66,6 +66,7 @@ object RunningProtocols {
                 .addPacket(ClientboundFetchedPunishmentsResponsePacket::class.createCodec())
                 .addPacket(ClientboundTriggerPunishmentCreatedEventPacket::class.createCodec())
                 .addPacket(ClientboundFetchIpAddressesResponsePacket::class.createCodec())
+                .addPacket(RequestPlayerPermissionPacket::class.createCodec())
         }
 
     val CLIENTBOUND by lazy { CLIENTBOUND_TEMPLATE.freeze().bind(::SurfByteBuf) }
@@ -104,7 +105,7 @@ object RunningProtocols {
                 .addPacket(LuckpermsMetaDataResponsePacket.STREAM_CODEC)
                 .addPacket(ServerboundRequestPlayerPersistentDataContainer.STREAM_CODEC)
                 .addPacket(ServerboundPlayerPersistentDataContainerUpdatePacket.STREAM_CODEC)
-                .addPacket(ServerboundConnectPlayerToServerPacket.STREAM_CODEC)
+                .addPacket(ServerboundConnectPlayerToServerPacket::class.createCodec())
                 .addPacket(DisconnectPlayerPacket.STREAM_CODEC)
                 .addPacket(TeleportPlayerPacket.STREAM_CODEC)
                 .addPacket(TeleportPlayerResultPacket.STREAM_CODEC)
@@ -131,6 +132,8 @@ object RunningProtocols {
                 .addPacket(ServerboundGetCurrentLoginValidationPunishmentCachePacket::class.createCodec())
                 .addPacket(ServerboundFetchIpAddressesForBanPacket::class.createCodec())
                 .addPacket(ServerboundFetchIpBansPacket::class.createCodec())
+                .addPacket(RequestPlayerPermissionPacket::class.createCodec())
+                .addPacket(ServerboundQueuePlayerToGroupPacket::class.createCodec())
         }
 
     val SERVERBOUND by lazy { SERVERBOUND_TEMPLATE.freeze().bind(::SurfByteBuf) }

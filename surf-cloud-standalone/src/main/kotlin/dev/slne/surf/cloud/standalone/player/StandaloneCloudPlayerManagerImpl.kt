@@ -18,7 +18,6 @@ import dev.slne.surf.cloud.standalone.persistent.PlayerDataStorage
 import dev.slne.surf.cloud.standalone.player.db.exposed.CloudPlayerService
 import dev.slne.surf.cloud.standalone.server.StandaloneCloudServerImpl
 import dev.slne.surf.cloud.standalone.server.StandaloneProxyCloudServerImpl
-import dev.slne.surf.cloud.standalone.server.asStandaloneServer
 import dev.slne.surf.cloud.standalone.server.serverManagerImpl
 import dev.slne.surf.surfapi.core.api.util.logger
 import kotlinx.coroutines.*
@@ -209,9 +208,6 @@ class StandaloneCloudPlayerManagerImpl : CloudPlayerManagerImpl<StandaloneCloudP
 
         supervisorScope {
             awaitAll(
-                async {
-                    oldServer?.toServer()?.asStandaloneServer()?.queue?.handlePlayerLeave(player)
-                },
                 async(PlayerDataSaveScope.context) {
                     PlayerDataStorage.save(player)
                 },

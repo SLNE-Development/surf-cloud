@@ -24,7 +24,7 @@ class PunishmentManagerImpl : PunishmentManager {
     override suspend fun createKick(
         punishedUuid: UUID,
         issuerUuid: UUID?,
-        reason: String,
+        reason: String?,
         initialNotes: List<String>
     ): PunishmentKickImpl = ServerboundCreateKickPacket(
         punishedUuid,
@@ -36,7 +36,7 @@ class PunishmentManagerImpl : PunishmentManager {
     override suspend fun createWarn(
         punishedUuid: UUID,
         issuerUuid: UUID?,
-        reason: String,
+        reason: String?,
         initialNotes: List<String>
     ): PunishmentWarnImpl = ServerboundCreateWarnPacket(
         punishedUuid,
@@ -48,7 +48,7 @@ class PunishmentManagerImpl : PunishmentManager {
     override suspend fun createMute(
         punishedUuid: UUID,
         issuerUuid: UUID?,
-        reason: String,
+        reason: String?,
         permanent: Boolean,
         expirationDate: ZonedDateTime?,
         initialNotes: List<String>
@@ -64,7 +64,7 @@ class PunishmentManagerImpl : PunishmentManager {
     override suspend fun createBan(
         punishedUuid: UUID,
         issuerUuid: UUID?,
-        reason: String,
+        reason: String?,
         permanent: Boolean,
         expirationDate: ZonedDateTime?,
         securityBan: Boolean,

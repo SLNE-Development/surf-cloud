@@ -12,7 +12,9 @@ import dev.slne.surf.cloud.core.common.netty.network.protocol.ProtocolInfoBuilde
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.RunningProtocols
 import dev.slne.surf.surfapi.core.api.util.logger
 import org.springframework.boot.autoconfigure.AutoConfigurationPackages
+import org.springframework.context.ApplicationContextInitializer
 import org.springframework.context.ApplicationListener
+import org.springframework.context.ConfigurableApplicationContext
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider
 import org.springframework.context.annotation.ScannedGenericBeanDefinition
 import org.springframework.context.event.ContextRefreshedEvent
@@ -21,8 +23,13 @@ import kotlin.reflect.KClass
 
 private val internalPackage = ProtocolInfoBuilder::class.java.packageName
 
-object NettyPacketProcessor : ApplicationListener<ContextRefreshedEvent> {
+class NettyPacketProcessor : ApplicationContextInitializer<ConfigurableApplicationContext>,
+    ApplicationListener<ContextRefreshedEvent> {
     private val log = logger()
+
+    override fun initialize(applicationContext: ConfigurableApplicationContext) {
+        applicationContext.addApplicationListener(this)
+    }
 
     override fun onApplicationEvent(event: ContextRefreshedEvent) {
 //                val basePackages = findBasePackages(event.applicationContext as ConfigurableApplicationContext)

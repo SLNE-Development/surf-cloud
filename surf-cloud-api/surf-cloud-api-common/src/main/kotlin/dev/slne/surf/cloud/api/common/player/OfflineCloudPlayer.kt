@@ -1,14 +1,17 @@
 package dev.slne.surf.cloud.api.common.player
 
+import dev.slne.surf.cloud.api.common.netty.network.codec.kotlinx.cloud.OfflineCloudPlayerSerializer
 import dev.slne.surf.cloud.api.common.player.name.NameHistory
 import dev.slne.surf.cloud.api.common.player.playtime.Playtime
 import dev.slne.surf.cloud.api.common.player.punishment.CloudPlayerPunishmentManager
 import dev.slne.surf.cloud.api.common.server.CloudServer
+import kotlinx.serialization.Serializable
 import net.kyori.adventure.text.Component
 import java.net.Inet4Address
 import java.time.ZonedDateTime
 import java.util.*
 
+@Serializable(with = OfflineCloudPlayerSerializer::class)
 interface OfflineCloudPlayer {
     /**
      * The unique identifier (UUID) of the player.

@@ -40,7 +40,7 @@ fun serverCommand() = commandTree("server") {
             }
 
             plugin.launch {
-                val (result, _) = cloudPlayer.connectToServer(server)
+                val result = cloudPlayer.connectToServer(server)
 
                 sender.sendText {
                     appendPrefix()
@@ -93,6 +93,7 @@ fun serverCommand() = commandTree("server") {
                         ALREADY_CONNECTED -> throw AssertionError("Already connected")
                         OTHER_SERVER_CANNOT_ACCEPT_TRANSFER_PACKET -> throw AssertionError()
                         CANNOT_CONNECT_TO_PROXY -> throw AssertionError("Cannot connect to proxy")
+                        else -> throw AssertionError("Unknown error: $result")
                     }
                 }
             }

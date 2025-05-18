@@ -176,7 +176,10 @@ class ConnectionImpl(
                 } else {
                     val reason = "Internal Exception: ${throwable?.message}"
                     val disconnectionDetails =
-                        _packetListener?.createDisconnectionInfo(DisconnectReason.INTERNAL_EXCEPTION, reason)
+                        _packetListener?.createDisconnectionInfo(
+                            DisconnectReason.INTERNAL_EXCEPTION,
+                            reason
+                        )
                             ?: DisconnectionDetails(DisconnectReason.INTERNAL_EXCEPTION, reason)
 
                     if (previousHandlingFault) {
@@ -341,29 +344,57 @@ class ConnectionImpl(
                             msg
                         )
 
+                        is ServerboundQueuePlayerToGroupPacket -> listener.handleQueuePlayerToGroup(
+                            msg
+                        )
+
                         is DisconnectPlayerPacket -> listener.handleDisconnectPlayer(msg)
                         is SilentDisconnectPlayerPacket -> listener.handleSilentDisconnectPlayer(msg)
 
                         is TeleportPlayerPacket -> listener.handleTeleportPlayer(msg)
                         is TeleportPlayerToPlayerPacket -> listener.handleTeleportPlayerToPlayer(msg)
                         is ServerboundShutdownServerPacket -> listener.handleShutdownServer(msg)
-                        is ServerboundRequestPlayerDataPacket -> listener.handleRequestPlayerData(msg)
+                        is ServerboundRequestPlayerDataPacket -> listener.handleRequestPlayerData(
+                            msg
+                        )
+
                         is UpdateAFKStatePacket -> listener.handleUpdateAFKState(msg)
-                        is ServerboundGeneratePunishmentIdPacket -> listener.handleGeneratePunishmentId(msg)
+                        is ServerboundGeneratePunishmentIdPacket -> listener.handleGeneratePunishmentId(
+                            msg
+                        )
+
                         is ServerboundCreateKickPacket -> listener.handleCreateKick(msg)
                         is ServerboundCreateWarnPacket -> listener.handleCreateWarn(msg)
                         is ServerboundCreateMutePacket -> listener.handleCreateMute(msg)
                         is ServerboundCreateBanPacket -> listener.handleCreateBan(msg)
-                        is ServerboundAttachIpAddressToBanPacket -> listener.handleAttachIpAddressToBan(msg)
-                        is ServerboundAttachNoteToPunishmentPacket -> listener.handleAttachNoteToPunishment(msg)
-                        is ServerboundFetchNotesFromPunishmentPacket -> listener.handleFetchNotesFromPunishment(msg)
+                        is ServerboundAttachIpAddressToBanPacket -> listener.handleAttachIpAddressToBan(
+                            msg
+                        )
+
+                        is ServerboundAttachNoteToPunishmentPacket -> listener.handleAttachNoteToPunishment(
+                            msg
+                        )
+
+                        is ServerboundFetchNotesFromPunishmentPacket -> listener.handleFetchNotesFromPunishment(
+                            msg
+                        )
+
                         is ServerboundFetchMutesPacket -> listener.handleFetchMutes(msg)
                         is ServerboundFetchBansPacket -> listener.handleFetchBans(msg)
                         is ServerboundFetchKicksPacket -> listener.handleFetchKicks(msg)
                         is ServerboundFetchWarnsPacket -> listener.handleFetchWarns(msg)
-                        is ServerboundGetCurrentLoginValidationPunishmentCachePacket -> listener.handleGetCurrentLoginValidationPunishmentCache(msg)
-                        is ServerboundFetchIpAddressesForBanPacket -> listener.handleFetchIpAddressesForBan(msg)
+                        is ServerboundGetCurrentLoginValidationPunishmentCachePacket -> listener.handleGetCurrentLoginValidationPunishmentCache(
+                            msg
+                        )
+
+                        is ServerboundFetchIpAddressesForBanPacket -> listener.handleFetchIpAddressesForBan(
+                            msg
+                        )
+
                         is ServerboundFetchIpBansPacket -> listener.handleFetchIpBans(msg)
+                        is RequestPlayerPermissionPacket -> listener.handleRequestPlayerPermission(
+                            msg
+                        )
 
                         else -> listener.handlePacket(msg) // handle other packets
                     }
@@ -488,14 +519,25 @@ class ConnectionImpl(
                         is ClientboundRegisterCloudServersToProxyPacket -> listener.handleRegisterCloudServersToProxy(
                             msg
                         )
+
                         is ClientboundTriggerShutdownPacket -> listener.handleTriggerShutdown(msg)
                         is ClientboundBatchUpdateServer -> listener.handleBatchUpdateServer(msg)
                         is UpdateAFKStatePacket -> listener.handleUpdateAFKState(msg)
                         is ClientboundRunPrePlayerJoinTasksPacket -> listener.handleRunPlayerPreJoinTasks(
                             msg
                         )
-                        is ClientboundTriggerPunishmentUpdateEventPacket -> listener.handleTriggerPunishmentUpdateEvent(msg)
-                        is ClientboundTriggerPunishmentCreatedEventPacket -> listener.handleTriggerPunishmentCreatedEvent(msg)
+
+                        is ClientboundTriggerPunishmentUpdateEventPacket -> listener.handleTriggerPunishmentUpdateEvent(
+                            msg
+                        )
+
+                        is ClientboundTriggerPunishmentCreatedEventPacket -> listener.handleTriggerPunishmentCreatedEvent(
+                            msg
+                        )
+
+                        is RequestPlayerPermissionPacket -> listener.handleRequestPlayerPermission(
+                            msg
+                        )
 
                         else -> listener.handlePacket(msg)
                     }
@@ -903,7 +945,9 @@ class ConnectionImpl(
         if (disconnectionHandled) return
 
         disconnectionHandled = true
-        _packetListener?.onDisconnect(disconnectionDetails ?: DisconnectionDetails(DisconnectReason.UNKNOWN))
+        _packetListener?.onDisconnect(
+            disconnectionDetails ?: DisconnectionDetails(DisconnectReason.UNKNOWN)
+        )
 
         clearPacketQueue()
     }
@@ -1063,7 +1107,10 @@ class ConnectionImpl(
             val sendingSide = opposite == PacketFlow.SERVERBOUND
 
 
-            pipeline.addFirst(HandlerNames.LOGGER, LoggingHandler(cloudConfig.logging.nettyLogLevel))
+            pipeline.addFirst(
+                HandlerNames.LOGGER,
+                LoggingHandler(cloudConfig.logging.nettyLogLevel)
+            )
 //                .addLast(HandlerNames.SSL_HANDLER_ENFORCER, EnforceSslHandler())
                 .addLast(HandlerNames.COMPRESS, ZstdEncoder(8))
                 .addLast(HandlerNames.DECOMPRESS, ZstdDecoder())

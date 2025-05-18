@@ -6,7 +6,7 @@ import dev.slne.surf.cloud.api.client.netty.packet.fireAndAwaitOrThrow
 import dev.slne.surf.cloud.api.client.netty.packet.fireAndForget
 import dev.slne.surf.cloud.api.common.netty.packet.DEFAULT_URGENT_TIMEOUT
 import dev.slne.surf.cloud.api.common.player.CloudPlayer
-import dev.slne.surf.cloud.api.common.player.ConnectionResult
+import dev.slne.surf.cloud.api.common.player.ConnectionResultEnum
 import dev.slne.surf.cloud.api.common.player.name.NameHistory
 import dev.slne.surf.cloud.api.common.player.playtime.Playtime
 import dev.slne.surf.cloud.api.common.player.ppdc.PersistentPlayerDataContainer
@@ -21,15 +21,13 @@ import dev.slne.surf.cloud.core.common.netty.network.protocol.running.Serverboun
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ServerboundRequestPlayerDataResponse.*
 import dev.slne.surf.cloud.core.common.player.CommonCloudPlayerImpl
 import dev.slne.surf.cloud.core.common.player.ppdc.PersistentPlayerDataContainerImpl
-import dev.slne.surf.cloud.core.common.util.hasPermission
+import dev.slne.surf.cloud.core.common.util.hasPermissionPlattform
 import dev.slne.surf.surfapi.core.api.messages.adventure.getPointer
 import net.kyori.adventure.audience.Audience
 import net.kyori.adventure.audience.MessageType
 import net.kyori.adventure.bossbar.BossBar
 import net.kyori.adventure.identity.Identity
 import net.kyori.adventure.inventory.Book
-import net.kyori.adventure.permission.PermissionChecker
-import net.kyori.adventure.pointer.Pointer
 import net.kyori.adventure.resource.ResourcePackRequest
 import net.kyori.adventure.sound.Sound
 import net.kyori.adventure.sound.Sound.Emitter
@@ -44,6 +42,7 @@ import java.net.Inet4Address
 import java.time.ZonedDateTime
 import java.util.*
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.days
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ServerboundRequestPlayerDataResponse.NameHistory as NameHistoryResponse
 
 abstract class ClientCloudPlayerImpl<PlatformPlayer : Audience>(uuid: UUID, name: String) :
@@ -60,6 +59,7 @@ abstract class ClientCloudPlayerImpl<PlatformPlayer : Audience>(uuid: UUID, name
     override val connectedToProxy get() = proxyServerUid != null
 
     override val connectedToServer get() = serverUid != null
+
     /**
      * The audience for this player. If the player is on this server, this will point to
      * the bukkit / velocity player. Otherwise packets will be sent to the player via the network.
@@ -69,11 +69,13 @@ abstract class ClientCloudPlayerImpl<PlatformPlayer : Audience>(uuid: UUID, name
     protected abstract val platformClass: Class<PlatformPlayer>
 
     override suspend fun latestIpAddress(): Inet4Address {
-        return request<IpAddress>(DataRequestType.LATEST_IP_ADDRESS).ip ?: error("Failed to get IP address")
+        return request<IpAddress>(DataRequestType.LATEST_IP_ADDRESS).ip
+            ?: error("Failed to get IP address")
     }
 
     override suspend fun lastServerRaw(): String {
-        return request<LastServer>(DataRequestType.LAST_SERVER).server ?: error("Failed to get last server")
+        return request<LastServer>(DataRequestType.LAST_SERVER).server
+            ?: error("Failed to get last server")
     }
 
     override suspend fun nameHistory(): NameHistory {
@@ -139,20 +141,38 @@ abstract class ClientCloudPlayerImpl<PlatformPlayer : Audience>(uuid: UUID, name
         if (localName != null) {
             return localName
         }
-        
+
         return request<Name>(DataRequestType.NAME).name ?: error("Failed to get name")
     }
 
-    override suspend fun connectToServer(server: CloudServer): ConnectionResult {
-        return ServerboundConnectPlayerToServerPacket(uuid, server.uid, false).fireAndAwaitOrThrow(
-            Duration.INFINITE
-        ).result
+    override suspend fun connectToServer(server: CloudServer): ConnectionResultEnum {
+        return ServerboundConnectPlayerToServerPacket(
+            uuid,
+            server.uid,
+            false
+        ).fireAndAwaitOrThrow(1.days).result
     }
 
-    override suspend fun connectToServerOrQueue(server: CloudServer): ConnectionResult {
-        return ServerboundConnectPlayerToServerPacket(uuid, server.uid, true).fireAndAwaitOrThrow(
-            Duration.INFINITE
-        ).result
+    override suspend fun connectToServerOrQueue(
+        server: CloudServer,
+        sendQueuedMessage: Boolean
+    ): ConnectionResultEnum {
+        return ServerboundConnectPlayerToServerPacket(
+            uuid,
+            server.uid,
+            sendQueuedMessage
+        ).fireAndAwaitOrThrow(1.days).result
+    }
+
+    override suspend fun connectToServerOrQueue(
+        group: String,
+        sendQueuedMessage: Boolean
+    ): ConnectionResultEnum {
+        return ServerboundQueuePlayerToGroupPacket(
+            uuid,
+            group,
+            sendQueuedMessage
+        ).fireAndAwaitOrThrow(1.days).result
     }
 
     override suspend fun getLuckpermsMetaData(key: String): String? {
@@ -182,7 +202,7 @@ abstract class ClientCloudPlayerImpl<PlatformPlayer : Audience>(uuid: UUID, name
     ) {
         val audience = audience
         if (audience != null) {
-            if (audience.hasPermission(permission)) {
+            if (audience.hasPermissionPlattform(permission)) {
                 audience.sendMessage(message)
             }
             return
@@ -302,7 +322,7 @@ abstract class ClientCloudPlayerImpl<PlatformPlayer : Audience>(uuid: UUID, name
     ) {
         val audience = audience
         if (audience != null) {
-            if (audience.hasPermission(permission)) {
+            if (audience.hasPermissionPlattform(permission)) {
                 audience.playSound(sound, emitter)
             }
             return
@@ -313,6 +333,15 @@ abstract class ClientCloudPlayerImpl<PlatformPlayer : Audience>(uuid: UUID, name
         }
 
         ServerboundPlaySoundPacket(uuid, sound, emitter, permission).fireAndForget()
+    }
+
+    override suspend fun hasPermission(permission: String): Boolean {
+        val audience = audience
+        if (audience != null) {
+            return audience.hasPermissionPlattform(permission)
+        }
+
+        return RequestPlayerPermissionPacket(uuid, permission).awaitOrThrow()
     }
 
     override fun playSound(sound: Sound, x: Double, y: Double, z: Double) {

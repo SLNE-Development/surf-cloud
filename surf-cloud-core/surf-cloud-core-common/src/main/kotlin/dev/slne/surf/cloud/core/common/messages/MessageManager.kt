@@ -79,6 +79,37 @@ object MessageManager { // TODO: Add more messages
         variableValue(" Uhr")
     }
 
+    object Queue {
+        fun getMaxRetriesReached(serverName: String, maxRetries: Int) = buildText {
+            appendPrefix()
+            append {
+                error("Du konntest nicht mit dem Server")
+                variableValue(serverName)
+                error("verbunden werden, ")
+            }
+            appendNewPrefixedLine()
+            error("da das Maximum an Versuchen ($maxRetries) erreicht wurde.")
+        }
+
+        fun getQueueSwap(oldQueue: String, newQueue: String) = buildText {
+            appendPrefix()
+            info("Du warst in der Warteschlange für ")
+            variableValue(oldQueue)
+            info(" und bist jetzt in der Warteschlange für ")
+            variableValue(newQueue)
+        }
+
+        fun getQueued(serverName: String) = buildText {
+            appendPrefix()
+            appendNewPrefixedLine {
+                info("Du befindest dich nun in der Warteschlange für ")
+                variableValue(serverName)
+            }
+            appendNewPrefixedLine()
+            appendNewPrefixedLine { info("Bitte warte einen Moment.") }
+        }
+    }
+
     object Punish {
         abstract class PunishmentComponentBuilder<P : Punishment>(protected val punishment: P) {
             companion object {

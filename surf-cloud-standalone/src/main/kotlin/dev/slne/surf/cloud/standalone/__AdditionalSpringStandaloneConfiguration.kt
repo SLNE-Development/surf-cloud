@@ -1,6 +1,11 @@
 package dev.slne.surf.cloud.standalone
 
 import dev.slne.surf.cloud.api.server.plugin.AdditionalStandaloneConfiguration
+import dev.slne.surf.cloud.api.server.plugin.TransactionConfiguration
+import org.jetbrains.exposed.spring.autoconfigure.ExposedAutoConfiguration
+import org.springframework.boot.autoconfigure.ImportAutoConfiguration
+import org.springframework.context.annotation.EnableAspectJAutoProxy
+import org.springframework.context.annotation.Import
 
 /**
  * Additional Spring configuration for standalone applications,
@@ -8,4 +13,7 @@ import dev.slne.surf.cloud.api.server.plugin.AdditionalStandaloneConfiguration
  */
 @Suppress("ClassName")
 @AdditionalStandaloneConfiguration
+@ImportAutoConfiguration(ExposedAutoConfiguration::class)
+@Import(TransactionConfiguration::class)
+@EnableAspectJAutoProxy(proxyTargetClass = true)
 internal class __AdditionalSpringStandaloneConfiguration

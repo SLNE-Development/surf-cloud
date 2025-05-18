@@ -22,7 +22,7 @@ import dev.slne.surf.cloud.core.common.netty.registry.listener.NettyListenerRegi
 import dev.slne.surf.cloud.core.common.player.playerManagerImpl
 import dev.slne.surf.cloud.core.common.player.task.PrePlayerJoinTaskManager
 import dev.slne.surf.cloud.core.common.util.bean
-import dev.slne.surf.cloud.core.common.util.hasPermission
+import dev.slne.surf.cloud.core.common.util.hasPermissionPlattform
 import dev.slne.surf.surfapi.core.api.messages.adventure.getPointer
 import dev.slne.surf.surfapi.core.api.messages.adventure.text
 import dev.slne.surf.surfapi.core.api.util.logger
@@ -122,7 +122,7 @@ class ClientRunningPacketListenerImpl(
                 if (permission == null) {
                     playSound(packet.sound, emitter)
                 } else {
-                    if (hasPermission(permission)) {
+                    if (hasPermissionPlattform(permission)) {
                         playSound(packet.sound, emitter)
                     }
                 }
@@ -148,7 +148,7 @@ class ClientRunningPacketListenerImpl(
             if (permission == null) {
                 sendMessage(message)
             } else {
-                if (hasPermission(permission)) {
+                if (hasPermissionPlattform(permission)) {
                     sendMessage(message)
                 }
             }
@@ -310,6 +310,13 @@ class ClientRunningPacketListenerImpl(
             log.atWarning()
                 .withCause(e)
                 .log("Failed to publish punishment created event for punishment $punishment from packet")
+        }
+    }
+
+    override suspend fun handleRequestPlayerPermission(packet: RequestPlayerPermissionPacket) {
+        withAudience(packet.uuid) {
+            val permission = hasPermissionPlattform(packet.permission)
+            packet.respond(permission)
         }
     }
 

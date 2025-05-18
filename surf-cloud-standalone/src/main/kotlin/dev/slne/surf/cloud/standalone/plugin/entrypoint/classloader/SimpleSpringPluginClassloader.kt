@@ -11,7 +11,7 @@ import java.util.jar.JarFile
 import java.util.jar.Manifest
 
 open class SimpleSpringPluginClassloader(
-    protected val source: Path,
+    val source: Path,
     protected val jar: JarFile,
     val meta: PluginMeta,
     parent: ClassLoader
@@ -41,7 +41,8 @@ open class SimpleSpringPluginClassloader(
             jar.getInputStream(entry).use { it.readAllBytes() }
         }.getOrMapAndThrow { ClassNotFoundException(name, it) }
 
-        val bytes = ClassloaderBytecodeModifier.instance.modify(meta, rawBytes)
+        val modifiedBytecode = ClassloaderBytecodeModifier.instance.modify(meta, rawBytes)
+        val bytes = modifyClass(name, modifiedBytecode)
         val dot = name.lastIndexOf('.')
 
         if (dot != -1) {
@@ -67,6 +68,13 @@ open class SimpleSpringPluginClassloader(
         val source = CodeSource(jarUrl, signers)
 
         return defineClass(name, bytes, 0, bytes.size, source)
+    }
+
+    protected open fun modifyClass(
+        name: String,
+        rawBytes: ByteArray
+    ): ByteArray {
+        return rawBytes
     }
 
     override fun toString(): String {

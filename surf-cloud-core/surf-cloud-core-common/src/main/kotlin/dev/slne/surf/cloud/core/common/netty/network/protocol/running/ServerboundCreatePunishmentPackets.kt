@@ -15,7 +15,7 @@ import java.util.*
 class ServerboundCreateKickPacket(
     val punishedUuid: @Contextual UUID,
     val issuerUuid: @Contextual UUID?,
-    val reason: String,
+    val reason: String?,
     val initialNotes: List<String>,
 ) : RespondingNettyPacket<ClientboundCreatedPunishmentResponsePacket>()
 
@@ -24,7 +24,7 @@ class ServerboundCreateKickPacket(
 class ServerboundCreateWarnPacket(
     val punishedUuid: @Contextual UUID,
     val issuerUuid: @Contextual UUID?,
-    val reason: String,
+    val reason: String?,
     val initialNotes: List<String>,
 ) : RespondingNettyPacket<ClientboundCreatedPunishmentResponsePacket>()
 
@@ -33,7 +33,7 @@ class ServerboundCreateWarnPacket(
 class ServerboundCreateMutePacket(
     val punishedUuid: @Contextual UUID,
     val issuerUuid: @Contextual UUID?,
-    val reason: String,
+    val reason: String?,
     val permanent: Boolean,
     val expirationDate: @Contextual ZonedDateTime?,
     val initialNotes: List<String>,
@@ -44,7 +44,7 @@ class ServerboundCreateMutePacket(
 class ServerboundCreateBanPacket(
     val punishedUuid: @Contextual UUID,
     val issuerUuid: @Contextual UUID?,
-    val reason: String,
+    val reason: String?,
     val permanent: Boolean,
     val expirationDate: @Contextual ZonedDateTime?,
     val securityBan: Boolean,
@@ -55,4 +55,5 @@ class ServerboundCreateBanPacket(
 
 @Serializable
 @SurfNettyPacket("cloud:clientbound:created_punishment_response", PacketFlow.CLIENTBOUND)
-class ClientboundCreatedPunishmentResponsePacket(val punishment: AbstractPunishment) : ResponseNettyPacket()
+class ClientboundCreatedPunishmentResponsePacket(val punishment: AbstractPunishment) :
+    ResponseNettyPacket()

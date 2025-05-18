@@ -21,6 +21,7 @@ ehcache = "3.10.8"
 kotlin-byte-buf-serializer = "1.0.0"
 voicechat-api = "2.5.27"
 discord-webhooks = "1.0"
+konf = "1.1.2"
 
 
 [libraries]
@@ -63,6 +64,7 @@ luckperms-api = { module = "net.luckperms:api", version.ref = "luckperms-api" }
 mariadb-java-client = { module = "org.mariadb.jdbc:mariadb-java-client" }
 mysql-connector-j = { module = "com.mysql:mysql-connector-j" }
 spring-boot-starter-data-jpa = { module = "org.springframework.boot:spring-boot-starter-data-jpa" }
+spring-boot-starter-actuator = { module = "org.springframework.boot:spring-boot-starter-actuator" }
 reactive-streams = { module = "org.reactivestreams:reactive-streams", version.ref = "reactive-streams" }
 hibernate-jcache = { module = "org.hibernate.orm:hibernate-jcache" }
 ehcache = { module = "org.ehcache:ehcache", version.ref = "ehcache" }
@@ -70,12 +72,14 @@ ktor-server-status-pages = { module = "io.ktor:ktor-server-status-pages" }
 spring-boot-starter-log4j2 = { module = "org.springframework.boot:spring-boot-starter-log4j2" }
 spring-aop = { module = "org.springframework:spring-aop" }
 spring-aspects = { module = "org.springframework:spring-aspects" }
+spring-web = { module = "org.springframework:spring-web" }
 flyway-core = { module = "org.flywaydb:flyway-core" }
 flyway-mysql = { module = "org.flywaydb:flyway-mysql" }
 spring-instrument = { module = "org.springframework:spring-instrument" }
 kotlin-byte-buf-serializer = { module = "dev.slne.surf:kotlin-byte-buf-serializer", version.ref = "kotlin-byte-buf-serializer" }
 voicechat-api = { module = "de.maxhenkel.voicechat:voicechat-api", version.ref = "voicechat-api" }
-discord-webhooks = { module = "com.github.BinaryWriter:discord-webhooks", version.ref = "discord-webhooks"}
+discord-webhooks = { module = "com.github.BinaryWriter:discord-webhooks", version.ref = "discord-webhooks" }
+konf = { module = "com.uchuhimo:konf", version.ref = "konf" }
 
 [plugins]
 spring-boot = { id = "org.springframework.boot" }
@@ -83,7 +87,7 @@ spring-boot = { id = "org.springframework.boot" }
 [bundles]
 netty-all = ["netty-all", "netty-tcnative"]
 spring-aop = ["spring-aop", "aspectjweaver", "aspectjrt", "spring-aspects"]
-spring-api-common = ["spring-boot-starter", "spring-boot-starter-cache"]
+spring-api-common = ["spring-boot-starter", "spring-boot-starter-cache", "spring-web"]
 jackson-api-common = ["jackson-core", "jackson-databind", "jackson-module-kotlin"]
 exposed-api-server = ["exposed-spring-boot-starter", "exposed-java-time", "exposed-migration"]
 maven-libraries = ["maven-impl", "maven-resolver"]

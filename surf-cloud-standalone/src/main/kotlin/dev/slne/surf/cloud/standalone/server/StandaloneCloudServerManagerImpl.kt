@@ -16,13 +16,18 @@ import dev.slne.surf.cloud.core.common.netty.network.protocol.running.Clientboun
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ClientboundRegisterServerPacket
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ClientboundUnregisterServerPacket
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.RequestOfflineDisplayNamePacket
+import dev.slne.surf.cloud.core.common.server.CommonCloudServerImpl
 import dev.slne.surf.cloud.core.common.server.CommonCloudServerManagerImpl
 import dev.slne.surf.cloud.core.common.util.bean
 import dev.slne.surf.cloud.standalone.config.standaloneConfig
+import dev.slne.surf.cloud.standalone.event.server.CloudServerRegisteredEvent
 import dev.slne.surf.cloud.standalone.netty.server.NettyServerImpl
 import dev.slne.surf.cloud.standalone.netty.server.ProxyServerAutoregistration
 import dev.slne.surf.cloud.standalone.player.StandaloneCloudPlayerImpl
+import dev.slne.surf.surfapi.core.api.util.logger
 import it.unimi.dsi.fastutil.objects.ObjectList
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.withLock
 import net.kyori.adventure.text.Component
 import org.jetbrains.annotations.Unmodifiable
@@ -31,6 +36,8 @@ import java.util.*
 @AutoService(CloudServerManager::class)
 class StandaloneCloudServerManagerImpl : CommonCloudServerManagerImpl<ServerCommonCloudServer>(),
     ServerCloudServerManager {
+
+    private val log = logger()
     private val server by lazy { bean<NettyServerImpl>() }
 
     suspend fun getCommonStandaloneServerByUid(uid: Long) =
@@ -48,6 +55,20 @@ class StandaloneCloudServerManagerImpl : CommonCloudServerManagerImpl<ServerComm
         )
 
         cloudServer.connection.send(ClientboundBatchUpdateServer(retrieveAllServers()))
+
+        coroutineScope {
+            launch {
+                try {
+                    CloudServerRegisteredEvent(this, cloudServer as CommonCloudServerImpl).post()
+                } catch (e: Exception) {
+                    log.atWarning()
+                        .log(
+                            "Failed to post CloudServerRegisteredEvent for server ${cloudServer.uid}",
+                            e
+                        )
+                }
+            }
+        }
 
         if (standaloneConfig.useSingleProxySetup) {
             if (cloudServer is StandaloneProxyCloudServerImpl) {
@@ -84,7 +105,8 @@ class StandaloneCloudServerManagerImpl : CommonCloudServerManagerImpl<ServerComm
             // so let's ask them first
             val proxies = servers.filterIsInstance<StandaloneProxyCloudServerImpl>()
             for (proxy in proxies) {
-                val name = RequestOfflineDisplayNamePacket(uuid).awaitOrThrowUrgent(proxy.connection)
+                val name =
+                    RequestOfflineDisplayNamePacket(uuid).awaitOrThrowUrgent(proxy.connection)
                 if (name != null) {
                     return name
                 }
@@ -126,7 +148,7 @@ class StandaloneCloudServerManagerImpl : CommonCloudServerManagerImpl<ServerComm
 
         if (serversInGroup.isEmpty()) {
             toConnect.forEach { player ->
-                results += player to ConnectionResultEnum.SERVER_NOT_FOUND
+                results += player to ConnectionResultEnum.SERVER_NOT_FOUND("group:$group")
             }
 
             return results.freeze()

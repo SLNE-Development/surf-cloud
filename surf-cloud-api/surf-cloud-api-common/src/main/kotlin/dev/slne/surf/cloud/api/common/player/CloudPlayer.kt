@@ -250,7 +250,7 @@ sealed class ConnectionResultEnum(
 
     @Serializable
     object CONNECTION_IN_PROGRESS : ConnectionResultEnum(
-        buildText { error("Du versucht bereits eine Verbindung zu einem Server herzustellen.") }
+        buildText { error("Du versuchst bereits eine Verbindung zu einem Server herzustellen.") }
     )
 
     @Serializable

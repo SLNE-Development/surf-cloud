@@ -67,7 +67,7 @@ class QueueManagerImpl(
             queues.all().find { it.isQueued(player.uuid) }?.let { other ->
                 other.dequeue(
                     player.uuid,
-                    ConnectionResultEnum.QUEUE_SWAPED(other.getQueueName(), target.name)
+                    ConnectionResultEnum.QUEUE_SWAPPED(other.getQueueName(), target.name)
                 )
 //                player.sendMessage(MessageManager.Queue.getQueueSwap(other.getQueueName(), target.name))
             }
@@ -115,7 +115,7 @@ class QueueManagerImpl(
             queues.all().find { it.isQueued(player.uuid) }?.let { other ->
                 other.dequeue(
                     player.uuid,
-                    ConnectionResultEnum.QUEUE_SWAPED(other.getQueueName(), target)
+                    ConnectionResultEnum.QUEUE_SWAPPED(other.getQueueName(), target)
                 )
 //                player.sendMessage(MessageManager.Queue.getQueueSwap(other.getQueueName(), target.name))
             }

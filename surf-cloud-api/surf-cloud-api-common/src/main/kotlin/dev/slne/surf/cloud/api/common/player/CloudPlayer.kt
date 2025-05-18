@@ -310,7 +310,7 @@ sealed class ConnectionResultEnum(
     )
 
     @Serializable
-    class QUEUE_SWAPED(val oldQueue: String, val newQueue: String) : ConnectionResultEnum(
+    class QUEUE_SWAPPED(val oldQueue: String, val newQueue: String) : ConnectionResultEnum(
         buildText {
             error("Du bist von der Warteschlange ")
             variableValue(oldQueue)

@@ -15,11 +15,14 @@ import java.net.URLClassLoader
 @Configuration(proxyBeanMethods = false)
 @Profile("plugin")
 @Suppress("SpringJavaInjectionPointsAutowiringInspection")
-class PluginFlywayConfigurationCustomizer(private val pluginClassloader: SpringPluginClassloader) :
-    FlywayConfigurationCustomizer {
+class PluginFlywayConfigurationCustomizer(
+    private val pluginClassloader: SpringPluginClassloader,
+    private val databaseConfig: DatabaseConfig
+) : FlywayConfigurationCustomizer {
 
     override fun customize(configuration: FluentConfiguration) {
         configuration.table(pluginClassloader.meta.flywayTableName)
+        configuration.baselineOnMigrate(databaseConfig.flyway.baselineOnMigrate)
 
         val config = fluentConfigurationProxy.configuration(configuration)
         val source = pluginClassloader.source

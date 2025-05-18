@@ -4,6 +4,7 @@ import dev.slne.surf.cloud.api.server.plugin.configuration.PluginMeta
 import dev.slne.surf.cloud.api.server.plugin.provider.classloader.SpringPluginClassloader
 import dev.slne.surf.cloud.core.common.spring.CloudChildSpringApplicationConfiguration
 import dev.slne.surf.cloud.standalone.plugin.entrypoint.classloader.SpringPluginClassloaderImpl
+import dev.slne.surf.cloud.standalone.plugin.spring.config.DatabaseConfigConfiguration
 import dev.slne.surf.cloud.standalone.plugin.spring.config.PluginDatasourceConfiguration
 import dev.slne.surf.cloud.standalone.plugin.spring.config.PluginFlywayConfigurationCustomizer
 import dev.slne.surf.cloud.standalone.plugin.spring.config.PluginLoadTimeWeavingConfiguration
@@ -37,10 +38,11 @@ class PluginDatabaseConfigModern : CloudChildSpringApplicationConfiguration {
         })
 
         builder.sources(
+            DatabaseConfigConfiguration::class.java,
             PluginLoadTimeWeavingConfiguration::class.java,
             PluginDatasourceConfiguration::class.java,
             PluginFlywayConfigurationCustomizer::class.java,
-            ExposedAutoConfiguration::class.java
+            ExposedAutoConfiguration::class.java,
         )
     }
 }

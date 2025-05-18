@@ -12,7 +12,7 @@ import org.jetbrains.annotations.ApiStatus
  * Represents the result of a batch transfer operation.
  *
  * The result is a pair of a boolean indicating the overall success of the operation,
- * and a map of [CloudPlayer]s to [ConnectionResult]s indicating the result of each transfer.
+ * and a map of [CloudPlayer]s to [ConnectionResultEnum]s indicating the result of each transfer.
  */
 typealias BatchTransferResult = Pair<Boolean, Object2ObjectMap<CloudPlayer, ConnectionResultEnum>>
 

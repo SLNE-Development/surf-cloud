@@ -1,4 +1,4 @@
-import java.util.Properties
+import java.util.*
 
 plugins {
     id("dev.slne.surf.surfapi.gradle.standalone")
@@ -11,13 +11,8 @@ dependencies {
 
     runtimeOnly(libs.mariadb.java.client)
     runtimeOnly(libs.mysql.connector.j)
-    api(libs.spring.boot.starter.data.jpa)
     api(libs.reactive.streams)
     api(libs.velocity.native)
-
-    implementation(libs.hibernate.jcache)
-    implementation(libs.ehcache)
-
 
     // Ktor
     implementation(libs.ktor.server.status.pages)

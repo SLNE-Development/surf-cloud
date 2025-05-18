@@ -7,8 +7,6 @@ plugins {
 dependencies {
     api(project(":surf-cloud-api:surf-cloud-api-common"))
 
-    api(libs.jakarta.persistence.api)
-    api(libs.spring.data.jpa)
     api(libs.bundles.flyway)
     api(libs.bundles.exposed.api.server)
     api(libs.bundles.maven.libraries)

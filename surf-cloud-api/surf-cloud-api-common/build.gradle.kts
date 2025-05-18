@@ -6,7 +6,6 @@ plugins {
 
 dependencies {
     api(libs.bundles.spring.api.common)
-    implementation(libs.spring.data.jpa) // Hide this from the API
     api(libs.bundles.jackson.api.common)
     api(libs.bundles.spring.aop)
 

@@ -13,31 +13,21 @@ import org.jetbrains.exposed.spring.SpringTransactionManager
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import org.reactivestreams.Publisher
 import org.springframework.beans.factory.getBean
-import org.springframework.boot.autoconfigure.AutoConfigurationPackages
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.boot.autoconfigure.liquibase.LiquibaseAutoConfiguration
-import org.springframework.boot.autoconfigure.orm.jpa.HibernatePropertiesCustomizer
 import org.springframework.cache.annotation.EnableCaching
 import org.springframework.context.ApplicationContext
-import org.springframework.context.ConfigurableApplicationContext
 import org.springframework.context.annotation.AdviceMode
-import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
 import org.springframework.core.KotlinDetector
 import org.springframework.core.Ordered
-import org.springframework.core.PriorityOrdered
 import org.springframework.core.annotation.AnnotatedElementUtils
 import org.springframework.core.annotation.Order
-import org.springframework.data.auditing.DateTimeProvider
-import org.springframework.data.jpa.repository.config.EnableJpaAuditing
-import org.springframework.data.jpa.repository.config.EnableJpaRepositories
 import org.springframework.scheduling.annotation.EnableAsync
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.EnableTransactionManagement
 import java.lang.reflect.Method
-import java.time.ZonedDateTime
-import java.util.*
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.intrinsics.COROUTINE_SUSPENDED
 import kotlin.coroutines.resume
@@ -46,9 +36,8 @@ import kotlin.coroutines.startCoroutine
 
 @Target(AnnotationTarget.CLASS)
 @Retention(AnnotationRetention.RUNTIME)
-@EnableJpaRepositories
 @Configuration
-@Import(JpaAuditingConfiguration::class, CoroutineTransactionalAspect::class)
+@Import(CoroutineTransactionalAspect::class)
 @EnableAsync(mode = AdviceMode.ASPECTJ)
 @EnableCaching(mode = AdviceMode.ASPECTJ)
 @EnableAutoConfiguration(
@@ -58,27 +47,6 @@ import kotlin.coroutines.startCoroutine
 )
 annotation class AdditionalStandaloneConfiguration
 
-@EnableJpaAuditing(dateTimeProviderRef = "auditingDateTimeProvider")
-@Configuration(proxyBeanMethods = false)
-class JpaAuditingConfiguration : PriorityOrdered {
-    @Bean
-    fun auditingDateTimeProvider() = DateTimeProvider { Optional.of(ZonedDateTime.now()) }
-
-    @Bean
-    fun enhanceScopeInitializer(ctx: ConfigurableApplicationContext): HibernatePropertiesCustomizer {
-        val bases = AutoConfigurationPackages.get(ctx)
-        val joined = bases.joinToString(separator = ",")
-
-        return HibernatePropertiesCustomizer { props ->
-            props["hibernate.enhance.scan.packages"] = joined
-            props["hibernate.enhance.managed.packages"] = joined
-        }
-    }
-
-    override fun getOrder(): Int {
-        return PriorityOrdered.HIGHEST_PRECEDENCE
-    }
-}
 
 @EnableTransactionManagement(mode = AdviceMode.ASPECTJ)
 @Configuration

@@ -294,9 +294,9 @@ sealed class ConnectionResultEnum(
     ) : ConnectionResultEnum(buildText {
         appendPrefix()
         append {
-            error("Du konntest nicht mit dem Server")
+            error("Du konntest nicht mit dem Server ")
             variableValue(serverName)
-            error("verbunden werden, ")
+            error(" verbunden werden, ")
         }
         appendNewPrefixedLine()
         error("da das Maximum an Versuchen ($maxRetries) erreicht wurde.")

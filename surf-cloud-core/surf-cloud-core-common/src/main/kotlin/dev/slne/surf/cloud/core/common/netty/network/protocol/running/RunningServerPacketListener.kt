@@ -56,6 +56,8 @@ interface RunningServerPacketListener : ServerCommonPacketListener, TickablePack
 
     suspend fun handleConnectPlayerToServer(packet: ServerboundConnectPlayerToServerPacket)
 
+    suspend fun handleQueuePlayerToGroup(packet: ServerboundQueuePlayerToGroupPacket)
+
     fun handleDisconnectPlayer(packet: DisconnectPlayerPacket)
 
     fun handleSilentDisconnectPlayer(packet: SilentDisconnectPlayerPacket)
@@ -99,6 +101,8 @@ interface RunningServerPacketListener : ServerCommonPacketListener, TickablePack
     fun handleFetchIpAddressesForBan(packet: ServerboundFetchIpAddressesForBanPacket)
 
     fun handleFetchIpBans(packet: ServerboundFetchIpBansPacket)
+
+    suspend fun handleRequestPlayerPermission(packet: RequestPlayerPermissionPacket)
 
     fun handlePacket(packet: NettyPacket)
 }

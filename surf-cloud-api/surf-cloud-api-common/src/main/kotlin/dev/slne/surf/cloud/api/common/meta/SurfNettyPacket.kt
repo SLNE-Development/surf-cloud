@@ -161,6 +161,7 @@ object DefaultIds {
         "cloud:serverbound:player_persistent_data_container_update"
 
     const val SERVERBOUND_CONNECT_PLAYER_TO_SERVER = "cloud:serverbound:connect_player_to_server"
+    const val SERVERBOUND_QUEUE_PLAYER_TO_GROUP = "cloud:serverbound:queue_player_to_group"
     const val CLIENTBOUND_CONNECT_PLAYER_TO_SERVER_RESPONSE =
         "cloud:clientbound:connect_player_to_server_response"
 
@@ -178,6 +179,7 @@ object DefaultIds {
     const val CLIENTBOUND_BATCH_UPDATE_SERVER = "cloud:clientbound:batch_update_server"
 
     const val REQUEST_OFFLINE_DISPLAY_NAME_PACKET = "cloud:request:offline_display_name"
-    const val RESPONSE_REQUEST_OFFLINE_DISPLAY_NAME_PACKET = "cloud:response:request_offline_display_name"
+    const val RESPONSE_REQUEST_OFFLINE_DISPLAY_NAME_PACKET =
+        "cloud:response:request_offline_display_name"
 
 }

@@ -42,6 +42,7 @@ abstract class StandalonePlugin : Namespaced {
     open suspend fun exportPlayerData(uuid: UUID): PlayerDataExport {
         return PlayerDataExportEmpty
     }
+
     open suspend fun deleteNotInterestingPlayerData(uuid: UUID) {}
 
     @InternalApi
@@ -94,6 +95,20 @@ abstract class StandalonePlugin : Namespaced {
 
             require(plugin is P) { "Plugin is not an instance of ${clazz.simpleName}" }
             return plugin
+        }
+
+        inline fun <reified P : StandalonePlugin> getPlugin(classLoader: ClassLoader): P {
+            require(StandalonePlugin::class.java.isAssignableFrom(P::class.java)) { "Plugin class must be a subclass of StandalonePlugin" }
+            require(classLoader is SpringPluginClassloader) { "Plugin class must be loaded by SpringPluginClassloader" }
+            val plugin = classLoader.plugin ?: error("Plugin not initialized")
+
+            require(plugin is P) { "Plugin is not an instance of ${P::class.simpleName}" }
+            return plugin
+        }
+
+        fun getPluginMeta(classLoader: ClassLoader): PluginMeta {
+            require(classLoader is SpringPluginClassloader) { "Plugin class must be loaded by SpringPluginClassloader" }
+            return classLoader.meta
         }
     }
 }

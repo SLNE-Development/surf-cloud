@@ -23,6 +23,8 @@ data class StandalonePluginMeta(
     @Required
     override val name: String,
 
+    override val flywayTableName: String = "plugin_${name.lowercase()}_flyway_schema_history",
+
     @Required
     override val main: String,
 

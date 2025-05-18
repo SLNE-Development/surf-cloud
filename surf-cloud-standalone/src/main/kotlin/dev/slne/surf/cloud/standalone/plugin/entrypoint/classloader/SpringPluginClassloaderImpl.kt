@@ -7,11 +7,17 @@ import dev.slne.surf.cloud.api.server.plugin.provider.classloader.SpringPluginCl
 import dev.slne.surf.cloud.api.server.plugin.provider.classloader.SpringPluginClassloaderGroup
 import dev.slne.surf.cloud.api.server.plugin.provider.classloader.SpringPluginClassloaderStorage
 import dev.slne.surf.cloud.standalone.plugin.PluginInitializerManager
+import dev.slne.surf.surfapi.core.api.util.logger
 import dev.slne.surf.surfapi.core.api.util.toEnumeration
+import org.springframework.context.ConfigurableApplicationContext
+import org.springframework.instrument.classloading.LoadTimeWeaver
+import org.springframework.instrument.classloading.SimpleThrowawayClassLoader
+import java.lang.instrument.ClassFileTransformer
 import java.net.URL
 import java.net.URLClassLoader
 import java.nio.file.Path
 import java.util.*
+import java.util.concurrent.CopyOnWriteArrayList
 import java.util.jar.JarFile
 import kotlin.io.path.div
 
@@ -21,15 +27,22 @@ class SpringPluginClassloaderImpl(
     meta: PluginMeta,
     parent: ClassLoader,
     val libraryLoader: URLClassLoader? = null
-) : SimpleSpringPluginClassloader(source, jar, meta, parent), SpringPluginClassloader {
+) : SimpleSpringPluginClassloader(source, jar, meta, parent), SpringPluginClassloader,
+    LoadTimeWeaver {
     companion object {
+        private val log = logger()
+
         init {
             registerAsParallelCapable()
         }
     }
 
+    override lateinit var context: ConfigurableApplicationContext
+
     override var plugin: StandalonePlugin? = null
     override var group: SpringPluginClassloaderGroup? = null
+
+    private val transformers = CopyOnWriteArrayList<ClassFileTransformer>()
 
     fun refreshClassloaderDependencyTree(context: DependencyContext) {
         val group = group
@@ -42,6 +55,33 @@ class SpringPluginClassloaderImpl(
         }
     }
 
+    override fun modifyClass(name: String, rawBytes: ByteArray): ByteArray {
+        val internalName = name.replace('.', '/')
+        var bytes = rawBytes
+
+        for (t in transformers) {
+            val transformed = try {
+                t.transform(
+                    this,
+                    internalName,
+                    null,
+                    null,
+                    bytes
+                )
+            } catch (ex: Throwable) {
+                log.atWarning()
+                    .withCause(ex)
+                    .log("Error while transforming class $name")
+                null
+            }
+            if (transformed != null) {
+                bytes = transformed
+            }
+        }
+
+        return bytes
+    }
+
     override fun getResource(name: String) = findResource(name) ?: libraryLoader?.getResource(name)
 
     override fun getResources(name: String): Enumeration<URL> = findResources(name).asSequence()
@@ -49,7 +89,7 @@ class SpringPluginClassloaderImpl(
         .toEnumeration()
 
     override fun loadClass(name: String, resolve: Boolean): Class<*>? {
-        return loadClass(name, resolve, true, true)
+        return loadClass(name, resolve, checkGlobal = true, checkLibraries = true)
     }
 
     override fun loadClass(
@@ -95,5 +135,17 @@ class SpringPluginClassloaderImpl(
         super.close()
         jar.close()
         libraryLoader?.close()
+    }
+
+    override fun addTransformer(transformer: ClassFileTransformer) {
+        transformers.add(transformer)
+    }
+
+    override fun getInstrumentableClassLoader(): ClassLoader {
+        return this
+    }
+
+    override fun getThrowawayClassLoader(): ClassLoader {
+        return SimpleThrowawayClassLoader(instrumentableClassLoader)
     }
 }

@@ -17,21 +17,21 @@ interface PunishmentManager {
     suspend fun createKick(
         punishedUuid: UUID,
         issuerUuid: UUID?,
-        reason: String,
+        reason: String?,
         initialNotes: List<String>
     ): PunishmentKickImpl
 
     suspend fun createWarn(
         punishedUuid: UUID,
         issuerUuid: UUID?,
-        reason: String,
+        reason: String?,
         initialNotes: List<String>
     ): PunishmentWarnImpl
 
     suspend fun createMute(
         punishedUuid: UUID,
         issuerUuid: UUID?,
-        reason: String,
+        reason: String?,
         permanent: Boolean,
         expirationDate: ZonedDateTime?,
         initialNotes: List<String>
@@ -40,7 +40,7 @@ interface PunishmentManager {
     suspend fun createBan(
         punishedUuid: UUID,
         issuerUuid: UUID?,
-        reason: String,
+        reason: String?,
         permanent: Boolean,
         expirationDate: ZonedDateTime?,
         securityBan: Boolean,

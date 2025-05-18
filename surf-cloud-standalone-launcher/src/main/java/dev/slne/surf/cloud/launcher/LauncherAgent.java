@@ -1,7 +1,6 @@
 package dev.slne.surf.cloud.launcher;
 
 import java.lang.instrument.Instrumentation;
-import org.springframework.instrument.InstrumentationSavingAgent;
 
 public class LauncherAgent {
 
@@ -11,6 +10,6 @@ public class LauncherAgent {
 
   public static void premain(String agentArgs, Instrumentation inst) {
     System.out.println("Launcher-Agent started. Loading actual agent...");
-    InstrumentationSavingAgent.premain(agentArgs, inst);
+//    InstrumentationSavingAgent.premain(agentArgs, inst);
   }
 }

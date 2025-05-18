@@ -1,21 +1,18 @@
 package dev.slne.surf.cloud.core.common.server
 
 import dev.slne.surf.cloud.api.common.player.CloudPlayer
-import dev.slne.surf.cloud.api.common.player.ConnectionResult
 import dev.slne.surf.cloud.api.common.player.ConnectionResultEnum
 import dev.slne.surf.cloud.api.common.server.BatchTransferResult
 import dev.slne.surf.cloud.api.common.server.CloudServer
 import dev.slne.surf.cloud.api.common.server.CommonCloudServer
 import dev.slne.surf.cloud.api.common.server.UserListImpl
 import dev.slne.surf.cloud.api.common.util.mutableObject2ObjectMapOf
-import dev.slne.surf.cloud.core.common.coreCloudInstance
 import dev.slne.surf.cloud.core.common.coroutines.PlayerBatchTransferScope
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ClientInformation
 import dev.slne.surf.cloud.core.common.sound.CommonSounds
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
-import net.kyori.adventure.sound.Sound
 import net.kyori.adventure.sound.Sound.Emitter
 import net.kyori.adventure.text.Component
 
@@ -30,14 +27,14 @@ abstract class CommonCloudServerImpl(
 ) : CommonCloudServer {
     private suspend fun executeBatchTransfer(
         filter: (CloudPlayer) -> Boolean = { true },
-        transferAction: suspend (CloudPlayer) -> Deferred<ConnectionResult>
+        transferAction: suspend (CloudPlayer) -> Deferred<ConnectionResultEnum>
     ): BatchTransferResult {
         val results = users
             .filter(filter)
             .associateWith { transferAction(it) }
             .mapValuesTo(mutableObject2ObjectMapOf()) { (_, deferred) -> deferred.await() }
 
-        val success = results.all { (_, result) -> result.first == ConnectionResultEnum.SUCCESS }
+        val success = results.all { (_, result) -> result == ConnectionResultEnum.SUCCESS }
         return success to results
     }
 

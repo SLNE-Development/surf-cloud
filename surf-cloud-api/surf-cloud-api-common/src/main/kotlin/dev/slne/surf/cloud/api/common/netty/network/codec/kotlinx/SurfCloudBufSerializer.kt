@@ -4,13 +4,9 @@ import dev.slne.surf.bytebufserializer.Buf
 import dev.slne.surf.cloud.api.common.netty.network.codec.kotlinx.adventure.AdventureComponentSerializer
 import dev.slne.surf.cloud.api.common.netty.network.codec.kotlinx.adventure.AdventureKeySerializer
 import dev.slne.surf.cloud.api.common.netty.network.codec.kotlinx.adventure.AdventureSoundSerializer
-import dev.slne.surf.cloud.api.common.netty.network.codec.kotlinx.java.BitSetSerializer
-import dev.slne.surf.cloud.api.common.netty.network.codec.kotlinx.java.Inet4AddressSerializer
-import dev.slne.surf.cloud.api.common.netty.network.codec.kotlinx.java.InetSocketAddressSerializer
-import dev.slne.surf.cloud.api.common.netty.network.codec.kotlinx.java.URISerializer
-import dev.slne.surf.cloud.api.common.netty.network.codec.kotlinx.java.UUIDSerializer
-import dev.slne.surf.cloud.api.common.netty.network.codec.kotlinx.java.UtfStringSerializer
-import dev.slne.surf.cloud.api.common.netty.network.codec.kotlinx.java.ZonedDateTimeSerializer
+import dev.slne.surf.cloud.api.common.netty.network.codec.kotlinx.cloud.CloudPlayerSerializer
+import dev.slne.surf.cloud.api.common.netty.network.codec.kotlinx.cloud.OfflineCloudPlayerSerializer
+import dev.slne.surf.cloud.api.common.netty.network.codec.kotlinx.java.*
 import dev.slne.surf.cloud.api.common.netty.network.codec.kotlinx.kotlin.DurationSerializer
 import dev.slne.surf.cloud.api.common.netty.network.codec.kotlinx.nbt.CompoundTagSerializer
 import kotlinx.serialization.modules.SerializersModule
@@ -37,6 +33,10 @@ object SurfCloudBufSerializer {
 
         // NBT
         contextual(CompoundTagSerializer)
+
+        // Cloud
+        contextual(CloudPlayerSerializer)
+        contextual(OfflineCloudPlayerSerializer)
     }
 
     val serializer = Buf(serializerModule)

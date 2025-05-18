@@ -9,12 +9,10 @@ import org.apache.commons.lang3.ArrayUtils
 import org.springframework.aop.interceptor.AsyncUncaughtExceptionHandler
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.AutoConfigurationPackage
-import org.springframework.boot.autoconfigure.ImportAutoConfiguration
 import org.springframework.boot.autoconfigure.SpringBootApplication
-import org.springframework.boot.autoconfigure.context.PropertyPlaceholderAutoConfiguration
+import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.ApplicationContext
 import org.springframework.context.ApplicationContextAware
-import org.springframework.context.annotation.Import
 import org.springframework.core.NestedRuntimeException
 import org.springframework.scheduling.annotation.AsyncConfigurer
 import java.lang.reflect.Method
@@ -22,6 +20,7 @@ import java.lang.reflect.Method
 @SurfCloudApplication
 @SpringBootApplication
 @AutoConfigurationPackage
+@EnableConfigurationProperties
 class SurfCloudMainApplication : AsyncConfigurer, ApplicationContextAware {
     private val log = logger()
     private lateinit var applicationContext: ApplicationContext

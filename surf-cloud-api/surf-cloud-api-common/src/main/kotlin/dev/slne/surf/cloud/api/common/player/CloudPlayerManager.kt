@@ -3,7 +3,6 @@ package dev.slne.surf.cloud.api.common.player
 import dev.slne.surf.cloud.api.common.server.UserList
 import dev.slne.surf.cloud.api.common.util.annotation.InternalApi
 import dev.slne.surf.surfapi.core.api.util.requiredService
-import it.unimi.dsi.fastutil.objects.ObjectSet
 import net.kyori.adventure.audience.Audience
 import net.kyori.adventure.identity.Identity
 import org.jetbrains.annotations.ApiStatus
@@ -63,7 +62,8 @@ fun Audience?.toCloudPlayer(): CloudPlayer? {
 fun Audience?.toOfflineCloudPlayer(): OfflineCloudPlayer? = this?.toOfflineCloudPlayer()
 
 fun Audience.toOfflineCloudPlayer(): OfflineCloudPlayer? {
-    return this.pointers().get(Identity.UUID).getOrNull()?.let { CloudPlayerManager.getOfflinePlayer(it) }
+    return this.pointers().get(Identity.UUID).getOrNull()
+        ?.let { CloudPlayerManager.getOfflinePlayer(it) }
 }
 
 fun UUID.toOfflineCloudPlayer(): OfflineCloudPlayer =
@@ -72,3 +72,6 @@ fun UUID.toOfflineCloudPlayer(): OfflineCloudPlayer =
 @JvmName("toOfflineCloudPlayerNullable")
 fun UUID?.toOfflineCloudPlayer(): OfflineCloudPlayer? =
     this?.let { CloudPlayerManager.getOfflinePlayer(it) }
+
+fun UUID.toCloudPlayer(): CloudPlayer? =
+    CloudPlayerManager.getPlayer(this)

@@ -114,7 +114,7 @@ class CloudPlayerPunishmentManagerImpl(private val playerUuid: UUID) :
     @Suppress("UNCHECKED_CAST")
     override suspend fun <P : Punishment, Spec : PunishSpec<P, Spec, Builder>, Builder : NoteBuilder> punish(
         spec: Spec,
-        reason: String,
+        reason: String?,
         issuerUuid: UUID?
     ): P {
         val manager = bean<PunishmentManager>()

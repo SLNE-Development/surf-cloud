@@ -11,8 +11,10 @@ import dev.slne.surf.cloud.core.common.netty.network.protocol.running.Clientboun
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ClientboundTriggerShutdownPacket
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ServerboundTransferPlayerPacketResponse.Status
 import dev.slne.surf.cloud.core.common.server.AbstractCloudServer
+import dev.slne.surf.cloud.core.common.util.bean
+import dev.slne.surf.cloud.standalone.config.standaloneConfig
 import dev.slne.surf.cloud.standalone.player.StandaloneCloudPlayerImpl
-import dev.slne.surf.cloud.standalone.server.queue.SingleServerQueue
+import dev.slne.surf.cloud.standalone.server.queue.repo.QueueRepository
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -33,7 +35,6 @@ class StandaloneCloudServerImpl(
     }
 
     val connectingPlayers = mutableObjectSetOf<StandaloneCloudPlayerImpl>()
-    val queue = SingleServerQueue(this)
 
     override val expectedPlayers: Int
         get() = currentPlayerCount + connectingPlayers.size
@@ -58,6 +59,13 @@ class StandaloneCloudServerImpl(
                 connectingPlayers.remove(player)
                 player.connecting = false
                 player.connectingToServer = null
+
+                if (standaloneConfig.queue.removePlayerOnServerSwitch) {
+                    bean<QueueRepository>().dequeueEverywhere(
+                        player.uuid,
+                        ConnectionResultEnum.SERVER_SWITCHED
+                    )
+                }
             }
         }
 

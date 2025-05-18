@@ -5,16 +5,14 @@ import dev.slne.surf.cloud.SurfCloudMainApplication
 import dev.slne.surf.cloud.api.common.CloudInstance
 import dev.slne.surf.cloud.api.common.exceptions.ExitCodes
 import dev.slne.surf.cloud.api.common.exceptions.FatalSurfError
-import dev.slne.surf.cloud.api.common.startSpringApplication
 import dev.slne.surf.cloud.api.common.util.TimeLogger
 import dev.slne.surf.cloud.api.common.util.classloader.JoinClassLoader
 import dev.slne.surf.cloud.api.common.util.forEachOrdered
-import dev.slne.surf.cloud.api.common.util.objectListOf
-import dev.slne.surf.cloud.api.common.util.spring.JoinResourceLoader
 import dev.slne.surf.cloud.core.common.event.CloudEventListenerBeanPostProcessor
 import dev.slne.surf.cloud.core.common.netty.network.EncryptionManager
 import dev.slne.surf.cloud.core.common.player.punishment.CloudPlayerPunishmentManagerBridgeImpl
 import dev.slne.surf.cloud.core.common.processors.NettyPacketProcessor
+import dev.slne.surf.cloud.core.common.spring.CloudChildSpringApplicationConfiguration
 import dev.slne.surf.cloud.core.common.spring.CloudLifecycleAware
 import dev.slne.surf.cloud.core.common.spring.SurfSpringBanner
 import dev.slne.surf.cloud.core.common.spring.event.RootSpringContextInitialized
@@ -27,7 +25,10 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.withTimeout
 import org.springframework.beans.factory.ObjectProvider
 import org.springframework.beans.factory.getBeanProvider
+import org.springframework.beans.factory.support.BeanDefinitionRegistry
+import org.springframework.beans.factory.support.RootBeanDefinition
 import org.springframework.boot.Banner
+import org.springframework.boot.WebApplicationType
 import org.springframework.boot.builder.SpringApplicationBuilder
 import org.springframework.context.ConfigurableApplicationContext
 import org.springframework.core.NestedRuntimeException
@@ -35,6 +36,7 @@ import org.springframework.core.io.ClassPathResource
 import org.springframework.core.io.DefaultResourceLoader
 import java.nio.charset.StandardCharsets
 import java.nio.file.Path
+import java.util.*
 import kotlin.time.Duration.Companion.minutes
 
 @AutoService(CloudInstance::class)
@@ -102,9 +104,7 @@ class CloudCoreInstance : CloudInstance {
 
     private fun startSpringApplication() {
         try {
-            internalContext = startSpringApplication(SurfCloudMainApplication::class) {
-                listeners(NettyPacketProcessor)
-            }.also { context ->
+            internalContext = startMainSpringApplication().also { context ->
                 lifecycles = context.getBeanProvider<CloudLifecycleAware>()
             }
         } catch (e: Throwable) {
@@ -159,29 +159,55 @@ class CloudCoreInstance : CloudInstance {
         timeLogger.printSummary()
     }
 
+    private fun startMainSpringApplication() =
+        SpringApplicationBuilder(SurfCloudMainApplication::class.java)
+            .profiles(springProfile)
+            .initializers(NettyPacketProcessor())
+            .web(WebApplicationType.NONE)
+            .run()
+
     override fun startSpringApplication(
         applicationClass: Class<*>,
         classLoader: ClassLoader,
         vararg parentClassLoader: ClassLoader,
         customizer: SpringApplicationBuilder.() -> Unit
     ): ConfigurableApplicationContext {
-        val joinClassLoader = JoinClassLoader(
-            classLoader,
-            listOfNotNull(
-                CloudCoreInstance::class.java.classLoader,
-                *parentClassLoader,
-            ).toTypedArray()
-        )
+        val joinClassLoader = JoinClassLoader(classLoader, parentClassLoader)
         return tempChangeSystemClassLoader(joinClassLoader) {
-            val parentContext = internalContext
-            val resourceLoader = if (parentContext == null) {
-                JoinResourceLoader(
-                    DefaultResourceLoader(joinClassLoader)
+            val parentContext = internalContext ?: error("Parent context is not initialized yet.")
+            val resourceLoader = DefaultResourceLoader(joinClassLoader)
+            val childConfigurations =
+                parentContext.getBeansOfType(CloudChildSpringApplicationConfiguration::class.java)
+
+            val properties = Properties().apply {
+                setProperty("spring.application.name", applicationClass.simpleName)
+                setProperty("logging.include-application-name", "false")
+                setProperty("logging.level.root", "info")
+
+                setProperty("spring.jpa.show-sql", "false")
+                setProperty(
+                    "spring.jpa.properties.jakarta.persistence.sharedCache.mode",
+                    "ENABLE_SELECTIVE"
                 )
-            } else {
-                JoinResourceLoader(
-                    DefaultResourceLoader(joinClassLoader),
-                    objectListOf(parentContext)
+                setProperty("spring.jpa.properties.hibernate.generate_statistics", "true")
+                setProperty("spring.jpa.properties.hibernate.cache.use_second_level_cache", "true")
+                setProperty("spring.jpa.properties.hibernate.cache.use_query_cache", "true")
+                setProperty("spring.jpa.properties.hibernate.cache.region.factory_class", "jcache")
+                setProperty(
+                    "spring.jpa.properties.hibernate.javax.cache.provider",
+                    "org.ehcache.jsr107.EhcacheCachingProvider"
+                )
+                setProperty(
+                    "spring.jpa.properties.hibernate.javax.cache.missing_cache_strategy",
+                    "create"
+                )
+
+                setProperty(
+                    "spring.autoconfigure.exclude",
+                    childConfigurations.values.flatMap { it.excludedAutoConfiguration }
+                        .toMutableList()
+                        .distinct()
+                        .joinToString(",") { it.canonicalName }
                 )
             }
 
@@ -189,26 +215,34 @@ class CloudCoreInstance : CloudInstance {
                 .resourceLoader(resourceLoader)
                 .bannerMode(Banner.Mode.CONSOLE)
                 .banner(SurfSpringBanner())
+                .properties(properties)
                 .profiles(springProfile)
+                .profiles("plugin")
+                .web(WebApplicationType.NONE)
+                .initializers({ ctx ->
+                    require(ctx is BeanDefinitionRegistry)
 
-            if (parentContext != null) {
-                builder.parent(parentContext)
-                builder.properties(
-                    mapOf(
-                        "spring.autoconfigure.exclude" to "org.springframework.boot.autoconfigure.context.PropertyPlaceholderAutoConfiguration"
-                    )
-                )
-                builder.initializers({ ctx ->
-                    ctx.beanFactory.registerSingleton(
+                    ctx.registerBeanDefinition(
                         "cloudEventBpp",
-                        CloudEventListenerBeanPostProcessor()
+                        RootBeanDefinition(CloudEventListenerBeanPostProcessor::class.java)
                     )
-                    ctx.beanFactory.registerSingleton(
+                    ctx.registerBeanDefinition(
                         "loginValidationAutoRegistrationHandler",
-                        CloudPlayerPunishmentManagerBridgeImpl.LoginValidationAutoRegistrationHandler()
+                        RootBeanDefinition(CloudPlayerPunishmentManagerBridgeImpl.LoginValidationAutoRegistrationHandler::class.java)
                     )
                 })
-            }
+
+
+//            builder.parent(parentContext)
+
+            childConfigurations
+                .forEach { (_, config) ->
+                    config.configureChildApplication(
+                        builder,
+                        classLoader,
+                        *parentClassLoader
+                    )
+                }
 
             customizer(builder)
 
@@ -217,6 +251,9 @@ class CloudCoreInstance : CloudInstance {
         }
     }
 
+    override fun <B> getBean(beanClass: Class<B>): B {
+        return dataContext.getBean(beanClass)
+    }
 
     fun isRunning(): Boolean {
         return internalContext?.isActive == true

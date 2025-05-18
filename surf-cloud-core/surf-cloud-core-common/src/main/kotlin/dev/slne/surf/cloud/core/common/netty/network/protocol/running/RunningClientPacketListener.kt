@@ -83,5 +83,7 @@ interface RunningClientPacketListener : ClientCommonPacketListener {
 
     suspend fun handleTriggerPunishmentCreatedEvent(packet: ClientboundTriggerPunishmentCreatedEventPacket)
 
+    suspend fun handleRequestPlayerPermission(packet: RequestPlayerPermissionPacket)
+
     fun handlePacket(packet: NettyPacket)
 }

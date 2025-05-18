@@ -2,6 +2,8 @@ package dev.slne.surf.cloud.api.server.plugin.configuration
 
 interface PluginMeta {
     val name: String
+    val flywayTableName: String
+
     val version: String
     val main: String
 

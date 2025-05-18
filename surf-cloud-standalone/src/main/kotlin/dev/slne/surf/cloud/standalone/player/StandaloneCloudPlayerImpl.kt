@@ -1,9 +1,9 @@
 package dev.slne.surf.cloud.standalone.player
 
 import dev.slne.surf.cloud.api.common.netty.network.protocol.await
+import dev.slne.surf.cloud.api.common.netty.network.protocol.awaitOrThrow
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
 import dev.slne.surf.cloud.api.common.player.CloudPlayer
-import dev.slne.surf.cloud.api.common.player.ConnectionResult
 import dev.slne.surf.cloud.api.common.player.ConnectionResultEnum
 import dev.slne.surf.cloud.api.common.player.name.NameHistory
 import dev.slne.surf.cloud.api.common.player.playtime.Playtime
@@ -24,12 +24,12 @@ import dev.slne.surf.cloud.standalone.netty.server.NettyServerImpl
 import dev.slne.surf.cloud.standalone.player.db.exposed.CloudPlayerService
 import dev.slne.surf.cloud.standalone.server.StandaloneCloudServerImpl
 import dev.slne.surf.cloud.standalone.server.StandaloneProxyCloudServerImpl
+import dev.slne.surf.cloud.standalone.server.queue.QueueManagerImpl
 import dev.slne.surf.surfapi.core.api.messages.adventure.sendText
 import dev.slne.surf.surfapi.core.api.util.logger
 import dev.slne.surf.surfapi.core.api.util.mutableObjectListOf
 import dev.slne.surf.surfapi.core.api.util.toObjectList
 import it.unimi.dsi.fastutil.objects.ObjectList
-import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import net.kyori.adventure.audience.MessageType
@@ -75,13 +75,11 @@ class StandaloneCloudPlayerImpl(uuid: UUID, name: String, val ip: Inet4Address) 
     val anyServer: ServerCommonCloudServer
         get() = server ?: proxyServer ?: error("Player is not connected to a server")
 
+    @Deprecated("remove")
     @Volatile
     var connecting = false
 
-    @Volatile
-    var connectionQueueCallback: CompletableDeferred<ConnectionResult>? = null
-        private set
-
+    @Deprecated("remove")
     @Volatile
     var connectingToServer: StandaloneCloudServerImpl? = null
 
@@ -159,7 +157,7 @@ class StandaloneCloudPlayerImpl(uuid: UUID, name: String, val ip: Inet4Address) 
     override suspend fun playtime(): Playtime {
         val dbPlaytimes = service.loadPlaytimeEntries(uuid)
         val memoryPlaytimes = createMemoryEntriesFromSessions()
-        dbPlaytimes.removeIf {db -> memoryPlaytimes.any { mem -> db.id == mem.id  } }
+        dbPlaytimes.removeIf { db -> memoryPlaytimes.any { mem -> db.id == mem.id } }
         val allPlaytimes = dbPlaytimes + memoryPlaytimes
 
         if (allPlaytimes.isEmpty()) {
@@ -204,10 +202,10 @@ class StandaloneCloudPlayerImpl(uuid: UUID, name: String, val ip: Inet4Address) 
         return name
     }
 
-    override suspend fun connectToServer(server: CloudServer): ConnectionResult {
+    override suspend fun connectToServer(server: CloudServer): ConnectionResultEnum {
         check(server is StandaloneCloudServerImpl) { "Server must be a StandaloneCloudServerImpl" }
 
-        return server.pullPlayer(this) to null
+        return server.pullPlayer(this)
 
 //        if (connecting) {
 //            return ConnectionResultEnum.CONNECTION_IN_PROGRESS to null
@@ -242,15 +240,15 @@ class StandaloneCloudPlayerImpl(uuid: UUID, name: String, val ip: Inet4Address) 
     private suspend fun switchServerUnderSameProxy(
         proxy: StandaloneProxyCloudServerImpl,
         target: StandaloneCloudServerImpl
-    ): ConnectionResult {
+    ): ConnectionResultEnum {
         val underSameProxy =
             ClientboundIsServerManagedByThisProxyPacket(target.connection.virtualHost)
                 .fireAndAwait(proxy.connection)
                 ?.isManagedByThisProxy
-                ?: return ConnectionResultEnum.CANNOT_COMMUNICATE_WITH_PROXY to null
+                ?: return ConnectionResultEnum.CANNOT_COMMUNICATE_WITH_PROXY
 
         if (!underSameProxy) {
-            return ConnectionResultEnum.CANNOT_SWITCH_PROXY to null
+            return ConnectionResultEnum.CANNOT_SWITCH_PROXY
         }
 
         val response = ClientboundTransferPlayerPacket(uuid, target.connection.virtualHost)
@@ -263,27 +261,35 @@ class StandaloneCloudPlayerImpl(uuid: UUID, name: String, val ip: Inet4Address) 
             Status.CONNECTION_IN_PROGRESS -> ConnectionResultEnum.CONNECTION_IN_PROGRESS
             Status.CONNECTION_CANCELLED -> ConnectionResultEnum.CONNECTION_CANCELLED
             Status.SERVER_DISCONNECTED -> ConnectionResultEnum.SERVER_DISCONNECTED
-        } to response.reasonComponent
+        }
     }
 
-    override suspend fun connectToServerOrQueue(server: CloudServer): ConnectionResult {
+    override suspend fun connectToServerOrQueue(
+        server: CloudServer,
+        sendQueuedMessage: Boolean
+    ): ConnectionResultEnum {
         check(server is StandaloneCloudServerImpl) { "Server must be a StandaloneCloudServerImpl" }
-
-        if (connecting) {
-            return ConnectionResultEnum.CONNECTION_IN_PROGRESS to null
-        }
-
         connecting = true
-        assert(connectionQueueCallback == null) { "Connection queue callback is not null" }
-        connectionQueueCallback = CompletableDeferred<ConnectionResult>()
+        connectingToServer = server
 
-        val proxy = proxyServer
-        if (proxy != null) {
-            return switchServerOrQueueUnderSameProxy(proxy, server).also { connecting = false }
-        }
+        val manager = bean<QueueManagerImpl>()
+        val deferred = manager.queueForServer(this, server, sendQueuedMessage)
+        deferred.invokeOnCompletion { connecting = false; connectingToServer = null }
 
-        error("NOT SUPPORTED")
-//        return switchServerOrQueueUnderNoProxy(server).also { connecting = false }
+        return deferred.await()
+    }
+
+    override suspend fun connectToServerOrQueue(
+        group: String,
+        sendQueuedMessage: Boolean
+    ): ConnectionResultEnum {
+        connecting = true
+
+        val manager = bean<QueueManagerImpl>()
+        val deferred = manager.queueForGroup(this, group, sendQueuedMessage)
+        deferred.invokeOnCompletion { connecting = false; connectingToServer = null }
+
+        return deferred.await()
     }
 
     override fun isOnServer(server: CloudServer): Boolean {
@@ -307,23 +313,6 @@ class StandaloneCloudPlayerImpl(uuid: UUID, name: String, val ip: Inet4Address) 
         return RequestLuckpermsMetaDataPacket(uuid, key).fireAndAwait(anyServer.connection)?.data
     }
 
-    private suspend fun switchServerOrQueueUnderSameProxy(
-        proxy: StandaloneProxyCloudServerImpl,
-        target: StandaloneCloudServerImpl
-    ): ConnectionResult {
-        val underSameProxy =
-            ClientboundIsServerManagedByThisProxyPacket(target.connection.virtualHost)
-                .fireAndAwait(proxy.connection)
-                ?.isManagedByThisProxy
-                ?: return ConnectionResultEnum.CANNOT_COMMUNICATE_WITH_PROXY to null
-
-        if (!underSameProxy) {
-            return ConnectionResultEnum.CANNOT_SWITCH_PROXY to null
-        }
-
-        target.queue.addPlayerToQueue(this)
-        return connectionQueueCallback!!.await()
-    }
 
     @Deprecated("Deprecated in Java")
     @Suppress("UnstableApiUsage", "DEPRECATION")
@@ -414,6 +403,10 @@ class StandaloneCloudPlayerImpl(uuid: UUID, name: String, val ip: Inet4Address) 
         send(ClientboundPlaySoundPacket(uuid, sound, emitter, permission))
     }
 
+    override suspend fun hasPermission(permission: String): Boolean {
+        return RequestPlayerPermissionPacket(uuid, permission).awaitOrThrow(anyServer.connection)
+    }
+
     override fun playSound(sound: Sound) {
         send(ClientboundPlaySoundPacket(uuid, sound))
     }
@@ -464,7 +457,7 @@ class StandaloneCloudPlayerImpl(uuid: UUID, name: String, val ip: Inet4Address) 
 
         val targetServer = target.server
         if (targetServer == null || targetServer != this.server) {
-            val (result) = this.connectToServer(targetServer ?: return false)
+            val result = this.connectToServer(targetServer ?: return false)
             if (!result.isSuccess) {
                 this.sendMessage(result.message)
                 return false

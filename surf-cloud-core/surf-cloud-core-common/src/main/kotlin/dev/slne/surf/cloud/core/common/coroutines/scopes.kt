@@ -74,6 +74,11 @@ object QueueDisplayScope : BaseScope(
     name = "queue-display"
 )
 
+object QueueConnectionScope : BaseScope(
+    dispatcher = Dispatchers.Default,
+    name = "queue-connection"
+)
+
 object PlayerDataSaveScope : BaseScope(
     dispatcher = Dispatchers.IO,
     name = "player-data-save"

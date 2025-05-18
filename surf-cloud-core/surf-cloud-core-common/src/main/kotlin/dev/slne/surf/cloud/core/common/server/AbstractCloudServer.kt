@@ -24,13 +24,13 @@ abstract class AbstractCloudServer(
         if (players.isEmpty()) return emptyObjectList()
         if (players.size == 1) {
             val player = players.first()
-            val (result, _) = player.connectToServer(this)
+            val result = player.connectToServer(this)
             return objectListOf(player to result)
         }
 
         val results = players.mapAsync { it to it.connectToServer(this) }.awaitAll()
             .map { (player, rawResult) ->
-                val (result, _) = rawResult
+                val result = rawResult
                 player to result
             }
 

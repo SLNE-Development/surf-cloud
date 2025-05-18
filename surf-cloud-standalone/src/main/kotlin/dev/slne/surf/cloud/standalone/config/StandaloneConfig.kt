@@ -7,7 +7,7 @@ import dev.slne.surf.surfapi.core.api.util.random
 import org.spongepowered.configurate.objectmapping.ConfigSerializable
 import org.spongepowered.configurate.objectmapping.meta.Comment
 import org.spongepowered.configurate.objectmapping.meta.Setting
-import java.util.Base64
+import java.util.*
 
 
 val standaloneConfig: StandaloneConfig by lazy {
@@ -32,6 +32,10 @@ data class StandaloneConfig(
     @Comment("common configuration for punishments")
     @Setting("punish")
     val punish: PunishmentConfig = PunishmentConfig(),
+
+    @Comment("Configuration for the queue system.")
+    @Setting("queue")
+    val queue: QueueConfig = QueueConfig(),
 )
 
 @ConfigSerializable
@@ -64,4 +68,17 @@ data class LoggingConfig(
 @ConfigSerializable
 data class PunishmentConfig(
     val webhookUrls: List<String> = listOf()
+)
+
+@ConfigSerializable
+data class QueueConfig(
+    val maxConnectionAttempts: Int = 3,
+    val multiQueue: Boolean = true,
+    val allowJoiningSuspendedQueue: Boolean = false,
+    val removePlayerOnServerSwitch: Boolean = true,
+
+    /** How many minutes a queue is held after the last access. */
+    val cacheRetainMinutes: Int = 30,
+
+    val suspendedQueueCharacter: Char = '⏸',
 )

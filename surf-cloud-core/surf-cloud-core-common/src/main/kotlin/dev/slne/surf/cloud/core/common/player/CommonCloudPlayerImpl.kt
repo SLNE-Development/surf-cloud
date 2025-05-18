@@ -1,50 +1,43 @@
 package dev.slne.surf.cloud.core.common.player
 
 import dev.slne.surf.cloud.api.common.player.CloudPlayer
-import dev.slne.surf.cloud.api.common.player.ConnectionResult
 import dev.slne.surf.cloud.api.common.player.ConnectionResultEnum
 import dev.slne.surf.cloud.api.common.server.CloudServer
 import dev.slne.surf.cloud.api.common.server.CloudServerManager
-import dev.slne.surf.cloud.core.common.netty.network.protocol.running.TeleportPlayerToPlayerPacket
 import java.time.ZonedDateTime
 import java.util.*
 
-abstract class CommonCloudPlayerImpl(uuid: UUID, override val name: String) : CommonOfflineCloudPlayerImpl(uuid), CloudPlayer {
+abstract class CommonCloudPlayerImpl(uuid: UUID, override val name: String) :
+    CommonOfflineCloudPlayerImpl(uuid), CloudPlayer {
 
     override suspend fun connectToServer(
         group: String,
         server: String
-    ): ConnectionResult = CloudServerManager.retrieveServerByCategoryAndName(group, server)
+    ): ConnectionResultEnum = CloudServerManager.retrieveServerByCategoryAndName(group, server)
         ?.let {
-            it as? CloudServer ?: return (ConnectionResultEnum.CANNOT_CONNECT_TO_PROXY to null)
+            it as? CloudServer ?: return ConnectionResultEnum.CANNOT_CONNECT_TO_PROXY
         }
         ?.let { connectToServer(it) }
-        ?: (ConnectionResultEnum.SERVER_NOT_FOUND to null)
+        ?: ConnectionResultEnum.SERVER_NOT_FOUND(server)
 
-    override suspend fun connectToServer(group: String): ConnectionResult =
+    override suspend fun connectToServer(group: String): ConnectionResultEnum =
         CloudServerManager.retrieveServersByCategory(group).asSequence()
             .filterIsInstance<CloudServer>()
             .filter { it.hasEmptySlots() }
-            .also { if (it.none()) return (ConnectionResultEnum.CATEGORY_FULL to null) }
+            .also { if (it.none()) return ConnectionResultEnum.CATEGORY_FULL }
             .minBy { it.currentPlayerCount }
             .let { connectToServer(it) }
 
     override suspend fun connectToServerOrQueue(
         group: String,
-        server: String
-    ): ConnectionResult = CloudServerManager.retrieveServerByCategoryAndName(group, server)
+        server: String,
+        sendQueuedMessage: Boolean
+    ): ConnectionResultEnum = CloudServerManager.retrieveServerByCategoryAndName(group, server)
         ?.let {
-            it as? CloudServer ?: return (ConnectionResultEnum.CANNOT_CONNECT_TO_PROXY to null)
+            it as? CloudServer ?: return ConnectionResultEnum.CANNOT_CONNECT_TO_PROXY
         }
-        ?.let { connectToServerOrQueue(it) }
-        ?: (ConnectionResultEnum.SERVER_NOT_FOUND to null)
-
-    override suspend fun connectToServerOrQueue(group: String): ConnectionResult =
-        CloudServerManager.retrieveServersByCategory(group).asSequence()
-            .filterIsInstance<CloudServer>()
-//            .filter { it.emptySlots > 0 }
-            .minBy { it.currentPlayerCount } // also check player count in queue / maybe do it completely different - a group queue?
-            .let { connectToServerOrQueue(it) }
+        ?.let { connectToServerOrQueue(it, sendQueuedMessage) }
+        ?: ConnectionResultEnum.SERVER_NOT_FOUND(server)
 
     override suspend fun <R> getLuckpermsMetaData(
         key: String,

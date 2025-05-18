@@ -95,7 +95,7 @@ class PunishmentManagerImpl : PunishmentManager, PrePlayerJoinTask {
     override suspend fun createKick(
         punishedUuid: UUID,
         issuerUuid: UUID?,
-        reason: String,
+        reason: String?,
         initialNotes: List<String>
     ): PunishmentKickImpl = withTransaction {
         val punishmentId = generatePunishmentId()
@@ -120,7 +120,7 @@ class PunishmentManagerImpl : PunishmentManager, PrePlayerJoinTask {
     override suspend fun createWarn(
         punishedUuid: UUID,
         issuerUuid: UUID?,
-        reason: String,
+        reason: String?,
         initialNotes: List<String>
     ): PunishmentWarnImpl = withTransaction {
         val punishmentId = generatePunishmentId()
@@ -145,7 +145,7 @@ class PunishmentManagerImpl : PunishmentManager, PrePlayerJoinTask {
     override suspend fun createMute(
         punishedUuid: UUID,
         issuerUuid: UUID?,
-        reason: String,
+        reason: String?,
         permanent: Boolean,
         expirationDate: ZonedDateTime?,
         initialNotes: List<String>
@@ -173,7 +173,7 @@ class PunishmentManagerImpl : PunishmentManager, PrePlayerJoinTask {
     override suspend fun createBan(
         punishedUuid: UUID,
         issuerUuid: UUID?,
-        reason: String,
+        reason: String?,
         permanent: Boolean,
         expirationDate: ZonedDateTime?,
         securityBan: Boolean,

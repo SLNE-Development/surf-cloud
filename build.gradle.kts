@@ -32,7 +32,7 @@ allprojects {
         implementation(platform("io.ktor:ktor-bom:3.0.3"))
         implementation(platform("org.jetbrains.kotlin-wrappers:kotlin-wrappers-bom:2025.4.10"))
 
-        compileOnly("org.springframework.boot:spring-boot-configuration-processor:3.4.3")
+        compileOnly("org.springframework.boot:spring-boot-configuration-processor:3.5.0")
         //    "kapt"("org.springframework.boot:spring-boot-configuration-processor:3.4.3")
     }
 

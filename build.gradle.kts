@@ -28,7 +28,7 @@ allprojects {
     }
 
     dependencies {
-        implementation(platform("org.springframework.boot:spring-boot-dependencies:3.4.4"))
+        implementation(platform("org.springframework.boot:spring-boot-dependencies:3.5.0"))
         implementation(platform("io.ktor:ktor-bom:3.0.3"))
         implementation(platform("org.jetbrains.kotlin-wrappers:kotlin-wrappers-bom:2025.4.10"))
 

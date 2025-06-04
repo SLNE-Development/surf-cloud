@@ -39,8 +39,8 @@ class BukkitClientCloudPlayerImpl(uuid: UUID, name: String) : ClientCloudPlayerI
         val player = audience ?: return
 
         val factory = ConversationFactory(plugin)
-        factory.withModality(true) // player dont receive messages from other players
-        factory.withLocalEcho(false) // player dont see their own messages
+        factory.withModality(true) // player doesn't receive messages from other players
+        factory.withLocalEcho(false) // player doesn't see their own messages
         factory.withPrefix { ">> " } // prefix for messages
         factory.withTimeout(60) // timeout in seconds
         factory.withEscapeSequence("exit") // escape sequence to exit conversation

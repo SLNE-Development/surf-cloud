@@ -31,7 +31,7 @@ https://chatgpt.com/g/g-67f7a61dc2208191bea4663d0771d6dd-flyway-migration-genera
     - [ ] codestyle settings (only for java if anyone would ever use that)
     - [ ] configure dokka
     - [ ] configure gitlab ci
-    - [ ] configure gitingore
+    - [ ] configure gitignore
     - [ ] basic project structure
 - [ ] Generators
     - [ ] packet id generator (one class where all packet ids are stored, annotated with @PacketIdStore)

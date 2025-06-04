@@ -11,7 +11,7 @@ import kotlin.concurrent.write
 
 
 @Component
-class ReentrantRedWriteLockQueueTimeoutRegistry : QueueTimeoutRegistry {
+class ReentrantReadWriteLockQueueTimeoutRegistry : QueueTimeoutRegistry {
     private val map = mutableObject2LongMapOf<UUID>().apply { defaultReturnValue(-1) }
     private val lock = ReentrantReadWriteLock()
 

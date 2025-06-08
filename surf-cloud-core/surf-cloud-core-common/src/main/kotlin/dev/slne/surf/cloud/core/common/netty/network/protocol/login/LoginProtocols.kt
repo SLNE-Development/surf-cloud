@@ -11,7 +11,6 @@ object LoginProtocols {
             ConnectionProtocol.LOGIN
         ) { builder ->
             builder.addPacket(ServerboundLoginAcknowledgedPacket.STREAM_CODEC)
-            builder.addPacket(ServerboundWaitForServerToStartPacket.STREAM_CODEC)
             builder.addPacket(ServerboundLoginStartPacket.STREAM_CODEC)
         }
 

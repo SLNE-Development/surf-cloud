@@ -69,6 +69,7 @@ class ServerLoginPacketListenerImpl(val server: NettyServerImpl, val connection:
     override suspend fun handleLoginAcknowledgement(packet: ServerboundLoginAcknowledgedPacket) {
         check(state == State.PROTOCOL_SWITCHING) { "Unexpected login acknowledgement packet" }
 
+        client!!.initConnection(connection)
         connection.setupOutboundProtocol(PreRunningProtocols.CLIENTBOUND)
         val listener = ServerPreRunningPacketListenerImpl(server, connection, client!!, proxy)
         connection.setupInboundProtocol(PreRunningProtocols.SERVERBOUND, listener)

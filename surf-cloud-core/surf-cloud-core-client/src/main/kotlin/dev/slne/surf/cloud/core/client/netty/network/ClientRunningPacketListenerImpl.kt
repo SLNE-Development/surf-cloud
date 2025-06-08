@@ -3,6 +3,7 @@ package dev.slne.surf.cloud.core.client.netty.network
 import com.google.common.flogger.StackSize
 import dev.slne.surf.cloud.api.common.event.offlineplayer.punishment.CloudPlayerPunishEvent
 import dev.slne.surf.cloud.api.common.event.offlineplayer.punishment.CloudPlayerPunishmentUpdatedEvent
+import dev.slne.surf.cloud.api.common.netty.network.ConnectionProtocol
 import dev.slne.surf.cloud.api.common.netty.network.protocol.respond
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacketInfo
@@ -346,7 +347,7 @@ class ClientRunningPacketListenerImpl(
         val listeners = NettyListenerRegistry.getListeners(packet.javaClass) ?: return
         if (listeners.isEmpty()) return
 
-        val info = NettyPacketInfo(connection)
+        val info = NettyPacketInfo(connection, ConnectionProtocol.RUNNING)
 
         for (listener in listeners) {
             PacketHandlerScope.launch {

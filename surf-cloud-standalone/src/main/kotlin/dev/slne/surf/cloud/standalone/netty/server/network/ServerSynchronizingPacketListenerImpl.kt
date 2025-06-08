@@ -1,7 +1,10 @@
 package dev.slne.surf.cloud.standalone.netty.server.network
 
+import dev.slne.surf.cloud.api.common.netty.network.ConnectionProtocol
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
+import dev.slne.surf.cloud.api.common.netty.packet.NettyPacketInfo
 import dev.slne.surf.cloud.core.common.coroutines.BeforeStartTaskScope
+import dev.slne.surf.cloud.core.common.coroutines.PacketHandlerScope
 import dev.slne.surf.cloud.core.common.netty.network.ConnectionImpl
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ClientboundBatchUpdateServer
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.RunningProtocols
@@ -11,6 +14,7 @@ import dev.slne.surf.cloud.core.common.netty.network.protocol.synchronizing.Clie
 import dev.slne.surf.cloud.core.common.netty.network.protocol.synchronizing.FinishSynchronizingPacket
 import dev.slne.surf.cloud.core.common.netty.network.protocol.synchronizing.ServerSynchronizingPacketListener
 import dev.slne.surf.cloud.core.common.netty.network.protocol.synchronizing.ServerboundSynchronizeFinishAcknowledgedPacket
+import dev.slne.surf.cloud.core.common.netty.registry.listener.NettyListenerRegistry
 import dev.slne.surf.cloud.core.common.plugin.task.CloudSynchronizeTaskManager
 import dev.slne.surf.cloud.standalone.netty.server.NettyServerImpl
 import dev.slne.surf.cloud.standalone.netty.server.ServerClientImpl
@@ -98,7 +102,26 @@ class ServerSynchronizingPacketListenerImpl(
     }
 
     override fun handlePacket(packet: NettyPacket) {
-        TODO("Not yet implemented")
+        val listeners = NettyListenerRegistry.getListeners(packet.javaClass) ?: return
+        if (listeners.isEmpty()) return
+
+        val info = NettyPacketInfo(connection, ConnectionProtocol.SYNCHRONIZING)
+
+        for (listener in listeners) {
+            PacketHandlerScope.launch {
+                try {
+                    listener.handle(packet, info)
+                } catch (e: Throwable) {
+                    log.atWarning()
+                        .withCause(e)
+                        .log(
+                            "Failed to call listener %s for packet %s",
+                            listener::class.simpleName,
+                            packet::class.simpleName
+                        )
+                }
+            }
+        }
     }
 
 

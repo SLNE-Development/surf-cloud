@@ -84,6 +84,6 @@ abstract class CommonSyncRegistryImpl : SyncRegistry {
     }
 
     companion object {
-        val instance = SyncRegistry.instance as CommonSyncRegistryImpl
+        val instance by lazy { SyncRegistry.instance as CommonSyncRegistryImpl }
     }
 }

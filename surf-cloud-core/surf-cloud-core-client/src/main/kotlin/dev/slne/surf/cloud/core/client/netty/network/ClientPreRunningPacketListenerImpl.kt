@@ -49,7 +49,6 @@ class ClientPreRunningPacketListenerImpl(
         connection.send(ServerboundProceedToSynchronizingAcknowledgedPacket)
         connection.setupOutboundProtocol(SynchronizingProtocols.SERVERBOUND)
 
-        statusUpdater.switchState(State.SYNCHRONIZING)
         completion.complete(Unit)
         listener.startSynchronizing()
     }

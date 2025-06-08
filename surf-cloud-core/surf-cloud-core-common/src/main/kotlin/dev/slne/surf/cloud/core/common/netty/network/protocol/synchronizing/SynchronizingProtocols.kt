@@ -23,6 +23,8 @@ object SynchronizingProtocols {
                 .addPacket(ClientboundBatchSyncValuePacket.STREAM_CODEC)
                 .addPacket(ClientboundBatchSyncSetPacket.STREAM_CODEC)
                 .addPacket(SyncSetDeltaPacket.STREAM_CODEC)
+                .addPacket(FinishSynchronizingPacket.STREAM_CODEC)
+                .addPacket(ClientboundSynchronizeFinishPacket.STREAM_CODEC)
         }
 
     val CLIENTBOUND by lazy { CLIENTBOUND_TEMPLATE.bind(::SurfByteBuf) }
@@ -37,6 +39,7 @@ object SynchronizingProtocols {
                 .addPacket(ServerboundSynchronizeFinishAcknowledgedPacket.STREAM_CODEC)
                 .addPacket(SyncValueChangePacket.STREAM_CODEC)
                 .addPacket(SyncSetDeltaPacket.STREAM_CODEC)
+                .addPacket(FinishSynchronizingPacket.STREAM_CODEC)
         }
 
     val SERVERBOUND by lazy { SERVERBOUND_TEMPLATE.bind(::SurfByteBuf) }

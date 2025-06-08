@@ -1,5 +1,6 @@
 package dev.slne.surf.cloud.standalone.netty.server.network
 
+import dev.slne.surf.cloud.api.common.netty.network.ConnectionProtocol
 import dev.slne.surf.cloud.api.common.netty.network.protocol.respond
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacketInfo
@@ -513,7 +514,7 @@ class ServerRunningPacketListenerImpl(
         val listeners = NettyListenerRegistry.getListeners(packet.javaClass) ?: return
         if (listeners.isEmpty()) return
 
-        val info = NettyPacketInfo(connection)
+        val info = NettyPacketInfo(connection, ConnectionProtocol.RUNNING)
 
         for (listener in listeners) {
             PacketHandlerScope.launch {

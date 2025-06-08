@@ -54,7 +54,7 @@ class CloudCoreInstance : CloudInstance {
     }
 
     val springProfile by lazy {
-        ClassPathResource("spring.profile").getContentAsString(
+        ClassPathResource("spring.profile", javaClass.classLoader).getContentAsString(
             StandardCharsets.UTF_8
         )
     }
@@ -160,12 +160,13 @@ class CloudCoreInstance : CloudInstance {
         timeLogger.printSummary()
     }
 
-    private fun startMainSpringApplication() =
+    private fun startMainSpringApplication() = tempChangeSystemClassLoader(javaClass.classLoader) {
         SpringApplicationBuilder(SurfCloudMainApplication::class.java)
             .profiles(springProfile)
             .initializers(NettyPacketProcessor())
             .web(WebApplicationType.NONE)
             .run()
+    }
 
     override fun startSpringApplication(
         applicationClass: Class<*>,

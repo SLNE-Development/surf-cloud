@@ -64,10 +64,7 @@ class NettyPacketProcessor : ApplicationContextInitializer<ConfigurableApplicati
             }
 
             val protocols = packetMeta.protocols
-            if (!protocols.contains(ConnectionProtocol.RUNNING) || protocols.contains(
-                    ConnectionProtocol.SYNCHRONIZING
-                )
-            ) continue
+            if (!protocols.contains(ConnectionProtocol.RUNNING) && !protocols.contains(ConnectionProtocol.SYNCHRONIZING)) continue
             val codec = packet.findPacketCodec<SurfByteBuf, NettyPacket>()
 
             if (codec == null) {

@@ -2,14 +2,12 @@ package dev.slne.surf.cloud.api.server.exposed.service
 
 import com.github.benmanes.caffeine.cache.Caffeine
 import com.sksamuel.aedile.core.asLoadingCache
+import dev.slne.surf.cloud.api.server.plugin.CoroutineTransactional
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
-import org.checkerframework.checker.units.qual.K
 import org.jetbrains.exposed.dao.Entity
-import org.jetbrains.exposed.sql.Transaction
-import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import kotlin.coroutines.CoroutineContext
 
 /**
@@ -36,9 +34,7 @@ abstract class AbstractExposedDAOService<K, V : Entity<*>>(
             val cacheContext = context + cacheName + SupervisorJob()
 
             asLoadingCache<K, V?>(CoroutineScope(cacheContext)) {
-                withTransaction {
-                    load(it)
-                }
+                load(it)
             }
         }
 
@@ -52,17 +48,6 @@ abstract class AbstractExposedDAOService<K, V : Entity<*>>(
     protected abstract suspend fun create(key: K): V?
 
     /**
-     * Executes a suspendable transaction within the configured coroutine context.
-     *
-     * @param block The transactional block to execute.
-     * @return The result of the transaction.
-     */
-    protected suspend fun <T> withTransaction(block: suspend Transaction.() -> T) =
-        newSuspendedTransaction(context) {
-            block()
-        }
-
-    /**
      * Retrieves an entity from the cache or loads it if not present.
      *
      * @param key The key used to identify the entity.
@@ -70,9 +55,10 @@ abstract class AbstractExposedDAOService<K, V : Entity<*>>(
      */
     protected suspend fun find(key: K) = cache.get(key)
 
-    protected suspend fun <R> find(key: K, result: V.() -> R): R? = withTransaction {
-        val entity = cache.get(key) ?: return@withTransaction null
-        return@withTransaction entity.result()
+    @CoroutineTransactional
+    protected suspend fun <R> find(key: K, result: V.() -> R): R? {
+        val entity = cache.get(key) ?: return null
+        return entity.result()
     }
 
     /**
@@ -82,7 +68,12 @@ abstract class AbstractExposedDAOService<K, V : Entity<*>>(
      * @param block The modification block to apply to the entity.
      * @return The updated entity, or `null` if not found.
      */
-    protected suspend fun update(key: K, createIfMissing: Boolean = true, block: suspend V.() -> Unit) = withTransaction {
+    @CoroutineTransactional
+    protected suspend fun update(
+        key: K,
+        createIfMissing: Boolean = true,
+        block: suspend V.() -> Unit
+    ) {
         val entity = cache.get(key) ?: if (createIfMissing) create(key) else null
         if (entity != null) {
             entity.block()

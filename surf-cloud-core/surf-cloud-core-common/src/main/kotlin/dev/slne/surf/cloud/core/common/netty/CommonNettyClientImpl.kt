@@ -77,7 +77,7 @@ abstract class CommonNettyClientImpl(
 
     abstract fun broadcast(packets: List<NettyPacket>)
 
-    protected fun initConnection(connection: ConnectionImpl) {
+    fun initConnection(connection: ConnectionImpl) {
         check(_connection == null) { "Connection already set" }
         _connection = connection
     }

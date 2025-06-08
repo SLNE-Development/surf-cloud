@@ -45,13 +45,6 @@ class ClientNettyClientImpl(
     private val log = logger()
 
     private var _listener: ClientRunningPacketListenerImpl? = null
-        set(value) {
-            field = value
-            if (value != null) {
-                initConnection(value.connection)
-            }
-        }
-
     val listener get() = _listener ?: error("listener not yet set")
     val connected get() = _listener?.connection?.connected ?: false
 

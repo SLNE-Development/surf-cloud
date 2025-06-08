@@ -19,6 +19,7 @@ class ClientHandshakePacketListenerImpl(
     override suspend fun handleLoginFinished(packet: ClientboundLoginFinishedPacket) {
         switchState(State.PREPARE_CONNECTION)
 
+        client.initConnection(connection)
         val listener = ClientPreRunningPacketListenerImpl(
             client,
             connection,

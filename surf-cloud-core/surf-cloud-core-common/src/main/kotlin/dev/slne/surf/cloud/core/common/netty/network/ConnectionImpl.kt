@@ -263,7 +263,6 @@ class ConnectionImpl(
 
                     is ServerLoginPacketListener -> when (msg) {
                         is ServerboundLoginStartPacket -> listener.handleLoginStart(msg)
-                        is ServerboundWaitForServerToStartPacket -> listener.handleWaitForServerToStart(msg)
                         is ServerboundLoginAcknowledgedPacket -> listener.handleLoginAcknowledgement(
                             msg
                         )
@@ -562,7 +561,7 @@ class ConnectionImpl(
                             msg
                         )
                         is SyncValueChangePacket -> listener.handleSyncValueChange(msg)
-                        is SyncSetDeltaPacket -> listener.handleSyncSetDeltaPacket(msg)
+                        is SyncSetDeltaPacket -> listener.handleSyncSetDelta(msg)
 
                         else -> listener.handlePacket(msg)
                     }

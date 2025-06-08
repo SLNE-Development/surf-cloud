@@ -13,12 +13,6 @@ class ServerClientImpl(
 ) : CommonNettyClientImpl(serverId, serverCategory, serverName) {
 
     private var _listener: ServerRunningPacketListenerImpl? = null
-        set(value) {
-            field = value
-            if (value != null) {
-                initConnection(value.connection)
-            }
-        }
     val listener get() = _listener ?: error("listener not yet set")
 
     fun initListener(listener: ServerRunningPacketListenerImpl) {

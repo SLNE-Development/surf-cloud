@@ -10,8 +10,7 @@ class ServerClientImpl(
     serverId: Long,
     serverCategory: String,
     serverName: String
-) :
-    CommonNettyClientImpl(serverId, serverCategory, serverName) {
+) : CommonNettyClientImpl(serverId, serverCategory, serverName) {
 
     private var _listener: ServerRunningPacketListenerImpl? = null
         set(value) {

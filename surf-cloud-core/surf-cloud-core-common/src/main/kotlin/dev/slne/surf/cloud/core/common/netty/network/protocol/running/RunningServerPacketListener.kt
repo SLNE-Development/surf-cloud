@@ -104,5 +104,9 @@ interface RunningServerPacketListener : ServerCommonPacketListener, TickablePack
 
     suspend fun handleRequestPlayerPermission(packet: RequestPlayerPermissionPacket)
 
+    fun handleSyncValueChange(packet: SyncValueChangePacket)
+
+    fun handleSyncSetDelta(packet: SyncSetDeltaPacket)
+
     fun handlePacket(packet: NettyPacket)
 }

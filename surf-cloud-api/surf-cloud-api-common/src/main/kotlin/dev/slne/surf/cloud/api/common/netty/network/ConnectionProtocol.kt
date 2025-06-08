@@ -8,6 +8,7 @@ enum class ConnectionProtocol {
     INITIALIZE,
     LOGIN,
     PRE_RUNNING,
+    SYNCHRONIZING,
     RUNNING,
     SHUTDOWN
 }

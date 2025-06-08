@@ -25,6 +25,7 @@ import dev.slne.surf.cloud.standalone.player.StandaloneCloudPlayerImpl
 import dev.slne.surf.cloud.standalone.server.StandaloneCloudServerImpl
 import dev.slne.surf.cloud.standalone.server.StandaloneProxyCloudServerImpl
 import dev.slne.surf.cloud.standalone.server.serverManagerImpl
+import dev.slne.surf.cloud.standalone.sync.SyncRegistryImpl
 import dev.slne.surf.surfapi.core.api.util.logger
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -485,6 +486,26 @@ class ServerRunningPacketListenerImpl(
     override suspend fun handleRequestPlayerPermission(packet: RequestPlayerPermissionPacket) {
         withPlayer(packet.uuid) {
             packet.respond(hasPermission(packet.permission))
+        }
+    }
+
+    override fun handleSyncValueChange(packet: SyncValueChangePacket) {
+        try {
+            SyncRegistryImpl.instance.handleChangePacket(packet, connection)
+        } catch (e: Throwable) {
+            log.atWarning()
+                .withCause(e)
+                .log("Failed to handle sync value change packet: %s", packet.syncId)
+        }
+    }
+
+    override fun handleSyncSetDelta(packet: SyncSetDeltaPacket) {
+        try {
+            SyncRegistryImpl.instance.handleSyncSetDeltaPacket(packet, connection)
+        } catch (e: Throwable) {
+            log.atWarning()
+                .withCause(e)
+                .log("Failed to handle sync set delta packet: %s", packet.setId)
         }
     }
 

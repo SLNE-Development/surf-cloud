@@ -2,7 +2,7 @@ package dev.slne.surf.cloud.standalone.netty.server.network
 
 import dev.slne.surf.cloud.core.common.netty.network.ConnectionImpl
 import dev.slne.surf.cloud.core.common.netty.network.protocol.prerunning.*
-import dev.slne.surf.cloud.core.common.netty.network.protocol.running.RunningProtocols
+import dev.slne.surf.cloud.core.common.netty.network.protocol.synchronizing.SynchronizingProtocols
 import dev.slne.surf.cloud.standalone.netty.server.NettyServerImpl
 import dev.slne.surf.cloud.standalone.netty.server.ServerClientImpl
 
@@ -36,20 +36,19 @@ class ServerPreRunningPacketListenerImpl(
     override fun handleRequestContinuation(packet: ServerboundRequestContinuation) {
         check(state == State.PRE_RUNNING_ACKNOWLEDGED) { "Cannot proceed to running state from $state" }
 
-        send(ClientboundReadyToRunPacket)
+        send(ClientboundProceedToSynchronizingPacket)
     }
 
-    override suspend fun handleReadyToRun(packet: ServerboundReadyToRunPacket) {
+    override suspend fun handleReadyToRun(packet: ServerboundProceedToSynchronizingAcknowledgedPacket) {
         check(state == State.PRE_RUNNING_ACKNOWLEDGED) { "Cannot proceed to running state from $state" }
 
-        connection.setupOutboundProtocol(RunningProtocols.CLIENTBOUND)
-        val listener = ServerRunningPacketListenerImpl(server, client, connection)
+        connection.setupOutboundProtocol(SynchronizingProtocols.CLIENTBOUND)
+        val listener = ServerSynchronizingPacketListenerImpl(server, connection, client, proxy)
         connection.setupInboundProtocol(
-            RunningProtocols.SERVERBOUND,
+            SynchronizingProtocols.SERVERBOUND,
             listener
         )
-        client.initListener(listener)
-        server.registerClient(client, proxy)
+        listener.startSynchronizing()
     }
 
     override fun isAcceptingMessages(): Boolean {

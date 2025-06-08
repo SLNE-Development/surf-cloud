@@ -24,7 +24,7 @@ interface ProtocolInfo<T: PacketListener> {
         interface Mutable<T: PacketListener, B : ByteBuf>: Unbound<T, B> {
             fun <P : NettyPacket> addPacket(
                 id: Class<P>,
-                codec: StreamCodec<in B, P>
+                codec: StreamCodec<in B, out P>
             ): Mutable<T, B>
 
             fun freeze(): Unbound<T, B>

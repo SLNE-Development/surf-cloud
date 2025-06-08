@@ -11,6 +11,7 @@ import dev.slne.surf.cloud.api.common.util.forEachOrdered
 import dev.slne.surf.cloud.core.common.event.CloudEventListenerBeanPostProcessor
 import dev.slne.surf.cloud.core.common.netty.network.EncryptionManager
 import dev.slne.surf.cloud.core.common.player.punishment.CloudPlayerPunishmentManagerBridgeImpl
+import dev.slne.surf.cloud.core.common.plugin.task.CloudBeforeStartTaskHandler
 import dev.slne.surf.cloud.core.common.processors.NettyPacketProcessor
 import dev.slne.surf.cloud.core.common.spring.CloudChildSpringApplicationConfiguration
 import dev.slne.surf.cloud.core.common.spring.CloudLifecycleAware
@@ -229,6 +230,10 @@ class CloudCoreInstance : CloudInstance {
                     ctx.registerBeanDefinition(
                         "loginValidationAutoRegistrationHandler",
                         RootBeanDefinition(CloudPlayerPunishmentManagerBridgeImpl.LoginValidationAutoRegistrationHandler::class.java)
+                    )
+                    ctx.registerBeanDefinition(
+                        "beforeStartTaskHandler",
+                        RootBeanDefinition(CloudBeforeStartTaskHandler::class.java)
                     )
                 })
 

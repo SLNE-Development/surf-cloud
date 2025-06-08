@@ -22,6 +22,7 @@ import dev.slne.surf.cloud.core.common.netty.network.protocol.initialize.*
 import dev.slne.surf.cloud.core.common.netty.network.protocol.login.*
 import dev.slne.surf.cloud.core.common.netty.network.protocol.prerunning.*
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.*
+import dev.slne.surf.cloud.core.common.netty.network.protocol.synchronizing.*
 import dev.slne.surf.surfapi.core.api.util.logger
 import io.netty.bootstrap.Bootstrap
 import io.netty.channel.*
@@ -262,6 +263,7 @@ class ConnectionImpl(
 
                     is ServerLoginPacketListener -> when (msg) {
                         is ServerboundLoginStartPacket -> listener.handleLoginStart(msg)
+                        is ServerboundWaitForServerToStartPacket -> listener.handleWaitForServerToStart(msg)
                         is ServerboundLoginAcknowledgedPacket -> listener.handleLoginAcknowledgement(
                             msg
                         )
@@ -270,7 +272,7 @@ class ConnectionImpl(
                     }
 
                     is ServerPreRunningPacketListener -> when (msg) {
-                        is ServerboundReadyToRunPacket -> listener.handleReadyToRun(msg)
+                        is ServerboundProceedToSynchronizingAcknowledgedPacket -> listener.handleReadyToRun(msg)
                         is ServerboundPreRunningAcknowledgedPacket -> listener.handlePreRunningAcknowledged(
                             msg
                         )
@@ -278,6 +280,15 @@ class ConnectionImpl(
                         is ServerboundRequestContinuation -> listener.handleRequestContinuation(msg)
 
                         else -> error("Unexpected packet $msg")
+                    }
+
+                    is ServerSynchronizingPacketListener -> when (msg) {
+                        is FinishSynchronizingPacket -> listener.handleFinishSynchronizing(msg)
+                        is ServerboundSynchronizeFinishAcknowledgedPacket -> listener.handleSynchronizeFinishAcknowledged(msg)
+                        is SyncValueChangePacket -> listener.handleSyncValueChange(msg)
+                        is SyncSetDeltaPacket -> listener.handleSyncSetDelta(msg)
+
+                        else -> listener.handlePacket(msg)
                     }
 
                     is RunningServerPacketListener -> when (msg) {
@@ -395,6 +406,8 @@ class ConnectionImpl(
                         is RequestPlayerPermissionPacket -> listener.handleRequestPlayerPermission(
                             msg
                         )
+                        is SyncValueChangePacket -> listener.handleSyncValueChange(msg)
+                        is SyncSetDeltaPacket -> listener.handleSyncSetDelta(msg)
 
                         else -> listener.handlePacket(msg) // handle other packets
                     }
@@ -434,9 +447,19 @@ class ConnectionImpl(
                             msg
                         )
 
-                        is ClientboundReadyToRunPacket -> listener.handleReadyToRun(msg)
+                        is ClientboundProceedToSynchronizingPacket -> listener.handleProceedToSynchronizing(msg)
 
                         else -> error("Unexpected packet $msg")
+                    }
+
+                    is ClientSynchronizingPacketListener -> when (msg) {
+                        is ClientboundSynchronizeFinishPacket -> listener.handleSynchronizeFinish(msg)
+                        is SyncValueChangePacket -> listener.handleSyncValueChange(msg)
+                        is ClientboundBatchSyncValuePacket -> listener.handleBatchSyncValue(msg)
+                        is ClientboundBatchSyncSetPacket -> listener.handleBatchSyncSet(msg)
+                        is SyncSetDeltaPacket -> listener.handleSyncSetDelta(msg)
+
+                        else -> listener.handlePacket(msg)
                     }
 
                     is RunningClientPacketListener -> when (msg) {
@@ -538,6 +561,8 @@ class ConnectionImpl(
                         is RequestPlayerPermissionPacket -> listener.handleRequestPlayerPermission(
                             msg
                         )
+                        is SyncValueChangePacket -> listener.handleSyncValueChange(msg)
+                        is SyncSetDeltaPacket -> listener.handleSyncSetDeltaPacket(msg)
 
                         else -> listener.handlePacket(msg)
                     }
@@ -955,6 +980,24 @@ class ConnectionImpl(
     override fun getLoggableAddress() = getLoggableAddress(cloudConfig.logging.logIps)
     fun getLoggableAddress(logIps: Boolean) =
         if (_address == null) "local" else (if (logIps) _address.toString() else "IP hidden")
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is ConnectionImpl) return false
+
+        if (_channel != other._channel) return false
+        if (receiving != other.receiving) return false
+        if (_address != other._address) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = receiving.hashCode()
+        result = 31 * result + (_channel?.hashCode() ?: 0)
+        result = 31 * result + (_address?.hashCode() ?: 0)
+        return result
+    }
 
 
     private object Util {

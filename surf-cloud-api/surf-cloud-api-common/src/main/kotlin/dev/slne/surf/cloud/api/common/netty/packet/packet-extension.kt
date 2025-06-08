@@ -68,7 +68,7 @@ private val codecCache = mutableObject2ObjectMapOf<KClass<out NettyPacket>, Stre
 
 
 @OptIn(InternalSerializationApi::class)
-fun <P : NettyPacket> KClass<out P>.createCodec(): StreamCodec<SurfByteBuf, P> {
+fun <P : Any> KClass<out P>.createCodec(): StreamCodec<SurfByteBuf, P> {
     val serializer = serializer()
     return object : StreamCodec<SurfByteBuf, P> {
         override fun decode(buf: SurfByteBuf): P {
@@ -102,7 +102,11 @@ fun <B : ByteBuf, V : NettyPacket> KClass<out V>.findPacketCodec(): StreamCodec<
             }
 
             override fun encode(buf: B, value: V) {
-                SurfCloudBufSerializer.serializer.encodeToBuf(buf, serializer as KSerializer<V>, value)
+                SurfCloudBufSerializer.serializer.encodeToBuf(
+                    buf,
+                    serializer as KSerializer<V>,
+                    value
+                )
             }
         }
     }

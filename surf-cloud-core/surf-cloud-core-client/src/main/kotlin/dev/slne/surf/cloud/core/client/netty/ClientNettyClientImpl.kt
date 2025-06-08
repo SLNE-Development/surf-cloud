@@ -6,8 +6,10 @@ import dev.slne.surf.cloud.api.common.exceptions.FatalSurfError
 import dev.slne.surf.cloud.api.common.netty.network.protocol.PacketFlow
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
 import dev.slne.surf.cloud.api.common.server.CloudServerConstants
-import dev.slne.surf.cloud.api.common.util.mutableObjectListOf
-import dev.slne.surf.cloud.core.client.netty.network.*
+import dev.slne.surf.cloud.core.client.netty.network.ClientHandshakePacketListenerImpl
+import dev.slne.surf.cloud.core.client.netty.network.ClientRunningPacketListenerImpl
+import dev.slne.surf.cloud.core.client.netty.network.PlatformSpecificPacketListenerExtension
+import dev.slne.surf.cloud.core.client.netty.network.StatusUpdate
 import dev.slne.surf.cloud.core.client.server.serverManagerImpl
 import dev.slne.surf.cloud.core.common.config.cloudConfig
 import dev.slne.surf.cloud.core.common.coroutines.ConnectionTickScope
@@ -53,8 +55,9 @@ class ClientNettyClientImpl(
     val listener get() = _listener ?: error("listener not yet set")
     val connected get() = _listener?.connection?.connected ?: false
 
-    private val awaitPreRunning = CompletableDeferred<Unit>()
-    private val finalizeHandler = mutableObjectListOf<suspend () -> Unit>()
+    val preRunningCallback = CompletableDeferred<Unit>()
+    val synchronizeCallback = CompletableDeferred<Unit>()
+    lateinit var startSynchronizeTask: suspend () -> Unit
 
     private val statusUpdate: StatusUpdate = {
         log.atInfo().log(it)
@@ -66,20 +69,9 @@ class ClientNettyClientImpl(
     suspend fun bootstrap() {
         val config = cloudConfig.connectionConfig.nettyConfig
         connectToServer(ServerAddress(config.host, config.port))
-        awaitPreRunning.await() // Wait until the connection is in the PreRunning state
+        preRunningCallback.await() // Wait until the connection is in the PreRunning state
     }
 
-    /**
-     * Finalizes the client.
-     * This method is called after all other plugins have registered their packets.
-     * Switches to the Running state.
-     */
-    suspend fun finalize() {
-        finalizeHandler.forEach { it() }
-        finalizeHandler.clear()
-    }
-
-    fun finalizeHandler(handler: suspend () -> Unit) = finalizeHandler.add(handler)
 
     suspend fun stop() {
         doShutdown()
@@ -119,7 +111,6 @@ class ClientNettyClientImpl(
                     connection,
                     platformExtension,
                     statusUpdate,
-                    awaitPreRunning
                 ),
                 false
             )

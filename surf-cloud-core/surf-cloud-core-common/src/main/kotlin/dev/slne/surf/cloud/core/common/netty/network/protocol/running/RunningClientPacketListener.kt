@@ -85,5 +85,9 @@ interface RunningClientPacketListener : ClientCommonPacketListener {
 
     suspend fun handleRequestPlayerPermission(packet: RequestPlayerPermissionPacket)
 
+    fun handleSyncValueChange(packet: SyncValueChangePacket)
+
+    fun handleSyncSetDelta(packet: SyncSetDeltaPacket)
+
     fun handlePacket(packet: NettyPacket)
 }

@@ -67,6 +67,8 @@ object RunningProtocols {
                 .addPacket(ClientboundTriggerPunishmentCreatedEventPacket::class.createCodec())
                 .addPacket(ClientboundFetchIpAddressesResponsePacket::class.createCodec())
                 .addPacket(RequestPlayerPermissionPacket::class.createCodec())
+                .addPacket(SyncValueChangePacket.STREAM_CODEC)
+                .addPacket(SyncSetDeltaPacket.STREAM_CODEC)
         }
 
     val CLIENTBOUND by lazy { CLIENTBOUND_TEMPLATE.freeze().bind(::SurfByteBuf) }
@@ -134,6 +136,8 @@ object RunningProtocols {
                 .addPacket(ServerboundFetchIpBansPacket::class.createCodec())
                 .addPacket(RequestPlayerPermissionPacket::class.createCodec())
                 .addPacket(ServerboundQueuePlayerToGroupPacket::class.createCodec())
+                .addPacket(SyncValueChangePacket.STREAM_CODEC)
+                .addPacket(SyncSetDeltaPacket.STREAM_CODEC)
         }
 
     val SERVERBOUND by lazy { SERVERBOUND_TEMPLATE.freeze().bind(::SurfByteBuf) }

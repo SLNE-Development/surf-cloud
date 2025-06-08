@@ -12,7 +12,7 @@ import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
     PacketFlow.CLIENTBOUND,
     ConnectionProtocol.PRE_RUNNING
 )
-object ClientboundReadyToRunPacket: NettyPacket() {
+object ClientboundProceedToSynchronizingPacket: NettyPacket() {
     val STREAM_CODEC = streamCodecUnitSimple(this)
     override val terminal = true
 }

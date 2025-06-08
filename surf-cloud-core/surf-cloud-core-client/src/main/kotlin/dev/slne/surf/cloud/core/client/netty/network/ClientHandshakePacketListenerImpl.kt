@@ -7,7 +7,6 @@ import dev.slne.surf.cloud.core.common.netty.network.protocol.login.ClientLoginP
 import dev.slne.surf.cloud.core.common.netty.network.protocol.login.ClientboundLoginFinishedPacket
 import dev.slne.surf.cloud.core.common.netty.network.protocol.login.ServerboundLoginAcknowledgedPacket
 import dev.slne.surf.cloud.core.common.netty.network.protocol.prerunning.PreRunningProtocols
-import kotlinx.coroutines.CompletableDeferred
 
 
 class ClientHandshakePacketListenerImpl(
@@ -15,7 +14,6 @@ class ClientHandshakePacketListenerImpl(
     val connection: ConnectionImpl,
     val platformExtension: PlatformSpecificPacketListenerExtension,
     updateStatus: StatusUpdate,
-    val awaitFinishPreRunning: CompletableDeferred<Unit>
 ) : AbstractStatusUpdater(State.CONNECTING, updateStatus), ClientLoginPacketListener {
 
     override suspend fun handleLoginFinished(packet: ClientboundLoginFinishedPacket) {
@@ -26,7 +24,6 @@ class ClientHandshakePacketListenerImpl(
             connection,
             platformExtension,
             this,
-            awaitFinishPreRunning
         )
         connection.setupInboundProtocol(
             PreRunningProtocols.CLIENTBOUND,

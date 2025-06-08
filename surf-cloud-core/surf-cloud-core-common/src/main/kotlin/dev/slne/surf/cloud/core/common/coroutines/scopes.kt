@@ -2,35 +2,37 @@ package dev.slne.surf.cloud.core.common.coroutines
 
 import dev.slne.surf.cloud.api.common.util.mutableObjectListOf
 import dev.slne.surf.cloud.api.common.util.threadFactory
+import dev.slne.surf.cloud.core.common.coroutines.BeforeStartTaskScope.unnamedTask
 import dev.slne.surf.surfapi.core.api.util.logger
 import kotlinx.coroutines.*
 import java.util.concurrent.Executors
+import kotlin.coroutines.CoroutineContext
 
 abstract class BaseScope(
     dispatcher: CoroutineDispatcher,
-    private val name: String
+    name: String,
+    coroutineExceptionHandler: CoroutineExceptionHandler = CoroutineExceptionHandler { context, throwable ->
+        val coroutineName = context[CoroutineName]?.name ?: "Unnamed Coroutine"
+        log.atSevere()
+            .withCause(throwable)
+            .log("Unhandled exception in coroutine: $coroutineName")
+    }
 ) : CoroutineScope {
     companion object {
+        @JvmStatic
+        protected val log = logger()
         private val scopes = mutableObjectListOf<BaseScope>()
         fun terminateAll() {
             scopes.forEach { it.cancel("Shutdown") }
         }
     }
 
-    protected val log = logger()
-
     init {
         scopes.add(this)
     }
 
-    override val coroutineContext = dispatcher + CoroutineName(name) + SupervisorJob() +
-            CoroutineExceptionHandler { context, throwable ->
-                val coroutineName = context[CoroutineName]?.name ?: "Unnamed Coroutine"
-                log.atSevere()
-                    .withCause(throwable)
-                    .log("Unhandled exception in coroutine: $coroutineName")
-            }
-
+    override val coroutineContext =
+        dispatcher + CoroutineName(name) + SupervisorJob() + coroutineExceptionHandler
     val context get() = coroutineContext
 
 }
@@ -158,4 +160,35 @@ object CloudConnectionVerificationScope : BaseScope(
 object PunishmentCacheRefreshScope : BaseScope(
     dispatcher = Dispatchers.Default,
     name = "punishment-cache-refresh"
+)
+
+object BeforeStartTaskScope : BaseScope(
+    dispatcher = Dispatchers.IO,
+    name = "before-start-task",
+    coroutineExceptionHandler = CoroutineExceptionHandler { context, throwable ->
+        val task= context[TaskName] ?: unnamedTask
+        log.atWarning()
+            .withCause(throwable)
+            .log("Unhandled exception in before start task: $task")
+    }
+) {
+    @JvmStatic
+    private val unnamedTask = TaskName("Unnamed Task", Int.MAX_VALUE)
+
+    data class TaskName(
+        val name: String,
+        val order: Int
+    ) : CoroutineContext.Element {
+        companion object Key : CoroutineContext.Key<TaskName>
+        override val key: CoroutineContext.Key<*> = Key
+
+        override fun toString(): String {
+            return "$name (order: $order)"
+        }
+    }
+}
+
+object SyncValueScope : BaseScope(
+    dispatcher = Dispatchers.Default,
+    name = "sync-value"
 )

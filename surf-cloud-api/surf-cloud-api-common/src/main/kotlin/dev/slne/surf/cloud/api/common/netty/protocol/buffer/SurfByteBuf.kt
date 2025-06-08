@@ -6,6 +6,8 @@ import com.google.gson.Gson
 import com.google.gson.JsonElement
 import com.mojang.serialization.Codec
 import com.mojang.serialization.JsonOps
+import dev.slne.surf.cloud.api.common.netty.network.codec.StreamCodec
+import dev.slne.surf.cloud.api.common.netty.network.codec.kotlinx.SurfCloudBufSerializer
 import dev.slne.surf.cloud.api.common.netty.protocol.buffer.SurfByteBuf.Companion
 import dev.slne.surf.cloud.api.common.netty.protocol.buffer.decoder.DecodeFactory
 import dev.slne.surf.cloud.api.common.netty.protocol.buffer.decoder.DecodeFactory.DecodeLongFactory
@@ -18,10 +20,13 @@ import dev.slne.surf.cloud.api.common.util.codec.ExtraCodecs
 import dev.slne.surf.cloud.api.common.util.createUnresolvedInetSocketAddress
 import dev.slne.surf.cloud.api.common.util.fromJson
 import io.netty.buffer.ByteBuf
+import io.netty.buffer.ByteBufAllocator
+import io.netty.buffer.PooledByteBufAllocator
 import io.netty.handler.codec.DecoderException
 import io.netty.handler.codec.EncoderException
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
 import it.unimi.dsi.fastutil.objects.ObjectArrayList
+import kotlinx.serialization.KSerializer
 import net.kyori.adventure.key.Key
 import net.kyori.adventure.sound.Sound
 import net.kyori.adventure.text.Component
@@ -88,7 +93,27 @@ private const val NUMBER_DOUBLE: Byte = 5
  */
 open class SurfByteBuf(source: ByteBuf) : WrappedByteBuf(source) {
     companion object {
+        val alloc: ByteBufAllocator = PooledByteBufAllocator.DEFAULT
+
         private val GSON = Gson()
+
+        fun<T> streamCodecFromKotlin(serializer: KSerializer<T>): StreamCodec<SurfByteBuf, T> {
+            return SerializerCodec(serializer)
+        }
+
+        private class SerializerCodec<T>(private val serializer: KSerializer<T>) :
+            StreamCodec<SurfByteBuf, T> {
+            override fun decode(buf: SurfByteBuf): T {
+                return SurfCloudBufSerializer.serializer.decodeFromBuf(buf, serializer)
+            }
+
+            override fun encode(
+                buf: SurfByteBuf,
+                value: T
+            ) {
+                SurfCloudBufSerializer.serializer.encodeToBuf(buf, serializer, value)
+            }
+        }
 
         /**
          * Read key key.

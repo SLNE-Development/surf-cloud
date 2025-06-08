@@ -58,8 +58,6 @@ class ServerLoginPacketListenerImpl(val server: NettyServerImpl, val connection:
     }
 
     private fun verifyLoginAndFinishConnectionSetup() {
-        // compression would go here
-
         finishLoginAndWaitForClient()
     }
 

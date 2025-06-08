@@ -1,6 +1,5 @@
-package dev.slne.surf.cloud.core.common.netty.network.protocol.prerunning
+package dev.slne.surf.cloud.core.common.netty.network.protocol.synchronizing
 
-import dev.slne.surf.cloud.api.common.meta.DefaultIds
 import dev.slne.surf.cloud.api.common.meta.SurfNettyPacket
 import dev.slne.surf.cloud.api.common.netty.network.ConnectionProtocol
 import dev.slne.surf.cloud.api.common.netty.network.codec.streamCodecUnitSimple
@@ -8,11 +7,11 @@ import dev.slne.surf.cloud.api.common.netty.network.protocol.PacketFlow
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
 
 @SurfNettyPacket(
-    DefaultIds.SERVERBOUND_READY_TO_RUN_PACKET,
+    "cloud:serverbound:synchronize_finish_acknowledged",
     PacketFlow.SERVERBOUND,
-    ConnectionProtocol.PRE_RUNNING
+    ConnectionProtocol.SYNCHRONIZING
 )
-object ServerboundReadyToRunPacket : NettyPacket() {
-    val STREAM_CODEC = streamCodecUnitSimple(this)
+object ServerboundSynchronizeFinishAcknowledgedPacket : NettyPacket() {
+    val STREAM_CODEC = streamCodecUnitSimple(ServerboundSynchronizeFinishAcknowledgedPacket)
     override val terminal = true
 }

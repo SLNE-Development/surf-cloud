@@ -39,11 +39,15 @@ abstract class NettyCommonClientManager(
         }
     }
 
-    override suspend fun afterStart(timeLogger: TimeLogger) {
-        timeLogger.measureStep("Finalize Netty client") {
-            nettyClient.finalize()
+    override suspend fun onEnable(timeLogger: TimeLogger) {
+        super.onEnable(timeLogger)
+        timeLogger.measureStep("Synchronizing Netty client") {
+            nettyClient.startSynchronizeTask()
+            nettyClient.synchronizeCallback.await()
         }
+    }
 
+    override suspend fun afterStart(timeLogger: TimeLogger) {
         super.afterStart(timeLogger)
     }
 

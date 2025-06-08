@@ -13,6 +13,7 @@ import dev.slne.surf.cloud.core.client.player.commonPlayerManagerImpl
 import dev.slne.surf.cloud.core.client.server.ClientCloudServerImpl
 import dev.slne.surf.cloud.core.client.server.ClientProxyCloudServerImpl
 import dev.slne.surf.cloud.core.client.server.serverManagerImpl
+import dev.slne.surf.cloud.core.client.sync.SyncRegistryImpl
 import dev.slne.surf.cloud.core.client.util.getOrLoadUser
 import dev.slne.surf.cloud.core.client.util.luckperms
 import dev.slne.surf.cloud.core.common.coroutines.PacketHandlerScope
@@ -317,6 +318,27 @@ class ClientRunningPacketListenerImpl(
         withAudience(packet.uuid) {
             val permission = hasPermissionPlattform(packet.permission)
             packet.respond(permission)
+        }
+    }
+
+    override fun handleSyncValueChange(packet: SyncValueChangePacket) {
+        try {
+            if (!packet.registered) return
+            SyncRegistryImpl.instance.updateSyncValue(packet.syncId, packet.value)
+        } catch (e: Throwable) {
+            log.atWarning()
+                .withCause(e)
+                .log("Failed to update sync value for packet $packet")
+        }
+    }
+
+    override fun handleSyncSetDelta(packet: SyncSetDeltaPacket) {
+        try {
+            SyncRegistryImpl.instance.handleSyncSetDelta(packet)
+        } catch (e: Throwable) {
+            log.atWarning()
+                .withCause(e)
+                .log("Failed to handle sync set delta for packet $packet")
         }
     }
 

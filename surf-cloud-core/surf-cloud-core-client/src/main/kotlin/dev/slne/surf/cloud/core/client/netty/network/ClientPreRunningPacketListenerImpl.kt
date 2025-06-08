@@ -6,7 +6,7 @@ import dev.slne.surf.cloud.core.client.netty.network.AbstractStatusUpdater.State
 import dev.slne.surf.cloud.core.common.netty.network.ConnectionImpl
 import dev.slne.surf.cloud.core.common.netty.network.DisconnectionDetails
 import dev.slne.surf.cloud.core.common.netty.network.protocol.prerunning.*
-import dev.slne.surf.cloud.core.common.netty.network.protocol.running.RunningProtocols
+import dev.slne.surf.cloud.core.common.netty.network.protocol.synchronizing.SynchronizingProtocols
 import kotlinx.coroutines.CompletableDeferred
 
 class ClientPreRunningPacketListenerImpl(
@@ -14,18 +14,20 @@ class ClientPreRunningPacketListenerImpl(
     connection: ConnectionImpl,
     val platformExtension: PlatformSpecificPacketListenerExtension,
     val statusUpdater: AbstractStatusUpdater,
-    val awaitFinishPreRunning: CompletableDeferred<Unit>
 ) : ClientCommonPacketListenerImpl(connection), ClientPreRunningPacketListener {
 
     private val completion = CompletableDeferred<Unit>()
 
     init {
-        client.finalizeHandler { proceedToRunningState() }
+        client.startSynchronizeTask = {
+            proceedToSynchronizingState()
+            completion.await()
+        }
     }
 
     private fun finishPreRunning() {
         statusUpdater.switchState(State.PRE_RUNNING)
-        awaitFinishPreRunning.complete(Unit)
+        client.preRunningCallback.complete(Unit)
     }
 
     override suspend fun handlePreRunningFinished(packet: ClientboundPreRunningFinishedPacket) {
@@ -33,24 +35,29 @@ class ClientPreRunningPacketListenerImpl(
         connection.send(ServerboundPreRunningAcknowledgedPacket)
     }
 
-    override suspend fun handleReadyToRun(packet: ClientboundReadyToRunPacket) {
-        val listener = ClientRunningPacketListenerImpl(connection, client, platformExtension)
+    override suspend fun handleProceedToSynchronizing(packet: ClientboundProceedToSynchronizingPacket) {
+        val listener = ClientSynchronizingPacketListenerImpl(
+            client,
+            connection,
+            platformExtension,
+            statusUpdater
+        )
         connection.setupInboundProtocol(
-            RunningProtocols.CLIENTBOUND,
+            SynchronizingProtocols.CLIENTBOUND,
             listener
         )
-        connection.send(ServerboundReadyToRunPacket)
-        connection.setupOutboundProtocol(RunningProtocols.SERVERBOUND)
+        connection.send(ServerboundProceedToSynchronizingAcknowledgedPacket)
+        connection.setupOutboundProtocol(SynchronizingProtocols.SERVERBOUND)
 
-        client.initListener(listener)
-        statusUpdater.switchState(State.CONNECTED)
+        statusUpdater.switchState(State.SYNCHRONIZING)
         completion.complete(Unit)
+        listener.startSynchronizing()
     }
 
-    suspend fun proceedToRunningState() {
+
+    fun proceedToSynchronizingState() {
         check(statusUpdater.getState() == State.PRE_RUNNING) { "Cannot proceed to running state from ${statusUpdater.getState()}" }
         send(ServerboundRequestContinuation)
-        completion.await()
     }
 
     override suspend fun onDisconnect(details: DisconnectionDetails) {

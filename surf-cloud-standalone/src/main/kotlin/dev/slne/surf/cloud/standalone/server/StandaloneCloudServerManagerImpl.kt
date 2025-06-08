@@ -12,7 +12,6 @@ import dev.slne.surf.cloud.api.common.util.mutableObjectListOf
 import dev.slne.surf.cloud.api.server.server.ServerCloudServerManager
 import dev.slne.surf.cloud.api.server.server.ServerCommonCloudServer
 import dev.slne.surf.cloud.api.server.server.ServerProxyCloudServer
-import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ClientboundBatchUpdateServer
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ClientboundRegisterServerPacket
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ClientboundUnregisterServerPacket
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.RequestOfflineDisplayNamePacket
@@ -53,8 +52,6 @@ class StandaloneCloudServerManagerImpl : CommonCloudServerManagerImpl<ServerComm
                 cloudServer.name
             )
         )
-
-        cloudServer.connection.send(ClientboundBatchUpdateServer(retrieveAllServers()))
 
         coroutineScope {
             launch {

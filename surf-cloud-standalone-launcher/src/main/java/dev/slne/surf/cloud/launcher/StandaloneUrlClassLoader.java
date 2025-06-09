@@ -8,6 +8,7 @@ import org.jetbrains.annotations.ApiStatus.Internal;
 public class StandaloneUrlClassLoader extends URLClassLoader {
 
   private static final String INSTRUMENTATION_SAVING_AGENT = "org.springframework.instrument.InstrumentationSavingAgent";
+  private static final String LAUNCHER_AGENT = "dev.slne.surf.cloud.launcher.LauncherAgent";
 
   public StandaloneUrlClassLoader(URL[] urls, ClassLoader parent) {
     super(urls, parent);
@@ -27,6 +28,8 @@ public class StandaloneUrlClassLoader extends URLClassLoader {
         System.out.println("Loading InstrumentationSavingAgent");
       }
 
+      return Class.forName(name, false, Main.class.getClassLoader());
+    } else if (LAUNCHER_AGENT.equals(name)) {
       return Class.forName(name, false, Main.class.getClassLoader());
     }
 

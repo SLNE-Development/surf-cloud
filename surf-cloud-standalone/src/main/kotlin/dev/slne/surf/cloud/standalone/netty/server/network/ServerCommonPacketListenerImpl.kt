@@ -50,7 +50,7 @@ abstract class ServerCommonPacketListenerImpl(
     var suspendFlushingOnServerThread = false
         private set
 
-    val latency get() = keepAlive.latency
+    val latency get() = connection.latency
     var keepConnectionAlive = true
 
     @OverridingMethodsMustInvokeSuper

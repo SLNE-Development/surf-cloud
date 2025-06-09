@@ -87,7 +87,6 @@ class ExecutionContext<T>(
             source: T,
             callback: CommandResultCallback,
         ) {
-            println("Queueing initial command execution")
             context.queueNext(
                 CommandQueueEntry(
                     context.createTopFrame(callback),

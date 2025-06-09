@@ -42,6 +42,9 @@ class StandaloneCloudServerManagerImpl : CommonCloudServerManagerImpl<ServerComm
     suspend fun getCommonStandaloneServerByUid(uid: Long) =
         retrieveServerById(uid) as? CommonStandaloneServer
 
+    fun getPingData() = servers.values.associate { it.name to it.connection.latency }
+    fun getAllServersUnsafe() = servers.values.toList()
+
     override suspend fun registerServer(cloudServer: ServerCommonCloudServer) {
         super.registerServer(cloudServer)
         broadcast(

@@ -23,9 +23,6 @@ class KeepAliveHandler(
     private var keepAlivePending = false
     private var keepAliveChallenge = KeepAliveTime(0)
 
-    var latency = 0
-        private set
-
     suspend fun keepConnectionAlive() {
         val currentTime = KeepAliveTime.now()
         val elapsedTime = currentTime - keepAliveTime
@@ -55,7 +52,7 @@ class KeepAliveHandler(
         if (keepAlivePending && keepAliveId != null && keepAliveId == keepAliveChallenge.time) {
             val elapsedTime = KeepAliveTime.now() - keepAliveTime
 
-            this.latency = ((latency * 3 + elapsedTime) / 4).toInt()
+            connection.latency = ((connection.latency * 3 + elapsedTime) / 4).toInt()
             this.keepAlivePending = false
         } else {
             disconnect(DisconnectReason.TIMEOUT)

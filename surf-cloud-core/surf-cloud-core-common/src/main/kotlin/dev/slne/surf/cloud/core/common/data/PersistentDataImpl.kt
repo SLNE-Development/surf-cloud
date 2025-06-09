@@ -11,7 +11,7 @@ import kotlin.io.path.div
 import kotlin.io.path.notExists
 
 
-internal object PersistentDataImpl {
+object PersistentDataImpl {
     private val file by lazy {
         (coreCloudInstance.dataFolder / "storage" / "data.dat").apply {
             if (notExists()) {
@@ -22,7 +22,7 @@ internal object PersistentDataImpl {
         }
     }
 
-    private val tag by lazy { file.readCompoundTag() }
+    val tag by lazy { file.readCompoundTag() }
     private fun saveTag() = tag.writeToPath(file)
 
     fun <T : Tag<D>, D> data(

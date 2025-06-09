@@ -5,6 +5,10 @@ plugins {
     alias(libs.plugins.spring.boot)
 }
 
+repositories {
+    maven("https://jitpack.io")
+}
+
 dependencies {
     api(project(":surf-cloud-core:surf-cloud-core-common"))
     api(project(":surf-cloud-api:surf-cloud-api-server"))
@@ -26,6 +30,11 @@ dependencies {
             )
         }
     }
+
+//    implementation(fileTree("libs/**/*.jar")) // Include all JARs in libs directory
+    implementation(fileTree("libs") {
+        include("*.jar")
+    })
 }
 
 tasks {

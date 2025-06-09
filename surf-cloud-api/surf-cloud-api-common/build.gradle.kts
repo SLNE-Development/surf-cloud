@@ -23,6 +23,25 @@ dependencies {
     api(libs.spring.boot.starter.actuator)
 }
 
+val writeCloudVersion by tasks.registering {
+    group = "build"
+    description = "Writes the cloud version to the classpath resource"
+
+    val outputDir = layout.projectDirectory.dir("src/main/resources")
+    val outputFile = outputDir.file("cloud.version")
+
+    doLast {
+        outputDir.asFile.mkdirs()
+        outputFile.asFile.writeText(project.version as String)
+    }
+}
+
+tasks {
+    processResources {
+        dependsOn(writeCloudVersion)
+    }
+}
+
 kotlin {
     compilerOptions {
         optIn.add("dev.slne.surf.cloud.api.common.util.annotation.InternalApi")

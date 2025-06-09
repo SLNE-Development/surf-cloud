@@ -9,6 +9,8 @@ import dev.slne.surf.cloud.standalone.netty.server.connection.ServerConnectionLi
 import dev.slne.surf.cloud.standalone.server.StandaloneCloudServerImpl
 import dev.slne.surf.cloud.standalone.server.StandaloneProxyCloudServerImpl
 import dev.slne.surf.cloud.standalone.server.serverManagerImpl
+import dev.slne.surf.cloud.standalone.spark.provider.CloudTickHook
+import dev.slne.surf.cloud.standalone.spark.provider.CloudTickReporter
 import dev.slne.surf.surfapi.core.api.util.logger
 import io.netty.channel.epoll.Epoll
 import io.netty.channel.unix.DomainSocketAddress
@@ -26,6 +28,7 @@ import java.net.InetAddress
 import java.net.InetSocketAddress
 import java.net.SocketAddress
 import java.util.concurrent.TimeUnit
+import kotlin.system.measureTimeMillis
 
 @Component
 @Profile("server")
@@ -106,12 +109,17 @@ class NettyServerImpl : InitializingBean, DisposableBean {
     @Scheduled(fixedRate = 1, timeUnit = TimeUnit.SECONDS)
     protected suspend fun tick() {
         if (!running) return
-        connection.connections.forEach { it.tick() }
-        connection.tick()
-        schedules.removeAll { function ->
-            function()
-            true
+
+        val duration = measureTimeMillis {
+            CloudTickHook.tick()
+            connection.connections.forEach { it.tick() }
+            connection.tick()
+            schedules.removeAll { function ->
+                function()
+                true
+            }
         }
+        CloudTickReporter.tick(duration.toDouble())
     }
 
     fun schedule(function: () -> Unit) {

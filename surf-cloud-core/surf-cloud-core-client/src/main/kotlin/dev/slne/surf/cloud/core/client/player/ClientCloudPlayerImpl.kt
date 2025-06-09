@@ -78,6 +78,16 @@ abstract class ClientCloudPlayerImpl<PlatformPlayer : Audience>(uuid: UUID, name
             ?: error("Failed to get last server")
     }
 
+    override fun currentServer(): CloudServer {
+        val server = serverManagerImpl.getServerByIdUnsafe(
+            serverUid ?: error("Player is not connected to a server")
+        ) ?: error("Server not found for UID: $serverUid")
+
+        require(server is CloudServer) { "Expected CloudServer, but got ${server::class.simpleName}" }
+
+        return server
+    }
+
     override suspend fun nameHistory(): NameHistory {
         return request<NameHistoryResponse>(DataRequestType.NAME_HISTORY).history
     }

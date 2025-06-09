@@ -95,6 +95,8 @@ class ConnectionImpl(
     override var averageSentPackets = 0f
         private set
 
+    override var latency: Int = 0
+
     private var handlingFault = false
 
     /**

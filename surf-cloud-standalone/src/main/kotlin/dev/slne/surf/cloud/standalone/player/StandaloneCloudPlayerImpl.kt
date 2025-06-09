@@ -184,6 +184,10 @@ class StandaloneCloudPlayerImpl(uuid: UUID, name: String, val ip: Inet4Address) 
         return anyServer.name
     }
 
+    override fun currentServer(): CloudServer {
+        return server ?: error("Player is not connected to a server")
+    }
+
     override suspend fun firstSeen(): ZonedDateTime? {
         return firstSeenCache ?: service.findFirstSeen(uuid).also {
             firstSeenCache = it

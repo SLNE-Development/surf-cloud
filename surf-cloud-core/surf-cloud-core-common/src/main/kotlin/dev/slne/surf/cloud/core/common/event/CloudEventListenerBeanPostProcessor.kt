@@ -1,17 +1,16 @@
 package dev.slne.surf.cloud.core.common.event
 
 import dev.slne.surf.cloud.api.common.event.CloudEventHandler
-import dev.slne.surf.cloud.api.common.util.isAnnotated
-import dev.slne.surf.cloud.api.common.util.isCandidateFor
-import dev.slne.surf.cloud.api.common.util.mutableObject2ObjectMapOf
-import dev.slne.surf.cloud.api.common.util.selectFunctions
-import dev.slne.surf.cloud.api.common.util.ultimateTargetClass
+import dev.slne.surf.cloud.api.common.util.*
+import org.springframework.beans.factory.config.BeanDefinition
 import org.springframework.beans.factory.config.BeanPostProcessor
 import org.springframework.context.SmartLifecycle
+import org.springframework.context.annotation.Role
 import org.springframework.stereotype.Component
 import java.lang.reflect.Method
 
 @Component
+@Role(BeanDefinition.ROLE_INFRASTRUCTURE)
 class CloudEventListenerBeanPostProcessor : BeanPostProcessor, SmartLifecycle {
 
     private val watched = mutableObject2ObjectMapOf<Any, MutableSet<Method>>()

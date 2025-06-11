@@ -14,22 +14,17 @@ import org.aspectj.lang.reflect.MethodSignature
 import org.jetbrains.exposed.spring.SpringTransactionManager
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import org.reactivestreams.Publisher
-import org.springframework.aop.aspectj.AspectJExpressionPointcut
-import org.springframework.aop.support.DefaultPointcutAdvisor
 import org.springframework.beans.factory.getBean
 import org.springframework.boot.autoconfigure.AutoConfigurationPackages
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.boot.autoconfigure.liquibase.LiquibaseAutoConfiguration
 import org.springframework.cache.annotation.EnableCaching
 import org.springframework.context.ApplicationContext
-import org.springframework.context.ApplicationContextAware
-import org.springframework.context.ConfigurableApplicationContext
 import org.springframework.context.annotation.*
 import org.springframework.core.KotlinDetector
 import org.springframework.core.Ordered
 import org.springframework.core.PriorityOrdered
 import org.springframework.core.annotation.AnnotatedElementUtils
-import org.springframework.core.annotation.Order
 import org.springframework.instrument.classloading.LoadTimeWeaver
 import org.springframework.instrument.classloading.SimpleThrowawayClassLoader
 import org.springframework.scheduling.annotation.EnableAsync
@@ -196,12 +191,6 @@ class LoadTimeWeavingConfiguration(context: ApplicationContext) : LoadTimeWeavin
 @Aspect
 @Component
 class CoroutineTransactionalAspect(private val context: ApplicationContext) : Advice, PriorityOrdered {
-
-    init {
-        repeat(20) {
-            println("CoroutineTransactionalAspect initialized with context: $context")
-        }
-    }
 
     /**
      * Around-advice for any method or class annotated with

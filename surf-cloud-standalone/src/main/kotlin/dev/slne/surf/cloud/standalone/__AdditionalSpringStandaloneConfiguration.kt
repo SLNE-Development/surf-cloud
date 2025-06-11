@@ -4,7 +4,6 @@ import dev.slne.surf.cloud.api.server.plugin.AdditionalStandaloneConfiguration
 import dev.slne.surf.cloud.api.server.plugin.TransactionConfiguration
 import org.jetbrains.exposed.spring.autoconfigure.ExposedAutoConfiguration
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration
-import org.springframework.context.annotation.EnableAspectJAutoProxy
 import org.springframework.context.annotation.Import
 
 /**
@@ -15,5 +14,5 @@ import org.springframework.context.annotation.Import
 @AdditionalStandaloneConfiguration
 @ImportAutoConfiguration(ExposedAutoConfiguration::class)
 @Import(TransactionConfiguration::class)
-@EnableAspectJAutoProxy(proxyTargetClass = true)
+//@EnableAspectJAutoProxy(proxyTargetClass = true)
 internal class __AdditionalSpringStandaloneConfiguration

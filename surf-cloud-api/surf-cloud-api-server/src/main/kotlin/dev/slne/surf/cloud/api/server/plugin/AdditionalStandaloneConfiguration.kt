@@ -1,10 +1,12 @@
 package dev.slne.surf.cloud.api.server.plugin
 
 import dev.slne.surf.cloud.api.server.plugin.utils.PluginUtilProxies
+import dev.slne.surf.surfapi.core.api.util.logger
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.suspendCancellableCoroutine
+import org.aopalliance.aop.Advice
 import org.aspectj.lang.ProceedingJoinPoint
 import org.aspectj.lang.annotation.Around
 import org.aspectj.lang.annotation.Aspect
@@ -12,22 +14,32 @@ import org.aspectj.lang.reflect.MethodSignature
 import org.jetbrains.exposed.spring.SpringTransactionManager
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import org.reactivestreams.Publisher
+import org.springframework.aop.aspectj.AspectJExpressionPointcut
+import org.springframework.aop.support.DefaultPointcutAdvisor
 import org.springframework.beans.factory.getBean
+import org.springframework.boot.autoconfigure.AutoConfigurationPackages
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.boot.autoconfigure.liquibase.LiquibaseAutoConfiguration
 import org.springframework.cache.annotation.EnableCaching
 import org.springframework.context.ApplicationContext
-import org.springframework.context.annotation.AdviceMode
-import org.springframework.context.annotation.Configuration
-import org.springframework.context.annotation.Import
+import org.springframework.context.ApplicationContextAware
+import org.springframework.context.ConfigurableApplicationContext
+import org.springframework.context.annotation.*
 import org.springframework.core.KotlinDetector
 import org.springframework.core.Ordered
+import org.springframework.core.PriorityOrdered
 import org.springframework.core.annotation.AnnotatedElementUtils
 import org.springframework.core.annotation.Order
+import org.springframework.instrument.classloading.LoadTimeWeaver
+import org.springframework.instrument.classloading.SimpleThrowawayClassLoader
 import org.springframework.scheduling.annotation.EnableAsync
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.EnableTransactionManagement
+import java.lang.instrument.ClassFileTransformer
+import java.lang.instrument.Instrumentation
 import java.lang.reflect.Method
+import java.security.ProtectionDomain
+import java.util.concurrent.CopyOnWriteArrayList
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.intrinsics.COROUTINE_SUSPENDED
 import kotlin.coroutines.resume
@@ -37,7 +49,11 @@ import kotlin.coroutines.startCoroutine
 @Target(AnnotationTarget.CLASS)
 @Retention(AnnotationRetention.RUNTIME)
 @Configuration
-@Import(CoroutineTransactionalAspect::class)
+@Import(
+    CoroutineTransactionalAspect::class,
+    LoadTimeWeavingConfiguration::class,
+    TransactionConfiguration::class
+)
 @EnableAsync(mode = AdviceMode.ASPECTJ)
 @EnableCaching(mode = AdviceMode.ASPECTJ)
 @EnableAutoConfiguration(
@@ -52,6 +68,95 @@ annotation class AdditionalStandaloneConfiguration
 @Configuration
 class TransactionConfiguration
 
+@EnableLoadTimeWeaving(aspectjWeaving = EnableLoadTimeWeaving.AspectJWeaving.ENABLED)
+@Configuration
+class LoadTimeWeavingConfiguration(context: ApplicationContext) : LoadTimeWeavingConfigurer {
+    private val allowedPrefixes = AutoConfigurationPackages.get(context)
+        .map { it.trimEnd('.') + "." }
+//        .plus(listOf("org.springframework."))
+
+    val weaver = LoadTimeWeaverImpl(
+        LoadTimeWeaverImpl.getInstrumentation(),
+        context.classLoader ?: error("Application context does not have a class loader"),
+        allowedPrefixes
+    )
+
+    override fun getLoadTimeWeaver(): LoadTimeWeaver = weaver
+
+    class LoadTimeWeaverImpl(
+        private val instrumentation: Instrumentation,
+        private val classLoader: ClassLoader,
+        private val allowedPrefixes: List<String>
+    ) : LoadTimeWeaver {
+        private val transformers = CopyOnWriteArrayList<ClassFileTransformer>()
+
+        override fun addTransformer(transformer: ClassFileTransformer) {
+            val actualTransformer =
+                FilteringClassFileTransformer(transformer, classLoader, allowedPrefixes)
+            if (transformers.addIfAbsent(actualTransformer)) {
+                instrumentation.addTransformer(actualTransformer)
+            }
+        }
+
+        override fun getInstrumentableClassLoader(): ClassLoader = classLoader
+        override fun getThrowawayClassLoader(): ClassLoader =
+            SimpleThrowawayClassLoader(classLoader)
+
+        class FilteringClassFileTransformer(
+            private val targetTransformer: ClassFileTransformer,
+            private val targetClassLoader: ClassLoader,
+            private val allowedPrefixes: List<String>
+        ) : ClassFileTransformer {
+            override fun transform(
+                loader: ClassLoader?,
+                className: String?,
+                classBeingRedefined: Class<*>?,
+                protectionDomain: ProtectionDomain?,
+                classfileBuffer: ByteArray?
+            ): ByteArray? {
+                if (loader != targetClassLoader || className == null) return null
+                val dotted = className.replace('/', '.')
+                if (allowedPrefixes.none { dotted.startsWith(it) }) {
+                    return null
+                }
+
+                return try {
+                    targetTransformer.transform(
+                        loader,
+                        className,
+                        classBeingRedefined,
+                        protectionDomain,
+                        classfileBuffer
+                    )
+                } catch (ex: Throwable) {
+                    log.atWarning()
+                        .withCause(ex)
+                        .log("LTW: skipping weaving for $dotted due to ${ex.javaClass.simpleName}: ${ex.message}")
+                    null
+                }
+            }
+        }
+
+        companion object {
+            private val log = logger()
+            private const val AGENT_CLASS =
+                "org.springframework.instrument.InstrumentationSavingAgent"
+            private val agentClass: Class<*> by lazy {
+                Class.forName(AGENT_CLASS, true, javaClass.classLoader.parent)
+            }
+            private val agentMethod by lazy {
+                agentClass.getDeclaredMethod(
+                    "getInstrumentation",
+                )
+            }
+
+            fun getInstrumentation(): Instrumentation {
+                return agentMethod.invoke(null) as Instrumentation
+            }
+        }
+
+    }
+}
 
 /**
  * **Internal** Aspect that wraps every *suspending* call annotated (directly or
@@ -90,8 +195,13 @@ class TransactionConfiguration
  */
 @Aspect
 @Component
-@Order(Ordered.LOWEST_PRECEDENCE)
-class CoroutineTransactionalAspect(private val context: ApplicationContext) {
+class CoroutineTransactionalAspect(private val context: ApplicationContext) : Advice, PriorityOrdered {
+
+    init {
+        repeat(20) {
+            println("CoroutineTransactionalAspect initialized with context: $context")
+        }
+    }
 
     /**
      * Around-advice for any method or class annotated with
@@ -182,4 +292,7 @@ class CoroutineTransactionalAspect(private val context: ApplicationContext) {
         )
     }
 
+    override fun getOrder(): Int {
+        return Ordered.LOWEST_PRECEDENCE
+    }
 }

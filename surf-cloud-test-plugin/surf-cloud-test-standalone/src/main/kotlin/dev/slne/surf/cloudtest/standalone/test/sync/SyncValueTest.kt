@@ -1,13 +1,12 @@
-package dev.slne.surf.cloud.standalone.test.sync
+package dev.slne.surf.cloudtest.standalone.test.sync
 
 import dev.slne.surf.cloud.api.common.sync.SyncValue
-import org.springframework.boot.ApplicationArguments
-import org.springframework.boot.ApplicationRunner
+import kotlinx.serialization.Serializable
 import org.springframework.stereotype.Component
 import kotlin.time.Duration.Companion.seconds
 
 @Component
-class SyncValueTest: ApplicationRunner {
+class SyncValueTest {
     val syncValue = SyncValue("basic_sync_value", BasicSyncValue.DEFAULT)
     var syncValueDelegate by syncValue
 
@@ -15,7 +14,7 @@ class SyncValueTest: ApplicationRunner {
         .rateLimited(5.seconds)
     var rateLimitedSyncValueDelegate by rateLimitedSyncValue
 
-    override fun run(args: ApplicationArguments?) {
+    fun test() {
         syncValue.subscribe { old, new ->
             println("SyncValue changed from $old to $new")
         }
@@ -52,6 +51,7 @@ class SyncValueTest: ApplicationRunner {
     }
 
 
+    @Serializable
     data class BasicSyncValue(
         val id: String,
         val name: String,

@@ -8,6 +8,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import org.jetbrains.exposed.dao.Entity
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.context.ApplicationContext
 import kotlin.coroutines.CoroutineContext
 
 /**
@@ -23,6 +25,11 @@ abstract class AbstractExposedDAOService<K, V : Entity<*>>(
     cacheCustomizer: Caffeine<Any, Any>.() -> Unit = {},
     private val context: CoroutineContext = Dispatchers.IO
 ) {
+    @Autowired
+    lateinit var applicationContext: ApplicationContext
+
+    protected val self get() = applicationContext.getBean(javaClass)
+
     /**
      * Cache for storing loaded entities, using Caffeine with coroutine-based loading.
      */
@@ -34,7 +41,7 @@ abstract class AbstractExposedDAOService<K, V : Entity<*>>(
             val cacheContext = context + cacheName + SupervisorJob()
 
             asLoadingCache<K, V?>(CoroutineScope(cacheContext)) {
-                load(it)
+                self.load(it)
             }
         }
 
@@ -74,7 +81,7 @@ abstract class AbstractExposedDAOService<K, V : Entity<*>>(
         createIfMissing: Boolean = true,
         block: suspend V.() -> Unit
     ) {
-        val entity = cache.get(key) ?: if (createIfMissing) create(key) else null
+        val entity = cache.get(key) ?: if (createIfMissing) self.create(key) else null
         if (entity != null) {
             entity.block()
             cache.put(key, entity)

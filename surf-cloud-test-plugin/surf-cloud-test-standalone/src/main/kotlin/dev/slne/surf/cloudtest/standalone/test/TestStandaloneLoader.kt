@@ -1,4 +1,4 @@
-package dev.slne.surf.cloud.standalone.test
+package dev.slne.surf.cloudtest.standalone.test
 
 import dev.slne.surf.cloud.api.server.plugin.loader.PluginClasspathBuilder
 import dev.slne.surf.cloud.api.server.plugin.loader.StandalonePluginLoader

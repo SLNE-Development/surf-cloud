@@ -13,7 +13,7 @@ buildscript {
 
 plugins {
     id("org.jetbrains.kotlinx.binary-compatibility-validator") version "0.17.0"
-    id("io.freefair.aspectj.post-compile-weaving") version "8.13.1"
+//    id("io.freefair.aspectj.post-compile-weaving") version "8.13.1"
     java
 }
 
@@ -30,7 +30,7 @@ allprojects {
     }
 
     apply(plugin = "java")
-    apply(plugin = "io.freefair.aspectj.post-compile-weaving")
+//    apply(plugin = "io.freefair.aspectj.post-compile-weaving")
 
     dependencies {
 //        implementation(platform("org.springframework.boot:spring-boot-dependencies:3.4.4"))

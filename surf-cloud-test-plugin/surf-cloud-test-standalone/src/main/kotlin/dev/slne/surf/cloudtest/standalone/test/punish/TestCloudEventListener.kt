@@ -1,4 +1,4 @@
-package dev.slne.surf.cloud.standalone.test.punish
+package dev.slne.surf.cloudtest.standalone.test.punish
 
 import dev.slne.surf.cloud.api.common.event.CloudEvent
 import dev.slne.surf.cloud.api.common.event.CloudEventHandler

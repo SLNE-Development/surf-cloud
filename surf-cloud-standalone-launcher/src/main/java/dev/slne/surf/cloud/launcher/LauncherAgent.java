@@ -14,6 +14,7 @@ import java.util.Enumeration;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.regex.Pattern;
+import org.springframework.instrument.InstrumentationSavingAgent;
 
 public class LauncherAgent {
   private static Instrumentation instrumentation;
@@ -24,7 +25,7 @@ public class LauncherAgent {
 
   public static void premain(String agentArgs, Instrumentation inst) {
     System.out.println("Launcher-Agent started. Loading actual agent...");
-//    InstrumentationSavingAgent.premain(agentArgs, inst);
+    InstrumentationSavingAgent.premain(agentArgs, inst);
     instrumentation = inst;
 //    launchSparkHook(agentArgs, inst);
   }

@@ -1,7 +1,9 @@
-package dev.slne.surf.cloud.standalone.test
+package dev.slne.surf.cloudtest.standalone.test
 
 import dev.slne.surf.cloud.api.server.plugin.KtorPlugin
 import dev.slne.surf.cloud.api.server.plugin.StandalonePlugin
+import dev.slne.surf.cloud.api.server.plugin.utils.bean
+import dev.slne.surf.cloudtest.standalone.test.sync.SyncValueTest
 import io.ktor.server.routing.*
 import kotlinx.coroutines.delay
 import org.apache.commons.io.FileSystemUtils
@@ -28,6 +30,8 @@ class TestStandalonePlugin : StandalonePlugin(), KtorPlugin {
             logger.info("Hello from coroutine after delay")
             delay(5.seconds)
         }
+
+        bean<SyncValueTest>().test()
     }
 
     override suspend fun disable() {

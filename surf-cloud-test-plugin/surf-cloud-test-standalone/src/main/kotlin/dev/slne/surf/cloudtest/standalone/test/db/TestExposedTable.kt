@@ -1,4 +1,4 @@
-package dev.slne.surf.cloud.standalone.test.db
+package dev.slne.surf.cloudtest.standalone.test.db
 
 import dev.slne.surf.cloud.api.server.exposed.table.AuditableLongEntity
 import dev.slne.surf.cloud.api.server.exposed.table.AuditableLongEntityClass

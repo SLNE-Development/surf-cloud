@@ -37,7 +37,7 @@ object MessageManager { // TODO: Add more messages
             this,
             "BEIM VERBINDUNGSAUFBAU IST EIN FEHLER AUFGETRETEN",
             {
-                error("Beim versuch eine Verbindung aufzubauen ist")
+                error("Beim Versuch, eine Verbindung aufzubauen, ist")
                 appendNewline()
                 error("ein unbekannter Fehler aufgetreten.")
             },
@@ -48,9 +48,9 @@ object MessageManager { // TODO: Add more messages
     val loginTimedOut = buildText {
         CommonComponents.renderDisconnectMessage(
             this,
-            "VERBINDUNG ZUR SERVER-INSTANCE WURDE GETRENNT",
+            "VERBINDUNG ZUR SERVER-INSTANZ WURDE GETRENNT",
             {
-                error("Die Verbindung zur Server-Instance wurde")
+                error("Die Verbindung zur Server-Instanz wurde")
                 appendNewline()
                 error("unerwartet getrennt.")
             },
@@ -138,7 +138,7 @@ object MessageManager { // TODO: Add more messages
                     appendNewline(3)
 
                     if (!punishment.securityBan) {
-                        spacer("Du denkst dies ist eine Fehlentscheidung?")
+                        spacer("Du denkst, dies ist eine Fehlentscheidung?")
                     }
                     appendNewline {
                         spacer("Kontaktiere den Support in unserem Discord")
@@ -199,7 +199,7 @@ object MessageManager { // TODO: Add more messages
         }
 
         object Mute {
-            val voiceMutedActionbar = buildText { error("Du bist vom Voicechat ausgeschlossen!") }
+            val voiceMutedActionbar = buildText { error("Du bist vom Voice-Chat ausgeschlossen!") }
 
             operator fun invoke(punishment: PunishmentMute) = MuteComponentBuilder(punishment)
 

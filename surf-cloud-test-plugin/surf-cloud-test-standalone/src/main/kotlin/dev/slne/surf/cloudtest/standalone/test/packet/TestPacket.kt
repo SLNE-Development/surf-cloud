@@ -1,4 +1,4 @@
-package dev.slne.surf.cloud.standalone.test.packet
+package dev.slne.surf.cloudtest.standalone.test.packet
 
 import dev.slne.surf.cloud.api.common.meta.PacketCodec
 import dev.slne.surf.cloud.api.common.meta.SurfNettyPacket

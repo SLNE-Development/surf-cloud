@@ -11,24 +11,18 @@ import dev.slne.surf.cloud.api.common.util.mutableObjectListOf
 import dev.slne.surf.cloud.api.common.util.synchronize
 import dev.slne.surf.cloud.core.common.coroutines.CloudEventBusScope
 import dev.slne.surf.surfapi.core.api.util.findAnnotation
-import io.ktor.client.plugins.cache.storage.FileStorage
 import it.unimi.dsi.fastutil.objects.ObjectList
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import net.bytebuddy.ByteBuddy
 import net.bytebuddy.description.modifier.FieldManifestation
 import net.bytebuddy.description.modifier.Visibility
-import net.bytebuddy.description.type.TypeDescription
 import net.bytebuddy.dynamic.loading.ClassLoadingStrategy
 import net.bytebuddy.implementation.FieldAccessor
 import net.bytebuddy.implementation.MethodCall
 import net.bytebuddy.implementation.bytecode.assign.Assigner
-import net.bytebuddy.implementation.bytecode.assign.TypeCasting
-import net.bytebuddy.implementation.bytecode.member.MethodVariableAccess
 import net.bytebuddy.matcher.ElementMatchers
-import net.bytebuddy.utility.CompoundList
 import org.springframework.core.ResolvableType
-import org.springframework.core.convert.TypeDescriptor
 import org.springframework.expression.spel.standard.SpelExpressionParser
 import org.springframework.expression.spel.support.StandardEvaluationContext
 import java.lang.reflect.Method
@@ -125,14 +119,19 @@ class CloudEventBusImpl : CloudEventBus {
             .subclass(EventListenerInvoker::class.java)
             .implement(GeneratedInvoker::class.java)
             .defineField("owner", instance.javaClass, Visibility.PRIVATE, FieldManifestation.FINAL)
+            .defineMethod("getOwner", Any::class.java, Visibility.PUBLIC)
+            .intercept(FieldAccessor.ofField("owner"))
             .defineConstructor(Visibility.PUBLIC).withParameters(instance.javaClass)
-            .intercept(MethodCall.invoke(Object::class.java.getConstructor())
-                .andThen(FieldAccessor.ofField("owner").setsArgumentAt(0)))
+            .intercept(
+                MethodCall.invoke(Object::class.java.getConstructor())
+                    .andThen(FieldAccessor.ofField("owner").setsArgumentAt(0))
+            )
             .method(ElementMatchers.named("invoke"))
-            .intercept(MethodCall.invoke(method)
-                .onField("owner")
-                .withArgument(0)
-                .withAssigner(Assigner.DEFAULT, Assigner.Typing.DYNAMIC)
+            .intercept(
+                MethodCall.invoke(method)
+                    .onField("owner")
+                    .withArgument(0)
+                    .withAssigner(Assigner.DEFAULT, Assigner.Typing.DYNAMIC)
             )
             .make()
             .load(instance.javaClass.classLoader, ClassLoadingStrategy.Default.INJECTION)
@@ -143,7 +142,10 @@ class CloudEventBusImpl : CloudEventBus {
     }
 
     private class ReflectionInvoker(val instance: Any, val method: Method) : EventListenerInvoker {
-        init { method.isAccessible = true }
+        init {
+            method.isAccessible = true
+        }
+
         override suspend fun invoke(event: CloudEvent) {
             CloudEventBusScope.launch {
                 val kfn = method.kotlinFunction ?: error("Not a Kotlin function")
@@ -151,7 +153,10 @@ class CloudEventBusImpl : CloudEventBus {
             }.join()
         }
     }
-    internal interface GeneratedInvoker { val owner: Any }
+
+    internal interface GeneratedInvoker {
+        val owner: Any
+    }
 }
 
 val cloudEventBusImpl = CloudEventBus.instance as CloudEventBusImpl

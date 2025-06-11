@@ -17,6 +17,10 @@ open class BasicSyncValue<T> internal constructor(
     private val value = AtomicReference(defaultValue)
     private val listeners = CopyOnWriteArrayList<SyncValueListener<T>>()
 
+    init {
+        CommonSyncRegistryImpl.instance.register(this)
+    }
+
     override fun get(): T = value.get()
 
     override fun set(newValue: T) {

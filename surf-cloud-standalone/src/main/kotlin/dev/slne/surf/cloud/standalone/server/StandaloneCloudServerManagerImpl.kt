@@ -5,6 +5,7 @@ import dev.slne.surf.cloud.api.common.netty.network.protocol.awaitOrThrowUrgent
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
 import dev.slne.surf.cloud.api.common.player.CloudPlayer
 import dev.slne.surf.cloud.api.common.player.ConnectionResultEnum
+import dev.slne.surf.cloud.api.common.server.CloudServer
 import dev.slne.surf.cloud.api.common.server.CloudServerManager
 import dev.slne.surf.cloud.api.common.util.emptyObjectList
 import dev.slne.surf.cloud.api.common.util.freeze
@@ -21,9 +22,9 @@ import dev.slne.surf.cloud.core.common.util.bean
 import dev.slne.surf.cloud.standalone.config.standaloneConfig
 import dev.slne.surf.cloud.standalone.event.server.CloudServerRegisteredEvent
 import dev.slne.surf.cloud.standalone.netty.server.NettyServerImpl
-import dev.slne.surf.cloud.standalone.netty.server.ProxyServerAutoregistration
 import dev.slne.surf.cloud.standalone.player.StandaloneCloudPlayerImpl
 import dev.slne.surf.surfapi.core.api.util.logger
+import it.unimi.dsi.fastutil.objects.ObjectCollection
 import it.unimi.dsi.fastutil.objects.ObjectList
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
@@ -51,8 +52,10 @@ class StandaloneCloudServerManagerImpl : CommonCloudServerManagerImpl<ServerComm
             ClientboundRegisterServerPacket(
                 cloudServer.uid,
                 cloudServer is ServerProxyCloudServer,
+                (cloudServer as? CloudServer)?.lobby ?: false,
                 cloudServer.group,
-                cloudServer.name
+                cloudServer.name,
+                cloudServer.playAddress,
             )
         )
 
@@ -69,28 +72,14 @@ class StandaloneCloudServerManagerImpl : CommonCloudServerManagerImpl<ServerComm
                 }
             }
         }
-
-        if (standaloneConfig.useSingleProxySetup) {
-            if (cloudServer is StandaloneProxyCloudServerImpl) {
-                ProxyServerAutoregistration.setProxy(cloudServer)
-            } else {
-                ProxyServerAutoregistration.registerClient(cloudServer as StandaloneCloudServerImpl)
-            }
-        }
     }
 
-    override suspend fun unregisterServer(uid: Long) {
-        super.unregisterServer(uid)
+    override suspend fun unregisterServer(uid: Long) = super.unregisterServer(uid).also {
         broadcast(ClientboundUnregisterServerPacket(uid))
-
-        if (standaloneConfig.useSingleProxySetup) {
-            if (getCommonStandaloneServerByUid(uid) is StandaloneProxyCloudServerImpl) {
-                ProxyServerAutoregistration.clearProxy()
-            }
-        }
     }
 
-    private fun broadcast(packet: NettyPacket) {
+
+    override fun broadcast(packet: NettyPacket) {
         server.connection.broadcast(packet)
     }
 
@@ -187,6 +176,16 @@ class StandaloneCloudServerManagerImpl : CommonCloudServerManagerImpl<ServerComm
         }
 
         return results.freeze()
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    override suspend fun retrieveProxies(): ObjectCollection<StandaloneProxyCloudServerImpl> {
+        return super.retrieveProxies() as ObjectCollection<StandaloneProxyCloudServerImpl>
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    override suspend fun retrieveServers(): ObjectCollection<StandaloneCloudServerImpl> {
+        return super.retrieveServers() as ObjectCollection<StandaloneCloudServerImpl>
     }
 
     private suspend fun singleProxyServer() =

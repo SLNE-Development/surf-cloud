@@ -72,8 +72,8 @@ class StandaloneCloudPlayerImpl(uuid: UUID, name: String, val ip: Inet4Address) 
 
     override val connectedToProxy get() = proxyServer != null
     override val connectedToServer get() = server != null
-    val anyServer: ServerCommonCloudServer
-        get() = server ?: proxyServer ?: error("Player is not connected to a server")
+    val anyServer: ServerCommonCloudServer?
+        get() = server ?: proxyServer
 
     @Deprecated("remove")
     @Volatile
@@ -181,7 +181,7 @@ class StandaloneCloudPlayerImpl(uuid: UUID, name: String, val ip: Inet4Address) 
     }
 
     override suspend fun lastServerRaw(): String {
-        return anyServer.name
+        return anyServer?.name ?: error("Player is not connected to a server")
     }
 
     override fun currentServer(): CloudServer {
@@ -199,7 +199,9 @@ class StandaloneCloudPlayerImpl(uuid: UUID, name: String, val ip: Inet4Address) 
     }
 
     override suspend fun displayName(): Component = ClientboundRequestDisplayNamePacket(uuid)
-        .fireAndAwaitUrgent(anyServer.connection)?.displayName
+        .fireAndAwaitUrgent(
+            anyServer?.connection ?: error("Player is not connected to a server")
+        )?.displayName
         ?: error("Failed to get display name (probably timed out)")
 
     override suspend fun name(): String {
@@ -314,7 +316,11 @@ class StandaloneCloudPlayerImpl(uuid: UUID, name: String, val ip: Inet4Address) 
     }
 
     override suspend fun getLuckpermsMetaData(key: String): String? {
-        return RequestLuckpermsMetaDataPacket(uuid, key).fireAndAwait(anyServer.connection)?.data
+        return anyServer?.connection?.let {
+            RequestLuckpermsMetaDataPacket(uuid, key).fireAndAwait(
+                it
+            )?.data
+        }
     }
 
 
@@ -408,7 +414,7 @@ class StandaloneCloudPlayerImpl(uuid: UUID, name: String, val ip: Inet4Address) 
     }
 
     override suspend fun hasPermission(permission: String): Boolean {
-        return RequestPlayerPermissionPacket(uuid, permission).awaitOrThrow(anyServer.connection)
+        return RequestPlayerPermissionPacket(uuid, permission).awaitOrThrow(anyServer?.connection ?: error("Player is not connected to a server"))
     }
 
     override fun playSound(sound: Sound) {
@@ -476,6 +482,6 @@ class StandaloneCloudPlayerImpl(uuid: UUID, name: String, val ip: Inet4Address) 
     }
 
     private fun send(packet: NettyPacket) {
-        anyServer.connection.send(packet)
+        anyServer?.connection?.send(packet)
     }
 }

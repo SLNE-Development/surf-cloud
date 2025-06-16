@@ -6,8 +6,6 @@ import dev.slne.surf.cloud.api.common.netty.network.protocol.PacketFlow
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
 import dev.slne.surf.cloud.api.common.netty.packet.RespondingNettyPacket
 import dev.slne.surf.cloud.api.common.netty.packet.ResponseNettyPacket
-import dev.slne.surf.cloud.api.common.netty.packet.packetCodec
-import dev.slne.surf.cloud.api.common.netty.protocol.buffer.SurfByteBuf
 import dev.slne.surf.cloud.core.common.player.task.PrePlayerJoinTask
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
@@ -24,7 +22,7 @@ import java.util.*
  * @param serverUid The uid of the server the player is connecting to
  * @param proxy If the server is a proxy
  */
-@SurfNettyPacket(DefaultIds.PLAYER_CONNECT_TO_SERVER_PACKET, PacketFlow.BIDIRECTIONAL)
+@SurfNettyPacket(DefaultIds.PLAYER_CONNECT_TO_SERVER_PACKET, PacketFlow.SERVERBOUND)
 @Serializable
 data class PlayerConnectToServerPacket(
     val uuid: @Contextual UUID,
@@ -33,6 +31,16 @@ data class PlayerConnectToServerPacket(
     val proxy: Boolean,
     val playerIp: @Contextual Inet4Address,
 ) : RespondingNettyPacket<PlayerConnectToServerResponsePacket>()
+
+@SurfNettyPacket(DefaultIds.PLAYER_CONNECTED_TO_SERVER_PACKET, PacketFlow.CLIENTBOUND)
+@Serializable
+data class PlayerConnectedToServerPacket(
+    val uuid: @Contextual UUID,
+    val name: String,
+    val serverUid: Long,
+    val proxy: Boolean,
+    val playerIp: @Contextual Inet4Address,
+) : NettyPacket()
 
 @SurfNettyPacket("cloud:response:connect_to_server", PacketFlow.BIDIRECTIONAL)
 @Serializable

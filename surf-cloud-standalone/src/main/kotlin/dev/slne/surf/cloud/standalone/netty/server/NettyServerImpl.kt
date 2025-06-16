@@ -150,13 +150,16 @@ class NettyServerImpl : InitializingBean, DisposableBean {
                 client.serverId,
                 client.serverCategory,
                 client.serverName,
-                client.connection
+                client.playAddress,
+                client.connection,
             )
         } else {
             StandaloneCloudServerImpl(
                 client.serverId,
                 client.serverCategory,
                 client.serverName,
+                client.playAddress,
+                client.lobbyServer,
                 client.connection
             )
         }

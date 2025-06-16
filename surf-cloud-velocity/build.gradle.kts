@@ -1,5 +1,6 @@
 plugins {
     id("dev.slne.surf.surfapi.gradle.velocity")
+    `exclude-kotlin`
 }
 
 dependencies {

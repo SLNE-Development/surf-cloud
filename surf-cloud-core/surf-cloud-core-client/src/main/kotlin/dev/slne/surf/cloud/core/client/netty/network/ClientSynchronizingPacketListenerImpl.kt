@@ -4,10 +4,14 @@ import dev.slne.surf.cloud.api.common.netty.network.ConnectionProtocol
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacketInfo
 import dev.slne.surf.cloud.core.client.netty.ClientNettyClientImpl
+import dev.slne.surf.cloud.core.client.server.ClientCloudServerImpl
+import dev.slne.surf.cloud.core.client.server.ClientProxyCloudServerImpl
+import dev.slne.surf.cloud.core.client.server.serverManagerImpl
 import dev.slne.surf.cloud.core.client.sync.SyncRegistryImpl
 import dev.slne.surf.cloud.core.common.coroutines.BeforeStartTaskScope
 import dev.slne.surf.cloud.core.common.coroutines.PacketHandlerScope
 import dev.slne.surf.cloud.core.common.netty.network.ConnectionImpl
+import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ClientboundBatchUpdateServer
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.RunningProtocols
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.SyncSetDeltaPacket
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.SyncValueChangePacket
@@ -79,6 +83,24 @@ class ClientSynchronizingPacketListenerImpl(
                 .withCause(e)
                 .log("Failed to apply batch sync sets for packet $packet")
         }
+    }
+
+    override suspend fun handleBatchUpdateServer(packet: ClientboundBatchUpdateServer) {
+        serverManagerImpl.batchUpdateServer(packet.servers.map { data ->
+            if (data.proxy) {
+                ClientProxyCloudServerImpl(data.serverId, data.group, data.name, data.address)
+            } else {
+                ClientCloudServerImpl(
+                    data.serverId,
+                    data.group,
+                    data.name,
+                    data.address,
+                    data.lobby
+                ).also { server ->
+                    platformExtension.registerCloudServerToProxy(server)
+                }
+            }
+        })
     }
 
     override fun handleSyncSetDelta(packet: SyncSetDeltaPacket) {

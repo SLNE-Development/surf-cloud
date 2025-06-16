@@ -52,12 +52,19 @@ class ServerRunningPacketListenerImpl(
             packet.name,
             packet.proxy,
             packet.playerIp,
-            packet.serverUid
+            packet.serverUid,
+            true
         )
 
         packet.respond(PlayerConnectToServerResponsePacket(result))
 
-        broadcast(packet.copy())
+        broadcast(PlayerConnectedToServerPacket(
+            packet.uuid,
+            packet.name,
+            packet.serverUid,
+            packet.proxy,
+            packet.playerIp
+        ))
         serverManagerImpl.getCommonStandaloneServerByUid(packet.serverUid)
             ?.handlePlayerConnect(packet.uuid)
     }

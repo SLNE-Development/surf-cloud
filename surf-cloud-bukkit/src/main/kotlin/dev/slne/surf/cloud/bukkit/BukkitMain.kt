@@ -18,6 +18,9 @@ import net.kyori.adventure.text.format.NamedTextColor
 import org.bukkit.Location
 import org.bukkit.entity.Player
 import org.bukkit.event.server.ServerLoadEvent
+import java.net.DatagramSocket
+import java.net.InetSocketAddress
+import java.net.URI
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
 
@@ -43,6 +46,21 @@ class BukkitMain : SuspendingJavaPlugin() {
             serverLoaded = true
 
             launch {
+                val datagramSocketIp = DatagramSocket().run {
+                    connect(InetSocketAddress("8.8.8.8", 53))
+                    val ip = localAddress.hostAddress
+                    close()
+                    ip
+                }
+
+                val publicIp = URI("https://checkip.amazonaws.com").toURL().readText().trim()
+
+                repeat(20) {
+                    println("Ip: ${server.ip}")
+                    println("Public IP: $publicIp")
+                    println("Datagram Socket IP: $datagramSocketIp")
+                }
+
                 try {
                     coreCloudInstance.afterStart()
                 } catch (t: Throwable) {

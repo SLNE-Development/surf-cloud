@@ -10,11 +10,12 @@ import dev.slne.surf.cloud.api.common.util.TimeLogger
 import dev.slne.surf.cloud.api.common.util.mutableObject2ObjectMapOf
 import dev.slne.surf.cloud.api.common.util.synchronize
 import dev.slne.surf.cloud.core.common.player.task.PrePlayerJoinTask
-import dev.slne.surf.cloud.core.common.player.task.PrePlayerJoinTaskManager
 import dev.slne.surf.cloud.core.common.spring.CloudLifecycleAware
-import dev.slne.surf.cloud.core.common.util.publish
 import dev.slne.surf.surfapi.core.api.util.logger
 import it.unimi.dsi.fastutil.objects.Object2ObjectArrayMap
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import org.jetbrains.annotations.MustBeInvokedByOverriders
 import org.springframework.core.annotation.Order
 import org.springframework.stereotype.Component
@@ -24,6 +25,9 @@ import java.util.*
 abstract class CloudPlayerManagerImpl<P : CommonCloudPlayerImpl> : CloudPlayerManager {
     private val log = logger()
     protected val players = mutableObject2ObjectMapOf<UUID, P>().synchronize()
+    protected val creatingPlayers =
+        mutableObject2ObjectMapOf<UUID, CompletableDeferred<P?>>().synchronize()
+    protected val createMutex = Mutex()
 
     override fun getPlayer(uuid: UUID?): P? {
         return players[uuid]
@@ -76,19 +80,23 @@ abstract class CloudPlayerManagerImpl<P : CommonCloudPlayerImpl> : CloudPlayerMa
         name: String,
         proxy: Boolean,
         ip: Inet4Address,
-        serverUid: Long
+        serverUid: Long,
+        runPreJoinTasks: Boolean
     ): PrePlayerJoinTask.Result {
-        val player = players[uuid]
+        val (player, preJoinResult, created) = getOrCreatePlayerAtomically(
+            uuid,
+            name,
+            proxy,
+            ip,
+            serverUid,
+            runPreJoinTasks
+        )
 
         if (player == null) {
-            createPlayer(uuid, name, proxy, ip, serverUid).also {
-                val preJoinResult = preJoin(it)
-                if (preJoinResult !is PrePlayerJoinTask.Result.ALLOWED) return preJoinResult
-                onNetworkConnect(uuid, it)
-                onServerConnect(uuid, it, serverUid)
-                addPlayer(it)
-            }
-        } else {
+            return preJoinResult
+        }
+
+        if (!created) {
             if (proxy) {
                 updateProxyServer(player, serverUid)
             } else {
@@ -98,6 +106,105 @@ abstract class CloudPlayerManagerImpl<P : CommonCloudPlayerImpl> : CloudPlayerMa
         }
 
         return PrePlayerJoinTask.Result.ALLOWED
+
+
+//        val player = players[uuid]
+//        val creatingPlayer = creatingPlayers[uuid]
+//
+//        if (player == null && creatingPlayer == null) {
+//            val creatingPlayerDeferred = CompletableDeferred<P?>()
+//            creatingPlayers[uuid] = creatingPlayerDeferred
+//
+//            createPlayer(uuid, name, proxy, ip, serverUid).also {
+//                if (runPreJoinTasks) {
+//                    val preJoinResult = preJoin(it)
+//                    if (preJoinResult !is PrePlayerJoinTask.Result.ALLOWED) {
+//                        creatingPlayerDeferred.complete(null)
+//                        return preJoinResult
+//                    }
+//                }
+//
+//                onNetworkConnect(uuid, it)
+//                onServerConnect(uuid, it, serverUid)
+//                addPlayer(it)
+//            }
+//        } else {
+//            coroutineScope {
+//                if (proxy) {
+//                    if (player != null) {
+//                        updateProxyServer(player, serverUid)
+//                    } else {
+//                        launch {
+//                            creatingPlayer?.await()?.let { newPlayer ->
+//                                updateProxyServer(newPlayer, serverUid)
+//                            }
+//                        }
+//                    }
+//                } else {
+//                    if (player != null) {
+//                        updateServer(player, serverUid)
+//                    } else {
+//                        launch {
+//                            creatingPlayer?.await()?.let { newPlayer ->
+//                                updateServer(newPlayer, serverUid)
+//                            }
+//                        }
+//                    }
+//                }
+//
+//                if (player != null) {
+//                    onServerConnect(uuid, player, serverUid)
+//                } else {
+//                    launch {
+//                        creatingPlayer?.await()?.let { newPlayer ->
+//                            onServerConnect(uuid, newPlayer, serverUid)
+//                        }
+//                    }
+//                }
+//            }
+//        }
+//
+//        return PrePlayerJoinTask.Result.ALLOWED
+    }
+
+    private suspend fun getOrCreatePlayerAtomically(
+        uuid: UUID,
+        name: String,
+        proxy: Boolean,
+        ip: Inet4Address,
+        serverUid: Long,
+        runPreJoinTasks: Boolean
+    ): Triple<P?, PrePlayerJoinTask.Result, Boolean> {
+        players[uuid]?.let { return Triple(it, PrePlayerJoinTask.Result.ALLOWED, false) }
+
+        var needsCreation = false
+        val creatingPlayer = createMutex.withLock {
+            creatingPlayers.computeIfAbsent(uuid) {
+                needsCreation = true
+                CompletableDeferred()
+            }
+        }
+
+        if (!creatingPlayer.isCompleted && needsCreation) {
+            val newPlayer = createPlayer(uuid, name, proxy, ip, serverUid)
+
+            if (runPreJoinTasks) {
+                val preJoinResult = preJoin(newPlayer)
+                if (preJoinResult !is PrePlayerJoinTask.Result.ALLOWED) {
+                    creatingPlayer.complete(null)
+                    return Triple(null, preJoinResult, true)
+                }
+            }
+
+            addPlayer(newPlayer)
+            creatingPlayers.remove(uuid)
+
+            onNetworkConnect(uuid, newPlayer)
+            onServerConnect(uuid, newPlayer, serverUid)
+            creatingPlayer.complete(newPlayer)
+        }
+
+        return Triple(creatingPlayer.await(), PrePlayerJoinTask.Result.ALLOWED, true)
     }
 
     protected open suspend fun preJoin(player: P): PrePlayerJoinTask.Result {

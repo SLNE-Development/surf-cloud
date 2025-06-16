@@ -6,9 +6,7 @@ import dev.slne.surf.cloud.core.common.netty.network.DisconnectReason
 import dev.slne.surf.cloud.core.common.netty.network.DisconnectionDetails
 import dev.slne.surf.cloud.core.common.netty.network.protocol.login.*
 import dev.slne.surf.cloud.core.common.netty.network.protocol.prerunning.PreRunningProtocols
-import dev.slne.surf.cloud.standalone.config.standaloneConfig
 import dev.slne.surf.cloud.standalone.netty.server.NettyServerImpl
-import dev.slne.surf.cloud.standalone.netty.server.ProxyServerAutoregistration
 import dev.slne.surf.cloud.standalone.netty.server.ServerClientImpl
 import dev.slne.surf.surfapi.core.api.util.logger
 
@@ -52,9 +50,9 @@ class ServerLoginPacketListenerImpl(val server: NettyServerImpl, val connection:
     private fun startClientVerification() {
         state = State.VERIFYING
 
-        if (proxy && standaloneConfig.useSingleProxySetup && ProxyServerAutoregistration.hasProxy) {
-            disconnect(DisconnectReason.PROXY_ALREADY_CONNECTED)
-        }
+//        if (proxy && standaloneConfig.useSingleProxySetup && ProxyServerAutoregistration.hasProxy) {
+//            disconnect(DisconnectReason.PROXY_ALREADY_CONNECTED)
+//        }
     }
 
     private fun verifyLoginAndFinishConnectionSetup() {

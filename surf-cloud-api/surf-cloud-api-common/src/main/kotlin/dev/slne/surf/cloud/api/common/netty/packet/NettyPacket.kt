@@ -17,6 +17,7 @@ abstract class NettyPacket {
      * This is for internal use and is not intended to be modified externally.
      */
     @InternalApi
+    @Transient
     var handled = false
         private set
 
@@ -33,40 +34,48 @@ abstract class NettyPacket {
      * is required after this packet and the protocol switches to the next state.
      */
     @InternalApi
+    @Transient
     open val terminal: Boolean = false
     // endregion
 
+    @Transient
     private val meta = this::class.getPacketMeta()
 
     /**
      * The unique identifier of this packet.
      */
+    @Transient
     val id = meta.id
 
     /**
      * The flow direction of this packet (e.g., client-to-server or server-to-client).
      */
+    @Transient
     val flow = meta.flow
 
     /**
      * Supported protocols for this packet.
      */
+    @Transient
     val protocols = meta.protocols
 
     /**
      * A session identifier for the packet, generated randomly for each instance.
      */
+    @Transient
     val sessionId = ThreadLocalRandom.current().nextLong()
 
     /**
      * Indicates whether the packet is skippable.
      * If true, the packet will be ignored if its size exceeds the allowed limit.
      */
+    @Transient
     open val skippable = false
 
     /**
      * Additional packets that should be sent after this packet, if any.
      */
+    @Transient
     open val extraPackets: List<NettyPacket>? = null
 
     /**

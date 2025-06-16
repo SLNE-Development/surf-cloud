@@ -49,8 +49,7 @@ class CloudPlayerService : AbstractExposedDAOService<UUID, CloudPlayerEntity>({
         update(player.uuid, createIfMissing = true) {
             lastSeen = ZonedDateTime.now()
             lastIpAddress = player.ip
-            lastServer =
-                player.server?.name ?: error("Player ${player.uuid} is not connected to a server")
+            player.server?.let { lastServer = it.name }
 
             val latestName = nameHistories.minByOrNull { it.createdAt }
             val currentName = player.name()

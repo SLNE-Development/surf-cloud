@@ -2,6 +2,7 @@ package dev.slne.surf.cloud.standalone.netty.server.connection
 
 import dev.slne.surf.cloud.api.common.netty.network.protocol.PacketFlow
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
+import dev.slne.surf.cloud.api.common.netty.packet.RespondingNettyPacket
 import dev.slne.surf.cloud.api.common.util.DefaultUncaughtExceptionHandlerWithName
 import dev.slne.surf.cloud.api.common.util.mutableObjectListOf
 import dev.slne.surf.cloud.api.common.util.netty.suspend
@@ -9,15 +10,10 @@ import dev.slne.surf.cloud.api.common.util.synchronize
 import dev.slne.surf.cloud.api.common.util.threadFactory
 import dev.slne.surf.cloud.core.common.config.cloudConfig
 import dev.slne.surf.cloud.core.common.coroutines.ConnectionManagementScope
-import dev.slne.surf.cloud.core.common.netty.network.ConnectionImpl
-import dev.slne.surf.cloud.core.common.netty.network.DisconnectReason
-import dev.slne.surf.cloud.core.common.netty.network.DisconnectionDetails
-import dev.slne.surf.cloud.core.common.netty.network.EncryptionManager
-import dev.slne.surf.cloud.core.common.netty.network.HandlerNames
+import dev.slne.surf.cloud.core.common.netty.network.*
 import dev.slne.surf.cloud.core.common.netty.network.protocol.common.ClientboundBundlePacket
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ClientboundDisconnectPacket
 import dev.slne.surf.cloud.standalone.netty.server.NettyServerImpl
-import dev.slne.surf.cloud.standalone.netty.server.network.ServerEncryptionManager
 import dev.slne.surf.cloud.standalone.netty.server.network.ServerHandshakePacketListenerImpl
 import dev.slne.surf.surfapi.core.api.util.logger
 import io.netty.bootstrap.ServerBootstrap
@@ -36,7 +32,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
-import org.jetbrains.annotations.Blocking
 import java.net.InetAddress
 import java.net.InetSocketAddress
 import java.net.SocketAddress
@@ -141,10 +136,10 @@ class ServerConnectionListener(val server: NettyServerImpl) {
             try {
                 val details = DisconnectionDetails(DisconnectReason.SERVER_SHUTDOWN)
                 connection.sendWithIndication(ClientboundDisconnectPacket(details))
-                connection.disconnect(details)
+                connection.disconnect(details)?.suspend()
             } catch (_: Throwable) {
                 try {
-                    connection.channel.close().sync()
+                    connection.channel.close().suspend()
                 } catch (e: InterruptedException) {
                     log.atSevere().withCause(e).log("Interrupted whilst closing channel")
                 } catch (e: Exception) {
@@ -169,12 +164,15 @@ class ServerConnectionListener(val server: NettyServerImpl) {
         channelsMutex.withLock {
             for (future in channels) {
                 try {
-                    future.channel().close().sync()
+                    future.channel().close().suspend()
                 } catch (e: InterruptedException) {
                     log.atSevere().withCause(e).log("Interrupted whilst closing channel")
                 }
             }
         }
+
+        ConnectionImpl.NETWORK_EPOLL_WORKER_GROUP.shutdownGracefully().suspend()
+        ConnectionImpl.NETWORK_WORKER_GROUP.shutdownGracefully().suspend()
     }
 
     private suspend fun addPending() {
@@ -226,6 +224,8 @@ class ServerConnectionListener(val server: NettyServerImpl) {
     }
 
     fun broadcast(packet: NettyPacket, flush: Boolean = true) {
+        require(packet !is RespondingNettyPacket<*>) { "Cannot broadcast responding packets" }
+
         val activeProtocols = packet.protocols
         for (connection in connections) {
             if (connection.outboundProtocolInfo.id !in activeProtocols) continue
@@ -235,6 +235,8 @@ class ServerConnectionListener(val server: NettyServerImpl) {
 
     fun broadcast(packets: List<NettyPacket>, flush: Boolean = true) {
         if (packets.isEmpty()) return
+        require(packets.none { it is RespondingNettyPacket<*> }) { "Cannot broadcast responding packets" }
+
         val packet = if (packets.size == 1) packets.first() else ClientboundBundlePacket(packets)
         val activeProtocols = packet.protocols
 

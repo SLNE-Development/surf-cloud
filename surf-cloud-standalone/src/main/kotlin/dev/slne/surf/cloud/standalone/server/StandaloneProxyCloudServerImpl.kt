@@ -5,17 +5,16 @@ import dev.slne.surf.cloud.api.server.server.ServerProxyCloudServer
 import dev.slne.surf.cloud.core.common.netty.network.ConnectionImpl
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ClientboundTriggerShutdownPacket
 import dev.slne.surf.cloud.core.common.server.AbstractProxyCloudServer
+import java.net.InetSocketAddress
 
 class StandaloneProxyCloudServerImpl(
     uid: Long,
     group: String,
     name: String,
+    address: InetSocketAddress,
     override val connection: ConnectionImpl
-) : AbstractProxyCloudServer(uid, group, name), ServerProxyCloudServer,
+) : AbstractProxyCloudServer(uid, group, name, address), ServerProxyCloudServer,
     CommonStandaloneServer by CommonStandaloneServerImpl() {
-
-    fun registerClients(vararg clients: StandaloneCloudServerImpl) {
-    }
 
     override fun shutdown() {
         connection.send(ClientboundTriggerShutdownPacket)

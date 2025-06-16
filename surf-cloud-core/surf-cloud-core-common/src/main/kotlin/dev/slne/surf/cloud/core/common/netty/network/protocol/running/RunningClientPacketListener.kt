@@ -7,7 +7,7 @@ import dev.slne.surf.cloud.core.common.netty.network.protocol.common.ClientCommo
 interface RunningClientPacketListener : ClientCommonPacketListener {
     override val protocol get() = ConnectionProtocol.RUNNING
 
-    suspend fun handlePlayerConnectToServer(packet: PlayerConnectToServerPacket)
+    suspend fun handlePlayerConnectedToServer(packet: PlayerConnectedToServerPacket)
 
     suspend fun handlePlayerDisconnectFromServer(packet: PlayerDisconnectFromServerPacket)
 
@@ -72,8 +72,6 @@ interface RunningClientPacketListener : ClientCommonPacketListener {
     fun handleRegisterCloudServersToProxy(packet: ClientboundRegisterCloudServersToProxyPacket)
 
     fun handleTriggerShutdown(packet: ClientboundTriggerShutdownPacket)
-
-    suspend fun handleBatchUpdateServer(packet: ClientboundBatchUpdateServer)
 
     fun handleUpdateAFKState(packet: UpdateAFKStatePacket)
 

@@ -5,7 +5,9 @@ import dev.slne.surf.cloud.api.common.exceptions.ExitCodes
 import dev.slne.surf.cloud.api.common.exceptions.FatalSurfError
 import dev.slne.surf.cloud.api.common.netty.network.protocol.PacketFlow
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
+import dev.slne.surf.cloud.api.common.netty.packet.RespondingNettyPacket
 import dev.slne.surf.cloud.api.common.server.CloudServerConstants
+import dev.slne.surf.cloud.core.client.config.clientConfig
 import dev.slne.surf.cloud.core.client.netty.network.ClientHandshakePacketListenerImpl
 import dev.slne.surf.cloud.core.client.netty.network.ClientRunningPacketListenerImpl
 import dev.slne.surf.cloud.core.client.netty.network.PlatformSpecificPacketListenerExtension
@@ -36,7 +38,7 @@ import kotlin.time.Duration.Companion.seconds
 
 class ClientNettyClientImpl(
     val proxy: Boolean,
-    val platformExtension: PlatformSpecificPacketListenerExtension
+    val platformExtension: PlatformSpecificPacketListenerExtension,
 ) : CommonNettyClientImpl(
     CloudPersistentData.SERVER_ID,
     CloudProperties.SERVER_CATEGORY,
@@ -51,6 +53,9 @@ class ClientNettyClientImpl(
     val preRunningCallback = CompletableDeferred<Unit>()
     val synchronizeCallback = CompletableDeferred<Unit>()
     lateinit var startSynchronizeTask: suspend () -> Unit
+
+    override val playAddress: InetSocketAddress
+        get() = platformExtension.playAddress
 
     private val statusUpdate: StatusUpdate = {
         log.atInfo().log(it)
@@ -107,12 +112,15 @@ class ClientNettyClientImpl(
                 ),
                 false
             )
+            CloudProperties
             connection.send(
                 ServerboundLoginStartPacket(
                     serverId,
                     serverCategory,
                     serverName,
-                    proxy
+                    proxy,
+                    clientConfig.isLobby,
+                    playAddress
                 )
             )
         } catch (e: Exception) {
@@ -193,6 +201,7 @@ class ClientNettyClientImpl(
     }
 
     override fun broadcast(packets: List<NettyPacket>) {
+        require(packets.none { it is RespondingNettyPacket<*> }) { "Cannot broadcast responding packets." }
         val finalPackets = packets.toMutableList()
         finalPackets.add(0, ServerboundBroadcastPacket)
 

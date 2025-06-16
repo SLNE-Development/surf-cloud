@@ -58,6 +58,19 @@ object MessageManager { // TODO: Add more messages
         )
     }
 
+    val noServersAvailableToJoin = buildText {
+        CommonComponents.renderDisconnectMessage(
+            this,
+            "KEINE SERVERS ZUM BEITRETEN VERFÜGBAR",
+            {
+                error("Es sind aktuell keine Server verfügbar,")
+                appendNewline()
+                error("zu denen du beitreten kannst.")
+            },
+            true
+        )
+    }
+
     fun formatZonedDateTime(time: ZonedDateTime?) = buildText {
         if (time == null) {
             variableValue("N/A")

@@ -1,11 +1,13 @@
 package dev.slne.surf.cloud.velocity.netty.network
 
+import com.github.benmanes.caffeine.cache.Caffeine
 import com.velocitypowered.api.proxy.ConnectionRequestBuilder
 import com.velocitypowered.api.proxy.server.ServerInfo
 import dev.slne.surf.cloud.api.common.player.teleport.TeleportCause
 import dev.slne.surf.cloud.api.common.player.teleport.TeleportFlag
 import dev.slne.surf.cloud.api.common.player.teleport.TeleportLocation
 import dev.slne.surf.cloud.core.client.netty.network.PlatformSpecificPacketListenerExtension
+import dev.slne.surf.cloud.core.client.server.ClientCloudServerImpl
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.RegistrationInfo
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ServerboundTransferPlayerPacketResponse.Status
 import dev.slne.surf.cloud.velocity.proxy
@@ -18,6 +20,12 @@ import org.springframework.stereotype.Component as SpringComponent
 
 @SpringComponent
 class VelocitySpecificPacketListenerExtension : PlatformSpecificPacketListenerExtension {
+    private val serverInfoCache = Caffeine.newBuilder()
+        .build<Long, ServerInfo>()
+
+    override val playAddress: InetSocketAddress
+        get() = proxy.boundAddress
+
     override fun isServerManagedByThisProxy(address: InetSocketAddress) =
         proxy.allServers.any { it.serverInfo.address == address } // TODO: Check if this is correct
 
@@ -61,6 +69,20 @@ class VelocitySpecificPacketListenerExtension : PlatformSpecificPacketListenerEx
     override fun registerCloudServersToProxy(servers: Array<RegistrationInfo>) {
         servers.map { (name, address) -> ServerInfo(name, address) }
             .forEach { proxy.registerServer(it) }
+    }
+
+    override fun registerCloudServerToProxy(client: ClientCloudServerImpl) {
+        val serverInfo = ServerInfo(client.name, client.playAddress)
+        println("Registering server $serverInfo to proxy")
+
+        proxy.registerServer(serverInfo)
+        serverInfoCache.put(client.uid, serverInfo)
+    }
+
+    override fun unregisterCloudServerFromProxy(client: ClientCloudServerImpl) {
+        val info = serverInfoCache.getIfPresent(client.uid) ?: return
+        println("Unregistering server $info from proxy")
+        proxy.unregisterServer(info)
     }
 
     override suspend fun teleportPlayerToPlayer(

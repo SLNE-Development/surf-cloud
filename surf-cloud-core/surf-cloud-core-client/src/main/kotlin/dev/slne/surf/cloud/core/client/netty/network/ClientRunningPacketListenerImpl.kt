@@ -43,13 +43,14 @@ class ClientRunningPacketListenerImpl(
 ) : ClientCommonPacketListenerImpl(connection), RunningClientPacketListener {
     private val log = logger()
 
-    override suspend fun handlePlayerConnectToServer(packet: PlayerConnectToServerPacket) {
+    override suspend fun handlePlayerConnectedToServer(packet: PlayerConnectedToServerPacket) {
         playerManagerImpl.updateOrCreatePlayer(
             packet.uuid,
             packet.name,
             packet.proxy,
             packet.playerIp,
-            packet.serverUid
+            packet.serverUid,
+            false
         )
     }
 
@@ -182,20 +183,28 @@ class ClientRunningPacketListenerImpl(
                 packet.serverId,
                 packet.group,
                 packet.name,
+                packet.address
             )
         } else {
             ClientCloudServerImpl(
                 packet.serverId,
                 packet.group,
                 packet.name,
-            )
+                packet.address,
+                packet.lobby
+            ).also { client ->
+                platformExtension.registerCloudServerToProxy(client)
+            }
         }
 
         serverManagerImpl.registerServer(server)
     }
 
     override suspend fun handleUnregisterServerPacket(packet: ClientboundUnregisterServerPacket) {
-        serverManagerImpl.unregisterServer(packet.serverId)
+        val removed = serverManagerImpl.unregisterServer(packet.serverId)
+        if (removed is ClientCloudServerImpl) {
+            platformExtension.unregisterCloudServerFromProxy(removed)
+        }
     }
 
     override suspend fun handleAddPlayerToServer(packet: ClientboundAddPlayerToServerPacket) {
@@ -259,16 +268,6 @@ class ClientRunningPacketListenerImpl(
 
     override fun handleTriggerShutdown(packet: ClientboundTriggerShutdownPacket) {
         platformExtension.triggerShutdown()
-    }
-
-    override suspend fun handleBatchUpdateServer(packet: ClientboundBatchUpdateServer) {
-        serverManagerImpl.batchUpdateServer(packet.servers.map {
-            if (it.proxy) {
-                ClientProxyCloudServerImpl(it.serverId, it.group, it.name)
-            } else {
-                ClientCloudServerImpl(it.serverId, it.group, it.name)
-            }
-        })
     }
 
     override fun handleUpdateAFKState(packet: UpdateAFKStatePacket) {

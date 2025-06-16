@@ -126,6 +126,7 @@ object DefaultIds {
     const val CLIENTBOUND_CLEAR_RESOURCE_PACKS_PACKET = "cloud:clientbound:clear_resource_packs"
 
     const val PLAYER_CONNECT_TO_SERVER_PACKET = "cloud:player:connect_to_server"
+    const val PLAYER_CONNECTED_TO_SERVER_PACKET = "cloud:player:connected_to_server"
     const val PLAYER_DISCONNECT_FROM_SERVER_PACKET = "cloud:player:disconnect_from_server"
 
     const val SERVERBOUND_REQUEST_DISPLAY_NAME_PACKET = "cloud:serverbound:request_display_name"

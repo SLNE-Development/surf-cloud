@@ -70,6 +70,9 @@ interface CloudServerManager {
 
     suspend fun retrieveAllServers(): ObjectCollection<out CommonCloudServer>
 
+    suspend fun retrieveServers(): ObjectCollection<out CloudServer>
+    suspend fun retrieveProxies(): ObjectCollection<out ProxyCloudServer>
+
     suspend fun pullPlayersToGroup(
         group: String,
         players: Collection<CloudPlayer>

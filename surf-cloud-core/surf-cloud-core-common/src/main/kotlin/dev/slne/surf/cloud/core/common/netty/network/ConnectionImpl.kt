@@ -458,13 +458,14 @@ class ConnectionImpl(
                         is SyncValueChangePacket -> listener.handleSyncValueChange(msg)
                         is ClientboundBatchSyncValuePacket -> listener.handleBatchSyncValue(msg)
                         is ClientboundBatchSyncSetPacket -> listener.handleBatchSyncSet(msg)
+                        is ClientboundBatchUpdateServer -> listener.handleBatchUpdateServer(msg)
                         is SyncSetDeltaPacket -> listener.handleSyncSetDelta(msg)
 
                         else -> listener.handlePacket(msg)
                     }
 
                     is RunningClientPacketListener -> when (msg) {
-                        is PlayerConnectToServerPacket -> listener.handlePlayerConnectToServer(
+                        is PlayerConnectedToServerPacket -> listener.handlePlayerConnectedToServer(
                             msg
                         )
 
@@ -545,7 +546,6 @@ class ConnectionImpl(
                         )
 
                         is ClientboundTriggerShutdownPacket -> listener.handleTriggerShutdown(msg)
-                        is ClientboundBatchUpdateServer -> listener.handleBatchUpdateServer(msg)
                         is UpdateAFKStatePacket -> listener.handleUpdateAFKState(msg)
                         is ClientboundRunPrePlayerJoinTasksPacket -> listener.handleRunPlayerPreJoinTasks(
                             msg
@@ -918,7 +918,7 @@ class ConnectionImpl(
         disconnect(DisconnectionDetails(reason))
     }
 
-    fun disconnect(reason: DisconnectionDetails) {
+    fun disconnect(reason: DisconnectionDetails): ChannelFuture? {
         preparing = false
         clearPacketQueue()
 
@@ -926,13 +926,16 @@ class ConnectionImpl(
 
         if (channel == null) {
             this.delayedDisconnect = reason
-            return
+            return null
         }
 
         if (connected) {
-            channel.close()
+            val future = channel.close()
             this.disconnectionDetails = reason
+            return future
         }
+
+        return null
     }
 
     fun clearPacketQueue() {

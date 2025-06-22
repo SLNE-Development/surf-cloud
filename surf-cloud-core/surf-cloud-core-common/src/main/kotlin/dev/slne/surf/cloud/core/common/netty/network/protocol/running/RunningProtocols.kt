@@ -68,6 +68,7 @@ object RunningProtocols {
                 .addPacket(RequestPlayerPermissionPacket::class.createCodec())
                 .addPacket(SyncValueChangePacket.STREAM_CODEC)
                 .addPacket(SyncSetDeltaPacket.STREAM_CODEC)
+                .addPacket(ClientboundSetVelocitySecretPacket::class.createCodec())
         }
 
     val CLIENTBOUND by lazy { CLIENTBOUND_TEMPLATE.freeze().bind(::SurfByteBuf) }

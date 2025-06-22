@@ -23,6 +23,7 @@ import dev.slne.surf.cloud.core.common.player.CommonCloudPlayerImpl
 import dev.slne.surf.cloud.core.common.player.ppdc.PersistentPlayerDataContainerImpl
 import dev.slne.surf.cloud.core.common.util.hasPermissionPlattform
 import dev.slne.surf.surfapi.core.api.messages.adventure.getPointer
+import dev.slne.surf.surfapi.core.api.nbt.fast
 import net.kyori.adventure.audience.Audience
 import net.kyori.adventure.audience.MessageType
 import net.kyori.adventure.bossbar.BossBar
@@ -120,7 +121,7 @@ abstract class ClientCloudPlayerImpl<PlatformPlayer : Audience>(uuid: UUID, name
         val response = ServerboundRequestPlayerPersistentDataContainer(uuid).fireAndAwaitOrThrow()
 
         val nbt = response.nbt
-        val container = PersistentPlayerDataContainerImpl(nbt)
+        val container = PersistentPlayerDataContainerImpl(nbt.fast(true))
         val result = container.block()
 
         ServerboundPlayerPersistentDataContainerUpdatePacket(

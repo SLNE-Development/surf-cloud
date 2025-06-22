@@ -97,18 +97,18 @@ open class SurfByteBuf(source: ByteBuf) : WrappedByteBuf(source) {
 
         private val GSON = Gson()
 
-        fun <T> streamCodecFromKotlin(serializer: KSerializer<T>): StreamCodec<SurfByteBuf, T> {
+        fun <B: ByteBuf, T> streamCodecFromKotlin(serializer: KSerializer<T>): StreamCodec<B, T> {
             return SerializerCodec(serializer)
         }
 
-        private class SerializerCodec<T>(private val serializer: KSerializer<T>) :
-            StreamCodec<SurfByteBuf, T> {
-            override fun decode(buf: SurfByteBuf): T {
+        private class SerializerCodec<B: ByteBuf, T>(private val serializer: KSerializer<T>) :
+            StreamCodec<B, T> {
+            override fun decode(buf: B): T {
                 return SurfCloudBufSerializer.serializer.decodeFromBuf(buf, serializer)
             }
 
             override fun encode(
-                buf: SurfByteBuf,
+                buf: B,
                 value: T
             ) {
                 SurfCloudBufSerializer.serializer.encodeToBuf(buf, serializer, value)

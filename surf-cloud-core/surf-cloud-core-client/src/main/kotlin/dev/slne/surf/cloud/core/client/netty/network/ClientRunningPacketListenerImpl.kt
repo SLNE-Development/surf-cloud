@@ -19,6 +19,7 @@ import dev.slne.surf.cloud.core.client.util.getOrLoadUser
 import dev.slne.surf.cloud.core.client.util.luckperms
 import dev.slne.surf.cloud.core.common.coroutines.PacketHandlerScope
 import dev.slne.surf.cloud.core.common.netty.network.ConnectionImpl
+import dev.slne.surf.cloud.core.common.netty.network.protocol.common.ClientboundSetVelocitySecretPacket
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.*
 import dev.slne.surf.cloud.core.common.netty.registry.listener.NettyListenerRegistry
 import dev.slne.surf.cloud.core.common.player.playerManagerImpl
@@ -339,6 +340,17 @@ class ClientRunningPacketListenerImpl(
             log.atWarning()
                 .withCause(e)
                 .log("Failed to handle sync set delta for packet $packet")
+        }
+    }
+
+    override fun handleSetVelocitySecret(packet: ClientboundSetVelocitySecretPacket) {
+        try {
+            client.velocitySecret = packet.secret
+            platformExtension.setVelocitySecret(packet.secret)
+        } catch (e: Throwable) {
+            log.atWarning()
+                .withCause(e)
+                .log("Failed to set velocity secret for packet $packet")
         }
     }
 

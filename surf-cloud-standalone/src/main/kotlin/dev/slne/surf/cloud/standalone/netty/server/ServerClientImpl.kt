@@ -12,11 +12,14 @@ class ServerClientImpl(
     serverCategory: String,
     serverName: String,
     override val playAddress: InetSocketAddress,
-    val lobbyServer: Boolean
+    val lobbyServer: Boolean,
 ) : CommonNettyClientImpl(serverId, serverCategory, serverName) {
 
     private var _listener: ServerRunningPacketListenerImpl? = null
     val listener get() = _listener ?: error("listener not yet set")
+
+    override val velocitySecret: ByteArray
+        get() = ProxySecretHolder.currentSecret()
 
     fun initListener(listener: ServerRunningPacketListenerImpl) {
         _listener = listener
@@ -28,6 +31,13 @@ class ServerClientImpl(
 
     companion object {
         fun fromPacket(server: NettyServerImpl, packet: ServerboundLoginStartPacket) =
-            ServerClientImpl(server, packet.serverId, packet.serverCategory, packet.serverName, packet.playAddress, packet.lobby)
+            ServerClientImpl(
+                server,
+                packet.serverId,
+                packet.serverCategory,
+                packet.serverName,
+                packet.playAddress,
+                packet.lobby
+            )
     }
 }

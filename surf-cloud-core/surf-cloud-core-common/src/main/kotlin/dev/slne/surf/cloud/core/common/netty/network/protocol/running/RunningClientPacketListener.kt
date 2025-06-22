@@ -3,6 +3,7 @@ package dev.slne.surf.cloud.core.common.netty.network.protocol.running
 import dev.slne.surf.cloud.api.common.netty.network.ConnectionProtocol
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
 import dev.slne.surf.cloud.core.common.netty.network.protocol.common.ClientCommonPacketListener
+import dev.slne.surf.cloud.core.common.netty.network.protocol.common.ClientboundSetVelocitySecretPacket
 
 interface RunningClientPacketListener : ClientCommonPacketListener {
     override val protocol get() = ConnectionProtocol.RUNNING
@@ -86,6 +87,8 @@ interface RunningClientPacketListener : ClientCommonPacketListener {
     fun handleSyncValueChange(packet: SyncValueChangePacket)
 
     fun handleSyncSetDelta(packet: SyncSetDeltaPacket)
+
+    fun handleSetVelocitySecret(packet: ClientboundSetVelocitySecretPacket)
 
     fun handlePacket(packet: NettyPacket)
 }

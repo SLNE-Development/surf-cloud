@@ -11,6 +11,7 @@ import dev.slne.surf.cloud.core.client.server.ClientCloudServerImpl
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.RegistrationInfo
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ServerboundTransferPlayerPacketResponse.Status
 import dev.slne.surf.cloud.velocity.proxy
+import dev.slne.surf.cloud.velocity.reflection.VelocityConfigurationProxy
 import kotlinx.coroutines.future.await
 import net.kyori.adventure.text.Component
 import java.net.InetSocketAddress
@@ -90,6 +91,10 @@ class VelocitySpecificPacketListenerExtension : PlatformSpecificPacketListenerEx
         target: UUID
     ): Boolean {
         error("Teleporting players is not supported on Velocity")
+    }
+
+    override fun setVelocitySecret(secret: ByteArray) {
+        VelocityConfigurationProxy.instance.setForwardingSecret(proxy.configuration, secret)
     }
 
     override fun triggerShutdown() {

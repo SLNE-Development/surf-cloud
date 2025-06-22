@@ -25,6 +25,7 @@ object SynchronizingProtocols {
                 .addPacket(SyncSetDeltaPacket.STREAM_CODEC)
                 .addPacket(FinishSynchronizingPacket.STREAM_CODEC)
                 .addPacket(ClientboundSynchronizeFinishPacket.STREAM_CODEC)
+                .addPacket(ClientboundSetVelocitySecretPacket::class.createCodec())
         }
 
     val CLIENTBOUND by lazy { CLIENTBOUND_TEMPLATE.bind(::SurfByteBuf) }

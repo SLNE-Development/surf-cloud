@@ -1,5 +1,4 @@
 import dev.slne.surf.surfapi.gradle.util.slneReleases
-import jdk.tools.jlink.resources.plugins
 
 plugins {
     id("dev.slne.surf.surfapi.gradle.core")

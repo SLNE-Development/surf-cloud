@@ -11,6 +11,7 @@ import dev.slne.surf.cloud.core.client.sync.SyncRegistryImpl
 import dev.slne.surf.cloud.core.common.coroutines.BeforeStartTaskScope
 import dev.slne.surf.cloud.core.common.coroutines.PacketHandlerScope
 import dev.slne.surf.cloud.core.common.netty.network.ConnectionImpl
+import dev.slne.surf.cloud.core.common.netty.network.protocol.common.ClientboundSetVelocitySecretPacket
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ClientboundBatchUpdateServer
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.RunningProtocols
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.SyncSetDeltaPacket
@@ -110,6 +111,17 @@ class ClientSynchronizingPacketListenerImpl(
             log.atWarning()
                 .withCause(e)
                 .log("Failed to handle sync set delta for packet $packet")
+        }
+    }
+
+    override fun handleSetVelocitySecret(packet: ClientboundSetVelocitySecretPacket) {
+        try {
+            client.velocitySecret = packet.secret
+            platformExtension.setVelocitySecret(packet.secret)
+        } catch (e: Exception) {
+            log.atWarning()
+                .withCause(e)
+                .log("Failed to set velocity secret for packet $packet")
         }
     }
 

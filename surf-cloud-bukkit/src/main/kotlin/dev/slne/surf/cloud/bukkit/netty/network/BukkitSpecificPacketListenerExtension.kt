@@ -13,12 +13,15 @@ import dev.slne.surf.cloud.core.client.server.ClientCloudServerImpl
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.RegistrationInfo
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ServerboundTransferPlayerPacketResponse
 import dev.slne.surf.surfapi.bukkit.api.extensions.server
+import dev.slne.surf.surfapi.bukkit.api.nms.NmsUseWithCaution
+import dev.slne.surf.surfapi.bukkit.api.nms.bridges.nmsCommonBridge
 import dev.slne.surf.surfapi.bukkit.api.util.dispatcher
 import kotlinx.coroutines.future.await
 import net.kyori.adventure.text.Component
 import org.bukkit.Bukkit
 import java.net.InetAddress
 import java.net.InetSocketAddress
+import java.nio.charset.StandardCharsets
 import java.util.*
 import kotlin.io.path.Path
 import kotlin.io.path.inputStream
@@ -98,6 +101,12 @@ class BukkitSpecificPacketListenerExtension : PlatformSpecificPacketListenerExte
         val targetPlayer = Bukkit.getPlayer(target) ?: return false
 
         return player.teleportAsync(targetPlayer.location).await()
+    }
+
+    @OptIn(NmsUseWithCaution::class)
+    override fun setVelocitySecret(secret: ByteArray) {
+        nmsCommonBridge.setVelocityEnabled(true)
+        nmsCommonBridge.setVelocitySecret(secret.toString(StandardCharsets.UTF_8))
     }
 
     override fun triggerShutdown() {

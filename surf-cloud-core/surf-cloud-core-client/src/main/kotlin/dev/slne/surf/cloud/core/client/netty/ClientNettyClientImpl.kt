@@ -61,6 +61,8 @@ class ClientNettyClientImpl(
         log.atInfo().log(it)
     }
 
+    override var velocitySecret = ByteArray(0)
+
     /**
      * Bootstraps the client. Setup the connection protocol until the PreRunning state.
      */
@@ -72,6 +74,7 @@ class ClientNettyClientImpl(
 
 
     suspend fun stop() {
+        velocitySecret.fill(0)
         doShutdown()
     }
 

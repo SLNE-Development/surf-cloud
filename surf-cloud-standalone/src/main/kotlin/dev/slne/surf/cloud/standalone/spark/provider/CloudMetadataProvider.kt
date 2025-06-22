@@ -9,6 +9,7 @@ import dev.slne.surf.cloud.standalone.server.serverManagerImpl
 import me.lucko.spark.common.platform.MetadataProvider
 import me.lucko.spark.lib.gson.JsonObject
 import me.lucko.spark.lib.gson.JsonParser
+import net.kyori.adventure.nbt.TagStringIO
 
 object CloudMetadataProvider : MetadataProvider {
     override fun get() = mapOf(
@@ -19,7 +20,15 @@ object CloudMetadataProvider : MetadataProvider {
 
     fun collectPersistentData() = JsonObject().apply {
         PersistentDataImpl.tag.forEach { (key, tag) ->
-            add(key, JsonParser.parseString(tag.valueToString()))
+            add(
+                key,
+                JsonParser.parseString(
+                    TagStringIO.builder()
+                        .emitHeterogeneousLists(true)
+                        .build()
+                        .asString(tag)
+                )
+            )
         }
     }
 

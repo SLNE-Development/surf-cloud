@@ -6,6 +6,7 @@ import dev.slne.surf.cloud.api.common.netty.packet.NettyPacketInfo
 import dev.slne.surf.cloud.core.common.coroutines.BeforeStartTaskScope
 import dev.slne.surf.cloud.core.common.coroutines.PacketHandlerScope
 import dev.slne.surf.cloud.core.common.netty.network.ConnectionImpl
+import dev.slne.surf.cloud.core.common.netty.network.protocol.common.ClientboundSetVelocitySecretPacket
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ClientboundBatchUpdateServer
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.RunningProtocols
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.SyncSetDeltaPacket
@@ -17,6 +18,7 @@ import dev.slne.surf.cloud.core.common.netty.network.protocol.synchronizing.Serv
 import dev.slne.surf.cloud.core.common.netty.registry.listener.NettyListenerRegistry
 import dev.slne.surf.cloud.core.common.plugin.task.CloudSynchronizeTaskManager
 import dev.slne.surf.cloud.standalone.netty.server.NettyServerImpl
+import dev.slne.surf.cloud.standalone.netty.server.ProxySecretHolder
 import dev.slne.surf.cloud.standalone.netty.server.ServerClientImpl
 import dev.slne.surf.cloud.standalone.netty.server.network.config.SynchronizeRegistriesTask
 import dev.slne.surf.cloud.standalone.server.serverManagerImpl
@@ -52,6 +54,7 @@ class ServerSynchronizingPacketListenerImpl(
         state = State.SYNCHRONIZING
 
         BeforeStartTaskScope.launch {
+            send(ClientboundSetVelocitySecretPacket(ProxySecretHolder.currentSecret()))
             send(ClientboundBatchUpdateServer(serverManagerImpl.retrieveAllServers()))
 
             SynchronizeRegistriesTask.execute(client)

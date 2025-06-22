@@ -38,6 +38,8 @@ interface PlatformSpecificPacketListenerExtension {
 
     suspend fun teleportPlayerToPlayer(uuid: UUID, target: UUID): Boolean
 
+    fun setVelocitySecret(secret: ByteArray)
+
     fun triggerShutdown()
 
     fun restart()

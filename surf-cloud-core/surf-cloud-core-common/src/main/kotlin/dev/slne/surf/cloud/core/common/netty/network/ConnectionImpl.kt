@@ -460,6 +460,7 @@ class ConnectionImpl(
                         is ClientboundBatchSyncSetPacket -> listener.handleBatchSyncSet(msg)
                         is ClientboundBatchUpdateServer -> listener.handleBatchUpdateServer(msg)
                         is SyncSetDeltaPacket -> listener.handleSyncSetDelta(msg)
+                        is ClientboundSetVelocitySecretPacket -> listener.handleSetVelocitySecret(msg)
 
                         else -> listener.handlePacket(msg)
                     }
@@ -564,6 +565,7 @@ class ConnectionImpl(
                         )
                         is SyncValueChangePacket -> listener.handleSyncValueChange(msg)
                         is SyncSetDeltaPacket -> listener.handleSyncSetDelta(msg)
+                        is ClientboundSetVelocitySecretPacket -> listener.handleSetVelocitySecret(msg)
 
                         else -> listener.handlePacket(msg)
                     }

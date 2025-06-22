@@ -1,6 +1,7 @@
 package dev.slne.surf.cloud.core.common.data
 
-import net.querz.nbt.tag.LongTag
+import net.kyori.adventure.nbt.BinaryTagTypes
+import net.kyori.adventure.nbt.LongBinaryTag
 
 
 object CloudPersistentData {
@@ -8,8 +9,9 @@ object CloudPersistentData {
 
     var SERVER_ID by persistentData(
         "server_id",
-        { LongTag(it) },
-        { asLong() },
+        BinaryTagTypes.LONG,
+        { value() },
+        { LongBinaryTag.longBinaryTag(it) },
         SERVER_ID_NOT_SET
     ).nonNull()
 }

@@ -6,7 +6,7 @@ import dev.slne.surf.cloud.api.common.netty.network.protocol.PacketFlow
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
 import dev.slne.surf.cloud.api.common.netty.packet.packetCodec
 import dev.slne.surf.cloud.api.common.netty.protocol.buffer.SurfByteBuf
-import net.querz.nbt.tag.CompoundTag
+import net.kyori.adventure.nbt.CompoundBinaryTag
 import java.util.*
 
 @SurfNettyPacket(
@@ -23,9 +23,9 @@ class ServerboundPlayerPersistentDataContainerUpdatePacket : NettyPacket {
 
     val uuid: UUID
     val verificationId: Int
-    val nbt: CompoundTag
+    val nbt: CompoundBinaryTag
 
-    constructor(uuid: UUID, verificationId: Int, nbt: CompoundTag) {
+    constructor(uuid: UUID, verificationId: Int, nbt: CompoundBinaryTag) {
         this.uuid = uuid
         this.verificationId = verificationId
         this.nbt = nbt

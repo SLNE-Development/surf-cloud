@@ -4,10 +4,11 @@ import dev.slne.surf.cloud.api.common.util.nbt.FastNbtIo
 import dev.slne.surf.cloud.api.common.util.safeReplaceFile
 import dev.slne.surf.cloud.standalone.player.StandaloneCloudPlayerImpl
 import dev.slne.surf.surfapi.core.api.util.logger
-import net.querz.nbt.tag.CompoundTag
+import net.kyori.adventure.nbt.CompoundBinaryTag
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption
 import java.time.LocalDateTime
+import kotlin.io.path.createTempFile
 
 
 object PlayerDataStorage {
@@ -17,11 +18,11 @@ object PlayerDataStorage {
     val playerDir = DataStorage.storageDir.resolve("playerdata").also { it.mkdirs() }
 
     fun save(player: StandaloneCloudPlayerImpl) = runCatching {
-        val tag = CompoundTag()
-        player.savePlayerData(tag)
-        val tempDataFile = Files.createTempFile(playerDir.toPath(), player.uuid.toString() + "-", ".dat")
+        val tag = CompoundBinaryTag.builder()
 
-        FastNbtIo.writeCompressed(tag, tempDataFile)
+        player.savePlayerData(tag)
+        val tempDataFile = createTempFile(playerDir.toPath(), player.uuid.toString() + "-", ".dat")
+        FastNbtIo.writeCompressed(tag.build(), tempDataFile)
 
         val playerFile = playerDir.resolve("${player.uuid}.dat").toPath()
         val oldPlayerFile = playerDir.resolve("${player.uuid}.dat_old").toPath()
@@ -31,15 +32,13 @@ object PlayerDataStorage {
         log.atWarning().withCause(it).log("Failed to save player data for player ${player.uuid}")
     }
 
-    fun load(player: StandaloneCloudPlayerImpl): CompoundTag? {
+    fun load(player: StandaloneCloudPlayerImpl): CompoundBinaryTag? {
         val tag = loadFile(player.uuid.toString()) ?: return null
-
         player.readPlayerData(tag)
-
         return tag
     }
 
-    private fun loadFile(uuid: String): CompoundTag? {
+    private fun loadFile(uuid: String): CompoundBinaryTag? {
         val loaded = loadFile(uuid, "dat")
 
         if (loaded == null) {
@@ -49,11 +48,11 @@ object PlayerDataStorage {
         return loaded ?: loadFile(uuid, "dat_old")
     }
 
-    private fun loadFile(fileName: String, extension: String): CompoundTag? {
+    private fun loadFile(fileName: String, extension: String): CompoundBinaryTag? {
         val playerFile = playerDir.resolve("$fileName.$extension")
         if (!playerFile.exists() || !playerFile.isFile) return null
 
-        return FastNbtIo.readCompressed(playerFile.toPath(), DataStorage.MAX_STACK_DEPTH)
+        return FastNbtIo.readCompressed(playerFile.toPath())
     }
 
     private fun backup(fileName: String, extension: String) {

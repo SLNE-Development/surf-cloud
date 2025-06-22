@@ -1,4 +1,5 @@
 import dev.slne.surf.surfapi.gradle.util.slneReleases
+import jdk.tools.jlink.resources.plugins
 
 plugins {
     id("dev.slne.surf.surfapi.gradle.core")
@@ -15,7 +16,6 @@ dependencies {
         exclude(group = "io.netty")
     }
 
-    api(libs.nbt)
     api(libs.datafixerupper) {
         isTransitive = false
     }

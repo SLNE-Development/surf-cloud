@@ -6,7 +6,7 @@ import dev.slne.surf.cloud.api.common.netty.network.protocol.PacketFlow
 import dev.slne.surf.cloud.api.common.netty.packet.ResponseNettyPacket
 import dev.slne.surf.cloud.api.common.netty.packet.packetCodec
 import dev.slne.surf.cloud.api.common.netty.protocol.buffer.SurfByteBuf
-import net.querz.nbt.tag.CompoundTag
+import net.kyori.adventure.nbt.CompoundBinaryTag
 
 @SurfNettyPacket(
     DefaultIds.CLIENTBOUND_PLAYER_PERSISTENT_DATA_CONTAINER_RESPONSE,
@@ -21,9 +21,9 @@ class ClientboundPlayerPersistentDataContainerResponse : ResponseNettyPacket {
     }
 
     val verificationId: Int
-    val nbt: CompoundTag
+    val nbt: CompoundBinaryTag
 
-    constructor(verificationId: Int, nbt: CompoundTag) {
+    constructor(verificationId: Int, nbt: CompoundBinaryTag) {
         this.verificationId = verificationId
         this.nbt = nbt
     }

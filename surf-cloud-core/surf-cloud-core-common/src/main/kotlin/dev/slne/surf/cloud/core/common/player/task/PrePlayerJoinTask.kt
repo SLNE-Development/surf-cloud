@@ -5,7 +5,7 @@ import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
 import net.kyori.adventure.text.Component
 
-interface PrePlayerJoinTask { // TODO: 19.04.2025 12:47 - implement
+interface PrePlayerJoinTask {
     suspend fun preJoin(player: CommonOfflineCloudPlayerImpl): Result
 
     @Serializable

@@ -121,13 +121,13 @@ abstract class ClientCloudPlayerImpl<PlatformPlayer : Audience>(uuid: UUID, name
         val response = ServerboundRequestPlayerPersistentDataContainer(uuid).fireAndAwaitOrThrow()
 
         val nbt = response.nbt
-        val container = PersistentPlayerDataContainerImpl(nbt.fast(true))
+        val container = PersistentPlayerDataContainerImpl(nbt.fast(synchronize = true))
         val result = container.block()
 
         ServerboundPlayerPersistentDataContainerUpdatePacket(
             uuid,
             response.verificationId,
-            container.toTagCompound()
+        container.toTagCompound()
         ).fireAndForget()
 
         return result

@@ -1,12 +1,13 @@
-package dev.slne.surf.cloud.core.common.player.task
+package dev.slne.surf.cloud.api.common.player.task
 
-import dev.slne.surf.cloud.core.common.player.CommonOfflineCloudPlayerImpl
+import dev.slne.surf.cloud.api.common.player.OfflineCloudPlayer
+import dev.slne.surf.cloud.api.common.util.annotation.InternalApi
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
 import net.kyori.adventure.text.Component
 
 interface PrePlayerJoinTask {
-    suspend fun preJoin(player: CommonOfflineCloudPlayerImpl): Result
+    suspend fun preJoin(player: OfflineCloudPlayer): Result
 
     @Serializable
     sealed interface Result {
@@ -21,6 +22,7 @@ interface PrePlayerJoinTask {
         data object ERROR: Result
     }
 
+    @InternalApi
     companion object {
         const val PUNISHMENT_MANAGER = 500
         const val VELOCITY_PLAYER_JOIN_VALIDATION = 600

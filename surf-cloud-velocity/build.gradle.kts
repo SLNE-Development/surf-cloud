@@ -22,3 +22,9 @@ configurations {
         exclude(group = "org.reactivestreams", module = "reactive-streams")
     }
 }
+
+kotlin {
+    compilerOptions {
+        optIn.add("dev.slne.surf.cloud.api.common.util.annotation.InternalApi")
+    }
+}

@@ -4,19 +4,19 @@ import com.github.benmanes.caffeine.cache.Caffeine
 import com.sksamuel.aedile.core.expireAfterWrite
 import dev.slne.surf.cloud.api.common.event.offlineplayer.punishment.CloudPlayerPunishEvent
 import dev.slne.surf.cloud.api.common.event.offlineplayer.punishment.CloudPlayerPunishmentUpdatedEvent
+import dev.slne.surf.cloud.api.common.player.OfflineCloudPlayer
 import dev.slne.surf.cloud.api.common.player.punishment.type.PunishmentAttachedIpAddress.PunishmentAttachedIpAddressImpl
 import dev.slne.surf.cloud.api.common.player.punishment.type.note.PunishmentNote.PunishmentNoteImpl
+import dev.slne.surf.cloud.api.common.player.task.PrePlayerJoinTask
 import dev.slne.surf.cloud.api.common.util.toObjectList
 import dev.slne.surf.cloud.api.server.exposed.table.AuditableLongEntityClass
 import dev.slne.surf.cloud.api.server.netty.packet.broadcast
 import dev.slne.surf.cloud.core.common.coroutines.PunishmentHandlerScope
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ClientboundTriggerPunishmentCreatedEventPacket
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ClientboundTriggerPunishmentUpdateEventPacket
-import dev.slne.surf.cloud.core.common.player.CommonOfflineCloudPlayerImpl
 import dev.slne.surf.cloud.core.common.player.PunishmentCacheImpl
 import dev.slne.surf.cloud.core.common.player.PunishmentManager
 import dev.slne.surf.cloud.core.common.player.punishment.type.*
-import dev.slne.surf.cloud.core.common.player.task.PrePlayerJoinTask
 import dev.slne.surf.cloud.standalone.player.db.exposed.punishment.entity.*
 import dev.slne.surf.cloud.standalone.player.db.exposed.punishment.table.*
 import dev.slne.surf.surfapi.core.api.util.logger
@@ -328,7 +328,7 @@ class PunishmentManagerImpl(private val service: PunishmentService) : Punishment
         return preJoinPunishmentCache.getIfPresent(playerUuid)
     }
 
-    override suspend fun preJoin(player: CommonOfflineCloudPlayerImpl): PrePlayerJoinTask.Result {
+    override suspend fun preJoin(player: OfflineCloudPlayer): PrePlayerJoinTask.Result {
         val uuid = player.uuid
         preJoinPunishmentCache.put(uuid, fetchPunishmentCache(uuid))
         return PrePlayerJoinTask.Result.ALLOWED

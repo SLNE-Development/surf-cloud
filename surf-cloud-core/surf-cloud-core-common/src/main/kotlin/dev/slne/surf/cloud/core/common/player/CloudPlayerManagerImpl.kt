@@ -9,7 +9,7 @@ import dev.slne.surf.cloud.api.common.server.UserListImpl
 import dev.slne.surf.cloud.api.common.util.TimeLogger
 import dev.slne.surf.cloud.api.common.util.mutableObject2ObjectMapOf
 import dev.slne.surf.cloud.api.common.util.synchronize
-import dev.slne.surf.cloud.core.common.player.task.PrePlayerJoinTask
+import dev.slne.surf.cloud.api.common.player.task.PrePlayerJoinTask
 import dev.slne.surf.cloud.core.common.spring.CloudLifecycleAware
 import dev.slne.surf.surfapi.core.api.util.logger
 import it.unimi.dsi.fastutil.objects.Object2ObjectArrayMap

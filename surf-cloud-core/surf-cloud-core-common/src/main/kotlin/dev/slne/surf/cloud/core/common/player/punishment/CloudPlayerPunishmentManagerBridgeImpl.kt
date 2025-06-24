@@ -9,9 +9,9 @@ import dev.slne.surf.cloud.api.common.util.mutableObjectListOf
 import dev.slne.surf.cloud.api.common.util.mutableObjectSetOf
 import dev.slne.surf.cloud.api.common.util.synchronize
 import dev.slne.surf.cloud.core.common.messages.MessageManager
-import dev.slne.surf.cloud.core.common.player.CommonOfflineCloudPlayerImpl
+import dev.slne.surf.cloud.api.common.player.OfflineCloudPlayer
 import dev.slne.surf.cloud.core.common.player.PunishmentManager
-import dev.slne.surf.cloud.core.common.player.task.PrePlayerJoinTask
+import dev.slne.surf.cloud.api.common.player.task.PrePlayerJoinTask
 import dev.slne.surf.cloud.core.common.util.bean
 import dev.slne.surf.surfapi.core.api.util.logger
 import dev.slne.surf.surfapi.core.api.util.toObjectList
@@ -93,7 +93,7 @@ class CloudPlayerPunishmentManagerBridgeImpl : CloudPlayerPunishmentManagerBridg
         PrePlayerJoinTask {
         private val log = logger()
 
-        override suspend fun preJoin(player: CommonOfflineCloudPlayerImpl): PrePlayerJoinTask.Result {
+        override suspend fun preJoin(player: OfflineCloudPlayer): PrePlayerJoinTask.Result {
             val cache = punishmentManager.getCurrentLoginValidationPunishmentCache(player.uuid)
             if (cache == null) {
                 log.atWarning()

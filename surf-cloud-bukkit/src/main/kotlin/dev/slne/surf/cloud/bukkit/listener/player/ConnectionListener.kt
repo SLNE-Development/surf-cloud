@@ -6,7 +6,7 @@ import dev.slne.surf.cloud.core.common.data.CloudPersistentData
 import dev.slne.surf.cloud.core.common.messages.MessageManager
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.PlayerConnectToServerPacket
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.PlayerDisconnectFromServerPacket
-import dev.slne.surf.cloud.core.common.player.task.PrePlayerJoinTask
+import dev.slne.surf.cloud.api.common.player.task.PrePlayerJoinTask
 import kotlinx.coroutines.runBlocking
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority

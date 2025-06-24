@@ -4,7 +4,7 @@ import dev.slne.surf.cloud.api.common.meta.SurfNettyPacket
 import dev.slne.surf.cloud.api.common.netty.network.protocol.PacketFlow
 import dev.slne.surf.cloud.api.common.netty.packet.RespondingNettyPacket
 import dev.slne.surf.cloud.api.common.netty.packet.ResponseNettyPacket
-import dev.slne.surf.cloud.core.common.player.task.PrePlayerJoinTask
+import dev.slne.surf.cloud.api.common.player.task.PrePlayerJoinTask
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
 import java.util.*

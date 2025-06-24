@@ -13,6 +13,7 @@ import dev.slne.surf.cloud.core.common.netty.network.EncryptionManager
 import dev.slne.surf.cloud.core.common.player.punishment.CloudPlayerPunishmentManagerBridgeImpl
 import dev.slne.surf.cloud.core.common.plugin.task.CloudBeforeStartTaskHandler
 import dev.slne.surf.cloud.core.common.processors.NettyPacketProcessor
+import dev.slne.surf.cloud.core.common.player.task.PrePlayerJoinTaskAutoRegistrationHandler
 import dev.slne.surf.cloud.core.common.spring.CloudChildSpringApplicationConfiguration
 import dev.slne.surf.cloud.core.common.spring.CloudLifecycleAware
 import dev.slne.surf.cloud.core.common.spring.SurfSpringBanner
@@ -235,6 +236,10 @@ class CloudCoreInstance : CloudInstance {
                     ctx.registerBeanDefinition(
                         "beforeStartTaskHandler",
                         RootBeanDefinition(CloudBeforeStartTaskHandler::class.java)
+                    )
+                    ctx.registerBeanDefinition(
+                        "prePlayerJoinTaskAutoRegistrationHandler",
+                        RootBeanDefinition(PrePlayerJoinTaskAutoRegistrationHandler::class.java)
                     )
                 })
 

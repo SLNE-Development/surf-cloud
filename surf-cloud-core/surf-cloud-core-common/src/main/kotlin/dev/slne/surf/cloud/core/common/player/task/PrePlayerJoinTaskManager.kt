@@ -1,5 +1,6 @@
 package dev.slne.surf.cloud.core.common.player.task
 
+import dev.slne.surf.cloud.api.common.player.task.PrePlayerJoinTask
 import dev.slne.surf.cloud.api.common.util.mutableObjectListOf
 import dev.slne.surf.cloud.core.common.coroutines.PrePlayerJoinTaskScope
 import dev.slne.surf.cloud.core.common.player.CommonCloudPlayerImpl
@@ -31,6 +32,26 @@ class PrePlayerJoinTaskManager : BeanPostProcessor, SmartInitializingSingleton {
 
     override fun afterSingletonsInstantiated() {
         OrderComparator.sort(tasks)
+    }
+
+    fun registerTask(task: PrePlayerJoinTask) {
+        if (!tasks.contains(task)) {
+            tasks.add(task)
+            OrderComparator.sort(tasks)
+        }
+    }
+
+    fun registerTasks(tasks: Collection<PrePlayerJoinTask>) {
+        for (task in tasks) {
+            if (!this.tasks.contains(task)) {
+                this.tasks.add(task)
+            }
+        }
+        OrderComparator.sort(this.tasks)
+    }
+
+    fun unregisterTask(task: PrePlayerJoinTask) {
+        tasks.remove(task)
     }
 
     suspend fun runTasks(player: CommonOfflineCloudPlayerImpl): PrePlayerJoinTask.Result =

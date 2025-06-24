@@ -14,7 +14,7 @@ import dev.slne.surf.cloud.core.common.data.CloudPersistentData
 import dev.slne.surf.cloud.core.common.messages.MessageManager
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.PlayerConnectToServerPacket
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.PlayerDisconnectFromServerPacket
-import dev.slne.surf.cloud.core.common.player.task.PrePlayerJoinTask.Result
+import dev.slne.surf.cloud.api.common.player.task.PrePlayerJoinTask.Result
 import dev.slne.surf.cloud.velocity.proxy
 import org.springframework.stereotype.Component
 import java.net.Inet4Address

@@ -10,7 +10,7 @@ import dev.slne.surf.cloud.core.common.messages.MessageManager
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ClientboundRunPrePlayerJoinTasksPacket
 import dev.slne.surf.cloud.core.common.player.CloudPlayerManagerImpl
 import dev.slne.surf.cloud.core.common.player.playerManagerImpl
-import dev.slne.surf.cloud.core.common.player.task.PrePlayerJoinTask
+import dev.slne.surf.cloud.api.common.player.task.PrePlayerJoinTask
 import dev.slne.surf.cloud.core.common.player.task.PrePlayerJoinTaskManager
 import dev.slne.surf.cloud.core.common.util.bean
 import dev.slne.surf.cloud.core.common.util.checkInstantiationByServiceLoader

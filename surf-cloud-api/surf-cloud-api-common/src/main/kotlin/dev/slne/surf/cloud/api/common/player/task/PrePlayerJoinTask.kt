@@ -1,12 +1,12 @@
-package dev.slne.surf.cloud.core.common.player.task
+package dev.slne.surf.cloud.api.common.player.task
 
-import dev.slne.surf.cloud.core.common.player.CommonOfflineCloudPlayerImpl
+import dev.slne.surf.cloud.api.common.player.OfflineCloudPlayer
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
 import net.kyori.adventure.text.Component
 
 interface PrePlayerJoinTask { // TODO: 19.04.2025 12:47 - implement
-    suspend fun preJoin(player: CommonOfflineCloudPlayerImpl): Result
+    suspend fun preJoin(player: OfflineCloudPlayer): Result
 
     @Serializable
     sealed interface Result {

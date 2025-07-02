@@ -7,27 +7,26 @@ import org.springframework.context.SmartLifecycle
 import org.springframework.stereotype.Component
 
 @Component
-class PrePlayerJoinTaskAutoRegistrationHandler(private val taskManager: PrePlayerJoinTaskManager) :
-    BeanPostProcessor, SmartLifecycle {
+class PrePlayerJoinTaskAutoRegistrationHandler : BeanPostProcessor, SmartLifecycle {
     private val watched = mutableObjectSetOf<PrePlayerJoinTask>()
     private var running = false
 
     override fun postProcessAfterInitialization(bean: Any, beanName: String): Any? {
         if (bean is PrePlayerJoinTask) {
             if (watched.add(bean) && running) {
-                taskManager.registerTask(bean)
+                PrePlayerJoinTaskManager.registerTask(bean)
             }
         }
         return bean
     }
 
     override fun start() {
-        taskManager.registerTasks(watched)
+        PrePlayerJoinTaskManager.registerTasks(watched)
         running = true
     }
 
     override fun stop() {
-        watched.forEach { taskManager.unregisterTask(it) }
+        watched.forEach { PrePlayerJoinTaskManager.unregisterTask(it) }
         watched.clear()
         running = false
     }

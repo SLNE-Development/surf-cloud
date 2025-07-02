@@ -10,8 +10,7 @@ import org.springframework.core.OrderComparator
 import org.springframework.stereotype.Component
 import dev.slne.surf.cloud.core.common.coroutines.PrePlayerJoinTaskScope as TaskScope
 
-@Component
-class PrePlayerJoinTaskManager : SmartInitializingSingleton {
+object PrePlayerJoinTaskManager {
     private val log = logger()
     private val tasks = mutableObjectListOf<PrePlayerJoinTask>()
     private var singletonsInstantiated = false
@@ -42,11 +41,6 @@ class PrePlayerJoinTaskManager : SmartInitializingSingleton {
         }
     }
 
-    override fun afterSingletonsInstantiated() {
-        singletonsInstantiated = true
-        maybeSort()
-    }
-
     suspend fun runTasks(player: CommonOfflineCloudPlayerImpl) = withContext(TaskScope.context) {
         for (task in tasks) {
             val result = runCatching { task.preJoin(player) }
@@ -62,5 +56,13 @@ class PrePlayerJoinTaskManager : SmartInitializingSingleton {
             }
         }
         PrePlayerJoinTask.Result.ALLOWED
+    }
+
+    @Component
+    class Lifecycle : SmartInitializingSingleton {
+        override fun afterSingletonsInstantiated() {
+            singletonsInstantiated = true
+            maybeSort()
+        }
     }
 }

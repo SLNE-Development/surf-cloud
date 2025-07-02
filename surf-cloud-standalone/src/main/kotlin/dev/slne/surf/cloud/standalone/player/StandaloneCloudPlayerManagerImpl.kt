@@ -48,7 +48,7 @@ class StandaloneCloudPlayerManagerImpl : CloudPlayerManagerImpl<StandaloneCloudP
     }
 
     override suspend fun preJoin(player: StandaloneCloudPlayerImpl): PrePlayerJoinTask.Result {
-        val serverResult = bean<PrePlayerJoinTaskManager>().runTasks(player)
+        val serverResult = PrePlayerJoinTaskManager.runTasks(player)
         if (serverResult !is PrePlayerJoinTask.Result.ALLOWED) return serverResult
         val connections = serverManagerImpl.retrieveAllServers().map { it.connection }
 

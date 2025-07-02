@@ -24,7 +24,6 @@ import dev.slne.surf.cloud.core.common.netty.network.protocol.running.*
 import dev.slne.surf.cloud.core.common.netty.registry.listener.NettyListenerRegistry
 import dev.slne.surf.cloud.core.common.player.playerManagerImpl
 import dev.slne.surf.cloud.core.common.player.task.PrePlayerJoinTaskManager
-import dev.slne.surf.cloud.core.common.util.bean
 import dev.slne.surf.cloud.core.common.util.hasPermissionPlattform
 import dev.slne.surf.surfapi.core.api.messages.adventure.getPointer
 import dev.slne.surf.surfapi.core.api.messages.adventure.text
@@ -280,7 +279,7 @@ class ClientRunningPacketListenerImpl(
 
     override suspend fun handleRunPlayerPreJoinTasks(packet: ClientboundRunPrePlayerJoinTasksPacket) {
         val player = commonPlayerManagerImpl.getOfflinePlayer(packet.uuid)
-        val result = bean<PrePlayerJoinTaskManager>().runTasks(player)
+        val result = PrePlayerJoinTaskManager.runTasks(player)
         packet.respond(RunPrePlayerJoinTasksResultPacket(result))
     }
 

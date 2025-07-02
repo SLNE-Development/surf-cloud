@@ -35,13 +35,13 @@ private object YamlConfigParser : ConfigParser {
 
         for ((key, child) in node.childrenMap()) {
             val value = when {
-                child.isMap -> configToMap(child) // Rekursion für verschachtelte Maps
+                child.isMap -> configToMap(child)
                 child.isList -> child.childrenList().map { listNode ->
                     if (listNode.isMap) configToMap(listNode)
                     else listNode.raw()
                 }
 
-                else -> child.raw() // Einfacher Wert (String, Int, Boolean, etc.)
+                else -> child.raw()
             }
 
             result[key.toString()] = value
@@ -56,5 +56,5 @@ object CloudServerConfigProvider : ServerConfigProvider(
         "standalone-config.yml" to YamlConfigParser,
         "config.yml" to YamlConfigParser,
     ),
-    listOf("ktor.bearer-token", "connection.database.password")
+    listOf("ktor.bearer-token", "connection.database.password", "proxy.secret.manual-secret")
 )

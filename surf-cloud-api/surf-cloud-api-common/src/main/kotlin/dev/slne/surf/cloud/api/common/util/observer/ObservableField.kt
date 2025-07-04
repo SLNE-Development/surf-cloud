@@ -1,9 +1,11 @@
-package dev.slne.surf.cloud.api.common.util
+package dev.slne.surf.cloud.api.common.util.observer
 
+import dev.slne.surf.cloud.api.common.util.threadFactory
 import dev.slne.surf.surfapi.core.api.util.logger
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import org.jetbrains.annotations.ApiStatus
+import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.Executors
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
@@ -15,7 +17,7 @@ import kotlin.time.Duration.Companion.seconds
  * @property getter A function to retrieve the current value.
  * @property cachedValue The initial cached value of the observed field, defaults to the value returned by [getter].
  * @property interval The time interval between checks for changes, defaults to 1 second.
- * @property customDispatcher An optional [CoroutineDispatcher] to use for scheduling tasks.
+ * @property customDispatcher An optional [kotlinx.coroutines.CoroutineDispatcher] to use for scheduling tasks.
  */
 class ObservableField<T>(
     private val getter: () -> T,
@@ -23,8 +25,8 @@ class ObservableField<T>(
     private val interval: Duration = 1.seconds,
     customDispatcher: CoroutineDispatcher? = null
 ) {
-    private val channel = Channel<T>(Channel.CONFLATED)
-    private val listener = mutableObjectSetOf<(T) -> Unit>()
+    private val channel = Channel<T>(Channel.Factory.CONFLATED)
+    private val listener = CopyOnWriteArrayList<(T) -> Unit>()
 
     init {
         val dispatcher = customDispatcher?.let { CoroutineScope(it + SupervisorJob()) }
@@ -69,6 +71,10 @@ class ObservableField<T>(
      */
     fun observe(listener: (T) -> Unit) {
         this.listener.add(listener)
+    }
+
+    fun cachedValue(): T {
+        return cachedValue
     }
 
     /**

@@ -9,7 +9,6 @@ import kotlinx.serialization.Serializable
 @Serializable
 class ClientboundSetVelocitySecretPacket(val secret: ByteArray): NettyPacket() {
     override fun toString(): String {
-        return "ClientboundSetVelocitySecretPacket(secret=***)" +
-                " ${super.toString()}"
+        return "ClientboundSetVelocitySecretPacket(secret=***)"
     }
 }

@@ -1,7 +1,7 @@
 package dev.slne.surf.cloud.bukkit.util
 
-import dev.slne.surf.cloud.api.common.util.ObservableField.ObservableCoroutineScope
 import dev.slne.surf.cloud.api.common.util.mutableObjectSetOf
+import dev.slne.surf.cloud.api.common.util.observer.ObservableField.ObservableCoroutineScope
 import dev.slne.surf.surfapi.bukkit.api.event.listen
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope

@@ -192,3 +192,8 @@ object SyncValueScope : BaseScope(
     dispatcher = Dispatchers.Default,
     name = "sync-value"
 )
+
+object CommonObservableScope : BaseScope(
+    dispatcher = Dispatchers.Default,
+    name = "common-observable"
+)

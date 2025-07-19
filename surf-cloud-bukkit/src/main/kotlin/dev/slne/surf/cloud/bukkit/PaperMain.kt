@@ -24,7 +24,7 @@ import java.net.URI
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
 
-class BukkitMain : SuspendingJavaPlugin() {
+class PaperMain : SuspendingJavaPlugin() {
     override suspend fun onLoadAsync() {
         try {
             coreCloudInstance.onLoad()
@@ -151,9 +151,9 @@ class BukkitMain : SuspendingJavaPlugin() {
 
     companion object {
         @JvmStatic
-        val instance: BukkitMain
-            get() = getPlugin(BukkitMain::class.java)
+        val instance: PaperMain
+            get() = getPlugin(PaperMain::class.java)
     }
 }
 
-val plugin get() = BukkitMain.instance
+val plugin get() = PaperMain.instance

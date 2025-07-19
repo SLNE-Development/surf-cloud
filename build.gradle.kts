@@ -7,7 +7,7 @@ buildscript {
         maven("https://repo.slne.dev/repository/maven-public/") { name = "maven-public" }
     }
     dependencies {
-        classpath("dev.slne.surf:surf-api-gradle-plugin:1.21.4+")
+        classpath("dev.slne.surf:surf-api-gradle-plugin:1.21.7+")
     }
 }
 
@@ -74,7 +74,7 @@ apiValidation {
 
 private fun TaskContainerScope.configureShadowJar() = withType<ShadowJar> {
     mergeServiceFiles {
-        setPath("META-INF")
+        path = "META-INF"
         exclude("META-INF/MANIFEST.MF")
     }
 

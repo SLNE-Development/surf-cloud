@@ -7,8 +7,8 @@ plugins {
 }
 
 surfPaperPluginApi {
-    mainClass("dev.slne.surf.cloud.bukkit.BukkitMain")
-    bootstrapper("dev.slne.surf.cloud.bukkit.BukkitBootstrap")
+    mainClass("dev.slne.surf.cloud.bukkit.PaperMain")
+    bootstrapper("dev.slne.surf.cloud.bukkit.PaperBootstrap")
     authors.add("twisti")
     generateLibraryLoader(false)
 

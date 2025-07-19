@@ -11,7 +11,7 @@ import org.bukkit.plugin.java.JavaPlugin
 import kotlin.system.exitProcess
 
 @Suppress("UnstableApiUsage", "unused")
-class BukkitBootstrap : PluginBootstrap {
+class PaperBootstrap : PluginBootstrap {
 
     override fun bootstrap(context: BootstrapContext): Unit = runBlocking {
         try {
@@ -28,6 +28,6 @@ class BukkitBootstrap : PluginBootstrap {
     }
 
     override fun createPlugin(context: PluginProviderContext): JavaPlugin {
-        return BukkitMain()
+        return PaperMain()
     }
 }

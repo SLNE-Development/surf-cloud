@@ -1,6 +1,7 @@
 import org.springframework.boot.gradle.tasks.bundling.BootJar
 
 plugins {
+    `exclude-kotlin`
     id("dev.slne.surf.surfapi.gradle.standalone")
 
     application

@@ -39,7 +39,7 @@ allprojects {
 
         implementation(platform(project(":surf-cloud-bom")))
 
-        compileOnly("org.springframework.boot:spring-boot-configuration-processor:3.4.3")
+        compileOnly("org.springframework.boot:spring-boot-configuration-processor:3.5.3")
         //    "kapt"("org.springframework.boot:spring-boot-configuration-processor:3.4.3")
     }
 
@@ -79,6 +79,7 @@ private fun TaskContainerScope.configureShadowJar() = withType<ShadowJar> {
     }
 
     isZip64 = true
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
 private fun TaskContainerScope.configureJar() = withType<Jar> {

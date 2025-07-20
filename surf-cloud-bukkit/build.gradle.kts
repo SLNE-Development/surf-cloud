@@ -2,8 +2,8 @@ import dev.slne.surf.surfapi.gradle.util.registerRequired
 import dev.slne.surf.surfapi.gradle.util.registerSoft
 
 plugins {
-    id("dev.slne.surf.surfapi.gradle.paper-plugin")
     `exclude-kotlin`
+    id("dev.slne.surf.surfapi.gradle.paper-plugin")
 }
 
 surfPaperPluginApi {

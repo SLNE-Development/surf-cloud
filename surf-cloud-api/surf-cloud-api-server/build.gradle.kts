@@ -14,6 +14,7 @@ dependencies {
     api(libs.bundles.console.api)
     api(libs.bundles.ktor.api.server)
     api(libs.bson.kotlinx)
+    api(libs.spring.boot.starter.actuator)
 //    api(libs.discord.webhooks) { isTransitive = true }
 }
 

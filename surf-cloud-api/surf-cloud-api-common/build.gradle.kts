@@ -20,7 +20,6 @@ dependencies {
         isTransitive = false
     }
     api(libs.byte.buddy)
-    api(libs.spring.boot.starter.actuator)
 }
 
 val writeCloudVersion by tasks.registering {

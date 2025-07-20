@@ -32,11 +32,13 @@ import io.netty.channel.epoll.EpollSocketChannel
 import io.netty.channel.nio.NioIoHandler
 import io.netty.channel.socket.SocketChannel
 import io.netty.channel.socket.nio.NioSocketChannel
+import io.netty.handler.codec.DecoderException
 import io.netty.handler.codec.EncoderException
 import io.netty.handler.codec.compression.ZstdDecoder
 import io.netty.handler.codec.compression.ZstdEncoder
 import io.netty.handler.flow.FlowControlHandler
 import io.netty.handler.logging.LoggingHandler
+import io.netty.handler.ssl.NotSslRecordException
 import io.netty.handler.timeout.ReadTimeoutHandler
 import io.netty.handler.timeout.TimeoutException
 import io.netty.util.AttributeKey
@@ -140,10 +142,10 @@ class ConnectionImpl(
     }
 
     override fun exceptionCaught(ctx: ChannelHandlerContext, e: Throwable?) {
-//        if (e is NotSslRecordException) {
-//            ctx.close()
-//            return
-//        }
+        if (e is DecoderException && e.cause is NotSslRecordException) {
+            ctx.close()
+            return
+        }
 
         log.atInfo().withCause(e).log("Exception caught") // TODO: remove this debug line
         var throwable = e

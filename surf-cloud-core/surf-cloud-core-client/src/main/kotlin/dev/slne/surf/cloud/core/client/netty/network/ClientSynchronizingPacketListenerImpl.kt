@@ -89,13 +89,13 @@ class ClientSynchronizingPacketListenerImpl(
     override suspend fun handleBatchUpdateServer(packet: ClientboundBatchUpdateServer) {
         serverManagerImpl.batchUpdateServer(packet.servers.map { data ->
             if (data.proxy) {
-                ClientProxyCloudServerImpl(data.serverId, data.group, data.name, data.address)
+                ClientProxyCloudServerImpl(data.serverId, data.group, data.name, data.playAddress)
             } else {
                 ClientCloudServerImpl(
                     data.serverId,
                     data.group,
                     data.name,
-                    data.address,
+                    data.playAddress,
                     data.lobby
                 ).also { server ->
                     platformExtension.registerCloudServerToProxy(server)

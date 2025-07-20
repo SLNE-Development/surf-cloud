@@ -183,14 +183,14 @@ class ClientRunningPacketListenerImpl(
                 packet.serverId,
                 packet.group,
                 packet.name,
-                packet.address
+                packet.playAddress,
             )
         } else {
             ClientCloudServerImpl(
                 packet.serverId,
                 packet.group,
                 packet.name,
-                packet.address,
+                packet.playAddress,
                 packet.lobby
             ).also { client ->
                 platformExtension.registerCloudServerToProxy(client)

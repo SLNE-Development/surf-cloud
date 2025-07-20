@@ -46,7 +46,7 @@ class ClientPreRunningPacketListenerImpl(
             SynchronizingProtocols.CLIENTBOUND,
             listener
         )
-        connection.send(ServerboundProceedToSynchronizingAcknowledgedPacket)
+        connection.send(ServerboundProceedToSynchronizingAcknowledgedPacket(client.playAddress))
         connection.setupOutboundProtocol(SynchronizingProtocols.SERVERBOUND)
 
         completion.complete(Unit)

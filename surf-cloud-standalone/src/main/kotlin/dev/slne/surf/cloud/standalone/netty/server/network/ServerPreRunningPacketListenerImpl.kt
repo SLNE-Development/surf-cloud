@@ -48,6 +48,8 @@ class ServerPreRunningPacketListenerImpl(
             SynchronizingProtocols.SERVERBOUND,
             listener
         )
+
+        client.playAddress = packet.playAddress
         listener.startSynchronizing()
     }
 

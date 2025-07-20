@@ -55,7 +55,7 @@ class ClientboundBatchUpdateServer(
             buf.writeBoolean(data.lobby)
             buf.writeUtf(data.group)
             buf.writeUtf(data.name)
-            buf.writeInetSocketAddress(data.address)
+            buf.writeInetSocketAddress(data.playAddress)
         }
     }
 }
@@ -66,5 +66,5 @@ data class UpdateServerData(
     val lobby: Boolean,
     val group: String,
     val name: String,
-    val address: InetSocketAddress,
+    val playAddress: InetSocketAddress,
 )

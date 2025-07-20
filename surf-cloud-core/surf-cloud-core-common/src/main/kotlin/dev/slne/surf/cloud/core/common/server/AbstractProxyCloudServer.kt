@@ -9,7 +9,7 @@ abstract class AbstractProxyCloudServer(
     uid: Long,
     group: String,
     name: String,
-    address: InetSocketAddress,
+    playAddress: InetSocketAddress,
     users: UserListImpl = UserListImpl(),
     information: ClientInformation = ClientInformation.NOT_AVAILABLE
-) : CommonCloudServerImpl(uid, group, name, users, address, information), ProxyCloudServer
+) : CommonCloudServerImpl(uid, group, name, users, playAddress, information), ProxyCloudServer

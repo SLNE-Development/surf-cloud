@@ -49,11 +49,7 @@ class BukkitSpecificPacketListenerExtension : PlatformSpecificPacketListenerExte
     }
 
     override val playAddress: InetSocketAddress by lazy {
-        InetSocketAddress(
-            InetAddress.getByName(
-                properties.getProperty("server-ip", "")
-            ), properties.getProperty("server-port", "25565").toIntOrNull() ?: 25565
-        )
+        InetSocketAddress(InetAddress.getByName(server.ip), server.port)
     }
 
     override fun isServerManagedByThisProxy(address: InetSocketAddress): Boolean {

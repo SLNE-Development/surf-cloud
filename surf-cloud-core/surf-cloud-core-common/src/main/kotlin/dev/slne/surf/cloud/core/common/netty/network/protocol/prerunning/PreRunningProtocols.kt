@@ -32,7 +32,7 @@ object PreRunningProtocols {
                 .addPacket(LongResponse.STREAM_CODEC)
                 .addPacket(ServerboundPingRequestPacket.STREAM_CODEC)
                 .addPacket(ServerboundPreRunningAcknowledgedPacket.STREAM_CODEC)
-                .addPacket(ServerboundProceedToSynchronizingAcknowledgedPacket.STREAM_CODEC)
+                .addPacket(ServerboundProceedToSynchronizingAcknowledgedPacket::class.createCodec())
                 .addPacket(ServerboundRequestContinuation.STREAM_CODEC)
         }
 

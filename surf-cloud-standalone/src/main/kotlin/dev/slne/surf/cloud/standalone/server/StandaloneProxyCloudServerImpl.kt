@@ -11,9 +11,9 @@ class StandaloneProxyCloudServerImpl(
     uid: Long,
     group: String,
     name: String,
-    address: InetSocketAddress,
+    playAddress: InetSocketAddress,
     override val connection: ConnectionImpl
-) : AbstractProxyCloudServer(uid, group, name, address), ServerProxyCloudServer,
+) : AbstractProxyCloudServer(uid, group, name, playAddress), ServerProxyCloudServer,
     CommonStandaloneServer by CommonStandaloneServerImpl() {
 
     override fun shutdown() {

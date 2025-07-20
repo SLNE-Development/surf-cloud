@@ -123,7 +123,6 @@ class ClientNettyClientImpl(
                     serverName,
                     proxy,
                     clientConfig.isLobby,
-                    playAddress
                 )
             )
         } catch (e: Exception) {

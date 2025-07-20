@@ -21,7 +21,7 @@ class ClientboundRegisterServerPacket : NettyPacket {
     val lobby: Boolean
     val group: String
     val name: String
-    val address: InetSocketAddress
+    val playAddress: InetSocketAddress
 
     constructor(
         serverId: Long,
@@ -36,7 +36,7 @@ class ClientboundRegisterServerPacket : NettyPacket {
         this.lobby = lobby
         this.group = group
         this.name = name
-        this.address = address
+        this.playAddress = address
     }
 
     private constructor(buf: SurfByteBuf) {
@@ -45,7 +45,7 @@ class ClientboundRegisterServerPacket : NettyPacket {
         lobby = buf.readBoolean()
         group = buf.readUtf()
         name = buf.readUtf()
-        address = buf.readInetSocketAddress()
+        playAddress = buf.readInetSocketAddress()
     }
 
     private fun write(buf: SurfByteBuf) {
@@ -54,6 +54,6 @@ class ClientboundRegisterServerPacket : NettyPacket {
         buf.writeBoolean(lobby)
         buf.writeUtf(group)
         buf.writeUtf(name)
-        buf.writeInetSocketAddress(address)
+        buf.writeInetSocketAddress(playAddress)
     }
 }

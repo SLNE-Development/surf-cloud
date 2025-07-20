@@ -9,8 +9,8 @@ class ClientProxyCloudServerImpl(
     uid: Long,
     group: String,
     name: String,
-    address: InetSocketAddress,
-) : AbstractProxyCloudServer(uid, group, name, address) {
+    playAddress: InetSocketAddress,
+) : AbstractProxyCloudServer(uid, group, name, playAddress) {
     override fun shutdown() {
         ServerboundShutdownServerPacket(uid).fireAndForget()
     }

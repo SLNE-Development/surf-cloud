@@ -26,10 +26,10 @@ class StandaloneCloudServerImpl(
     uid: Long,
     group: String,
     name: String,
-    address: InetSocketAddress,
+    playAddress: InetSocketAddress,
     lobby: Boolean,
     override val connection: ConnectionImpl,
-) : AbstractCloudServer(uid, group, name, address, lobby), ServerCloudServer,
+) : AbstractCloudServer(uid, group, name, playAddress, lobby), ServerCloudServer,
     CommonStandaloneServer by CommonStandaloneServerImpl() {
 
     init {

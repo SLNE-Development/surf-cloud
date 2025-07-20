@@ -11,9 +11,10 @@ class ServerClientImpl(
     serverId: Long,
     serverCategory: String,
     serverName: String,
-    override val playAddress: InetSocketAddress,
     val lobbyServer: Boolean,
 ) : CommonNettyClientImpl(serverId, serverCategory, serverName) {
+
+    override lateinit var playAddress: InetSocketAddress
 
     private var _listener: ServerRunningPacketListenerImpl? = null
     val listener get() = _listener ?: error("listener not yet set")
@@ -36,7 +37,6 @@ class ServerClientImpl(
                 packet.serverId,
                 packet.serverCategory,
                 packet.serverName,
-                packet.playAddress,
                 packet.lobby
             )
     }

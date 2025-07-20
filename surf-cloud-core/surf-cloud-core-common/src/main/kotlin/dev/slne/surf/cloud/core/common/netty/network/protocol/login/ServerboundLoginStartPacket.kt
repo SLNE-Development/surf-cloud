@@ -7,7 +7,6 @@ import dev.slne.surf.cloud.api.common.netty.network.protocol.PacketFlow
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
 import dev.slne.surf.cloud.api.common.netty.packet.packetCodec
 import dev.slne.surf.cloud.api.common.netty.protocol.buffer.SurfByteBuf
-import java.net.InetSocketAddress
 
 /**
  * This packet is sent by the client to the server to start the login process.
@@ -30,7 +29,6 @@ class ServerboundLoginStartPacket : NettyPacket {
     val serverName: String
     val proxy: Boolean
     val lobby: Boolean
-    val playAddress: InetSocketAddress
 
     constructor(
         serverId: Long,
@@ -38,14 +36,12 @@ class ServerboundLoginStartPacket : NettyPacket {
         serverName: String,
         proxy: Boolean,
         lobby: Boolean,
-        playAddress: InetSocketAddress
     ) {
         this.serverId = serverId
         this.serverCategory = serverCategory
         this.serverName = serverName
         this.proxy = proxy
         this.lobby = lobby
-        this.playAddress = playAddress
     }
 
     private constructor(buffer: SurfByteBuf) {
@@ -54,7 +50,6 @@ class ServerboundLoginStartPacket : NettyPacket {
         serverName = buffer.readUtf()
         proxy = buffer.readBoolean()
         lobby = buffer.readBoolean()
-        playAddress = buffer.readInetSocketAddress()
     }
 
     private fun write(buf: SurfByteBuf) {
@@ -63,6 +58,5 @@ class ServerboundLoginStartPacket : NettyPacket {
         buf.writeUtf(serverName)
         buf.writeBoolean(proxy)
         buf.writeBoolean(lobby)
-        buf.writeInetSocketAddress(playAddress)
     }
 }

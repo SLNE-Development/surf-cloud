@@ -18,10 +18,10 @@ fun PlayerTeleportEvent.TeleportCause.toCloudTpCause(): TeleportCause = when (th
     PlayerTeleportEvent.TeleportCause.SPECTATE -> TeleportCause.SPECTATE
     PlayerTeleportEvent.TeleportCause.EXIT_BED -> TeleportCause.EXIT_BED
     PlayerTeleportEvent.TeleportCause.END_PORTAL -> TeleportCause.END_PORTAL
-    PlayerTeleportEvent.TeleportCause.CHORUS_FRUIT -> TeleportCause.CHORUS_FRUIT
     PlayerTeleportEvent.TeleportCause.ENDER_PEARL -> TeleportCause.ENDER_PEARL
     PlayerTeleportEvent.TeleportCause.END_GATEWAY -> TeleportCause.END_GATEWAY
     PlayerTeleportEvent.TeleportCause.NETHER_PORTAL -> TeleportCause.NETHER_PORTAL
+    PlayerTeleportEvent.TeleportCause.CONSUMABLE_EFFECT -> TeleportCause.CONSUMABLE_EFFECT
 }
 
 fun TeleportCause.toBukkitTpCause(): PlayerTeleportEvent.TeleportCause = when (this) {
@@ -32,10 +32,10 @@ fun TeleportCause.toBukkitTpCause(): PlayerTeleportEvent.TeleportCause = when (t
     TeleportCause.SPECTATE -> PlayerTeleportEvent.TeleportCause.SPECTATE
     TeleportCause.EXIT_BED -> PlayerTeleportEvent.TeleportCause.EXIT_BED
     TeleportCause.END_PORTAL -> PlayerTeleportEvent.TeleportCause.END_PORTAL
-    TeleportCause.CHORUS_FRUIT -> PlayerTeleportEvent.TeleportCause.CHORUS_FRUIT
     TeleportCause.ENDER_PEARL -> PlayerTeleportEvent.TeleportCause.ENDER_PEARL
     TeleportCause.END_GATEWAY -> PlayerTeleportEvent.TeleportCause.END_GATEWAY
     TeleportCause.NETHER_PORTAL -> PlayerTeleportEvent.TeleportCause.NETHER_PORTAL
+    TeleportCause.CONSUMABLE_EFFECT -> PlayerTeleportEvent.TeleportCause.CONSUMABLE_EFFECT
 }
 
 fun TeleportFlag.toCloudTpFlag(): CloudTeleportFlag = when (this) {

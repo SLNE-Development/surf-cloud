@@ -7,17 +7,14 @@ import dev.slne.surf.cloud.api.common.player.ppdc.PersistentPlayerDataType
 import dev.slne.surf.cloud.api.common.util.toObjectSet
 import it.unimi.dsi.fastutil.objects.ObjectSet
 import net.kyori.adventure.key.Key
-import net.querz.nbt.io.NBTOutputStream
-import net.querz.nbt.tag.CompoundTag
-import net.querz.nbt.tag.Tag
-import okio.use
+import net.kyori.adventure.nbt.BinaryTag
+import net.kyori.adventure.nbt.CompoundBinaryTag
 import org.jetbrains.annotations.Unmodifiable
-import java.io.ByteArrayOutputStream
 
 abstract class PersistentPlayerDataContainerViewImpl : PersistentPlayerDataContainerView {
 
-    abstract fun toTagCompound(): CompoundTag
-    abstract fun getTag(key: String): Tag<*>?
+    abstract fun toTagCompound(): CompoundBinaryTag
+    abstract fun getTag(key: String): BinaryTag?
 
     override fun <P : Any, C> has(
         key: Key,
@@ -42,7 +39,7 @@ abstract class PersistentPlayerDataContainerViewImpl : PersistentPlayerDataConta
         }
 
         return type.fromPrimitive(
-            PersistentPlayerDataTypeRegistry.extract<P, Tag<*>>(type, value),
+            PersistentPlayerDataTypeRegistry.extract<P, BinaryTag>(type, value),
             PersistentPlayerDataAdapterContextImpl
         )
     }
@@ -63,11 +60,6 @@ abstract class PersistentPlayerDataContainerViewImpl : PersistentPlayerDataConta
 
     override fun writeToBuf(buf: SurfByteBuf) {
         val root = toTagCompound()
-        ByteArrayOutputStream().use {
-            NBTOutputStream(it).use { it.writeRawTag(root, Int.MAX_VALUE) }
-            val bytes = it.toByteArray()
-            buf.writeVarInt(bytes.size)
-            buf.writeBytes(bytes)
-        }
+        buf.writeCompoundTag(root)
     }
 }

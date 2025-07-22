@@ -1,33 +1,36 @@
 package dev.slne.surf.cloud.core.common.data
 
-import dev.slne.surf.cloud.api.common.util.nbt.readCompoundTag
-import dev.slne.surf.cloud.api.common.util.nbt.writeToPath
 import dev.slne.surf.cloud.core.common.coreCloudInstance
-import net.querz.nbt.tag.CompoundTag
-import net.querz.nbt.tag.Tag
+import dev.slne.surf.surfapi.core.api.nbt.FastCompoundBinaryTag
+import dev.slne.surf.surfapi.core.api.nbt.fast
+import net.kyori.adventure.nbt.BinaryTag
+import net.kyori.adventure.nbt.BinaryTagIO
+import net.kyori.adventure.nbt.BinaryTagIO.Compression
+import net.kyori.adventure.nbt.BinaryTagType
+import net.kyori.adventure.nbt.CompoundBinaryTag
 import kotlin.io.path.createFile
 import kotlin.io.path.createParentDirectories
 import kotlin.io.path.div
 import kotlin.io.path.notExists
 
 
-internal object PersistentDataImpl {
+object PersistentDataImpl {
     private val file by lazy {
         (coreCloudInstance.dataFolder / "storage" / "data.dat").apply {
             if (notExists()) {
                 createParentDirectories()
                 createFile()
-                CompoundTag().writeToPath(this)
+                BinaryTagIO.writer().write(CompoundBinaryTag.empty(), this, Compression.GZIP)
             }
         }
     }
 
-    private val tag by lazy { file.readCompoundTag() }
-    private fun saveTag() = tag.writeToPath(file)
+    val tag by lazy { BinaryTagIO.unlimitedReader().read(file, Compression.GZIP).fast() }
+    private fun saveTag() = BinaryTagIO.writer().write(tag, file, Compression.GZIP)
 
-    fun <T : Tag<D>, D> data(
+    fun <T : BinaryTag, D> data(
         key: String,
-        type: Class<T>,
+        type: BinaryTagType<T>,
         toValue: (T) -> D,
         toTag: (D) -> T,
         defaultValue: D?
@@ -35,15 +38,26 @@ internal object PersistentDataImpl {
         return DataImpl(tag, key, toValue, toTag, type, defaultValue)
     }
 
-    private data class DataImpl<T : Tag<D>, D>(
-        val tag: CompoundTag,
+    private data class DataImpl<T : BinaryTag, D>(
+        val tag: FastCompoundBinaryTag,
         val key: String,
         val toValue: (T) -> D,
         val toTag: (D) -> T,
-        val type: Class<T>,
+        val type: BinaryTagType<T>,
         val defaultValue: D?
     ) : PersistentData<D> {
-        override fun value(): D? = tag.get(key, type)?.let { toValue(it) } ?: defaultValue
+        init {
+            tag.get("")
+        }
+
+        override fun value(): D? {
+            val tag = tag.get(key) ?: return defaultValue
+            if (type.test(tag.type())) {
+                return toValue(tag as T)
+            }
+            throw IllegalStateException("Tag at key '$key' is not of type ${type}, but ${tag.type()}")
+        }
+
         override fun setValue(value: D?) {
             if (value == null) {
                 tag.remove(key)
@@ -53,6 +67,6 @@ internal object PersistentDataImpl {
             saveTag()
         }
 
-        override operator fun contains(key: String): Boolean = tag.containsKey(key)
+        override operator fun contains(key: String): Boolean = tag.get(key) != null
     }
 }

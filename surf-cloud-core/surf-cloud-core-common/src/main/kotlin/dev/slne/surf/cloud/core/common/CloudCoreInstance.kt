@@ -11,6 +11,8 @@ import dev.slne.surf.cloud.api.common.util.forEachOrdered
 import dev.slne.surf.cloud.core.common.event.CloudEventListenerBeanPostProcessor
 import dev.slne.surf.cloud.core.common.netty.network.EncryptionManager
 import dev.slne.surf.cloud.core.common.player.punishment.CloudPlayerPunishmentManagerBridgeImpl
+import dev.slne.surf.cloud.core.common.player.task.PrePlayerJoinTaskAutoRegistrationHandler
+import dev.slne.surf.cloud.core.common.plugin.task.CloudBeforeStartTaskHandler
 import dev.slne.surf.cloud.core.common.processors.NettyPacketProcessor
 import dev.slne.surf.cloud.core.common.spring.CloudChildSpringApplicationConfiguration
 import dev.slne.surf.cloud.core.common.spring.CloudLifecycleAware
@@ -53,7 +55,7 @@ class CloudCoreInstance : CloudInstance {
     }
 
     val springProfile by lazy {
-        ClassPathResource("spring.profile").getContentAsString(
+        ClassPathResource("spring.profile", javaClass.classLoader).getContentAsString(
             StandardCharsets.UTF_8
         )
     }
@@ -159,12 +161,13 @@ class CloudCoreInstance : CloudInstance {
         timeLogger.printSummary()
     }
 
-    private fun startMainSpringApplication() =
+    private fun startMainSpringApplication() = tempChangeSystemClassLoader(javaClass.classLoader) {
         SpringApplicationBuilder(SurfCloudMainApplication::class.java)
             .profiles(springProfile)
             .initializers(NettyPacketProcessor())
             .web(WebApplicationType.NONE)
             .run()
+    }
 
     override fun startSpringApplication(
         applicationClass: Class<*>,
@@ -229,6 +232,14 @@ class CloudCoreInstance : CloudInstance {
                     ctx.registerBeanDefinition(
                         "loginValidationAutoRegistrationHandler",
                         RootBeanDefinition(CloudPlayerPunishmentManagerBridgeImpl.LoginValidationAutoRegistrationHandler::class.java)
+                    )
+                    ctx.registerBeanDefinition(
+                        "beforeStartTaskHandler",
+                        RootBeanDefinition(CloudBeforeStartTaskHandler::class.java)
+                    )
+                    ctx.registerBeanDefinition(
+                        "prePlayerJoinTaskAutoRegistrationHandler",
+                        RootBeanDefinition(PrePlayerJoinTaskAutoRegistrationHandler::class.java)
                     )
                 })
 

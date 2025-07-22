@@ -1,4 +1,5 @@
 plugins {
+    `exclude-kotlin`
     id("dev.slne.surf.surfapi.gradle.core")
 }
 

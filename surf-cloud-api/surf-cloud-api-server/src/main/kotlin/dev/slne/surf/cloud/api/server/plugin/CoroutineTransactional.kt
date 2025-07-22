@@ -1,5 +1,6 @@
 package dev.slne.surf.cloud.api.server.plugin
 
+import kotlinx.coroutines.CoroutineScope
 import org.springframework.aot.hint.annotation.Reflective
 import java.lang.annotation.Inherited
 import kotlin.annotation.AnnotationRetention.RUNTIME
@@ -58,5 +59,14 @@ annotation class CoroutineTransactional(
         TRUE(true),
         FALSE(false),
         DEFAULT(null);
+    }
+
+    interface ScopeProvider {
+        /**
+         * Provides the current coroutine scope for the transaction.
+         * This is used to ensure that the transaction is suspended correctly
+         * when the coroutine yields.
+         */
+        fun getCurrentScope(): CoroutineScope
     }
 }

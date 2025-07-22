@@ -1,10 +1,12 @@
 package dev.slne.surf.cloud.api.server.plugin
 
 import dev.slne.surf.cloud.api.server.plugin.utils.PluginUtilProxies
+import dev.slne.surf.surfapi.core.api.util.logger
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.suspendCancellableCoroutine
+import org.aopalliance.aop.Advice
 import org.aspectj.lang.ProceedingJoinPoint
 import org.aspectj.lang.annotation.Around
 import org.aspectj.lang.annotation.Aspect
@@ -16,28 +18,23 @@ import org.springframework.beans.factory.getBean
 import org.springframework.boot.autoconfigure.AutoConfigurationPackages
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.boot.autoconfigure.liquibase.LiquibaseAutoConfiguration
-import org.springframework.boot.autoconfigure.orm.jpa.HibernatePropertiesCustomizer
 import org.springframework.cache.annotation.EnableCaching
 import org.springframework.context.ApplicationContext
-import org.springframework.context.ConfigurableApplicationContext
-import org.springframework.context.annotation.AdviceMode
-import org.springframework.context.annotation.Bean
-import org.springframework.context.annotation.Configuration
-import org.springframework.context.annotation.Import
+import org.springframework.context.annotation.*
 import org.springframework.core.KotlinDetector
 import org.springframework.core.Ordered
 import org.springframework.core.PriorityOrdered
 import org.springframework.core.annotation.AnnotatedElementUtils
-import org.springframework.core.annotation.Order
-import org.springframework.data.auditing.DateTimeProvider
-import org.springframework.data.jpa.repository.config.EnableJpaAuditing
-import org.springframework.data.jpa.repository.config.EnableJpaRepositories
+import org.springframework.instrument.classloading.LoadTimeWeaver
+import org.springframework.instrument.classloading.SimpleThrowawayClassLoader
 import org.springframework.scheduling.annotation.EnableAsync
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.EnableTransactionManagement
+import java.lang.instrument.ClassFileTransformer
+import java.lang.instrument.Instrumentation
 import java.lang.reflect.Method
-import java.time.ZonedDateTime
-import java.util.*
+import java.security.ProtectionDomain
+import java.util.concurrent.CopyOnWriteArrayList
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.intrinsics.COROUTINE_SUSPENDED
 import kotlin.coroutines.resume
@@ -46,9 +43,12 @@ import kotlin.coroutines.startCoroutine
 
 @Target(AnnotationTarget.CLASS)
 @Retention(AnnotationRetention.RUNTIME)
-@EnableJpaRepositories
 @Configuration
-@Import(JpaAuditingConfiguration::class, CoroutineTransactionalAspect::class)
+@Import(
+    CoroutineTransactionalAspect::class,
+    LoadTimeWeavingConfiguration::class,
+    TransactionConfiguration::class
+)
 @EnableAsync(mode = AdviceMode.ASPECTJ)
 @EnableCaching(mode = AdviceMode.ASPECTJ)
 @EnableAutoConfiguration(
@@ -58,32 +58,100 @@ import kotlin.coroutines.startCoroutine
 )
 annotation class AdditionalStandaloneConfiguration
 
-@EnableJpaAuditing(dateTimeProviderRef = "auditingDateTimeProvider")
-@Configuration(proxyBeanMethods = false)
-class JpaAuditingConfiguration : PriorityOrdered {
-    @Bean
-    fun auditingDateTimeProvider() = DateTimeProvider { Optional.of(ZonedDateTime.now()) }
-
-    @Bean
-    fun enhanceScopeInitializer(ctx: ConfigurableApplicationContext): HibernatePropertiesCustomizer {
-        val bases = AutoConfigurationPackages.get(ctx)
-        val joined = bases.joinToString(separator = ",")
-
-        return HibernatePropertiesCustomizer { props ->
-            props["hibernate.enhance.scan.packages"] = joined
-            props["hibernate.enhance.managed.packages"] = joined
-        }
-    }
-
-    override fun getOrder(): Int {
-        return PriorityOrdered.HIGHEST_PRECEDENCE
-    }
-}
 
 @EnableTransactionManagement(mode = AdviceMode.ASPECTJ)
 @Configuration
 class TransactionConfiguration
 
+@EnableLoadTimeWeaving(aspectjWeaving = EnableLoadTimeWeaving.AspectJWeaving.ENABLED)
+@Configuration
+class LoadTimeWeavingConfiguration(context: ApplicationContext) : LoadTimeWeavingConfigurer {
+    private val allowedPrefixes = AutoConfigurationPackages.get(context)
+        .map { it.trimEnd('.') + "." }
+//        .plus(listOf("org.springframework."))
+
+    val weaver = LoadTimeWeaverImpl(
+        LoadTimeWeaverImpl.getInstrumentation(),
+        context.classLoader ?: error("Application context does not have a class loader"),
+        allowedPrefixes
+    )
+
+    override fun getLoadTimeWeaver(): LoadTimeWeaver = weaver
+
+    class LoadTimeWeaverImpl(
+        private val instrumentation: Instrumentation,
+        private val classLoader: ClassLoader,
+        private val allowedPrefixes: List<String>
+    ) : LoadTimeWeaver {
+        private val transformers = CopyOnWriteArrayList<ClassFileTransformer>()
+
+        override fun addTransformer(transformer: ClassFileTransformer) {
+            val actualTransformer =
+                FilteringClassFileTransformer(transformer, classLoader, allowedPrefixes)
+            if (transformers.addIfAbsent(actualTransformer)) {
+                instrumentation.addTransformer(actualTransformer)
+            }
+        }
+
+        override fun getInstrumentableClassLoader(): ClassLoader = classLoader
+        override fun getThrowawayClassLoader(): ClassLoader =
+            SimpleThrowawayClassLoader(classLoader)
+
+        class FilteringClassFileTransformer(
+            private val targetTransformer: ClassFileTransformer,
+            private val targetClassLoader: ClassLoader,
+            private val allowedPrefixes: List<String>
+        ) : ClassFileTransformer {
+            override fun transform(
+                loader: ClassLoader?,
+                className: String?,
+                classBeingRedefined: Class<*>?,
+                protectionDomain: ProtectionDomain?,
+                classfileBuffer: ByteArray?
+            ): ByteArray? {
+                if (loader != targetClassLoader || className == null) return null
+                val dotted = className.replace('/', '.')
+                if (allowedPrefixes.none { dotted.startsWith(it) }) {
+                    return null
+                }
+
+                return try {
+                    targetTransformer.transform(
+                        loader,
+                        className,
+                        classBeingRedefined,
+                        protectionDomain,
+                        classfileBuffer
+                    )
+                } catch (ex: Throwable) {
+                    log.atWarning()
+                        .withCause(ex)
+                        .log("LTW: skipping weaving for $dotted due to ${ex.javaClass.simpleName}: ${ex.message}")
+                    null
+                }
+            }
+        }
+
+        companion object {
+            private val log = logger()
+            private const val AGENT_CLASS =
+                "org.springframework.instrument.InstrumentationSavingAgent"
+            private val agentClass: Class<*> by lazy {
+                Class.forName(AGENT_CLASS, true, javaClass.classLoader.parent)
+            }
+            private val agentMethod by lazy {
+                agentClass.getDeclaredMethod(
+                    "getInstrumentation",
+                )
+            }
+
+            fun getInstrumentation(): Instrumentation {
+                return agentMethod.invoke(null) as Instrumentation
+            }
+        }
+
+    }
+}
 
 /**
  * **Internal** Aspect that wraps every *suspending* call annotated (directly or
@@ -122,8 +190,7 @@ class TransactionConfiguration
  */
 @Aspect
 @Component
-@Order(Ordered.LOWEST_PRECEDENCE)
-class CoroutineTransactionalAspect(private val context: ApplicationContext) {
+class CoroutineTransactionalAspect(private val context: ApplicationContext) : Advice, PriorityOrdered {
 
     /**
      * Around-advice for any method or class annotated with
@@ -214,4 +281,7 @@ class CoroutineTransactionalAspect(private val context: ApplicationContext) {
         )
     }
 
+    override fun getOrder(): Int {
+        return Ordered.LOWEST_PRECEDENCE
+    }
 }

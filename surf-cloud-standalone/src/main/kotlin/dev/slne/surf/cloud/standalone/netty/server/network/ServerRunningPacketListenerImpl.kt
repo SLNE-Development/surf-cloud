@@ -1,5 +1,6 @@
 package dev.slne.surf.cloud.standalone.netty.server.network
 
+import dev.slne.surf.cloud.api.common.netty.network.ConnectionProtocol
 import dev.slne.surf.cloud.api.common.netty.network.protocol.respond
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacketInfo
@@ -25,6 +26,7 @@ import dev.slne.surf.cloud.standalone.player.StandaloneCloudPlayerImpl
 import dev.slne.surf.cloud.standalone.server.StandaloneCloudServerImpl
 import dev.slne.surf.cloud.standalone.server.StandaloneProxyCloudServerImpl
 import dev.slne.surf.cloud.standalone.server.serverManagerImpl
+import dev.slne.surf.cloud.standalone.sync.SyncRegistryImpl
 import dev.slne.surf.surfapi.core.api.util.logger
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -50,12 +52,19 @@ class ServerRunningPacketListenerImpl(
             packet.name,
             packet.proxy,
             packet.playerIp,
-            packet.serverUid
+            packet.serverUid,
+            true
         )
 
         packet.respond(PlayerConnectToServerResponsePacket(result))
 
-        broadcast(packet.copy())
+        broadcast(PlayerConnectedToServerPacket(
+            packet.uuid,
+            packet.name,
+            packet.serverUid,
+            packet.proxy,
+            packet.playerIp
+        ))
         serverManagerImpl.getCommonStandaloneServerByUid(packet.serverUid)
             ?.handlePlayerConnect(packet.uuid)
     }
@@ -488,11 +497,31 @@ class ServerRunningPacketListenerImpl(
         }
     }
 
+    override fun handleSyncValueChange(packet: SyncValueChangePacket) {
+        try {
+            SyncRegistryImpl.instance.handleChangePacket(packet, connection)
+        } catch (e: Throwable) {
+            log.atWarning()
+                .withCause(e)
+                .log("Failed to handle sync value change packet: %s", packet.syncId)
+        }
+    }
+
+    override fun handleSyncSetDelta(packet: SyncSetDeltaPacket) {
+        try {
+            SyncRegistryImpl.instance.handleSyncSetDeltaPacket(packet, connection)
+        } catch (e: Throwable) {
+            log.atWarning()
+                .withCause(e)
+                .log("Failed to handle sync set delta packet: %s", packet.setId)
+        }
+    }
+
     override fun handlePacket(packet: NettyPacket) {
         val listeners = NettyListenerRegistry.getListeners(packet.javaClass) ?: return
         if (listeners.isEmpty()) return
 
-        val info = NettyPacketInfo(connection)
+        val info = NettyPacketInfo(connection, ConnectionProtocol.RUNNING)
 
         for (listener in listeners) {
             PacketHandlerScope.launch {

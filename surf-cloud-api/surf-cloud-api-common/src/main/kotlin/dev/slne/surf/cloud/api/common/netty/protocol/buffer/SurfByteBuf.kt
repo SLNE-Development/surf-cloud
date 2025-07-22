@@ -6,6 +6,8 @@ import com.google.gson.Gson
 import com.google.gson.JsonElement
 import com.mojang.serialization.Codec
 import com.mojang.serialization.JsonOps
+import dev.slne.surf.cloud.api.common.netty.network.codec.StreamCodec
+import dev.slne.surf.cloud.api.common.netty.network.codec.kotlinx.SurfCloudBufSerializer
 import dev.slne.surf.cloud.api.common.netty.protocol.buffer.SurfByteBuf.Companion
 import dev.slne.surf.cloud.api.common.netty.protocol.buffer.decoder.DecodeFactory
 import dev.slne.surf.cloud.api.common.netty.protocol.buffer.decoder.DecodeFactory.DecodeLongFactory
@@ -18,14 +20,17 @@ import dev.slne.surf.cloud.api.common.util.codec.ExtraCodecs
 import dev.slne.surf.cloud.api.common.util.createUnresolvedInetSocketAddress
 import dev.slne.surf.cloud.api.common.util.fromJson
 import io.netty.buffer.ByteBuf
+import io.netty.buffer.ByteBufAllocator
+import io.netty.buffer.PooledByteBufAllocator
 import io.netty.handler.codec.DecoderException
 import io.netty.handler.codec.EncoderException
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
 import it.unimi.dsi.fastutil.objects.ObjectArrayList
+import kotlinx.serialization.KSerializer
 import net.kyori.adventure.key.Key
+import net.kyori.adventure.nbt.CompoundBinaryTag
 import net.kyori.adventure.sound.Sound
 import net.kyori.adventure.text.Component
-import net.querz.nbt.tag.CompoundTag
 import java.io.*
 import java.net.Inet4Address
 import java.net.InetSocketAddress
@@ -88,7 +93,27 @@ private const val NUMBER_DOUBLE: Byte = 5
  */
 open class SurfByteBuf(source: ByteBuf) : WrappedByteBuf(source) {
     companion object {
+        val alloc: ByteBufAllocator = PooledByteBufAllocator.DEFAULT
+
         private val GSON = Gson()
+
+        fun <B: ByteBuf, T> streamCodecFromKotlin(serializer: KSerializer<T>): StreamCodec<B, T> {
+            return SerializerCodec(serializer)
+        }
+
+        private class SerializerCodec<B: ByteBuf, T>(private val serializer: KSerializer<T>) :
+            StreamCodec<B, T> {
+            override fun decode(buf: B): T {
+                return SurfCloudBufSerializer.serializer.decodeFromBuf(buf, serializer)
+            }
+
+            override fun encode(
+                buf: B,
+                value: T
+            ) {
+                SurfCloudBufSerializer.serializer.encodeToBuf(buf, serializer, value)
+            }
+        }
 
         /**
          * Read key key.
@@ -566,7 +591,8 @@ open class SurfByteBuf(source: ByteBuf) : WrappedByteBuf(source) {
             buf: B,
             decodeFactory: DecodeLongFactory<in B> =
                 DecodeLongFactory { buf -> buf.readLong() }
-        ): OptionalLong = if (buf.readBoolean()) OptionalLong.of(decodeFactory.decodeLong(buf)) else OptionalLong.empty()
+        ): OptionalLong =
+            if (buf.readBoolean()) OptionalLong.of(decodeFactory.decodeLong(buf)) else OptionalLong.empty()
 
 
         @Deprecated("Use codec instead")
@@ -626,18 +652,18 @@ open class SurfByteBuf(source: ByteBuf) : WrappedByteBuf(source) {
         fun <B : ByteBuf> readInetSocketAddress(buf: B) =
             createUnresolvedInetSocketAddress(readUtf(buf), buf.readVarInt())
 
-        fun <B : ByteBuf> writeCompoundTag(buf: B, tag: CompoundTag) {
+        fun <B : ByteBuf> writeCompoundTag(buf: B, tag: CompoundBinaryTag) {
             ExtraCodecs.COMPOUND_TAG_CODEC.encode(buf, tag)
         }
 
         fun <B : ByteBuf> readCompoundTag(buf: B) = ExtraCodecs.COMPOUND_TAG_CODEC.decode(buf)
 
-        fun <B: ByteBuf> writeZonedDateTime(buf: B, time: ZonedDateTime) {
+        fun <B : ByteBuf> writeZonedDateTime(buf: B, time: ZonedDateTime) {
             buf.writeLong(time.toInstant().toEpochMilli())
             writeUtf(buf, time.zone.id)
         }
 
-        fun <B: ByteBuf> readZonedDateTime(buf: B): ZonedDateTime {
+        fun <B : ByteBuf> readZonedDateTime(buf: B): ZonedDateTime {
             val epoch = buf.readLong()
             val zone = readUtf(buf)
             return ZonedDateTime.ofInstant(Instant.ofEpochMilli(epoch), ZoneId.of(zone))
@@ -663,11 +689,11 @@ open class SurfByteBuf(source: ByteBuf) : WrappedByteBuf(source) {
                 ?: throw DecoderException("Failed to read singleton: $className")
         }
 
-        fun <B: ByteBuf> writeDuration(buf: B, duration: Duration) {
+        fun <B : ByteBuf> writeDuration(buf: B, duration: Duration) {
             buf.writeLong(duration.inWholeMilliseconds)
         }
 
-        fun <B: ByteBuf> readDuration(buf: B): Duration {
+        fun <B : ByteBuf> readDuration(buf: B): Duration {
             return buf.readLong().milliseconds
         }
     }
@@ -837,7 +863,7 @@ open class SurfByteBuf(source: ByteBuf) : WrappedByteBuf(source) {
     fun readWithCount(reader: Consumer<SurfByteBuf>) = readWithCount(this, reader)
     fun writeInetSocketAddress(address: InetSocketAddress) = writeInetSocketAddress(this, address)
     fun readInetSocketAddress() = readInetSocketAddress(this)
-    fun writeCompoundTag(tag: CompoundTag) = writeCompoundTag(this, tag)
+    fun writeCompoundTag(tag: CompoundBinaryTag) = writeCompoundTag(this, tag)
     fun readCompoundTag() = readCompoundTag(this)
     fun writeZonedDateTime(time: ZonedDateTime) = writeZonedDateTime(this, time)
     fun readZonedDateTime() = readZonedDateTime(this)
@@ -1068,15 +1094,19 @@ fun <B : ByteBuf> B.writeInetSocketAddress(address: InetSocketAddress) =
     SurfByteBuf.writeInetSocketAddress(this, address)
 
 fun <B : ByteBuf> B.readCompoundTag() = SurfByteBuf.readCompoundTag(this)
-fun <B : ByteBuf> B.writeCompoundTag(tag: CompoundTag) = SurfByteBuf.writeCompoundTag(this, tag)
+fun <B : ByteBuf> B.writeCompoundTag(tag: CompoundBinaryTag) = SurfByteBuf.writeCompoundTag(this, tag)
 
 fun <B : ByteBuf> B.readZonedDateTime() = SurfByteBuf.readZonedDateTime(this)
-fun <B : ByteBuf> B.writeZonedDateTime(time: ZonedDateTime) = SurfByteBuf.writeZonedDateTime(this, time)
+fun <B : ByteBuf> B.writeZonedDateTime(time: ZonedDateTime) =
+    SurfByteBuf.writeZonedDateTime(this, time)
 
 fun <B : ByteBuf> B.readInet4Address() = SurfByteBuf.readInet4Address(this)
-fun <B : ByteBuf> B.writeInet4Address(address: Inet4Address) = SurfByteBuf.writeInet4Address(this, address)
+fun <B : ByteBuf> B.writeInet4Address(address: Inet4Address) =
+    SurfByteBuf.writeInet4Address(this, address)
 
-fun <B : ByteBuf> B.readSingleton(classLoader: ClassLoader) = SurfByteBuf.readSingleton(this, classLoader)
+fun <B : ByteBuf> B.readSingleton(classLoader: ClassLoader) =
+    SurfByteBuf.readSingleton(this, classLoader)
+
 fun <B : ByteBuf> B.writeSingleton(singleton: Any) = SurfByteBuf.writeSingleton(this, singleton)
 
 fun <B : ByteBuf> B.writeDuration(duration: Duration) = SurfByteBuf.writeDuration(this, duration)

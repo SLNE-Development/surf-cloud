@@ -33,6 +33,8 @@ interface CloudPlayer : Audience, OfflineCloudPlayer { // TODO: conversation but
 
     override suspend fun latestIpAddress(): Inet4Address
     override suspend fun lastServerRaw(): String
+    override suspend fun lastServer(): CloudServer = currentServer()
+    fun currentServer(): CloudServer
 
     /**
      * Whether the player is currently connected to a proxy server.

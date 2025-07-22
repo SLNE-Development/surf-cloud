@@ -3,6 +3,7 @@ package dev.slne.surf.cloud.core.client.netty.network
 import com.google.common.flogger.StackSize
 import dev.slne.surf.cloud.api.common.event.offlineplayer.punishment.CloudPlayerPunishEvent
 import dev.slne.surf.cloud.api.common.event.offlineplayer.punishment.CloudPlayerPunishmentUpdatedEvent
+import dev.slne.surf.cloud.api.common.netty.network.ConnectionProtocol
 import dev.slne.surf.cloud.api.common.netty.network.protocol.respond
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacketInfo
@@ -13,15 +14,16 @@ import dev.slne.surf.cloud.core.client.player.commonPlayerManagerImpl
 import dev.slne.surf.cloud.core.client.server.ClientCloudServerImpl
 import dev.slne.surf.cloud.core.client.server.ClientProxyCloudServerImpl
 import dev.slne.surf.cloud.core.client.server.serverManagerImpl
+import dev.slne.surf.cloud.core.client.sync.SyncRegistryImpl
 import dev.slne.surf.cloud.core.client.util.getOrLoadUser
 import dev.slne.surf.cloud.core.client.util.luckperms
 import dev.slne.surf.cloud.core.common.coroutines.PacketHandlerScope
 import dev.slne.surf.cloud.core.common.netty.network.ConnectionImpl
+import dev.slne.surf.cloud.core.common.netty.network.protocol.common.ClientboundSetVelocitySecretPacket
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.*
 import dev.slne.surf.cloud.core.common.netty.registry.listener.NettyListenerRegistry
 import dev.slne.surf.cloud.core.common.player.playerManagerImpl
 import dev.slne.surf.cloud.core.common.player.task.PrePlayerJoinTaskManager
-import dev.slne.surf.cloud.core.common.util.bean
 import dev.slne.surf.cloud.core.common.util.hasPermissionPlattform
 import dev.slne.surf.surfapi.core.api.messages.adventure.getPointer
 import dev.slne.surf.surfapi.core.api.messages.adventure.text
@@ -41,13 +43,14 @@ class ClientRunningPacketListenerImpl(
 ) : ClientCommonPacketListenerImpl(connection), RunningClientPacketListener {
     private val log = logger()
 
-    override suspend fun handlePlayerConnectToServer(packet: PlayerConnectToServerPacket) {
+    override suspend fun handlePlayerConnectedToServer(packet: PlayerConnectedToServerPacket) {
         playerManagerImpl.updateOrCreatePlayer(
             packet.uuid,
             packet.name,
             packet.proxy,
             packet.playerIp,
-            packet.serverUid
+            packet.serverUid,
+            false
         )
     }
 
@@ -180,20 +183,28 @@ class ClientRunningPacketListenerImpl(
                 packet.serverId,
                 packet.group,
                 packet.name,
+                packet.playAddress,
             )
         } else {
             ClientCloudServerImpl(
                 packet.serverId,
                 packet.group,
                 packet.name,
-            )
+                packet.playAddress,
+                packet.lobby
+            ).also { client ->
+                platformExtension.registerCloudServerToProxy(client)
+            }
         }
 
         serverManagerImpl.registerServer(server)
     }
 
     override suspend fun handleUnregisterServerPacket(packet: ClientboundUnregisterServerPacket) {
-        serverManagerImpl.unregisterServer(packet.serverId)
+        val removed = serverManagerImpl.unregisterServer(packet.serverId)
+        if (removed is ClientCloudServerImpl) {
+            platformExtension.unregisterCloudServerFromProxy(removed)
+        }
     }
 
     override suspend fun handleAddPlayerToServer(packet: ClientboundAddPlayerToServerPacket) {
@@ -259,16 +270,6 @@ class ClientRunningPacketListenerImpl(
         platformExtension.triggerShutdown()
     }
 
-    override suspend fun handleBatchUpdateServer(packet: ClientboundBatchUpdateServer) {
-        serverManagerImpl.batchUpdateServer(packet.servers.map {
-            if (it.proxy) {
-                ClientProxyCloudServerImpl(it.serverId, it.group, it.name)
-            } else {
-                ClientCloudServerImpl(it.serverId, it.group, it.name)
-            }
-        })
-    }
-
     override fun handleUpdateAFKState(packet: UpdateAFKStatePacket) {
         playerManagerImpl.getPlayer(packet.uuid)?.let { player ->
             require(player is ClientCloudPlayerImpl<*>) { "Player $player is not a client player" }
@@ -278,7 +279,7 @@ class ClientRunningPacketListenerImpl(
 
     override suspend fun handleRunPlayerPreJoinTasks(packet: ClientboundRunPrePlayerJoinTasksPacket) {
         val player = commonPlayerManagerImpl.getOfflinePlayer(packet.uuid)
-        val result = bean<PrePlayerJoinTaskManager>().runTasks(player)
+        val result = PrePlayerJoinTaskManager.runTasks(player)
         packet.respond(RunPrePlayerJoinTasksResultPacket(result))
     }
 
@@ -320,11 +321,43 @@ class ClientRunningPacketListenerImpl(
         }
     }
 
+    override fun handleSyncValueChange(packet: SyncValueChangePacket) {
+        try {
+            if (!packet.registered) return
+            SyncRegistryImpl.instance.updateSyncValue(packet.syncId, packet.value)
+        } catch (e: Throwable) {
+            log.atWarning()
+                .withCause(e)
+                .log("Failed to update sync value for packet $packet")
+        }
+    }
+
+    override fun handleSyncSetDelta(packet: SyncSetDeltaPacket) {
+        try {
+            SyncRegistryImpl.instance.handleSyncSetDelta(packet)
+        } catch (e: Throwable) {
+            log.atWarning()
+                .withCause(e)
+                .log("Failed to handle sync set delta for packet $packet")
+        }
+    }
+
+    override fun handleSetVelocitySecret(packet: ClientboundSetVelocitySecretPacket) {
+        try {
+            client.velocitySecret = packet.secret
+            platformExtension.setVelocitySecret(packet.secret)
+        } catch (e: Throwable) {
+            log.atWarning()
+                .withCause(e)
+                .log("Failed to set velocity secret for packet $packet")
+        }
+    }
+
     override fun handlePacket(packet: NettyPacket) {
         val listeners = NettyListenerRegistry.getListeners(packet.javaClass) ?: return
         if (listeners.isEmpty()) return
 
-        val info = NettyPacketInfo(connection)
+        val info = NettyPacketInfo(connection, ConnectionProtocol.RUNNING)
 
         for (listener in listeners) {
             PacketHandlerScope.launch {

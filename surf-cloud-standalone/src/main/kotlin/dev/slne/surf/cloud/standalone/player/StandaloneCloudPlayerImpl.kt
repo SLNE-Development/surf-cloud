@@ -36,6 +36,7 @@ import net.kyori.adventure.audience.MessageType
 import net.kyori.adventure.bossbar.BossBar
 import net.kyori.adventure.identity.Identity
 import net.kyori.adventure.inventory.Book
+import net.kyori.adventure.nbt.CompoundBinaryTag
 import net.kyori.adventure.resource.ResourcePackCallback
 import net.kyori.adventure.resource.ResourcePackRequest
 import net.kyori.adventure.sound.Sound
@@ -45,7 +46,6 @@ import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.ComponentLike
 import net.kyori.adventure.title.Title
 import net.kyori.adventure.title.TitlePart
-import net.querz.nbt.tag.CompoundTag
 import java.net.Inet4Address
 import java.time.ZonedDateTime
 import java.time.temporal.ChronoUnit
@@ -72,8 +72,8 @@ class StandaloneCloudPlayerImpl(uuid: UUID, name: String, val ip: Inet4Address) 
 
     override val connectedToProxy get() = proxyServer != null
     override val connectedToServer get() = server != null
-    val anyServer: ServerCommonCloudServer
-        get() = server ?: proxyServer ?: error("Player is not connected to a server")
+    val anyServer: ServerCommonCloudServer?
+        get() = server ?: proxyServer
 
     @Deprecated("remove")
     @Volatile
@@ -93,17 +93,15 @@ class StandaloneCloudPlayerImpl(uuid: UUID, name: String, val ip: Inet4Address) 
 
     var sessionStartTime: ZonedDateTime = ZonedDateTime.now()
 
-    fun savePlayerData(tag: CompoundTag) {
+    fun savePlayerData(tag: CompoundBinaryTag.Builder) {
         if (!ppdc.empty) {
             tag.put("ppdc", ppdc.toTagCompound())
         }
     }
 
-    fun readPlayerData(tag: CompoundTag) {
-        val ppdcTag = tag.get("ppdc")
-        if (ppdcTag is CompoundTag) {
-            ppdc.fromTagCompound(ppdcTag)
-        }
+    fun readPlayerData(tag: CompoundBinaryTag) {
+        val ppdcTag = tag.get("ppdc") as? CompoundBinaryTag ?: return
+        ppdc.fromTagCompound(ppdcTag)
     }
 
     override fun isAfk(): Boolean {
@@ -147,7 +145,7 @@ class StandaloneCloudPlayerImpl(uuid: UUID, name: String, val ip: Inet4Address) 
     }
 
     suspend fun getPersistentData() = ppdcMutex.withLock { ppdc.toTagCompound() }
-    suspend fun updatePersistentData(tag: CompoundTag) =
+    suspend fun updatePersistentData(tag: CompoundBinaryTag) =
         ppdcMutex.withLock { ppdc.fromTagCompound(tag) }
 
     override suspend fun latestIpAddress(): Inet4Address {
@@ -181,7 +179,11 @@ class StandaloneCloudPlayerImpl(uuid: UUID, name: String, val ip: Inet4Address) 
     }
 
     override suspend fun lastServerRaw(): String {
-        return anyServer.name
+        return anyServer?.name ?: error("Player is not connected to a server")
+    }
+
+    override fun currentServer(): CloudServer {
+        return server ?: error("Player is not connected to a server")
     }
 
     override suspend fun firstSeen(): ZonedDateTime? {
@@ -195,7 +197,9 @@ class StandaloneCloudPlayerImpl(uuid: UUID, name: String, val ip: Inet4Address) 
     }
 
     override suspend fun displayName(): Component = ClientboundRequestDisplayNamePacket(uuid)
-        .fireAndAwaitUrgent(anyServer.connection)?.displayName
+        .fireAndAwaitUrgent(
+            anyServer?.connection ?: error("Player is not connected to a server")
+        )?.displayName
         ?: error("Failed to get display name (probably timed out)")
 
     override suspend fun name(): String {
@@ -310,7 +314,11 @@ class StandaloneCloudPlayerImpl(uuid: UUID, name: String, val ip: Inet4Address) 
     }
 
     override suspend fun getLuckpermsMetaData(key: String): String? {
-        return RequestLuckpermsMetaDataPacket(uuid, key).fireAndAwait(anyServer.connection)?.data
+        return anyServer?.connection?.let {
+            RequestLuckpermsMetaDataPacket(uuid, key).fireAndAwait(
+                it
+            )?.data
+        }
     }
 
 
@@ -404,7 +412,9 @@ class StandaloneCloudPlayerImpl(uuid: UUID, name: String, val ip: Inet4Address) 
     }
 
     override suspend fun hasPermission(permission: String): Boolean {
-        return RequestPlayerPermissionPacket(uuid, permission).awaitOrThrow(anyServer.connection)
+        return RequestPlayerPermissionPacket(uuid, permission).awaitOrThrow(
+            anyServer?.connection ?: error("Player is not connected to a server")
+        )
     }
 
     override fun playSound(sound: Sound) {
@@ -472,6 +482,6 @@ class StandaloneCloudPlayerImpl(uuid: UUID, name: String, val ip: Inet4Address) 
     }
 
     private fun send(packet: NettyPacket) {
-        anyServer.connection.send(packet)
+        anyServer?.connection?.send(packet)
     }
 }

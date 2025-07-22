@@ -1,56 +1,65 @@
 package dev.slne.surf.cloud.core.common.player.task
 
-import dev.slne.surf.cloud.api.common.util.mutableObjectListOf
-import dev.slne.surf.cloud.core.common.coroutines.PrePlayerJoinTaskScope
-import dev.slne.surf.cloud.core.common.player.CommonCloudPlayerImpl
+import dev.slne.surf.cloud.api.common.player.task.PrePlayerJoinTask
 import dev.slne.surf.cloud.core.common.player.CommonOfflineCloudPlayerImpl
 import dev.slne.surf.surfapi.core.api.util.logger
 import kotlinx.coroutines.withContext
 import org.springframework.beans.factory.SmartInitializingSingleton
-import org.springframework.beans.factory.config.BeanPostProcessor
-import org.springframework.core.OrderComparator
+import org.springframework.core.annotation.AnnotationAwareOrderComparator
 import org.springframework.stereotype.Component
+import java.util.concurrent.CopyOnWriteArrayList
+import dev.slne.surf.cloud.core.common.coroutines.PrePlayerJoinTaskScope as TaskScope
 
-@Component
-class PrePlayerJoinTaskManager : BeanPostProcessor, SmartInitializingSingleton {
-
+object PrePlayerJoinTaskManager {
     private val log = logger()
+    private val tasks = CopyOnWriteArrayList<PrePlayerJoinTask>()
+    private var singletonsInstantiated = false
 
-    val tasks = mutableObjectListOf<PrePlayerJoinTask>()
-
-    override fun postProcessAfterInitialization(
-        bean: Any,
-        beanName: String
-    ): Any {
-        if (bean is PrePlayerJoinTask) {
-            tasks.add(bean)
+    fun registerTask(task: PrePlayerJoinTask) {
+        if (tasks.addIfAbsent(task)) {
+            maybeSort()
         }
-
-        return bean
     }
 
-    override fun afterSingletonsInstantiated() {
-        OrderComparator.sort(tasks)
+    fun registerTasks(tasks: Collection<PrePlayerJoinTask>) {
+        val added = this.tasks.addAllAbsent(tasks)
+        if (added > 0) {
+            maybeSort()
+        }
     }
 
-    suspend fun runTasks(player: CommonOfflineCloudPlayerImpl): PrePlayerJoinTask.Result =
-        withContext(PrePlayerJoinTaskScope.context) {
-            for (task in tasks) {
-                val result = try {
-                    task.preJoin(player)
-                } catch (e: Exception) {
+    fun unregisterTask(task: PrePlayerJoinTask) {
+        tasks.remove(task)
+    }
+
+    private fun maybeSort() {
+        if (singletonsInstantiated) {
+            AnnotationAwareOrderComparator.sort(tasks)
+        }
+    }
+
+    suspend fun runTasks(player: CommonOfflineCloudPlayerImpl) = withContext(TaskScope.context) {
+        for (task in tasks) {
+            val result = runCatching { task.preJoin(player) }
+                .getOrElse { e ->
                     log.atSevere()
                         .withCause(e)
-                        .log("Failed to run pre player join tasks")
-                    return@withContext PrePlayerJoinTask.Result.ERROR
+                        .log("Failed to run pre player join task: ${task::class.simpleName} for player: ${player.uuid}")
+                    PrePlayerJoinTask.Result.ERROR
                 }
 
-                when (result) {
-                    is PrePlayerJoinTask.Result.ALLOWED -> continue
-                    else -> return@withContext result
-                }
+            if (result !is PrePlayerJoinTask.Result.ALLOWED) {
+                return@withContext result
             }
-
-            PrePlayerJoinTask.Result.ALLOWED
         }
+        PrePlayerJoinTask.Result.ALLOWED
+    }
+
+    @Component
+    class Lifecycle : SmartInitializingSingleton {
+        override fun afterSingletonsInstantiated() {
+            singletonsInstantiated = true
+            maybeSort()
+        }
+    }
 }

@@ -1,10 +1,12 @@
+import dev.slne.surf.surfapi.gradle.util.slneReleases
+
 plugins {
+    `exclude-kotlin`
     id("dev.slne.surf.surfapi.gradle.core")
 }
 
 dependencies {
     api(libs.bundles.spring.api.common)
-    implementation(libs.spring.data.jpa) // Hide this from the API
     api(libs.bundles.jackson.api.common)
     api(libs.bundles.spring.aop)
 
@@ -14,16 +16,39 @@ dependencies {
         exclude(group = "io.netty")
     }
 
-    api(libs.nbt)
     api(libs.datafixerupper) {
         isTransitive = false
     }
     api(libs.byte.buddy)
-    api(libs.spring.boot.starter.actuator)
+}
+
+val writeCloudVersion by tasks.registering {
+    group = "build"
+    description = "Writes the cloud version to the classpath resource"
+
+    val outputDir = layout.projectDirectory.dir("src/main/resources")
+    val outputFile = outputDir.file("cloud.version")
+
+    doLast {
+        outputDir.asFile.mkdirs()
+        outputFile.asFile.writeText(project.version as String)
+    }
+}
+
+tasks {
+    processResources {
+        dependsOn(writeCloudVersion)
+    }
 }
 
 kotlin {
     compilerOptions {
         optIn.add("dev.slne.surf.cloud.api.common.util.annotation.InternalApi")
+    }
+}
+
+publishing {
+    repositories {
+        slneReleases()
     }
 }

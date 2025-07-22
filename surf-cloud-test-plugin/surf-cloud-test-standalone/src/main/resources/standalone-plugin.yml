@@ -1,7 +1,7 @@
 name: surf-cloud-test-standalone
-main: 'dev.slne.surf.cloud.standalone.test.TestStandalonePlugin'
-bootstrapper: 'dev.slne.surf.cloud.standalone.test.TestStandaloneBootstrap'
-loader: 'dev.slne.surf.cloud.standalone.test.TestStandaloneLoader'
+main: 'dev.slne.surf.cloudtest.standalone.test.TestStandalonePlugin'
+bootstrapper: 'dev.slne.surf.cloudtest.standalone.test.TestStandaloneBootstrap'
+loader: 'dev.slne.surf.cloudtest.standalone.test.TestStandaloneLoader'
 version: 1.21.4-1.0.0-SNAPSHOT
 description: 'Test standalone plugin'
 authors:

@@ -23,6 +23,7 @@ import dev.slne.surf.cloud.core.common.player.CommonCloudPlayerImpl
 import dev.slne.surf.cloud.core.common.player.ppdc.PersistentPlayerDataContainerImpl
 import dev.slne.surf.cloud.core.common.util.hasPermissionPlattform
 import dev.slne.surf.surfapi.core.api.messages.adventure.getPointer
+import dev.slne.surf.surfapi.core.api.nbt.fast
 import net.kyori.adventure.audience.Audience
 import net.kyori.adventure.audience.MessageType
 import net.kyori.adventure.bossbar.BossBar
@@ -78,6 +79,16 @@ abstract class ClientCloudPlayerImpl<PlatformPlayer : Audience>(uuid: UUID, name
             ?: error("Failed to get last server")
     }
 
+    override fun currentServer(): CloudServer {
+        val server = serverManagerImpl.getServerByIdUnsafe(
+            serverUid ?: error("Player is not connected to a server")
+        ) ?: error("Server not found for UID: $serverUid")
+
+        require(server is CloudServer) { "Expected CloudServer, but got ${server::class.simpleName}" }
+
+        return server
+    }
+
     override suspend fun nameHistory(): NameHistory {
         return request<NameHistoryResponse>(DataRequestType.NAME_HISTORY).history
     }
@@ -110,13 +121,13 @@ abstract class ClientCloudPlayerImpl<PlatformPlayer : Audience>(uuid: UUID, name
         val response = ServerboundRequestPlayerPersistentDataContainer(uuid).fireAndAwaitOrThrow()
 
         val nbt = response.nbt
-        val container = PersistentPlayerDataContainerImpl(nbt)
+        val container = PersistentPlayerDataContainerImpl(nbt.fast(synchronize = true))
         val result = container.block()
 
         ServerboundPlayerPersistentDataContainerUpdatePacket(
             uuid,
             response.verificationId,
-            container.toTagCompound()
+        container.toTagCompound()
         ).fireAndForget()
 
         return result

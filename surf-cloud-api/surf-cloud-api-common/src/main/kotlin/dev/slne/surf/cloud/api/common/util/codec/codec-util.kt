@@ -17,6 +17,8 @@ import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet
 import net.kyori.adventure.bossbar.BossBar
 import net.kyori.adventure.inventory.Book
 import net.kyori.adventure.key.Key
+import net.kyori.adventure.nbt.BinaryTagIO
+import net.kyori.adventure.nbt.CompoundBinaryTag
 import net.kyori.adventure.resource.ResourcePackInfo
 import net.kyori.adventure.resource.ResourcePackRequest
 import net.kyori.adventure.sound.Sound
@@ -26,12 +28,6 @@ import net.kyori.adventure.text.TextComponent
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer
 import net.kyori.adventure.title.Title
 import net.kyori.adventure.title.TitlePart
-import net.querz.nbt.io.NBTDeserializer
-import net.querz.nbt.io.NBTInputStream
-import net.querz.nbt.io.NBTOutputStream
-import net.querz.nbt.io.NBTSerializer
-import net.querz.nbt.io.NamedTag
-import net.querz.nbt.tag.CompoundTag
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.time.Duration
@@ -385,11 +381,16 @@ object ExtraCodecs {
 
     // endregion
     // region nbt
-    val COMPOUND_TAG_CODEC = streamCodec<ByteBuf, CompoundTag>({ buf, tag ->
-        val bytes = NBTSerializer(true).toBytes(NamedTag("", tag))
-        buf.writeByteArray(bytes)
+    val COMPOUND_TAG_CODEC = streamCodec<ByteBuf, CompoundBinaryTag>({ buf, tag ->
+        ByteArrayOutputStream().use {out ->
+            BinaryTagIO.writer().write(tag, out, BinaryTagIO.Compression.GZIP)
+            buf.writeByteArray(out.toByteArray())
+        }
     }, { buf ->
-        NBTDeserializer(true).fromBytes(buf.readByteArray()).tag as CompoundTag
+        val bytes = buf.readByteArray()
+        ByteArrayInputStream(bytes).use { input ->
+            BinaryTagIO.unlimitedReader().read(input, BinaryTagIO.Compression.GZIP)
+        }
     })
     // endregion
 

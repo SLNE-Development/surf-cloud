@@ -15,6 +15,8 @@ interface NettyClient {
     val serverCategory: String
     val serverName: String
 
+    val velocitySecret: ByteArray
+
     val connection: Connection
 
     /**

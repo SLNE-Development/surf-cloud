@@ -5,21 +5,22 @@ import dev.slne.surf.cloud.api.common.netty.protocol.buffer.SurfByteBuf
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.builtins.ByteArraySerializer
 import kotlinx.serialization.descriptors.SerialDescriptor
-import net.querz.nbt.tag.CompoundTag
+import net.kyori.adventure.nbt.CompoundBinaryTag
 
-typealias SerializableCompoundTag = @Serializable(with = CompoundTagSerializer::class) CompoundTag
+typealias SerializableCompoundTag = @Serializable(with = CompoundTagSerializer::class) CompoundBinaryTag
 
-object CompoundTagSerializer : CloudBufSerializer<CompoundTag>() {
-    override val descriptor = SerialDescriptor("CompoundTag", ByteArraySerializer().descriptor)
+object CompoundTagSerializer : CloudBufSerializer<CompoundBinaryTag>() {
+    override val descriptor =
+        SerialDescriptor("CompoundBinaryTag", ByteArraySerializer().descriptor)
 
     override fun serialize0(
         buf: SurfByteBuf,
-        value: CompoundTag
+        value: CompoundBinaryTag
     ) {
         buf.writeCompoundTag(value)
     }
 
-    override fun deserialize0(buf: SurfByteBuf): CompoundTag {
+    override fun deserialize0(buf: SurfByteBuf): CompoundBinaryTag {
         return buf.readCompoundTag()
     }
 }

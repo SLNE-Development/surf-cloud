@@ -10,14 +10,17 @@ import dev.slne.surf.cloud.api.common.util.objectListOf
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ClientInformation
 import it.unimi.dsi.fastutil.objects.ObjectList
 import kotlinx.coroutines.awaitAll
+import java.net.InetSocketAddress
 
 abstract class AbstractCloudServer(
     uid: Long,
     group: String,
     name: String,
+    playAddress: InetSocketAddress,
+    override val lobby: Boolean,
     users: UserListImpl = UserListImpl(),
     information: ClientInformation = ClientInformation.NOT_AVAILABLE
-) : CommonCloudServerImpl(uid, group, name, users, information), CloudServer {
+) : CommonCloudServerImpl(uid, group, name, users, playAddress, information), CloudServer {
     override val allowlist get() = information.allowlist
 
     override suspend fun pullPlayers(players: Collection<CloudPlayer>): ObjectList<Pair<CloudPlayer, ConnectionResultEnum>> {

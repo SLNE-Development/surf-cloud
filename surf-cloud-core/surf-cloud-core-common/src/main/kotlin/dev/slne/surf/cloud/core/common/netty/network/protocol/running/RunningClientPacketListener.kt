@@ -3,11 +3,12 @@ package dev.slne.surf.cloud.core.common.netty.network.protocol.running
 import dev.slne.surf.cloud.api.common.netty.network.ConnectionProtocol
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
 import dev.slne.surf.cloud.core.common.netty.network.protocol.common.ClientCommonPacketListener
+import dev.slne.surf.cloud.core.common.netty.network.protocol.common.ClientboundSetVelocitySecretPacket
 
 interface RunningClientPacketListener : ClientCommonPacketListener {
     override val protocol get() = ConnectionProtocol.RUNNING
 
-    suspend fun handlePlayerConnectToServer(packet: PlayerConnectToServerPacket)
+    suspend fun handlePlayerConnectedToServer(packet: PlayerConnectedToServerPacket)
 
     suspend fun handlePlayerDisconnectFromServer(packet: PlayerDisconnectFromServerPacket)
 
@@ -73,8 +74,6 @@ interface RunningClientPacketListener : ClientCommonPacketListener {
 
     fun handleTriggerShutdown(packet: ClientboundTriggerShutdownPacket)
 
-    suspend fun handleBatchUpdateServer(packet: ClientboundBatchUpdateServer)
-
     fun handleUpdateAFKState(packet: UpdateAFKStatePacket)
 
     suspend fun handleRunPlayerPreJoinTasks(packet: ClientboundRunPrePlayerJoinTasksPacket)
@@ -84,6 +83,12 @@ interface RunningClientPacketListener : ClientCommonPacketListener {
     suspend fun handleTriggerPunishmentCreatedEvent(packet: ClientboundTriggerPunishmentCreatedEventPacket)
 
     suspend fun handleRequestPlayerPermission(packet: RequestPlayerPermissionPacket)
+
+    fun handleSyncValueChange(packet: SyncValueChangePacket)
+
+    fun handleSyncSetDelta(packet: SyncSetDeltaPacket)
+
+    fun handleSetVelocitySecret(packet: ClientboundSetVelocitySecretPacket)
 
     fun handlePacket(packet: NettyPacket)
 }

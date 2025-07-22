@@ -8,8 +8,10 @@ import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
 import dev.slne.surf.cloud.api.common.netty.packet.findPacketCodec
 import dev.slne.surf.cloud.api.common.netty.packet.getPacketMetaOrNull
 import dev.slne.surf.cloud.api.common.netty.protocol.buffer.SurfByteBuf
+import dev.slne.surf.cloud.core.common.netty.network.ProtocolInfo
 import dev.slne.surf.cloud.core.common.netty.network.protocol.ProtocolInfoBuilder
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.RunningProtocols
+import dev.slne.surf.cloud.core.common.netty.network.protocol.synchronizing.SynchronizingProtocols
 import dev.slne.surf.surfapi.core.api.util.logger
 import org.springframework.boot.autoconfigure.AutoConfigurationPackages
 import org.springframework.context.ApplicationContextInitializer
@@ -61,13 +63,41 @@ class NettyPacketProcessor : ApplicationContextInitializer<ConfigurableApplicati
                 continue
             }
 
-            if (!packetMeta.protocols.contains(ConnectionProtocol.RUNNING)) continue
+            val protocols = packetMeta.protocols
+            if (!protocols.contains(ConnectionProtocol.RUNNING) && !protocols.contains(ConnectionProtocol.SYNCHRONIZING)) continue
             val codec = packet.findPacketCodec<SurfByteBuf, NettyPacket>()
 
             if (codec == null) {
                 log.atWarning()
                     .log("Packet $packet does not have a findable codec")
                 continue
+            }
+
+
+            for (protocol in protocols) {
+                when (protocol) {
+                    ConnectionProtocol.RUNNING -> {
+                        registerPacket(
+                            packetMeta.flow,
+                            RunningProtocols.CLIENTBOUND_TEMPLATE,
+                            RunningProtocols.SERVERBOUND_TEMPLATE,
+                            packet,
+                            codec
+                        )
+                    }
+
+                    ConnectionProtocol.SYNCHRONIZING -> {
+                        registerPacket(
+                            packetMeta.flow,
+                            SynchronizingProtocols.CLIENTBOUND_TEMPLATE,
+                            SynchronizingProtocols.SERVERBOUND_TEMPLATE,
+                            packet,
+                            codec
+                        )
+                    }
+
+                    else -> {}
+                }
             }
 
             when (packetMeta.flow) {
@@ -94,6 +124,37 @@ class NettyPacketProcessor : ApplicationContextInitializer<ConfigurableApplicati
             }
 
             logRegistration(packet, packetMeta)
+        }
+    }
+
+    private fun registerPacket(
+        flow: PacketFlow,
+        clientboundTemplate: ProtocolInfo.Unbound.Mutable<*, SurfByteBuf>,
+        serverboundTemplate: ProtocolInfo.Unbound.Mutable<*, SurfByteBuf>,
+        packet: KClass<out NettyPacket>,
+        codec: StreamCodec<in SurfByteBuf, out NettyPacket>,
+    ) {
+        when (flow) {
+            PacketFlow.CLIENTBOUND -> clientboundTemplate.addPacket(
+                packet.java as Class<NettyPacket>,
+                codec
+            )
+
+            PacketFlow.SERVERBOUND -> serverboundTemplate.addPacket(
+                packet.java as Class<NettyPacket>,
+                codec
+            )
+
+            PacketFlow.BIDIRECTIONAL -> {
+                clientboundTemplate.addPacket(
+                    packet.java as Class<NettyPacket>,
+                    codec
+                )
+                serverboundTemplate.addPacket(
+                    packet.java as Class<NettyPacket>,
+                    codec
+                )
+            }
         }
     }
 

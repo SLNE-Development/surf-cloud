@@ -52,6 +52,10 @@ abstract class CommonCloudPlayerImpl(uuid: UUID, override val name: String) :
         return true
     }
 
+    override suspend fun lastServer(): CloudServer {
+        return currentServer()
+    }
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is CommonCloudPlayerImpl) return false

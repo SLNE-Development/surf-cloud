@@ -1,7 +1,7 @@
 package dev.slne.surf.cloud.core.common.data
 
-import net.querz.nbt.tag.Tag
-import kotlin.reflect.KClass
+import net.kyori.adventure.nbt.BinaryTag
+import net.kyori.adventure.nbt.BinaryTagType
 
 interface PersistentData<T> {
     fun value(): T?
@@ -16,17 +16,17 @@ interface PersistentData<T> {
 
     companion object {
         @JvmStatic
-        fun <T : Tag<D>, D> data(
+        fun <T : BinaryTag, D> data(
             key: String,
-            type: Class<T>,
+            type: BinaryTagType<T>,
             toValue: (T) -> D,
             toTag: (D) -> T
         ): PersistentData<D> = data(key, type, toValue, toTag, null)
 
         @JvmStatic
-        fun <T : Tag<D>, D> data(
+        fun <T : BinaryTag, D> data(
             key: String,
-            type: Class<T>,
+            type: BinaryTagType<T>,
             toValue: (T) -> D,
             toTag: (D) -> T,
             defaultValue: D?
@@ -59,18 +59,10 @@ interface NonNullPersistentData<T> {
 }
 
 
-fun <T : Tag<D>, D> persistentData(
+fun <T : BinaryTag, D> persistentData(
     key: String,
-    type: KClass<T>,
+    type: BinaryTagType<T>,
     toValue: T.() -> D,
     toTag: (D) -> T,
     defaultValue: D? = null
-): PersistentData<D> = PersistentDataImpl.data(key, type.java, toValue, toTag, defaultValue)
-
-
-inline fun <reified T : Tag<D>, D> persistentData(
-    key: String,
-    noinline toTag: (D) -> T,
-    noinline toValue: T.() -> D,
-    defaultValue: D? = null
-) = persistentData(key, T::class, toValue, toTag, defaultValue)
+): PersistentData<D> = PersistentDataImpl.data(key, type, toValue, toTag, defaultValue)

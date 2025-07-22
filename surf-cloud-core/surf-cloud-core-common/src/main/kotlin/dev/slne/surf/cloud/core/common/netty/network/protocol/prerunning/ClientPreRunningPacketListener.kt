@@ -8,5 +8,5 @@ interface ClientPreRunningPacketListener : ClientCommonPacketListener {
 
     suspend fun handlePreRunningFinished(packet: ClientboundPreRunningFinishedPacket)
 
-    suspend fun handleReadyToRun(packet: ClientboundReadyToRunPacket)
+    suspend fun handleProceedToSynchronizing(packet: ClientboundProceedToSynchronizingPacket)
 }

@@ -13,8 +13,6 @@ import dev.slne.surf.cloud.core.common.coreCloudInstance
 import dev.slne.surf.cloud.core.common.handleEventuallyFatalError
 import kotlinx.coroutines.runBlocking
 import java.nio.file.Path
-import kotlin.Nothing
-import kotlin.system.exitProcess
 
 //@Plugin(
 //    id = "surf-cloud-velocity",

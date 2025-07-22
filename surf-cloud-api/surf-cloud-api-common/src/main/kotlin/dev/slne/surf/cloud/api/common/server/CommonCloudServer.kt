@@ -7,6 +7,7 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectMap
 import net.kyori.adventure.audience.ForwardingAudience
 import net.kyori.adventure.text.Component
 import org.jetbrains.annotations.ApiStatus
+import java.net.InetSocketAddress
 
 /**
  * Represents the result of a batch transfer operation.
@@ -72,6 +73,8 @@ interface CommonCloudServer : ForwardingAudience {
      * The list of players currently on the server.
      */
     val users: UserList
+
+    val playAddress: InetSocketAddress
 
     val displayName: String
         get() = "$group/$uid $name"

@@ -15,5 +15,7 @@ interface CloudLifecycleAware {
         const val KTOR_SERVER_PRIORITY = 750
         const val PLUGIN_MANAGER_PRIORITY = 700
         const val NETTY_MANAGER_PRIORITY = 500
+        const val BEFORE_NETTY_MANAGER = NETTY_MANAGER_PRIORITY - 50
+        const val BEFORE_START_TASK_PRIORITY = 400
     }
 }

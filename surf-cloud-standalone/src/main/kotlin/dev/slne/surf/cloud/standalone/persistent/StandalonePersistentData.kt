@@ -1,9 +1,16 @@
 package dev.slne.surf.cloud.standalone.persistent
 
 import dev.slne.surf.cloud.core.common.data.persistentData
-import net.querz.nbt.tag.LongTag
+import net.kyori.adventure.nbt.BinaryTagTypes
+import net.kyori.adventure.nbt.LongBinaryTag
 
 object StandalonePersistentData {
     val SERVER_ID_COUNTER =
-        persistentData("server_id_counter", { LongTag(it) }, { asLong() }, 1L).nonNull()
+        persistentData(
+            "server_id_counter",
+            BinaryTagTypes.LONG,
+            { value() },
+            { LongBinaryTag.longBinaryTag(it) },
+            1L
+        ).nonNull()
 }

@@ -3,11 +3,11 @@ package dev.slne.surf.cloud.core.common.player.punishment.type.mute
 import dev.slne.surf.cloud.api.common.event.CloudEventHandler
 import dev.slne.surf.cloud.api.common.event.offlineplayer.punishment.CloudPlayerPunishEvent
 import dev.slne.surf.cloud.api.common.event.offlineplayer.punishment.CloudPlayerPunishmentUpdatedEvent
+import dev.slne.surf.cloud.api.common.player.OfflineCloudPlayer
 import dev.slne.surf.cloud.api.common.player.punishment.type.mute.PunishmentMute
+import dev.slne.surf.cloud.api.common.player.task.PrePlayerJoinTask
 import dev.slne.surf.cloud.core.common.player.CommonOfflineCloudPlayerImpl
 import dev.slne.surf.cloud.core.common.player.punishment.type.PunishmentMuteImpl
-import dev.slne.surf.cloud.core.common.player.task.PrePlayerJoinTask
-import org.springframework.context.event.EventListener
 import org.springframework.core.annotation.Order
 import org.springframework.stereotype.Component
 
@@ -29,7 +29,8 @@ class MutePunishmentListener : PrePlayerJoinTask {
         mute.punishedPlayer().punishmentManager.updateCachedMute(mute)
     }
 
-    override suspend fun preJoin(player: CommonOfflineCloudPlayerImpl): PrePlayerJoinTask.Result {
+    override suspend fun preJoin(player: OfflineCloudPlayer): PrePlayerJoinTask.Result {
+        require(player is CommonOfflineCloudPlayerImpl) { "Player must be an instance of CommonOfflineCloudPlayerImpl" }
         player.punishmentManager.cacheMutes()
         return PrePlayerJoinTask.Result.ALLOWED
     }

@@ -4,18 +4,17 @@ import com.google.common.flogger.StackSize
 import dev.slne.surf.cloud.api.common.event.CloudEventHandler
 import dev.slne.surf.cloud.api.common.event.offlineplayer.punishment.CloudPlayerPunishEvent
 import dev.slne.surf.cloud.api.common.event.offlineplayer.punishment.CloudPlayerUnpunishEvent
+import dev.slne.surf.cloud.api.common.player.OfflineCloudPlayer
 import dev.slne.surf.cloud.api.common.player.punishment.type.ban.PunishmentBan
+import dev.slne.surf.cloud.api.common.player.task.PrePlayerJoinTask
 import dev.slne.surf.cloud.api.common.util.mapAsync
 import dev.slne.surf.cloud.core.common.coroutines.PunishmentHandlerScope
 import dev.slne.surf.cloud.core.common.messages.MessageManager
-import dev.slne.surf.cloud.core.common.player.CommonOfflineCloudPlayerImpl
 import dev.slne.surf.cloud.core.common.player.PunishmentManager
-import dev.slne.surf.cloud.core.common.player.task.PrePlayerJoinTask
 import dev.slne.surf.cloud.standalone.player.StandaloneCloudPlayerImpl
 import dev.slne.surf.surfapi.core.api.util.logger
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.launch
-import org.springframework.context.event.EventListener
 import org.springframework.core.annotation.Order
 import org.springframework.stereotype.Component
 
@@ -50,7 +49,7 @@ class DefaultBanPunishmentHandler(private val punishmentManager: PunishmentManag
         }
     }
 
-    override suspend fun preJoin(player: CommonOfflineCloudPlayerImpl): PrePlayerJoinTask.Result {
+    override suspend fun preJoin(player: OfflineCloudPlayer): PrePlayerJoinTask.Result {
         val cache = punishmentManager.getCurrentLoginValidationPunishmentCache(player.uuid)
         if (cache == null) {
             log.atWarning()

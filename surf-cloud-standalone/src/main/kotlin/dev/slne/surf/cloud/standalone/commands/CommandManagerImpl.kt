@@ -9,6 +9,7 @@ import dev.slne.surf.cloud.api.server.command.CommandResultCallback
 import dev.slne.surf.cloud.api.server.command.CommandSource
 import dev.slne.surf.cloud.standalone.commands.execution.ExecutionContext
 import dev.slne.surf.cloud.standalone.commands.impl.ShutdownCommand
+import dev.slne.surf.cloud.standalone.commands.impl.SparkCommand
 import dev.slne.surf.cloud.standalone.commands.impl.TestCommand
 import dev.slne.surf.surfapi.core.api.messages.Colors
 import dev.slne.surf.surfapi.core.api.messages.adventure.appendText
@@ -28,6 +29,7 @@ class CommandManagerImpl {
     init {
         ShutdownCommand.register(dispatcher)
         TestCommand.register(dispatcher)
+        SparkCommand.register(dispatcher)
     }
 
     fun createCommandSource(): CommandSource {
@@ -56,7 +58,6 @@ class CommandManagerImpl {
         val contextChain = finishParsing(parseresults, input, source, label) ?: return
 
         try {
-            println("Executing command in context")
             executeCommandInContext {
                 ExecutionContext.queueInitialCommandExecution(
                     it,

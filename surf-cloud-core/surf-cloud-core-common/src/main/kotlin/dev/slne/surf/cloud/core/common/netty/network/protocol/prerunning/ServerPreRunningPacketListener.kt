@@ -8,7 +8,7 @@ interface ServerPreRunningPacketListener : ServerCommonPacketListener {
 
     fun handleRequestContinuation(packet: ServerboundRequestContinuation)
 
-    suspend fun handleReadyToRun(packet: ServerboundReadyToRunPacket)
+    suspend fun handleReadyToRun(packet: ServerboundProceedToSynchronizingAcknowledgedPacket)
 
     suspend fun handlePreRunningAcknowledged(packet: ServerboundPreRunningAcknowledgedPacket)
 }

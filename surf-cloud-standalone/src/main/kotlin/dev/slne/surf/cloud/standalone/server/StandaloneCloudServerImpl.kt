@@ -18,6 +18,7 @@ import dev.slne.surf.cloud.standalone.server.queue.repo.QueueRepository
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import java.net.InetSocketAddress
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
@@ -25,8 +26,10 @@ class StandaloneCloudServerImpl(
     uid: Long,
     group: String,
     name: String,
+    playAddress: InetSocketAddress,
+    lobby: Boolean,
     override val connection: ConnectionImpl,
-) : AbstractCloudServer(uid, group, name), ServerCloudServer,
+) : AbstractCloudServer(uid, group, name, playAddress, lobby), ServerCloudServer,
     CommonStandaloneServer by CommonStandaloneServerImpl() {
 
     init {

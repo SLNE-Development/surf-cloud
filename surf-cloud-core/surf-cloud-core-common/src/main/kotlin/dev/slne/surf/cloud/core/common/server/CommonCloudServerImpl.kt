@@ -15,12 +15,14 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import net.kyori.adventure.sound.Sound.Emitter
 import net.kyori.adventure.text.Component
+import java.net.InetSocketAddress
 
 abstract class CommonCloudServerImpl(
     override val uid: Long,
     override val group: String,
     override val name: String,
     override val users: UserListImpl,
+    override val playAddress: InetSocketAddress,
 
     @Volatile
     var information: ClientInformation

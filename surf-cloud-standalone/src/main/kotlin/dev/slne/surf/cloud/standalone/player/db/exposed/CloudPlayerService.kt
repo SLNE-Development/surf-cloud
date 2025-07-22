@@ -3,6 +3,7 @@ package dev.slne.surf.cloud.standalone.player.db.exposed
 import dev.slne.surf.cloud.api.common.player.name.NameHistoryFactory
 import dev.slne.surf.cloud.api.common.util.mutableObjectListOf
 import dev.slne.surf.cloud.api.server.exposed.service.AbstractExposedDAOService
+import dev.slne.surf.cloud.api.server.plugin.CoroutineTransactional
 import dev.slne.surf.cloud.core.common.player.playtime.PlaytimeEntry
 import dev.slne.surf.cloud.standalone.player.StandaloneCloudPlayerImpl
 import dev.slne.surf.cloud.standalone.player.name.create
@@ -12,6 +13,7 @@ import java.time.ZonedDateTime
 import java.util.*
 
 @Service
+@CoroutineTransactional
 class CloudPlayerService : AbstractExposedDAOService<UUID, CloudPlayerEntity>({
     maximumSize(1000)
 }) {
@@ -47,8 +49,7 @@ class CloudPlayerService : AbstractExposedDAOService<UUID, CloudPlayerEntity>({
         update(player.uuid, createIfMissing = true) {
             lastSeen = ZonedDateTime.now()
             lastIpAddress = player.ip
-            lastServer =
-                player.server?.name ?: error("Player ${player.uuid} is not connected to a server")
+            player.server?.let { lastServer = it.name }
 
             val latestName = nameHistories.minByOrNull { it.createdAt }
             val currentName = player.name()
@@ -75,13 +76,11 @@ class CloudPlayerService : AbstractExposedDAOService<UUID, CloudPlayerEntity>({
     }
 
     suspend fun updatePlaytimeInSession(uuid: UUID, playtimeId: Long, playtimeSeconds: Long) =
-        withTransaction {
-            CloudPlayerPlaytimesEntity.findByIdAndUpdate(playtimeId) {
-                it.durationSeconds = playtimeSeconds
-            }
+        CloudPlayerPlaytimesEntity.findByIdAndUpdate(playtimeId) {
+            it.durationSeconds = playtimeSeconds
         }
 
-    suspend fun loadPlaytimeEntries(uuid: UUID) = withTransaction {
+    suspend fun loadPlaytimeEntries(uuid: UUID) =
         find(uuid)?.playtimes?.mapTo(mutableObjectListOf()) {
             PlaytimeEntry(
                 id = it.id.value,
@@ -91,5 +90,4 @@ class CloudPlayerService : AbstractExposedDAOService<UUID, CloudPlayerEntity>({
                 createdAt = it.createdAt,
             )
         } ?: mutableObjectListOf()
-    }
 }

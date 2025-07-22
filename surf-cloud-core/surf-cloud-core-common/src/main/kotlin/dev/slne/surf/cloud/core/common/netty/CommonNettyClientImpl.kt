@@ -8,6 +8,7 @@ import dev.slne.surf.cloud.api.common.util.mutableObject2ObjectMapOf
 import dev.slne.surf.cloud.api.common.util.synchronize
 import dev.slne.surf.cloud.core.common.netty.network.ConnectionImpl
 import kotlinx.coroutines.CompletableDeferred
+import java.net.InetSocketAddress
 import kotlin.time.Duration
 
 abstract class CommonNettyClientImpl(
@@ -41,6 +42,7 @@ abstract class CommonNettyClientImpl(
 
     override val connection get() = _connection ?: error("connection not yet set")
 
+    abstract val playAddress: InetSocketAddress
     val displayName get() = "${serverCategory}/${serverId} $serverName (${_connection?.getLoggableAddress()})"
 
     override fun fireAndForget(packet: NettyPacket) {
@@ -77,7 +79,7 @@ abstract class CommonNettyClientImpl(
 
     abstract fun broadcast(packets: List<NettyPacket>)
 
-    protected fun initConnection(connection: ConnectionImpl) {
+    fun initConnection(connection: ConnectionImpl) {
         check(_connection == null) { "Connection already set" }
         _connection = connection
     }

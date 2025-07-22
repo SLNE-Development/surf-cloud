@@ -13,6 +13,8 @@ interface Connection {
     val averageReceivedPackets: Float
     val averageSentPackets: Float
 
+    val latency: Int
+
     val hostname: String
     val virtualHost: InetSocketAddress
 

@@ -5,10 +5,17 @@ import com.velocitypowered.api.proxy.server.ServerInfo
 import dev.slne.surf.cloud.api.common.player.teleport.TeleportCause
 import dev.slne.surf.cloud.api.common.player.teleport.TeleportFlag
 import dev.slne.surf.cloud.api.common.player.teleport.TeleportLocation
+import dev.slne.surf.cloud.api.common.util.observer.observingFlow
 import dev.slne.surf.cloud.core.client.netty.network.PlatformSpecificPacketListenerExtension
+import dev.slne.surf.cloud.core.client.server.ClientCloudServerImpl
+import dev.slne.surf.cloud.core.common.coroutines.CommonObservableScope
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.RegistrationInfo
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ServerboundTransferPlayerPacketResponse.Status
 import dev.slne.surf.cloud.velocity.proxy
+import dev.slne.surf.cloud.velocity.reflection.VelocityConfigurationProxy
+import dev.slne.surf.surfapi.core.api.util.logger
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.future.await
 import net.kyori.adventure.text.Component
 import java.net.InetSocketAddress
@@ -18,6 +25,11 @@ import org.springframework.stereotype.Component as SpringComponent
 
 @SpringComponent
 class VelocitySpecificPacketListenerExtension : PlatformSpecificPacketListenerExtension {
+    private val log = logger()
+
+    override val playAddress: InetSocketAddress
+        get() = proxy.boundAddress
+
     override fun isServerManagedByThisProxy(address: InetSocketAddress) =
         proxy.allServers.any { it.serverInfo.address == address } // TODO: Check if this is correct
 
@@ -58,9 +70,23 @@ class VelocitySpecificPacketListenerExtension : PlatformSpecificPacketListenerEx
         error("Teleporting players is not supported on Velocity")
     }
 
-    override fun registerCloudServersToProxy(servers: Array<RegistrationInfo>) {
-        servers.map { (name, address) -> ServerInfo(name, address) }
+    override fun registerCloudServersToProxy(packets: Array<RegistrationInfo>) {
+        packets.map { (name, address) -> ServerInfo(name, address) }
             .forEach { proxy.registerServer(it) }
+    }
+
+    override fun registerCloudServerToProxy(client: ClientCloudServerImpl) {
+        val serverInfo = ServerInfo(client.name, client.playAddress)
+        log.atInfo()
+            .log("Registering server %s to proxy", serverInfo)
+        proxy.registerServer(serverInfo)
+    }
+
+    override fun unregisterCloudServerFromProxy(client: ClientCloudServerImpl) {
+        val info = ServerInfo(client.name, client.playAddress)
+        log.atInfo()
+            .log("Unregistering server %s from proxy", info)
+        proxy.unregisterServer(info)
     }
 
     override suspend fun teleportPlayerToPlayer(
@@ -80,5 +106,25 @@ class VelocitySpecificPacketListenerExtension : PlatformSpecificPacketListenerEx
 
     override fun shutdown() {
         proxy.shutdown()
+    }
+
+    override fun setVelocitySecret(secret: ByteArray) {
+        VelocitySecretManager.currentVelocitySecret = secret
+    }
+
+    object VelocitySecretManager {
+        @Volatile
+        var currentVelocitySecret =
+            VelocityConfigurationProxy.instance.getForwardingSecret(proxy.configuration)
+
+        init {
+            observingFlow({ VelocityConfigurationProxy.instance.getForwardingSecret(proxy.configuration) })
+                .onEach { remote ->
+                    if (!remote.contentEquals(currentVelocitySecret)) {
+                        VelocityConfigurationProxy.instance.setForwardingSecret(proxy.configuration, currentVelocitySecret)
+                    }
+                }
+                .launchIn(CommonObservableScope)
+        }
     }
 }

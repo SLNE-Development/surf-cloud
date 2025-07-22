@@ -11,7 +11,11 @@ import dev.slne.surf.cloud.api.common.netty.protocol.buffer.SurfByteBuf
 /**
  * This packet is sent by the client to the server to start the login process.
  */
-@SurfNettyPacket(DefaultIds.SERVERBOUND_LOGIN_START_PACKET, PacketFlow.SERVERBOUND, ConnectionProtocol.LOGIN) // aka HelloPacket
+@SurfNettyPacket(
+    DefaultIds.SERVERBOUND_LOGIN_START_PACKET,
+    PacketFlow.SERVERBOUND,
+    ConnectionProtocol.LOGIN
+) // aka HelloPacket
 class ServerboundLoginStartPacket : NettyPacket {
 
     companion object {
@@ -24,12 +28,20 @@ class ServerboundLoginStartPacket : NettyPacket {
     val serverCategory: String
     val serverName: String
     val proxy: Boolean
+    val lobby: Boolean
 
-    constructor(serverId: Long, serverCategory: String, serverName: String, proxy: Boolean) {
+    constructor(
+        serverId: Long,
+        serverCategory: String,
+        serverName: String,
+        proxy: Boolean,
+        lobby: Boolean,
+    ) {
         this.serverId = serverId
         this.serverCategory = serverCategory
         this.serverName = serverName
         this.proxy = proxy
+        this.lobby = lobby
     }
 
     private constructor(buffer: SurfByteBuf) {
@@ -37,6 +49,7 @@ class ServerboundLoginStartPacket : NettyPacket {
         serverCategory = buffer.readUtf()
         serverName = buffer.readUtf()
         proxy = buffer.readBoolean()
+        lobby = buffer.readBoolean()
     }
 
     private fun write(buf: SurfByteBuf) {
@@ -44,5 +57,6 @@ class ServerboundLoginStartPacket : NettyPacket {
         buf.writeUtf(serverCategory)
         buf.writeUtf(serverName)
         buf.writeBoolean(proxy)
+        buf.writeBoolean(lobby)
     }
 }

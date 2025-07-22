@@ -17,7 +17,7 @@ annotation class SurfNettyPacket(
     val id: String,
     val flow: PacketFlow,
     @property:InternalApi
-    vararg val protocols: ConnectionProtocol = [ConnectionProtocol.RUNNING]
+    vararg val protocols: ConnectionProtocol = [ConnectionProtocol.RUNNING, ConnectionProtocol.SYNCHRONIZING]
 )
 
 /**
@@ -43,6 +43,7 @@ object DefaultIds {
     // Login
     const val SERVERBOUND_LOGIN_START_PACKET = "cloud:serverbound:login_start"
     const val CLIENTBOUND_LOGIN_FINISHED_PACKET = "cloud:clientbound:login_finished"
+    const val  SERVERBOUND_WAIT_FOR_SERVER_TO_START_PACKET = "cloud:serverbound:wait_for_server_to_start"
     const val SERVERBOUND_LOGIN_ACKNOWLEDGED_PACKET = "cloud:serverbound:login_acknowledged"
     const val CLIENTBOUND_LOGIN_DISCONNECT_PACKET = "cloud:clientbound:login_disconnect"
     const val SERVERBOUND_KEY_PACKET =
@@ -125,6 +126,7 @@ object DefaultIds {
     const val CLIENTBOUND_CLEAR_RESOURCE_PACKS_PACKET = "cloud:clientbound:clear_resource_packs"
 
     const val PLAYER_CONNECT_TO_SERVER_PACKET = "cloud:player:connect_to_server"
+    const val PLAYER_CONNECTED_TO_SERVER_PACKET = "cloud:player:connected_to_server"
     const val PLAYER_DISCONNECT_FROM_SERVER_PACKET = "cloud:player:disconnect_from_server"
 
     const val SERVERBOUND_REQUEST_DISPLAY_NAME_PACKET = "cloud:serverbound:request_display_name"

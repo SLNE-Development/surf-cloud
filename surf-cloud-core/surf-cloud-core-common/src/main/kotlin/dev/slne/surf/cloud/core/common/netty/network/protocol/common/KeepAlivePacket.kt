@@ -10,7 +10,8 @@ import kotlinx.serialization.Serializable
     "cloud:bidirectional:keep_alive",
     PacketFlow.BIDIRECTIONAL,
     ConnectionProtocol.RUNNING,
-    ConnectionProtocol.PRE_RUNNING
+    ConnectionProtocol.PRE_RUNNING,
+    ConnectionProtocol.SYNCHRONIZING,
 )
 @Serializable
 class KeepAlivePacket(val keepAliveId: Long) : LongResponsePacket()

@@ -43,12 +43,6 @@ enum class TeleportCause {
     END_GATEWAY,
 
     /**
-     * Indicates the teleportation was caused by a player consuming chorus
-     * fruit
-     */
-    CHORUS_FRUIT,
-
-    /**
      * Indicates the teleportation was caused by a player exiting a vehicle
      */
     DISMOUNT,
@@ -62,5 +56,7 @@ enum class TeleportCause {
      * Indicates the teleportation was caused by an event not covered by
      * this enum
      */
-    UNKNOWN
+    UNKNOWN,
+
+    CONSUMABLE_EFFECT
 }

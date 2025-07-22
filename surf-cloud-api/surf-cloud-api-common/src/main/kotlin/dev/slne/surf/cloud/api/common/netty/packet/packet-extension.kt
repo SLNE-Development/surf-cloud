@@ -5,12 +5,10 @@ import dev.slne.surf.cloud.api.common.meta.SurfNettyPacket
 import dev.slne.surf.cloud.api.common.netty.network.codec.StreamCodec
 import dev.slne.surf.cloud.api.common.netty.network.codec.StreamDecoder
 import dev.slne.surf.cloud.api.common.netty.network.codec.StreamMemberEncoder
-import dev.slne.surf.cloud.api.common.netty.network.codec.kotlinx.SurfCloudBufSerializer
 import dev.slne.surf.cloud.api.common.netty.protocol.buffer.SurfByteBuf
 import dev.slne.surf.cloud.api.common.util.mutableObject2ObjectMapOf
 import io.netty.buffer.ByteBuf
 import kotlinx.serialization.InternalSerializationApi
-import kotlinx.serialization.KSerializer
 import kotlinx.serialization.serializer
 import kotlinx.serialization.serializerOrNull
 import kotlin.reflect.KClass
@@ -68,17 +66,8 @@ private val codecCache = mutableObject2ObjectMapOf<KClass<out NettyPacket>, Stre
 
 
 @OptIn(InternalSerializationApi::class)
-fun <P : NettyPacket> KClass<out P>.createCodec(): StreamCodec<SurfByteBuf, P> {
-    val serializer = serializer()
-    return object : StreamCodec<SurfByteBuf, P> {
-        override fun decode(buf: SurfByteBuf): P {
-            return SurfCloudBufSerializer.serializer.decodeFromBuf(buf, serializer)
-        }
-
-        override fun encode(buf: SurfByteBuf, value: P) {
-            SurfCloudBufSerializer.serializer.encodeToBuf(buf, serializer as KSerializer<P>, value)
-        }
-    }
+fun <P : Any> KClass<P>.createCodec(): StreamCodec<SurfByteBuf, P> {
+    return SurfByteBuf.streamCodecFromKotlin(serializer())
 }
 
 /**
@@ -96,15 +85,7 @@ fun <B : ByteBuf, V : NettyPacket> KClass<out V>.findPacketCodec(): StreamCodec<
 
     val serializer = serializerOrNull()
     if (serializer != null) {
-        return object : StreamCodec<B, V> {
-            override fun decode(buf: B): V {
-                return SurfCloudBufSerializer.serializer.decodeFromBuf(buf, serializer)
-            }
-
-            override fun encode(buf: B, value: V) {
-                SurfCloudBufSerializer.serializer.encodeToBuf(buf, serializer as KSerializer<V>, value)
-            }
-        }
+        return SurfByteBuf.streamCodecFromKotlin(serializer)
     }
 
     val properties =

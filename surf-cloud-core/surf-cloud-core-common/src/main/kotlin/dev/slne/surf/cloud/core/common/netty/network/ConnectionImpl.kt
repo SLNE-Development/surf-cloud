@@ -22,6 +22,7 @@ import dev.slne.surf.cloud.core.common.netty.network.protocol.initialize.*
 import dev.slne.surf.cloud.core.common.netty.network.protocol.login.*
 import dev.slne.surf.cloud.core.common.netty.network.protocol.prerunning.*
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.*
+import dev.slne.surf.cloud.core.common.netty.network.protocol.synchronizing.*
 import dev.slne.surf.surfapi.core.api.util.logger
 import io.netty.bootstrap.Bootstrap
 import io.netty.channel.*
@@ -31,11 +32,13 @@ import io.netty.channel.epoll.EpollSocketChannel
 import io.netty.channel.nio.NioIoHandler
 import io.netty.channel.socket.SocketChannel
 import io.netty.channel.socket.nio.NioSocketChannel
+import io.netty.handler.codec.DecoderException
 import io.netty.handler.codec.EncoderException
 import io.netty.handler.codec.compression.ZstdDecoder
 import io.netty.handler.codec.compression.ZstdEncoder
 import io.netty.handler.flow.FlowControlHandler
 import io.netty.handler.logging.LoggingHandler
+import io.netty.handler.ssl.NotSslRecordException
 import io.netty.handler.timeout.ReadTimeoutHandler
 import io.netty.handler.timeout.TimeoutException
 import io.netty.util.AttributeKey
@@ -94,6 +97,8 @@ class ConnectionImpl(
     override var averageSentPackets = 0f
         private set
 
+    override var latency: Int = 0
+
     private var handlingFault = false
 
     /**
@@ -137,10 +142,10 @@ class ConnectionImpl(
     }
 
     override fun exceptionCaught(ctx: ChannelHandlerContext, e: Throwable?) {
-//        if (e is NotSslRecordException) {
-//            ctx.close()
-//            return
-//        }
+        if (e is DecoderException && e.cause is NotSslRecordException) {
+            ctx.close()
+            return
+        }
 
         log.atInfo().withCause(e).log("Exception caught") // TODO: remove this debug line
         var throwable = e
@@ -270,7 +275,7 @@ class ConnectionImpl(
                     }
 
                     is ServerPreRunningPacketListener -> when (msg) {
-                        is ServerboundReadyToRunPacket -> listener.handleReadyToRun(msg)
+                        is ServerboundProceedToSynchronizingAcknowledgedPacket -> listener.handleReadyToRun(msg)
                         is ServerboundPreRunningAcknowledgedPacket -> listener.handlePreRunningAcknowledged(
                             msg
                         )
@@ -278,6 +283,15 @@ class ConnectionImpl(
                         is ServerboundRequestContinuation -> listener.handleRequestContinuation(msg)
 
                         else -> error("Unexpected packet $msg")
+                    }
+
+                    is ServerSynchronizingPacketListener -> when (msg) {
+                        is FinishSynchronizingPacket -> listener.handleFinishSynchronizing(msg)
+                        is ServerboundSynchronizeFinishAcknowledgedPacket -> listener.handleSynchronizeFinishAcknowledged(msg)
+                        is SyncValueChangePacket -> listener.handleSyncValueChange(msg)
+                        is SyncSetDeltaPacket -> listener.handleSyncSetDelta(msg)
+
+                        else -> listener.handlePacket(msg)
                     }
 
                     is RunningServerPacketListener -> when (msg) {
@@ -395,6 +409,8 @@ class ConnectionImpl(
                         is RequestPlayerPermissionPacket -> listener.handleRequestPlayerPermission(
                             msg
                         )
+                        is SyncValueChangePacket -> listener.handleSyncValueChange(msg)
+                        is SyncSetDeltaPacket -> listener.handleSyncSetDelta(msg)
 
                         else -> listener.handlePacket(msg) // handle other packets
                     }
@@ -434,13 +450,25 @@ class ConnectionImpl(
                             msg
                         )
 
-                        is ClientboundReadyToRunPacket -> listener.handleReadyToRun(msg)
+                        is ClientboundProceedToSynchronizingPacket -> listener.handleProceedToSynchronizing(msg)
 
                         else -> error("Unexpected packet $msg")
                     }
 
+                    is ClientSynchronizingPacketListener -> when (msg) {
+                        is ClientboundSynchronizeFinishPacket -> listener.handleSynchronizeFinish(msg)
+                        is SyncValueChangePacket -> listener.handleSyncValueChange(msg)
+                        is ClientboundBatchSyncValuePacket -> listener.handleBatchSyncValue(msg)
+                        is ClientboundBatchSyncSetPacket -> listener.handleBatchSyncSet(msg)
+                        is ClientboundBatchUpdateServer -> listener.handleBatchUpdateServer(msg)
+                        is SyncSetDeltaPacket -> listener.handleSyncSetDelta(msg)
+                        is ClientboundSetVelocitySecretPacket -> listener.handleSetVelocitySecret(msg)
+
+                        else -> listener.handlePacket(msg)
+                    }
+
                     is RunningClientPacketListener -> when (msg) {
-                        is PlayerConnectToServerPacket -> listener.handlePlayerConnectToServer(
+                        is PlayerConnectedToServerPacket -> listener.handlePlayerConnectedToServer(
                             msg
                         )
 
@@ -521,7 +549,6 @@ class ConnectionImpl(
                         )
 
                         is ClientboundTriggerShutdownPacket -> listener.handleTriggerShutdown(msg)
-                        is ClientboundBatchUpdateServer -> listener.handleBatchUpdateServer(msg)
                         is UpdateAFKStatePacket -> listener.handleUpdateAFKState(msg)
                         is ClientboundRunPrePlayerJoinTasksPacket -> listener.handleRunPlayerPreJoinTasks(
                             msg
@@ -538,6 +565,9 @@ class ConnectionImpl(
                         is RequestPlayerPermissionPacket -> listener.handleRequestPlayerPermission(
                             msg
                         )
+                        is SyncValueChangePacket -> listener.handleSyncValueChange(msg)
+                        is SyncSetDeltaPacket -> listener.handleSyncSetDelta(msg)
+                        is ClientboundSetVelocitySecretPacket -> listener.handleSetVelocitySecret(msg)
 
                         else -> listener.handlePacket(msg)
                     }
@@ -892,7 +922,7 @@ class ConnectionImpl(
         disconnect(DisconnectionDetails(reason))
     }
 
-    fun disconnect(reason: DisconnectionDetails) {
+    fun disconnect(reason: DisconnectionDetails): ChannelFuture? {
         preparing = false
         clearPacketQueue()
 
@@ -900,13 +930,16 @@ class ConnectionImpl(
 
         if (channel == null) {
             this.delayedDisconnect = reason
-            return
+            return null
         }
 
         if (connected) {
-            channel.close()
+            val future = channel.close()
             this.disconnectionDetails = reason
+            return future
         }
+
+        return null
     }
 
     fun clearPacketQueue() {
@@ -955,6 +988,24 @@ class ConnectionImpl(
     override fun getLoggableAddress() = getLoggableAddress(cloudConfig.logging.logIps)
     fun getLoggableAddress(logIps: Boolean) =
         if (_address == null) "local" else (if (logIps) _address.toString() else "IP hidden")
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is ConnectionImpl) return false
+
+        if (_channel != other._channel) return false
+        if (receiving != other.receiving) return false
+        if (_address != other._address) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = receiving.hashCode()
+        result = 31 * result + (_channel?.hashCode() ?: 0)
+        result = 31 * result + (_address?.hashCode() ?: 0)
+        return result
+    }
 
 
     private object Util {

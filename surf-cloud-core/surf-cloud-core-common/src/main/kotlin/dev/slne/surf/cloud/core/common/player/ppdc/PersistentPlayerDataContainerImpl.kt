@@ -3,17 +3,21 @@ package dev.slne.surf.cloud.core.common.player.ppdc
 import dev.slne.surf.cloud.api.common.netty.protocol.buffer.SurfByteBuf
 import dev.slne.surf.cloud.api.common.player.ppdc.PersistentPlayerDataContainer
 import dev.slne.surf.cloud.api.common.player.ppdc.PersistentPlayerDataType
-import dev.slne.surf.cloud.api.common.util.nbt.set
+import dev.slne.surf.surfapi.core.api.nbt.FastCompoundBinaryTag
+import dev.slne.surf.surfapi.core.api.nbt.fast
 import net.kyori.adventure.key.Key
-import net.querz.nbt.io.NBTInputStream
-import net.querz.nbt.tag.CompoundTag
-import net.querz.nbt.tag.Tag
-import java.io.ByteArrayInputStream
+import net.kyori.adventure.nbt.*
 
 class PersistentPlayerDataContainerImpl(
-    private val tag: CompoundTag = CompoundTag()
+
+    @Volatile
+    private var tag: FastCompoundBinaryTag = CompoundBinaryTag.empty().fast(synchronize = true)
 ) : PersistentPlayerDataContainerViewImpl(), PersistentPlayerDataContainer {
-    override fun getTag(key: String): Tag<*>? = tag[key]
+    override fun getTag(key: String) = tag.get(key)
+
+    private inline fun <reified T : BinaryTag> getTag(key: Key): T? {
+        return tag.get(key.asString()) as? T
+    }
 
     override fun <P : Any, C> set(
         key: Key,
@@ -29,103 +33,101 @@ class PersistentPlayerDataContainerImpl(
         )
     }
 
-    fun put(key: String, value: Tag<*>) {
-        tag[key] = value
+    fun put(key: String, value: BinaryTag) {
+        tag.put(key, value)
     }
 
     override fun setBoolean(key: Key, value: Boolean) {
-        tag[key.asString()] = value
+        tag.putBoolean(key.asString(), value)
     }
 
     override fun setByte(key: Key, value: Byte) {
-        tag[key.asString()] = value
+        tag.putByte(key.asString(), value)
     }
 
     override fun setShort(key: Key, value: Short) {
-        tag[key.asString()] = value
+        tag.putShort(key.asString(), value)
     }
 
     override fun setInt(key: Key, value: Int) {
-        tag[key.asString()] = value
+        tag.putInt(key.asString(), value)
     }
 
     override fun setLong(key: Key, value: Long) {
-        tag[key.asString()] = value
+        tag.putLong(key.asString(), value)
     }
 
     override fun setFloat(key: Key, value: Float) {
-        tag[key.asString()] = value
+        tag.putFloat(key.asString(), value)
     }
 
     override fun setDouble(key: Key, value: Double) {
-        tag[key.asString()] = value
+        tag.putDouble(key.asString(), value)
     }
 
     override fun setString(key: Key, value: String) {
-        tag[key.asString()] = value
+        tag.putString(key.asString(), value)
     }
 
     override fun setByteArray(key: Key, value: ByteArray) {
-        tag[key.asString()] = value
+        tag.putByteArray(key.asString(), value)
     }
 
     override fun setIntArray(key: Key, value: IntArray) {
-        tag[key.asString()] = value
+        tag.putIntArray(key.asString(), value)
     }
 
     override fun setLongArray(key: Key, value: LongArray) {
-        tag[key.asString()] = value
+        tag.putLongArray(key.asString(), value)
     }
 
     override fun getBoolean(key: Key): Boolean? {
-        return tag.getByteTag(key.asString())?.let { it.asByte() > 0 }
+        val tag = getTag<ByteBinaryTag>(key) ?: return null
+        return tag.value() != 0.toByte()
     }
 
     override fun getNumber(key: Key): Number? {
-        val stringKey = key.asString()
-        if (!tag.containsKey(stringKey)) return null
-
-        return tag.getNumber(stringKey)
+        return getTag<NumberBinaryTag>(key)?.numberValue()
     }
 
     override fun getByte(key: Key): Byte? {
-        return tag.getByteTag(key.asString())?.asByte()
+        return getTag<ByteBinaryTag>(key)?.value()
     }
 
     override fun getShort(key: Key): Short? {
-        return tag.getShortTag(key.asString())?.asShort()
+        return getTag<ShortBinaryTag>(key)?.value()
     }
 
     override fun getInt(key: Key): Int? {
-        return tag.getIntTag(key.asString())?.asInt()
+        return getTag<IntBinaryTag>(key)?.value()
     }
 
     override fun getLong(key: Key): Long? {
-        return tag.getLongTag(key.asString())?.asLong()
+        return getTag<LongBinaryTag>(key)?.value()
     }
 
     override fun getFloat(key: Key): Float? {
-        return tag.getFloatTag(key.asString())?.asFloat()
+        return getTag<FloatBinaryTag>(key)?.value()
     }
 
     override fun getDouble(key: Key): Double? {
-        return tag.getDoubleTag(key.asString())?.asDouble()
+        return getTag<DoubleBinaryTag>(key)?.value()
     }
 
     override fun getString(key: Key): String? {
-        return tag.getString(key.asString())
+        return getTag<StringBinaryTag>(key)?.value()
     }
 
     override fun getByteArray(key: Key): ByteArray? {
-        return tag.getByteArrayTag(key.asString())?.value
+        return getTag<ByteArrayBinaryTag>(key)?.value()
     }
 
     override fun getIntArray(key: Key): IntArray? {
-        return tag.getIntArrayTag(key.asString())?.value
+        return getTag<IntArrayBinaryTag>(key)?.value()
     }
 
     override fun getLongArray(key: Key): LongArray? {
-        return tag.getLongArrayTag(key.asString())?.value
+        return getTag<LongArrayBinaryTag>(key)?.value()
     }
 
     override fun remove(key: Key) {
@@ -135,25 +137,14 @@ class PersistentPlayerDataContainerImpl(
     override val empty: Boolean
         get() = tag.size() == 0
 
-    override fun toTagCompound(): CompoundTag = tag
+    override fun toTagCompound(): CompoundBinaryTag = tag.fast()
 
     override fun readFromBuf(buf: SurfByteBuf) {
-        tag.clear()
-        val size = buf.readVarInt()
-        val bytes = buf.readBytes(size).array()
-
-        ByteArrayInputStream(bytes).use {
-            NBTInputStream(it).use {
-                val tag = it.readRawTag(Int.MAX_VALUE)
-                check(tag is CompoundTag) { "Expected a CompoundTag, got $tag" }
-                tag.forEach { (key, value) -> tag[key] = value }
-            }
-        }
+        tag = buf.readCompoundTag().fast(synchronize = true)
     }
 
-    fun fromTagCompound(tag: CompoundTag) {
-        this.tag.clear()
-        tag.forEach { (key, value) -> this.tag[key] = value }
+    fun fromTagCompound(tag: CompoundBinaryTag) {
+        this.tag = tag.fast(synchronize = true)
     }
 
     override fun equals(other: Any?): Boolean {

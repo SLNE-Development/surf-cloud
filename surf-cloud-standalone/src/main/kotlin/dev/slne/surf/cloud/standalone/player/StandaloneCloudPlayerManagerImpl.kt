@@ -3,6 +3,7 @@ package dev.slne.surf.cloud.standalone.player
 import com.google.auto.service.AutoService
 import dev.slne.surf.cloud.api.common.player.CloudPlayerManager
 import dev.slne.surf.cloud.api.common.player.OfflineCloudPlayer
+import dev.slne.surf.cloud.api.common.player.task.PrePlayerJoinTask
 import dev.slne.surf.cloud.api.server.export.PlayerDataExport
 import dev.slne.surf.cloud.api.server.export.PlayerDataExportEmpty
 import dev.slne.surf.cloud.core.common.coroutines.PlayerDataSaveScope
@@ -10,7 +11,6 @@ import dev.slne.surf.cloud.core.common.messages.MessageManager
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ClientboundRunPrePlayerJoinTasksPacket
 import dev.slne.surf.cloud.core.common.player.CloudPlayerManagerImpl
 import dev.slne.surf.cloud.core.common.player.playerManagerImpl
-import dev.slne.surf.cloud.core.common.player.task.PrePlayerJoinTask
 import dev.slne.surf.cloud.core.common.player.task.PrePlayerJoinTaskManager
 import dev.slne.surf.cloud.core.common.util.bean
 import dev.slne.surf.cloud.core.common.util.checkInstantiationByServiceLoader
@@ -48,7 +48,7 @@ class StandaloneCloudPlayerManagerImpl : CloudPlayerManagerImpl<StandaloneCloudP
     }
 
     override suspend fun preJoin(player: StandaloneCloudPlayerImpl): PrePlayerJoinTask.Result {
-        val serverResult = bean<PrePlayerJoinTaskManager>().runTasks(player)
+        val serverResult = PrePlayerJoinTaskManager.runTasks(player)
         if (serverResult !is PrePlayerJoinTask.Result.ALLOWED) return serverResult
         val connections = serverManagerImpl.retrieveAllServers().map { it.connection }
 

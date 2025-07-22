@@ -29,7 +29,7 @@ class ProtocolInfoBuilder<T : PacketListener, B : ByteBuf>(
 
     fun <P : NettyPacket> addPacket(
         id: Class<P>,
-        codec: StreamCodec<in B, P>
+        codec: StreamCodec<in B, out P>
     ) = apply { codecs.add(CodecEntry(id, codec)) }
 
     inline fun <reified P : NettyPacket> addPacket(codec: StreamCodec<in B, P>) =
@@ -89,7 +89,7 @@ class ProtocolInfoBuilder<T : PacketListener, B : ByteBuf>(
 
         override fun <P : NettyPacket> addPacket(
             id: Class<P>,
-            codec: StreamCodec<in B, P>
+            codec: StreamCodec<in B, out P>
         ) = apply {
             check(!frozen) { "Cannot add packets after freezing" }
             this@ProtocolInfoBuilder.addPacket(id, codec)

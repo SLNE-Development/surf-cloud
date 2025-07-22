@@ -36,6 +36,9 @@ data class StandaloneConfig(
     @Comment("Configuration for the queue system.")
     @Setting("queue")
     val queue: QueueConfig = QueueConfig(),
+
+    @Setting("proxy")
+    val proxy: ProxyConfig = ProxyConfig(),
 )
 
 @ConfigSerializable
@@ -82,3 +85,20 @@ data class QueueConfig(
 
     val suspendedQueueCharacter: Char = '⏸',
 )
+
+@ConfigSerializable
+data class ProxyConfig(
+    @Setting("secret")
+    val secretConfig: SecretConfig = SecretConfig())
+{
+    @ConfigSerializable
+    data class SecretConfig(
+        val type: SecretType = SecretType.DYNAMIC,
+        val manualSecret: String = "",
+    ) {
+        enum class SecretType {
+            MANUAL,
+            DYNAMIC
+        }
+    }
+}

@@ -2,7 +2,9 @@ package dev.slne.surf.cloud.standalone.server.queue
 
 import dev.slne.surf.cloud.api.common.player.ConnectionResultEnum
 import dev.slne.surf.cloud.api.common.player.toCloudPlayer
+import dev.slne.surf.cloud.api.common.util.getValue
 import dev.slne.surf.cloud.api.common.util.queue.FastFairPriorityQueue
+import dev.slne.surf.cloud.api.common.util.setValue
 import dev.slne.surf.cloud.api.server.queue.GroupQueue
 import dev.slne.surf.cloud.core.common.coroutines.QueueConnectionScope
 import dev.slne.surf.cloud.standalone.config.standaloneConfig
@@ -18,6 +20,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import net.kyori.adventure.text.Component
 import java.util.*
+import java.util.concurrent.atomic.AtomicBoolean
 
 class GroupQueueImpl(
     override val group: String,
@@ -31,8 +34,7 @@ class GroupQueueImpl(
 
     val unsafeSize get() = entries.size
 
-    @Volatile
-    override var suspended = false
+    override var suspended by AtomicBoolean()
 
     override val online: Boolean
         get() = serverManagerImpl.existsServerGroup(group)

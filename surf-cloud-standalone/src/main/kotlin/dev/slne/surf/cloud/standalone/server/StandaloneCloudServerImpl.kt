@@ -1,8 +1,8 @@
 package dev.slne.surf.cloud.standalone.server
 
+import com.github.benmanes.caffeine.cache.Caffeine
 import dev.slne.surf.cloud.api.common.player.CloudPlayer
 import dev.slne.surf.cloud.api.common.player.ConnectionResultEnum
-import dev.slne.surf.cloud.api.common.util.mutableObjectSetOf
 import dev.slne.surf.cloud.api.server.server.ServerCloudServer
 import dev.slne.surf.cloud.api.server.server.ServerCommonCloudServer
 import dev.slne.surf.cloud.core.common.coroutines.CloudServerCleanupScope
@@ -37,14 +37,17 @@ class StandaloneCloudServerImpl(
         startCleanupTask()
     }
 
-    val connectingPlayers = mutableObjectSetOf<StandaloneCloudPlayerImpl>()
+    val connectingPlayers = Caffeine.newBuilder()
+        .weakKeys()
+        .build<StandaloneCloudPlayerImpl, Boolean>()
+
 
     override val expectedPlayers: Int
-        get() = currentPlayerCount + connectingPlayers.size
+        get() = (currentPlayerCount + connectingPlayers.estimatedSize()).toInt()
 
     private fun startCleanupTask() = CloudServerCleanupScope.launch {
         while (isActive) {
-            connectingPlayers.removeIf { !it.connecting || it.connectingToServer != this }
+            connectingPlayers.asMap().keys.removeIf { !it.connecting || it.connectingToServer != this }
             delay(5.seconds)
         }
     }
@@ -54,12 +57,12 @@ class StandaloneCloudServerImpl(
         if (player.connecting) return ConnectionResultEnum.CONNECTION_IN_PROGRESS
         player.connecting = true
         player.connectingToServer = this
-        connectingPlayers.add(player)
+        connectingPlayers.put(player, true)
 
         val proxy = player.proxyServer
         if (proxy != null) {
             return pullPlayerThroughProxy(player, proxy).also {
-                connectingPlayers.remove(player)
+                connectingPlayers.invalidate(player)
                 player.connecting = false
                 player.connectingToServer = null
 

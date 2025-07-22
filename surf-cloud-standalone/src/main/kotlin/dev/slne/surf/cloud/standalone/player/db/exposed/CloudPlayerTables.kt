@@ -1,13 +1,13 @@
 package dev.slne.surf.cloud.standalone.player.db.exposed
 
-import dev.slne.surf.cloud.api.server.exposed.columns.charUuid
 import dev.slne.surf.cloud.api.server.exposed.columns.inet
+import dev.slne.surf.cloud.api.server.exposed.columns.nativeUuid
 import dev.slne.surf.cloud.api.server.exposed.columns.zonedDateTime
 import dev.slne.surf.cloud.api.server.exposed.table.AuditableLongIdTable
 import java.net.Inet4Address
 
 object CloudPlayerTable : AuditableLongIdTable("cloud_player") {
-    val uuid = charUuid("uuid").uniqueIndex()
+    val uuid = nativeUuid("uuid").uniqueIndex()
     val lastServer = char("last_server", 255).nullable()
     val lastSeen = zonedDateTime("last_seen").nullable()
     val lastIpAddress = inet("last_ip_address")

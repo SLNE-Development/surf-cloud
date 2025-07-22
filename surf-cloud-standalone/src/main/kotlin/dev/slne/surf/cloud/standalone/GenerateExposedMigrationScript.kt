@@ -2,15 +2,7 @@ package dev.slne.surf.cloud.standalone
 
 import MigrationUtils
 import dev.slne.surf.cloud.api.common.config.properties.requiredSystemProperty
-import dev.slne.surf.cloud.standalone.player.db.exposed.punishment.table.BanPunishmentIpAddressTable
-import dev.slne.surf.cloud.standalone.player.db.exposed.punishment.table.BanPunishmentNoteTable
-import dev.slne.surf.cloud.standalone.player.db.exposed.punishment.table.BanPunishmentTable
-import dev.slne.surf.cloud.standalone.player.db.exposed.punishment.table.KickPunishmentNoteTable
-import dev.slne.surf.cloud.standalone.player.db.exposed.punishment.table.KickPunishmentTable
-import dev.slne.surf.cloud.standalone.player.db.exposed.punishment.table.MutePunishmentNoteTable
-import dev.slne.surf.cloud.standalone.player.db.exposed.punishment.table.MutePunishmentTable
-import dev.slne.surf.cloud.standalone.player.db.exposed.punishment.table.WarnPunishmentNoteTable
-import dev.slne.surf.cloud.standalone.player.db.exposed.punishment.table.WarnPunishmentTable
+import dev.slne.surf.cloud.standalone.player.db.exposed.punishment.table.*
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.ExperimentalDatabaseMigrationApi
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -35,7 +27,7 @@ fun main() {
             MutePunishmentNoteTable,
             WarnPunishmentNoteTable,
             scriptDirectory = "src/main/resources/db/migration",
-            scriptName = "V4__add_punishment_table_indexes",
+            scriptName = "V5__replace_string_uuid_with_native_uuid",
         )
     }
 }

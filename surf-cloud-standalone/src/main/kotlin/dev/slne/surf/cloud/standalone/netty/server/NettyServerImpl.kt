@@ -1,7 +1,7 @@
 package dev.slne.surf.cloud.standalone.netty.server
 
-import dev.slne.surf.cloud.api.common.util.mutableObjectListOf
-import dev.slne.surf.cloud.api.common.util.synchronize
+import com.github.benmanes.caffeine.cache.Caffeine
+import dev.slne.surf.cloud.api.common.util.toObjectList
 import dev.slne.surf.cloud.core.common.config.cloudConfig
 import dev.slne.surf.cloud.core.common.netty.network.DisconnectReason
 import dev.slne.surf.cloud.core.common.netty.network.DisconnectionDetails
@@ -16,8 +16,6 @@ import io.netty.channel.epoll.Epoll
 import io.netty.channel.unix.DomainSocketAddress
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import org.springframework.beans.factory.DisposableBean
 import org.springframework.beans.factory.InitializingBean
@@ -27,6 +25,7 @@ import org.springframework.stereotype.Component
 import java.net.InetAddress
 import java.net.InetSocketAddress
 import java.net.SocketAddress
+import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.TimeUnit
 import kotlin.system.measureTimeMillis
 
@@ -39,9 +38,10 @@ class NettyServerImpl : InitializingBean, DisposableBean {
     private var port = -1
 
     val connection by lazy { ServerConnectionListener(this) }
-    private val clients = mutableObjectListOf<ServerClientImpl>()
-    private val clientsLock = Mutex()
-    private val schedules = mutableObjectListOf<() -> Unit>().synchronize()
+    private val clients = Caffeine.newBuilder()
+        .build<String, ServerClientImpl>()
+
+    private val schedules = ConcurrentLinkedQueue<() -> Unit>()
 
     @Volatile
     private var running = false
@@ -114,9 +114,14 @@ class NettyServerImpl : InitializingBean, DisposableBean {
             CloudTickHook.tick()
             connection.connections.forEach { it.tick() }
             connection.tick()
-            schedules.removeAll { function ->
-                function()
-                true
+            while (true) {
+                val function = schedules.poll() ?: break
+                try {
+                    function()
+                } catch (e: Exception) {
+                    log.atSevere()
+                        .log("Error during scheduled function execution", e)
+                }
             }
         }
         CloudTickReporter.tick(duration.toDouble())
@@ -127,20 +132,16 @@ class NettyServerImpl : InitializingBean, DisposableBean {
     }
 
     suspend fun registerClient(client: ServerClientImpl, proxy: Boolean) {
-        clientsLock.withLock {
-            if (clients.any { it.serverName == client.serverName }) {
-                log.atSevere()
-                    .log("Client with name ${client.serverName} already exists")
-                client.connection.disconnect(
-                    DisconnectionDetails(
-                        DisconnectReason.CLIENT_NAME_ALREADY_EXISTS,
-                        client.serverName
-                    )
+        if (clients.asMap().putIfAbsent(client.serverName, client) != null) {
+            log.atSevere()
+                .log("Client with name ${client.serverName} already exists")
+            client.connection.disconnect(
+                DisconnectionDetails(
+                    DisconnectReason.CLIENT_NAME_ALREADY_EXISTS,
+                    client.serverName
                 )
-                return
-            }
-
-            clients.add(client)
+            )
+            return
         }
 
         log.atInfo().log("Registered client ${client.displayName}")
@@ -168,24 +169,18 @@ class NettyServerImpl : InitializingBean, DisposableBean {
     }
 
     suspend fun unregisterClient(client: ServerClientImpl) {
-        clientsLock.withLock {
-            clients.remove(client)
-        }
-
+        clients.invalidate(client.serverName)
         log.atInfo().log("Unregistered client ${client.displayName}")
-
         serverManagerImpl.unregisterServer(client.serverId)
     }
 
     suspend fun forEachClient(action: suspend (ServerClientImpl) -> Unit) {
-        clientsLock.withLock {
-            clients.forEach { action(it) }
+        for (client in clients.asMap().values) {
+            action(client)
         }
     }
 
     suspend fun clientsSnapshot(): List<ServerClientImpl> {
-        return clientsLock.withLock {
-            clients.toList()
-        }
+        return clients.asMap().values.toObjectList()
     }
 }

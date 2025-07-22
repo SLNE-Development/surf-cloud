@@ -1,34 +1,31 @@
 package dev.slne.surf.cloud.core.common.player.task
 
 import dev.slne.surf.cloud.api.common.player.task.PrePlayerJoinTask
-import dev.slne.surf.cloud.api.common.util.mutableObjectListOf
 import dev.slne.surf.cloud.core.common.player.CommonOfflineCloudPlayerImpl
 import dev.slne.surf.surfapi.core.api.util.logger
 import kotlinx.coroutines.withContext
 import org.springframework.beans.factory.SmartInitializingSingleton
-import org.springframework.core.OrderComparator
+import org.springframework.core.annotation.AnnotationAwareOrderComparator
 import org.springframework.stereotype.Component
+import java.util.concurrent.CopyOnWriteArrayList
 import dev.slne.surf.cloud.core.common.coroutines.PrePlayerJoinTaskScope as TaskScope
 
 object PrePlayerJoinTaskManager {
     private val log = logger()
-    private val tasks = mutableObjectListOf<PrePlayerJoinTask>()
+    private val tasks = CopyOnWriteArrayList<PrePlayerJoinTask>()
     private var singletonsInstantiated = false
 
     fun registerTask(task: PrePlayerJoinTask) {
-        if (!tasks.contains(task)) {
-            tasks.add(task)
+        if (tasks.addIfAbsent(task)) {
             maybeSort()
         }
     }
 
     fun registerTasks(tasks: Collection<PrePlayerJoinTask>) {
-        for (task in tasks) {
-            if (!this.tasks.contains(task)) {
-                this.tasks.add(task)
-            }
+        val added = this.tasks.addAllAbsent(tasks)
+        if (added > 0) {
+            maybeSort()
         }
-        maybeSort()
     }
 
     fun unregisterTask(task: PrePlayerJoinTask) {
@@ -37,7 +34,7 @@ object PrePlayerJoinTaskManager {
 
     private fun maybeSort() {
         if (singletonsInstantiated) {
-            OrderComparator.sort(tasks)
+            AnnotationAwareOrderComparator.sort(tasks)
         }
     }
 

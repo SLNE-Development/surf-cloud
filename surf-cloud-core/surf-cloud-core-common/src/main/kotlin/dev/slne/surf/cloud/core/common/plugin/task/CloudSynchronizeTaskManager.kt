@@ -8,7 +8,7 @@ import dev.slne.surf.cloud.core.common.coroutines.BeforeStartTaskScope
 import dev.slne.surf.surfapi.core.api.util.freeze
 import dev.slne.surf.surfapi.core.api.util.logger
 import kotlinx.coroutines.launch
-import org.springframework.core.OrderComparator
+import org.springframework.core.annotation.AnnotationAwareOrderComparator
 import kotlin.system.measureTimeMillis
 
 object CloudSynchronizeTaskManager {
@@ -19,7 +19,7 @@ object CloudSynchronizeTaskManager {
     fun registerTask(task: CloudInitialSynchronizeTask) {
         if (_tasks.contains(task)) return
         _tasks.add(task)
-        OrderComparator.sort(_tasks)
+        AnnotationAwareOrderComparator.sort(_tasks)
     }
 
     fun registerTasks(tasks: Collection<CloudInitialSynchronizeTask>) {
@@ -28,7 +28,7 @@ object CloudSynchronizeTaskManager {
                 this._tasks.add(task)
             }
         }
-        OrderComparator.sort(this._tasks)
+        AnnotationAwareOrderComparator.sort(this._tasks)
     }
 
     fun unregisterTask(task: CloudInitialSynchronizeTask) {

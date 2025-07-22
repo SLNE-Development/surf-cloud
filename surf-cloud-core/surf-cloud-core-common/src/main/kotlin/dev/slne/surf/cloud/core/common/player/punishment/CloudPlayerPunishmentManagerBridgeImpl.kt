@@ -19,7 +19,7 @@ import it.unimi.dsi.fastutil.objects.ObjectList
 import org.jetbrains.annotations.Unmodifiable
 import org.springframework.beans.factory.config.BeanPostProcessor
 import org.springframework.context.SmartLifecycle
-import org.springframework.core.OrderComparator
+import org.springframework.core.annotation.AnnotationAwareOrderComparator
 import org.springframework.core.annotation.Order
 import org.springframework.stereotype.Component
 
@@ -30,7 +30,7 @@ class CloudPlayerPunishmentManagerBridgeImpl : CloudPlayerPunishmentManagerBridg
     override fun registerLoginValidation(check: PunishmentLoginValidation) {
         if (loginValidations.contains(check)) return
         loginValidations.add(check)
-        OrderComparator.sort(loginValidations)
+        AnnotationAwareOrderComparator.sort(loginValidations)
     }
 
     fun registerLoginValidations(loginValidations: Collection<PunishmentLoginValidation>) {
@@ -39,7 +39,7 @@ class CloudPlayerPunishmentManagerBridgeImpl : CloudPlayerPunishmentManagerBridg
                 this.loginValidations.add(validation)
             }
         }
-        OrderComparator.sort(this.loginValidations)
+        AnnotationAwareOrderComparator.sort(this.loginValidations)
     }
 
     override fun unregisterLoginValidation(check: PunishmentLoginValidation) {

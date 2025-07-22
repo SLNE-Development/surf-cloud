@@ -61,11 +61,11 @@ object MessageManager { // TODO: Add more messages
     val noServersAvailableToJoin = buildText {
         CommonComponents.renderDisconnectMessage(
             this,
-            "KEINE SERVERS ZUM BEITRETEN VERFÜGBAR",
+            "KEINE SERVER ZUM BETRETEN VERFÜGBAR",
             {
                 error("Es sind aktuell keine Server verfügbar,")
                 appendNewline()
-                error("zu denen du beitreten kannst.")
+                error("denen du beitreten kannst.")
             },
             true
         )

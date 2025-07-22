@@ -9,7 +9,7 @@ import java.util.*
 
 class NativeUuidColumnType : ColumnType<UUID>() {
     @Language("SQL")
-    override fun sqlType() = "UUID()"
+    override fun sqlType() = "UUID"
 
     override fun valueFromDB(value: Any): UUID? = when (value) {
         is UUID -> value

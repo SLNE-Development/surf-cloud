@@ -24,16 +24,14 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.future.await
 import net.kyori.adventure.text.Component
 import org.bukkit.Bukkit
-import java.net.InetAddress
 import java.net.InetSocketAddress
 import java.util.*
 import org.springframework.stereotype.Component as SpringComponent
 
 @SpringComponent
 class BukkitSpecificPacketListenerExtension : PlatformSpecificPacketListenerExtension {
-    override val playAddress: InetSocketAddress by lazy {
-        InetSocketAddress(InetAddress.getByName(server.ip), server.port)
-    }
+    @OptIn(NmsUseWithCaution::class)
+    override val playAddress: InetSocketAddress by lazy { nmsCommonBridge.getServerIp() }
 
     override fun isServerManagedByThisProxy(address: InetSocketAddress): Boolean {
         error("Requested wrong server! This packet can only be acknowledged on a proxy!")

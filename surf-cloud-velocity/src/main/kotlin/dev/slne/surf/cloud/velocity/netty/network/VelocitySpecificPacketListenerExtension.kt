@@ -13,6 +13,7 @@ import dev.slne.surf.cloud.core.common.netty.network.protocol.running.Registrati
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ServerboundTransferPlayerPacketResponse.Status
 import dev.slne.surf.cloud.velocity.proxy
 import dev.slne.surf.cloud.velocity.reflection.VelocityConfigurationProxy
+import dev.slne.surf.surfapi.core.api.util.logger
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.future.await
@@ -24,6 +25,8 @@ import org.springframework.stereotype.Component as SpringComponent
 
 @SpringComponent
 class VelocitySpecificPacketListenerExtension : PlatformSpecificPacketListenerExtension {
+    private val log = logger()
+
     override val playAddress: InetSocketAddress
         get() = proxy.boundAddress
 
@@ -74,14 +77,15 @@ class VelocitySpecificPacketListenerExtension : PlatformSpecificPacketListenerEx
 
     override fun registerCloudServerToProxy(client: ClientCloudServerImpl) {
         val serverInfo = ServerInfo(client.name, client.playAddress)
-        println("Registering server $serverInfo to proxy")
-
+        log.atInfo()
+            .log("Registering server %s to proxy", serverInfo)
         proxy.registerServer(serverInfo)
     }
 
     override fun unregisterCloudServerFromProxy(client: ClientCloudServerImpl) {
         val info = ServerInfo(client.name, client.playAddress)
-        println("Unregistering server $info from proxy")
+        log.atInfo()
+            .log("Unregistering server %s from proxy", info)
         proxy.unregisterServer(info)
     }
 

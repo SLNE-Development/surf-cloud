@@ -8,11 +8,13 @@ import net.kyori.adventure.text.logger.slf4j.ComponentLogger
 import java.lang.reflect.Method
 import java.nio.file.Path
 import java.util.*
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.function.ToIntFunction
 import kotlin.io.path.deleteIfExists
 import kotlin.io.path.exists
 import kotlin.io.path.isRegularFile
 import kotlin.io.path.moveTo
+import kotlin.reflect.KProperty
 import kotlin.reflect.jvm.kotlinFunction
 
 const val LINEAR_LOOKUP_THRESHOLD = 8
@@ -58,7 +60,12 @@ fun safeReplaceFile(current: Path, newPath: Path, backup: Path) {
 
 private val fileOperationLogger = ComponentLogger.logger("FileOperations")
 
-fun safeReplaceOrMoveFile(current: Path, newPath: Path, backup: Path, noRestoreOnFail: Boolean): Boolean {
+fun safeReplaceOrMoveFile(
+    current: Path,
+    newPath: Path,
+    backup: Path,
+    noRestoreOnFail: Boolean
+): Boolean {
     if (current.exists() &&
         !runWithRetries(
             10,
@@ -153,3 +160,8 @@ suspend inline fun <T, R> Iterable<T>.mapAsync(crossinline transform: suspend (T
     }
 
 fun <T : Any> T?.asOptional(): Optional<T> = Optional.ofNullable(this)
+
+operator fun AtomicBoolean.getValue(thisRef: Any?, property: KProperty<*>): Boolean = get()
+operator fun AtomicBoolean.setValue(thisRef: Any?, property: KProperty<*>, value: Boolean) {
+    set(value)
+}

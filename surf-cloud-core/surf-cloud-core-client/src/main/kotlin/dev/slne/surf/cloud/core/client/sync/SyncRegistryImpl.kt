@@ -32,7 +32,7 @@ class SyncRegistryImpl : CommonSyncRegistryImpl() {
     fun handleSyncSetDelta(packet: SyncSetDeltaPacket) {
         if (!packet.registered) return
         val set =
-            getSet<Any?>(packet.id) ?: error("SyncSet with id '${packet.id}' is not registered")
+            getSet<Any?>(packet.setId) ?: error("SyncSet with id '${packet.setId}' is not registered")
         val lastChangeId = lastChangeIds.getLong(packet.setId)
         if (packet.changeId <= lastChangeId) {
             log.atInfo()

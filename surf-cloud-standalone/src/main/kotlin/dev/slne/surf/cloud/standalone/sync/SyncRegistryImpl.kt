@@ -53,10 +53,10 @@ class SyncRegistryImpl : CommonSyncRegistryImpl() {
 
     fun handleSyncSetDeltaPacket(packet: SyncSetDeltaPacket, sender: ConnectionImpl) {
         if (!packet.registered) return
-        val set = getSet<Any?>(packet.id)
+        val set = getSet<Any?>(packet.setId)
         if (set == null) {
             log.atWarning()
-                .log("SyncSet with id '${packet.id}' not found, cannot apply delta")
+                .log("SyncSet with id '${packet.setId}' not found, cannot apply delta")
             return
         }
 

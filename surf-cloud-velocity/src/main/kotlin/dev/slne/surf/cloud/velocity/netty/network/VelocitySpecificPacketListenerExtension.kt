@@ -1,17 +1,20 @@
 package dev.slne.surf.cloud.velocity.netty.network
 
-import com.github.benmanes.caffeine.cache.Caffeine
 import com.velocitypowered.api.proxy.ConnectionRequestBuilder
 import com.velocitypowered.api.proxy.server.ServerInfo
 import dev.slne.surf.cloud.api.common.player.teleport.TeleportCause
 import dev.slne.surf.cloud.api.common.player.teleport.TeleportFlag
 import dev.slne.surf.cloud.api.common.player.teleport.TeleportLocation
+import dev.slne.surf.cloud.api.common.util.observer.observingFlow
 import dev.slne.surf.cloud.core.client.netty.network.PlatformSpecificPacketListenerExtension
 import dev.slne.surf.cloud.core.client.server.ClientCloudServerImpl
+import dev.slne.surf.cloud.core.common.coroutines.CommonObservableScope
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.RegistrationInfo
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ServerboundTransferPlayerPacketResponse.Status
 import dev.slne.surf.cloud.velocity.proxy
 import dev.slne.surf.cloud.velocity.reflection.VelocityConfigurationProxy
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.future.await
 import net.kyori.adventure.text.Component
 import java.net.InetSocketAddress
@@ -21,9 +24,6 @@ import org.springframework.stereotype.Component as SpringComponent
 
 @SpringComponent
 class VelocitySpecificPacketListenerExtension : PlatformSpecificPacketListenerExtension {
-    private val serverInfoCache = Caffeine.newBuilder()
-        .build<Long, ServerInfo>()
-
     override val playAddress: InetSocketAddress
         get() = proxy.boundAddress
 
@@ -67,8 +67,8 @@ class VelocitySpecificPacketListenerExtension : PlatformSpecificPacketListenerEx
         error("Teleporting players is not supported on Velocity")
     }
 
-    override fun registerCloudServersToProxy(servers: Array<RegistrationInfo>) {
-        servers.map { (name, address) -> ServerInfo(name, address) }
+    override fun registerCloudServersToProxy(packets: Array<RegistrationInfo>) {
+        packets.map { (name, address) -> ServerInfo(name, address) }
             .forEach { proxy.registerServer(it) }
     }
 
@@ -77,11 +77,10 @@ class VelocitySpecificPacketListenerExtension : PlatformSpecificPacketListenerEx
         println("Registering server $serverInfo to proxy")
 
         proxy.registerServer(serverInfo)
-        serverInfoCache.put(client.uid, serverInfo)
     }
 
     override fun unregisterCloudServerFromProxy(client: ClientCloudServerImpl) {
-        val info = serverInfoCache.getIfPresent(client.uid) ?: return
+        val info = ServerInfo(client.name, client.playAddress)
         println("Unregistering server $info from proxy")
         proxy.unregisterServer(info)
     }
@@ -91,10 +90,6 @@ class VelocitySpecificPacketListenerExtension : PlatformSpecificPacketListenerEx
         target: UUID
     ): Boolean {
         error("Teleporting players is not supported on Velocity")
-    }
-
-    override fun setVelocitySecret(secret: ByteArray) {
-        VelocityConfigurationProxy.instance.setForwardingSecret(proxy.configuration, secret)
     }
 
     override fun triggerShutdown() {
@@ -107,5 +102,25 @@ class VelocitySpecificPacketListenerExtension : PlatformSpecificPacketListenerEx
 
     override fun shutdown() {
         proxy.shutdown()
+    }
+
+    override fun setVelocitySecret(secret: ByteArray) {
+        VelocitySecretManager.currentVelocitySecret = secret
+    }
+
+    object VelocitySecretManager {
+        @Volatile
+        var currentVelocitySecret =
+            VelocityConfigurationProxy.instance.getForwardingSecret(proxy.configuration)
+
+        init {
+            observingFlow({ VelocityConfigurationProxy.instance.getForwardingSecret(proxy.configuration) })
+                .onEach { remote ->
+                    if (!remote.contentEquals(currentVelocitySecret)) {
+                        VelocityConfigurationProxy.instance.setForwardingSecret(proxy.configuration, currentVelocitySecret)
+                    }
+                }
+                .launchIn(CommonObservableScope)
+        }
     }
 }

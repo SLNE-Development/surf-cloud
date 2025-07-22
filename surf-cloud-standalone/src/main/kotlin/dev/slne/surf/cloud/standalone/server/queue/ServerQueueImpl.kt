@@ -1,12 +1,15 @@
 package dev.slne.surf.cloud.standalone.server.queue
 
 import dev.slne.surf.cloud.api.common.player.ConnectionResultEnum
+import dev.slne.surf.cloud.api.common.util.getValue
+import dev.slne.surf.cloud.api.common.util.setValue
 import dev.slne.surf.cloud.api.server.queue.QueueEntry
 import dev.slne.surf.cloud.api.server.queue.ServerQueue
 import dev.slne.surf.cloud.standalone.server.queue.repo.QueueRepository
 import dev.slne.surf.cloud.standalone.server.serverManagerImpl
 import net.kyori.adventure.text.Component
 import java.util.*
+import java.util.concurrent.atomic.AtomicBoolean
 
 class ServerQueueImpl(
     override val serverUid: Long,
@@ -16,8 +19,7 @@ class ServerQueueImpl(
 
     val groupQueue get() = queues.getGroup(latestGroup)
 
-    @Volatile
-    override var suspended: Boolean = false
+    override var suspended: Boolean by AtomicBoolean()
 
     override val online get() = serverManagerImpl.getServerByIdUnsafe(serverUid) != null
 

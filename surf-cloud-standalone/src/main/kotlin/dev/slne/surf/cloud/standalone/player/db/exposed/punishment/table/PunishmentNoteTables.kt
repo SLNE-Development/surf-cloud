@@ -1,6 +1,6 @@
 package dev.slne.surf.cloud.standalone.player.db.exposed.punishment.table
 
-import dev.slne.surf.cloud.api.server.exposed.columns.charUuid
+import dev.slne.surf.cloud.api.server.exposed.columns.nativeUuid
 import dev.slne.surf.cloud.api.server.exposed.table.AuditableLongIdTable
 import org.jetbrains.exposed.sql.ReferenceOption
 import java.util.*
@@ -9,7 +9,7 @@ abstract class AbstractPunishmentNoteTable(
     name: String,
     foreignPunishmentTable: AbstractPunishmentTable
 ) : AuditableLongIdTable(name) {
-    val noteId = charUuid("note_id").uniqueIndex().clientDefault { UUID.randomUUID() }
+    val noteId = nativeUuid("note_id").uniqueIndex().clientDefault { UUID.randomUUID() }
     val punishment =
         reference("punishment_id", foreignPunishmentTable, onDelete = ReferenceOption.CASCADE)
     val note = largeText("note")

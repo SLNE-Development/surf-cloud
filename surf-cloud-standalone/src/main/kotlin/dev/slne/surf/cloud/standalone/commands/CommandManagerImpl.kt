@@ -116,7 +116,7 @@ class CommandManagerImpl {
         } catch (e: CommandSyntaxException) {
             source.sendFailure(buildText {
                 color(Colors.ERROR)
-                appendText(e.message!!)
+                appendText(e.message ?: e.javaClass.name)
                 clickEvent(ClickEvent.suggestCommand("/$label"))
             })
 

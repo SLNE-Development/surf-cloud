@@ -1,34 +1,32 @@
 package dev.slne.surf.cloud.standalone.player
 
+import com.github.benmanes.caffeine.cache.Caffeine
+import com.sksamuel.aedile.core.expireAfterAccess
 import dev.slne.surf.cloud.api.common.event.CloudEventHandler
 import dev.slne.surf.cloud.api.common.event.player.connection.CloudPlayerDisconnectFromNetworkEvent
-import dev.slne.surf.cloud.api.common.util.mutableObject2ObjectMapOf
 import dev.slne.surf.cloud.api.common.util.mutableObjectListOf
 import dev.slne.surf.cloud.core.common.coroutines.PlayerPlaytimeScope
 import dev.slne.surf.cloud.standalone.player.db.exposed.CloudPlayerService
 import dev.slne.surf.surfapi.core.api.util.logger
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import org.springframework.beans.factory.DisposableBean
-import org.springframework.context.event.EventListener
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 import java.time.ZonedDateTime
 import java.util.*
 import java.util.concurrent.TimeUnit
 import kotlin.system.measureTimeMillis
+import kotlin.time.Duration.Companion.minutes
 
 @Component
 class CloudPlayerPlaytimeManager(private val service: CloudPlayerService) : DisposableBean {
     private val log = logger()
 
     /** In-memory map of active sessions: player UUID -> session data */
-    private val sessions = mutableObject2ObjectMapOf<UUID, PlaytimeSession>()
-
-    /** Protects read/write access to 'sessions' **/
-    private val sessionsMutex = Mutex()
+    private val sessionsCache = Caffeine.newBuilder()
+        .expireAfterAccess(10.minutes)
+        .build<UUID, PlaytimeSession>()
 
     /**
      * Called every second to either increment existing session time or start a new session.
@@ -39,38 +37,35 @@ class CloudPlayerPlaytimeManager(private val service: CloudPlayerService) : Disp
         val toCreate = mutableObjectListOf<Pair<UUID, PlaytimeSession>>()
         val onlinePlayers = standalonePlayerManagerImpl.getRawOnlinePlayers()
 
-        // Acquire lock briefly to update in-memory sessions
-        sessionsMutex.withLock {
-            onlinePlayers.forEach { player ->
-                val uuid = player.uuid
-                val server = player.server ?: return@forEach
-                val serverName = server.name
-                val category = server.group
+        onlinePlayers.forEach { player ->
+            val uuid = player.uuid
+            val server = player.server ?: return@forEach
+            val serverName = server.name
+            val category = server.group
 
-                val currentSession = sessions[uuid]
+            val currentSession = sessionsCache.getIfPresent(uuid)
 
-                // If server/category changed or there's no active session, create a new one
-                if (currentSession == null || currentSession.serverName != serverName || currentSession.category != category) {
-                    // Flush old session if present
-                    if (currentSession != null) {
-                        PlayerPlaytimeScope.launch { partialFlushSession(uuid, currentSession) }
-                        sessions.remove(uuid)
-                    }
-
-                    val newSession = PlaytimeSession(
-                        sessionId = null,
-                        serverName = serverName,
-                        category = category,
-                        startTime = ZonedDateTime.now()
-                    )
-
-                    sessions[uuid] = newSession
-                    toCreate += uuid to newSession
-                } else {
-                    if (player.afk) return@forEach
-                    // Just increment current session
-                    currentSession.accumulatedSeconds++
+            // If server/category changed or there's no active session, create a new one
+            if (currentSession == null || currentSession.serverName != serverName || currentSession.category != category) {
+                // Flush old session if present
+                if (currentSession != null) {
+                    PlayerPlaytimeScope.launch { partialFlushSession(uuid, currentSession) }
+                    sessionsCache.invalidate(uuid)
                 }
+
+                val newSession = PlaytimeSession(
+                    sessionId = null,
+                    serverName = serverName,
+                    category = category,
+                    startTime = ZonedDateTime.now()
+                )
+
+                sessionsCache.put(uuid, newSession)
+                toCreate += uuid to newSession
+            } else {
+                if (player.afk) return@forEach
+                // Just increment current session
+                currentSession.accumulatedSeconds++
             }
         }
 
@@ -82,11 +77,9 @@ class CloudPlayerPlaytimeManager(private val service: CloudPlayerService) : Disp
             }
 
             // Update sessionId in memory if still valid
-            sessionsMutex.withLock {
-                createdSessions.forEach { (uuid, session, dbId) ->
-                    if (sessions[uuid] === session) {
-                        session.sessionId = dbId
-                    }
+            createdSessions.forEach { (uuid, session, dbId) ->
+                if (sessionsCache.getIfPresent(uuid) === session) {
+                    session.sessionId = dbId
                 }
             }
         }
@@ -100,11 +93,9 @@ class CloudPlayerPlaytimeManager(private val service: CloudPlayerService) : Disp
         val snapshot = mutableObjectListOf<Triple<UUID, Long, PlaytimeSession>>()
         val time = measureTimeMillis {
             // Take a snapshot of all sessions that are fully created in DB
-            sessionsMutex.withLock {
-                sessions.forEach { (uuid, session) ->
-                    val sessionId = session.sessionId ?: return@forEach
-                    snapshot += Triple(uuid, sessionId, session)
-                }
+            sessionsCache.asMap().forEach { (uuid, session) ->
+                val sessionId = session.sessionId ?: return@forEach
+                snapshot += Triple(uuid, sessionId, session)
             }
 
             // Perform DB updates outside the lock
@@ -124,10 +115,9 @@ class CloudPlayerPlaytimeManager(private val service: CloudPlayerService) : Disp
     @CloudEventHandler
     fun onPlayerDisconnect(event: CloudPlayerDisconnectFromNetworkEvent) {
         val uuid = event.player.uuid
-        PlayerPlaytimeScope.launch {
-            val session = sessionsMutex.withLock { sessions.remove(uuid) } ?: return@launch
-            partialFlushSession(uuid, session)
-        }
+        val session = sessionsCache.asMap().remove(uuid) ?: return
+
+        PlayerPlaytimeScope.launch { partialFlushSession(uuid, session) }
     }
 
     /**
@@ -136,12 +126,10 @@ class CloudPlayerPlaytimeManager(private val service: CloudPlayerService) : Disp
     override fun destroy() = runBlocking {
         log.atInfo().log("Flushing all playtime sessions to DB on shutdown")
         val time = measureTimeMillis {
-            sessionsMutex.withLock {
-                sessions.forEach { (playerId, session) ->
-                    partialFlushSession(playerId, session)
-                }
-                sessions.clear()
+            sessionsCache.asMap().forEach { (playerId, session) ->
+                partialFlushSession(playerId, session)
             }
+            sessionsCache.invalidateAll()
         }
         log.atInfo().log("Flushed all playtime sessions to DB in $time ms")
     }
@@ -165,7 +153,7 @@ class CloudPlayerPlaytimeManager(private val service: CloudPlayerService) : Disp
         service.updatePlaytimeInSession(playerId, sessionId, session.accumulatedSeconds)
     }
 
-    suspend fun playtimeSessionFor(uuid: UUID) = sessionsMutex.withLock { sessions[uuid] }
+    suspend fun playtimeSessionFor(uuid: UUID) = sessionsCache.getIfPresent(uuid)
 
     data class PlaytimeSession(
         var sessionId: Long?,

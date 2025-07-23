@@ -3,10 +3,8 @@
 package dev.slne.surf.cloud.core.common.util
 
 import dev.slne.surf.cloud.core.common.coreCloudInstance
-import dev.slne.surf.surfapi.core.api.util.logger
 import org.jetbrains.annotations.ApiStatus
 import org.springframework.context.ApplicationEvent
-import java.security.SecureRandom
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
@@ -15,17 +13,6 @@ import kotlin.streams.asSequence
 inline fun <reified T> Iterator<T>.toArray(size: Int) = Array(size) { next() }
 inline fun <reified T> Iterable<T>.toArray(): Array<T> = iterator().toArray(count())
 inline fun <reified T> Sequence<T>.toArray() = iterator().toArray(count())
-
-val random: SecureRandom by lazy {
-    try {
-        SecureRandom.getInstanceStrong()
-    } catch (e: Exception) {
-        logger().atWarning()
-            .withCause(e)
-            .log("Failed to get strong SecureRandom, falling back to default")
-        SecureRandom()
-    }
-}
 
 fun <T> tempChangeSystemClassLoader(classLoader: ClassLoader, run: () -> T): T {
     contract {

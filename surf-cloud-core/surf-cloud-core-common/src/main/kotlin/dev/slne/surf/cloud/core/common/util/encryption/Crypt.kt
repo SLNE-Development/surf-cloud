@@ -3,7 +3,7 @@ package dev.slne.surf.cloud.core.common.util.encryption
 import com.google.common.primitives.Longs
 import dev.slne.surf.cloud.api.common.netty.protocol.buffer.SurfByteBuf
 import dev.slne.surf.cloud.api.common.util.getOrMapAndThrow
-import dev.slne.surf.cloud.core.common.util.random
+import dev.slne.surf.surfapi.core.api.util.random
 import java.io.File
 import java.security.*
 import java.security.cert.X509Certificate
@@ -31,7 +31,8 @@ object Crypt {
     const val CERTIFICATE_HEADER = "-----BEGIN CERTIFICATE-----"
     const val CERTIFICATE_FOOTER = "-----END CERTIFICATE-----"
     const val MIME_LINE_SEPARATOR = "\n"
-    val mimeEncoder: Base64.Encoder = Base64.getMimeEncoder(76, MIME_LINE_SEPARATOR.toByteArray(Charsets.UTF_8))
+    val mimeEncoder: Base64.Encoder =
+        Base64.getMimeEncoder(76, MIME_LINE_SEPARATOR.toByteArray(Charsets.UTF_8))
 
     fun writeCertificate(file: File, certificate: X509Certificate) {
 //        file.writeText(

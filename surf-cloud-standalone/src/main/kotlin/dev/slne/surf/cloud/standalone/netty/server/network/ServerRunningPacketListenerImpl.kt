@@ -19,7 +19,6 @@ import dev.slne.surf.cloud.core.common.netty.registry.listener.NettyListenerRegi
 import dev.slne.surf.cloud.core.common.player.PunishmentManager
 import dev.slne.surf.cloud.core.common.player.playerManagerImpl
 import dev.slne.surf.cloud.core.common.util.bean
-import dev.slne.surf.cloud.core.common.util.random
 import dev.slne.surf.cloud.standalone.netty.server.NettyServerImpl
 import dev.slne.surf.cloud.standalone.netty.server.ServerClientImpl
 import dev.slne.surf.cloud.standalone.player.StandaloneCloudPlayerImpl
@@ -28,6 +27,7 @@ import dev.slne.surf.cloud.standalone.server.StandaloneProxyCloudServerImpl
 import dev.slne.surf.cloud.standalone.server.serverManagerImpl
 import dev.slne.surf.cloud.standalone.sync.SyncRegistryImpl
 import dev.slne.surf.surfapi.core.api.util.logger
+import dev.slne.surf.surfapi.core.api.util.random
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import net.kyori.adventure.text.Component
@@ -58,13 +58,15 @@ class ServerRunningPacketListenerImpl(
 
         packet.respond(PlayerConnectToServerResponsePacket(result))
 
-        broadcast(PlayerConnectedToServerPacket(
-            packet.uuid,
-            packet.name,
-            packet.serverUid,
-            packet.proxy,
-            packet.playerIp
-        ))
+        broadcast(
+            PlayerConnectedToServerPacket(
+                packet.uuid,
+                packet.name,
+                packet.serverUid,
+                packet.proxy,
+                packet.playerIp
+            )
+        )
         serverManagerImpl.getCommonStandaloneServerByUid(packet.serverUid)
             ?.handlePlayerConnect(packet.uuid)
     }

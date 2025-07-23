@@ -10,11 +10,12 @@ import dev.slne.surf.cloud.core.common.sync.BasicSyncValue
 import dev.slne.surf.cloud.core.common.sync.CommonSyncRegistryImpl
 import dev.slne.surf.surfapi.core.api.util.logger
 import dev.slne.surf.surfapi.core.api.util.mutableObject2LongMapOf
+import dev.slne.surf.surfapi.core.api.util.synchronize
 
 @AutoService(SyncRegistry::class)
 class SyncRegistryImpl : CommonSyncRegistryImpl() {
     private val log = logger()
-    private val lastChangeIds = mutableObject2LongMapOf<String>()
+    private val lastChangeIds = mutableObject2LongMapOf<String>().synchronize()
 
     override fun afterChange(syncValue: BasicSyncValue<*>) {
         super.afterChange(syncValue)

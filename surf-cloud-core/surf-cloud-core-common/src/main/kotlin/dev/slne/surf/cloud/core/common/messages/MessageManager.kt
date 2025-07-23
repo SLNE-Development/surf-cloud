@@ -10,7 +10,6 @@ import dev.slne.surf.cloud.api.common.player.punishment.type.warn.PunishmentWarn
 import dev.slne.surf.cloud.api.common.player.toOfflineCloudPlayer
 import dev.slne.surf.cloud.api.common.server.CloudServerManager
 import dev.slne.surf.cloud.core.common.permission.CommonCloudPermissions
-import dev.slne.surf.surfapi.core.api.messages.Colors
 import dev.slne.surf.surfapi.core.api.messages.CommonComponents
 import dev.slne.surf.surfapi.core.api.messages.adventure.appendNewline
 import dev.slne.surf.surfapi.core.api.messages.adventure.buildText
@@ -27,17 +26,16 @@ import java.util.*
 object MessageManager { // TODO: Add more messages
     private val BERLIN_ZONE_ID = ZoneId.of("Europe/Berlin")
 
-    val serverStarting = Component.text().run {
-        append(Component.text("Der Server startet noch. Bitte warte einen Moment.", Colors.ERROR))
-        build()
+    val serverStarting = buildText {
+        error("Der Server wird gerade gestartet. Bitte warte einen Moment.")
     }
 
     val unknownErrorDuringLogin = buildText {
         CommonComponents.renderDisconnectMessage(
             this,
-            "BEIM VERBINDUNGSAUFBAU IST EIN FEHLER AUFGETRETEN",
+            "UNBEKANNTER VERBINDUNGSFEHLER",
             {
-                error("Beim Versuch, eine Verbindung aufzubauen, ist")
+                error("Beim Verbindungsaufbau ist")
                 appendNewline()
                 error("ein unbekannter Fehler aufgetreten.")
             },
@@ -48,11 +46,11 @@ object MessageManager { // TODO: Add more messages
     val loginTimedOut = buildText {
         CommonComponents.renderDisconnectMessage(
             this,
-            "VERBINDUNG ZUR SERVER-INSTANZ WURDE GETRENNT",
+            "VERBINDUNG ZUR SERVER-INSTANZ GETRENNT",
             {
-                error("Die Verbindung zur Server-Instanz wurde")
+                error("Die Verbindung zur Server-Instanz")
                 appendNewline()
-                error("unerwartet getrennt.")
+                error("wurde unerwartet getrennt.")
             },
             true
         )
@@ -154,7 +152,7 @@ object MessageManager { // TODO: Add more messages
                         spacer("Du denkst, dies ist eine Fehlentscheidung?")
                     }
                     appendNewline {
-                        spacer("Kontaktiere den Support in unserem Discord")
+                        spacer("Kontaktiere bitte unseren Support auf Discord.")
                     }
                     appendNewline(2)
                     appendDiscordLink()
@@ -299,7 +297,7 @@ object MessageManager { // TODO: Add more messages
                             appendPrefix()
                             appendNewPrefixedLine {
                                 append(displayName)
-                                info(" versucht, dem Netzwerk beizutreten, ist aber ausgeschlossen!")
+                                info(" versucht, dem Netzwerk beizutreten, ist jedoch ausgeschlossen!")
                             }
                             appendNewPrefixedLine()
                             appendNewPrefixedLine {
@@ -327,17 +325,17 @@ object MessageManager { // TODO: Add more messages
                         if (securityBan) SECURITY_DISCONNECT_REASON else NORMAL_DISCONNECT_REASON, // TODO: specify color
                         {
                             if (securityBan) {
-                                variableValue("Das System hat Unregelmäßigkeiten festgestellt und")
+                                variableValue("Das System hat Unregelmäßigkeiten festgestellt.")
                                 appendNewline()
-                                variableValue("dein Account wurde aus Sicherheitsgründen deaktiviert!")
+                                variableValue("Dein Account wurde aus Sicherheitsgründen deaktiviert!")
                             } else {
                                 append {
                                     variableKey("Grund: ")
                                     if (punishment.raw) {
                                         appendNewline(2)
-                                        variableValue("Dein Ausschluss wird aktuell bearbeitet...")
+                                        variableValue("Dein Ausschluss wird zurzeit bearbeitet...")
                                         appendNewline()
-                                        variableValue("Wir bitten um einen Moment Geduld!")
+                                        variableValue("Bitte habe einen Moment Geduld.")
                                         appendNewline()
                                     } else {
                                         appendPunishmentReason()

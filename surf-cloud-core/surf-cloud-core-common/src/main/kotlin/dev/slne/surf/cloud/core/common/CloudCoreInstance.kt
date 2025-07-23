@@ -16,6 +16,7 @@ import dev.slne.surf.cloud.core.common.plugin.task.CloudBeforeStartTaskHandler
 import dev.slne.surf.cloud.core.common.processors.NettyPacketProcessor
 import dev.slne.surf.cloud.core.common.spring.CloudChildSpringApplicationConfiguration
 import dev.slne.surf.cloud.core.common.spring.CloudLifecycleAware
+import dev.slne.surf.cloud.core.common.spring.CloudUncaughtExceptionHandler
 import dev.slne.surf.cloud.core.common.spring.SurfSpringBanner
 import dev.slne.surf.cloud.core.common.spring.event.RootSpringContextInitialized
 import dev.slne.surf.cloud.core.common.util.getCallerClass
@@ -64,7 +65,7 @@ class CloudCoreInstance : CloudInstance {
         val timeLogger = TimeLogger("SurfCloud Bootstrap")
 
         timeLogger.measureStep("Setup uncaught exception handler") {
-            setupDefaultUncaughtExceptionHandler()
+            Thread.setDefaultUncaughtExceptionHandler(CloudUncaughtExceptionHandler())
         }
 
         timeLogger.measureStep("Initialize bootstrap data") {
@@ -85,21 +86,6 @@ class CloudCoreInstance : CloudInstance {
         timeLogger.printSummary()
     }
 
-    private fun setupDefaultUncaughtExceptionHandler() {
-        Thread.setDefaultUncaughtExceptionHandler { thread, e ->
-            log.atSevere()
-                .withCause(e)
-                .log(
-                    """
-                    An uncaught exception occurred in thread %s
-                    Exception type: %s
-                    Exception message: %s
-                    """.trimIndent(),
-                    thread.name, e.javaClass.name, e.message
-                )
-        }
-    }
-
     private fun initBootstrapData(data: BootstrapData) {
         dataFolder = data.dataFolder
     }
@@ -110,15 +96,15 @@ class CloudCoreInstance : CloudInstance {
                 lifecycles = context.getBeanProvider<CloudLifecycleAware>()
             }
         } catch (e: Throwable) {
-            if (e is FatalSurfError || e is OutOfMemoryError) {
+            when (e) {
                 // Re-throw FatalSurfError and OutOfMemoryError immediately
-                throw e
-            } else if (e is NestedRuntimeException && e.rootCause is FatalSurfError) {
+                is FatalSurfError, is OutOfMemoryError -> throw e
+
                 // Re-throw FatalSurfError if it is wrapped inside NestedRuntimeException
-                throw e.rootCause as FatalSurfError
-            } else {
+                is NestedRuntimeException if e.rootCause is FatalSurfError -> throw e.rootCause as FatalSurfError
+
                 // Build and throw a new FatalSurfError for any other unexpected errors
-                throw FatalSurfError {
+                else -> throw FatalSurfError {
                     simpleErrorMessage("An unexpected error occurred during the onLoad process.")
                     detailedErrorMessage("An error occurred while starting the Spring application during the onLoad phase.")
                     cause(e)
@@ -299,24 +285,23 @@ suspend inline fun Throwable.handleEventuallyFatalError(
         throw this
     }
 
-    val exitCode = if (this is FatalSurfError) {
-        handle()
-    } else if (this is NestedRuntimeException && this.rootCause is FatalSurfError) {
-        (this.rootCause as FatalSurfError).handle()
-    } else if (this is TimeoutCancellationException && handleTimeout) {
-        val fatalError = FatalSurfError {
+    val exitCode = when (this) {
+        is FatalSurfError -> handle()
+        is NestedRuntimeException if this.rootCause is FatalSurfError -> (this.rootCause as FatalSurfError).handle()
+        is TimeoutCancellationException if handleTimeout -> FatalSurfError {
             simpleErrorMessage("An operation timed out")
             detailedErrorMessage("An operation timed out")
             cause(this@handleEventuallyFatalError)
             additionalInformation("Error occurred in: " + getCallerClass()?.simpleName)
             exitCode(ExitCodes.TIMEOUT)
+        }.handle()
+
+        else -> {
+            if (log) {
+                logger().atSevere().withCause(this).log("An unexpected error occurred")
+            }
+            ExitCodes.UNKNOWN_ERROR
         }
-        fatalError.handle()
-    } else {
-        if (log) {
-            logger().atSevere().withCause(this).log("An unexpected error occurred")
-        }
-        ExitCodes.UNKNOWN_ERROR
     }
 
     logger().atWarning()

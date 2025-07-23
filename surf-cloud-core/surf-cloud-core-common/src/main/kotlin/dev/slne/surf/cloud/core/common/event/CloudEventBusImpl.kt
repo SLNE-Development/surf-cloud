@@ -1,17 +1,15 @@
 package dev.slne.surf.cloud.core.common.event
 
+import com.github.benmanes.caffeine.cache.Caffeine
 import com.google.auto.service.AutoService
 import dev.slne.surf.cloud.api.common.event.Cancellable
 import dev.slne.surf.cloud.api.common.event.CloudEvent
 import dev.slne.surf.cloud.api.common.event.CloudEventBus
 import dev.slne.surf.cloud.api.common.event.CloudEventHandler
 import dev.slne.surf.cloud.api.common.util.isSuspending
-import dev.slne.surf.cloud.api.common.util.mutableObject2ObjectMapOf
-import dev.slne.surf.cloud.api.common.util.mutableObjectListOf
-import dev.slne.surf.cloud.api.common.util.synchronize
 import dev.slne.surf.cloud.core.common.coroutines.CloudEventBusScope
 import dev.slne.surf.surfapi.core.api.util.findAnnotation
-import it.unimi.dsi.fastutil.objects.ObjectList
+import dev.slne.surf.surfapi.core.api.util.logger
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import net.bytebuddy.ByteBuddy
@@ -31,8 +29,11 @@ import kotlin.reflect.jvm.kotlinFunction
 
 @AutoService(CloudEventBus::class)
 class CloudEventBusImpl : CloudEventBus {
-    private val listeners =
-        mutableObject2ObjectMapOf<Class<out CloudEvent>, ObjectList<ListenerWrapper>>().synchronize()
+    private val log = logger()
+
+    private val listenerHandler = Caffeine.newBuilder()
+        .build<Class<out CloudEvent>, CloudEventListenerHolder> { CloudEventListenerHolder() }
+
     private val spelParser = SpelExpressionParser()
 
     override fun register(listener: Any) {
@@ -50,60 +51,59 @@ class CloudEventBusImpl : CloudEventBus {
             val rawType = method.parameterTypes[0].asSubclass(CloudEvent::class.java)
 
             val invoker = createInvoker(listener, method)
-            val listeners =
-                listeners.computeIfAbsent(rawType) { mutableObjectListOf<ListenerWrapper>().synchronize() }
+            val handler = listenerHandler.get(rawType)
 
             val expression = if (annotation.condition.isNotBlank()) {
                 spelParser.parseExpression(annotation.condition)
             } else null
 
-            listeners += ListenerWrapper(
-                eventType = rawType,
-                genericType = methodType,
-                invoker = invoker,
-                priority = annotation.priority,
-                ignoreCancelled = annotation.ignoreCancelled,
-                condition = expression,
+            handler.register(
+                ListenerWrapper(
+                    eventType = rawType,
+                    genericType = methodType,
+                    invoker = invoker,
+                    priority = annotation.priority,
+                    ignoreCancelled = annotation.ignoreCancelled,
+                    condition = expression,
+                )
             )
-            listeners.sort()
         }
     }
 
     override fun unregister(listener: Any) {
-        listeners.values.forEach { lst ->
-            lst.removeIf {
-                (it.invoker as? GeneratedInvoker)?.owner === listener ||
-                        (it.invoker as? ReflectionInvoker)?.instance === listener
-            }
-        }
+        listenerHandler.asMap().values.forEach { it.unregister(listener) }
+        listenerHandler.asMap().entries.removeIf { it.value.isEmpty() }
     }
 
     override suspend fun post(event: CloudEvent) = withContext(CloudEventBusScope.context) {
         val eventType = ResolvableType.forInstance(event)
-        val toCall = listeners
+        listenerHandler.asMap()
             .filterKeys { it.isAssignableFrom(event.javaClass) }
-            .values.asSequence()
-            .flatten()
-            .filter { listener ->
-                eventType.isAssignableFrom(listener.genericType)
-            }
+            .values
+            .asSequence()
+            .flatMap { it.getListeners(eventType) }
             .sorted()
+            .forEach { wrapper ->
+                val cancelled = event is Cancellable && event.isCancelled
+                if (cancelled && !wrapper.ignoreCancelled) return@forEach
 
-        for (wrapper in toCall) {
-            val cancelled = event is Cancellable && event.isCancelled
-            if (cancelled && !wrapper.ignoreCancelled) continue
+                val condition = wrapper.condition
+                if (condition != null) {
+                    val ctx = StandardEvaluationContext()
+                    ctx.setVariable("event", event)
 
-            val condition = wrapper.condition
-            if (condition != null) {
-                val ctx = StandardEvaluationContext()
-                ctx.setVariable("event", event)
+                    val result = condition.getValue(ctx, Boolean::class.java) ?: true
+                    if (!result) return@forEach
+                }
 
-                val result = condition.getValue(ctx, Boolean::class.java) ?: true
-                if (!result) continue
+                try {
+                    wrapper.invoker.invoke(event)
+                } catch (e: Throwable) {
+                    log.atWarning()
+                        .withCause(e)
+                        .log("Error while invoking event listener for ${event.javaClass.name} in ${wrapper.invoker.owner.javaClass.name}#${wrapper.invoker.owner.hashCode()}")
+                }
             }
-
-            wrapper.invoker.invoke(event)
-        }
     }
 
     private fun createInvoker(instance: Any, method: Method): EventListenerInvoker {
@@ -141,7 +141,7 @@ class CloudEventBusImpl : CloudEventBus {
         return ctor.newInstance(instance) as EventListenerInvoker
     }
 
-    private class ReflectionInvoker(val instance: Any, val method: Method) : EventListenerInvoker {
+    class ReflectionInvoker(override val owner: Any, val method: Method) : EventListenerInvoker {
         init {
             method.isAccessible = true
         }
@@ -149,14 +149,12 @@ class CloudEventBusImpl : CloudEventBus {
         override suspend fun invoke(event: CloudEvent) {
             CloudEventBusScope.launch {
                 val kfn = method.kotlinFunction ?: error("Not a Kotlin function")
-                kfn.callSuspend(instance, event)
+                kfn.callSuspend(owner, event)
             }.join()
         }
     }
 
-    internal interface GeneratedInvoker {
-        val owner: Any
-    }
+    internal interface GeneratedInvoker // This interface is used to mark generated invokers
 }
 
 val cloudEventBusImpl = CloudEventBus.instance as CloudEventBusImpl

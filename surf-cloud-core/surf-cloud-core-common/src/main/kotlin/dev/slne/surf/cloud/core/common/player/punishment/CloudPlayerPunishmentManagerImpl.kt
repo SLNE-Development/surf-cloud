@@ -22,8 +22,7 @@ import it.unimi.dsi.fastutil.objects.ObjectList
 import org.jetbrains.annotations.Unmodifiable
 import java.util.*
 
-class CloudPlayerPunishmentManagerImpl(private val playerUuid: UUID) :
-    CloudPlayerPunishmentManager {
+class CloudPlayerPunishmentManagerImpl(private val playerUuid: UUID) : CloudPlayerPunishmentManager {
     companion object {
         private val log = logger()
     }

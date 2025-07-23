@@ -9,7 +9,6 @@ import net.kyori.adventure.key.Key
 import net.kyori.adventure.nbt.*
 
 class PersistentPlayerDataContainerImpl(
-
     @Volatile
     private var tag: FastCompoundBinaryTag = CompoundBinaryTag.empty().fast(synchronize = true)
 ) : PersistentPlayerDataContainerViewImpl(), PersistentPlayerDataContainer {

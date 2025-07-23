@@ -7,9 +7,7 @@ import dev.slne.surf.cloud.api.common.player.punishment.CloudPlayerPunishmentMan
 import dev.slne.surf.cloud.api.common.player.punishment.PunishmentLoginValidation
 import dev.slne.surf.cloud.api.common.player.punishment.type.ban.PunishmentBan
 import dev.slne.surf.cloud.api.common.player.task.PrePlayerJoinTask
-import dev.slne.surf.cloud.api.common.util.mutableObjectListOf
 import dev.slne.surf.cloud.api.common.util.mutableObjectSetOf
-import dev.slne.surf.cloud.api.common.util.synchronize
 import dev.slne.surf.cloud.core.common.messages.MessageManager
 import dev.slne.surf.cloud.core.common.player.PunishmentManager
 import dev.slne.surf.cloud.core.common.util.bean
@@ -22,24 +20,22 @@ import org.springframework.context.SmartLifecycle
 import org.springframework.core.annotation.AnnotationAwareOrderComparator
 import org.springframework.core.annotation.Order
 import org.springframework.stereotype.Component
+import java.util.concurrent.CopyOnWriteArrayList
 
 @AutoService(CloudPlayerPunishmentManagerBridge::class)
 class CloudPlayerPunishmentManagerBridgeImpl : CloudPlayerPunishmentManagerBridge {
-    val loginValidations = mutableObjectListOf<PunishmentLoginValidation>().synchronize()
+    val loginValidations = CopyOnWriteArrayList<PunishmentLoginValidation>()
 
     override fun registerLoginValidation(check: PunishmentLoginValidation) {
-        if (loginValidations.contains(check)) return
-        loginValidations.add(check)
-        AnnotationAwareOrderComparator.sort(loginValidations)
+        if (loginValidations.addIfAbsent(check)) {
+            AnnotationAwareOrderComparator.sort(loginValidations)
+        }
     }
 
     fun registerLoginValidations(loginValidations: Collection<PunishmentLoginValidation>) {
-        for (validation in loginValidations) {
-            if (!this.loginValidations.contains(validation)) {
-                this.loginValidations.add(validation)
-            }
+        if (this.loginValidations.addAllAbsent(loginValidations) > 0) {
+            AnnotationAwareOrderComparator.sort(this.loginValidations)
         }
-        AnnotationAwareOrderComparator.sort(this.loginValidations)
     }
 
     override fun unregisterLoginValidation(check: PunishmentLoginValidation) {

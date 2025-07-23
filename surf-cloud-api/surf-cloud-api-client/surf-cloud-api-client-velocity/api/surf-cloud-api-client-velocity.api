@@ -1,0 +1,4 @@
+public final class dev/slne/surf/cloud/api/client/velocity/server/VelocityCloudServeExtensionsKt {
+	public static final fun toRegisteredServer (Ldev/slne/surf/cloud/api/common/server/CloudServer;Lcom/velocitypowered/api/proxy/ProxyServer;)Lcom/velocitypowered/api/proxy/server/RegisteredServer;
+}
+

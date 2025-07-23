@@ -35,10 +35,10 @@ public final class dev/slne/surf/cloud/api/server/command/CommandException$Compa
 
 public abstract interface class dev/slne/surf/cloud/api/server/command/CommandResultCallback {
 	public static final field Companion Ldev/slne/surf/cloud/api/server/command/CommandResultCallback$Companion;
-	public abstract fun onFailure ()V
+	public fun onFailure ()V
 	public abstract fun onResult (ZI)V
-	public abstract fun onSuccess (I)V
-	public abstract fun plus (Ldev/slne/surf/cloud/api/server/command/CommandResultCallback;)Ldev/slne/surf/cloud/api/server/command/CommandResultCallback;
+	public fun onSuccess (I)V
+	public fun plus (Ldev/slne/surf/cloud/api/server/command/CommandResultCallback;)Ldev/slne/surf/cloud/api/server/command/CommandResultCallback;
 }
 
 public final class dev/slne/surf/cloud/api/server/command/CommandResultCallback$Companion {
@@ -75,17 +75,23 @@ public abstract interface class dev/slne/surf/cloud/api/server/command/ConsoleCo
 }
 
 public final class dev/slne/surf/cloud/api/server/command/ConsoleCommandKt {
+	public static final fun argument (Ldev/slne/surf/cloud/api/server/command/ConsoleCommand;Ljava/lang/String;Lcom/mojang/brigadier/arguments/ArgumentType;Lkotlin/jvm/functions/Function1;)Lcom/mojang/brigadier/builder/RequiredArgumentBuilder;
+	public static synthetic fun argument$default (Ldev/slne/surf/cloud/api/server/command/ConsoleCommand;Ljava/lang/String;Lcom/mojang/brigadier/arguments/ArgumentType;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lcom/mojang/brigadier/builder/RequiredArgumentBuilder;
 	public static final fun literal (Ldev/slne/surf/cloud/api/server/command/ConsoleCommand;Ljava/lang/String;Lkotlin/jvm/functions/Function1;)Lcom/mojang/brigadier/builder/LiteralArgumentBuilder;
 	public static synthetic fun literal$default (Ldev/slne/surf/cloud/api/server/command/ConsoleCommand;Ljava/lang/String;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lcom/mojang/brigadier/builder/LiteralArgumentBuilder;
+	public static final fun then (Lcom/mojang/brigadier/builder/ArgumentBuilder;Ljava/lang/String;Lcom/mojang/brigadier/arguments/ArgumentType;Lkotlin/jvm/functions/Function1;)Lcom/mojang/brigadier/builder/ArgumentBuilder;
+	public static final fun then (Lcom/mojang/brigadier/builder/ArgumentBuilder;Ljava/lang/String;Lkotlin/jvm/functions/Function1;)Lcom/mojang/brigadier/builder/ArgumentBuilder;
+	public static synthetic fun then$default (Lcom/mojang/brigadier/builder/ArgumentBuilder;Ljava/lang/String;Lcom/mojang/brigadier/arguments/ArgumentType;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lcom/mojang/brigadier/builder/ArgumentBuilder;
+	public static synthetic fun then$default (Lcom/mojang/brigadier/builder/ArgumentBuilder;Ljava/lang/String;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lcom/mojang/brigadier/builder/ArgumentBuilder;
 }
 
 public abstract interface class dev/slne/surf/cloud/api/server/command/ExecutionCommandSource {
 	public static final field Companion Ldev/slne/surf/cloud/api/server/command/ExecutionCommandSource$Companion;
-	public abstract fun clearCallbacks ()Ldev/slne/surf/cloud/api/server/command/ExecutionCommandSource;
+	public fun clearCallbacks ()Ldev/slne/surf/cloud/api/server/command/ExecutionCommandSource;
 	public abstract fun getCallback ()Ldev/slne/surf/cloud/api/server/command/CommandResultCallback;
 	public abstract fun getSilent ()Z
 	public abstract fun handleError (Lcom/mojang/brigadier/exceptions/CommandExceptionType;Lnet/kyori/adventure/text/Component;Z)V
-	public abstract fun handleError (Lcom/mojang/brigadier/exceptions/CommandSyntaxException;Z)V
+	public fun handleError (Lcom/mojang/brigadier/exceptions/CommandSyntaxException;Z)V
 	public abstract fun withCallback (Ldev/slne/surf/cloud/api/server/command/CommandResultCallback;)Ldev/slne/surf/cloud/api/server/command/ExecutionCommandSource;
 }
 
@@ -122,7 +128,7 @@ public final class dev/slne/surf/cloud/api/server/export/RootExportPlayerData : 
 	public fun toString ()Ljava/lang/String;
 }
 
-public synthetic class dev/slne/surf/cloud/api/server/export/RootExportPlayerData$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+public final synthetic class dev/slne/surf/cloud/api/server/export/RootExportPlayerData$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
 	public static final field INSTANCE Ldev/slne/surf/cloud/api/server/export/RootExportPlayerData$$serializer;
 	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
 	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ldev/slne/surf/cloud/api/server/export/RootExportPlayerData;
@@ -130,6 +136,7 @@ public synthetic class dev/slne/surf/cloud/api/server/export/RootExportPlayerDat
 	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
 	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Ldev/slne/surf/cloud/api/server/export/RootExportPlayerData;)V
 	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
 }
 
 public final class dev/slne/surf/cloud/api/server/export/RootExportPlayerData$Companion {
@@ -178,6 +185,17 @@ public final class dev/slne/surf/cloud/api/server/exposed/columns/InetAddressCol
 	public static final fun inet (Lorg/jetbrains/exposed/sql/Table;Ljava/lang/String;)Lorg/jetbrains/exposed/sql/Column;
 }
 
+public final class dev/slne/surf/cloud/api/server/exposed/columns/NativeUuidColumnType : org/jetbrains/exposed/sql/ColumnType {
+	public fun <init> ()V
+	public fun sqlType ()Ljava/lang/String;
+	public synthetic fun valueFromDB (Ljava/lang/Object;)Ljava/lang/Object;
+	public fun valueFromDB (Ljava/lang/Object;)Ljava/util/UUID;
+}
+
+public final class dev/slne/surf/cloud/api/server/exposed/columns/NativeUuidColumnTypeKt {
+	public static final fun nativeUuid (Lorg/jetbrains/exposed/sql/Table;Ljava/lang/String;)Lorg/jetbrains/exposed/sql/Column;
+}
+
 public final class dev/slne/surf/cloud/api/server/exposed/columns/ZonedDateTimeColumnType : org/jetbrains/exposed/sql/ColumnType, org/jetbrains/exposed/sql/IDateColumnType {
 	public static final field Companion Ldev/slne/surf/cloud/api/server/exposed/columns/ZonedDateTimeColumnType$Companion;
 	public fun <init> ()V
@@ -202,6 +220,7 @@ public final class dev/slne/surf/cloud/api/server/exposed/columns/ZonedDateTimeC
 }
 
 public abstract class dev/slne/surf/cloud/api/server/exposed/service/AbstractExposedDAOService {
+	public field applicationContext Lorg/springframework/context/ApplicationContext;
 	public fun <init> ()V
 	public fun <init> (Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/CoroutineContext;)V
 	public synthetic fun <init> (Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/CoroutineContext;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
@@ -209,11 +228,13 @@ public abstract class dev/slne/surf/cloud/api/server/exposed/service/AbstractExp
 	protected final fun evict (Ljava/lang/Object;)V
 	protected final fun find (Ljava/lang/Object;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	protected final fun find (Ljava/lang/Object;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun getApplicationContext ()Lorg/springframework/context/ApplicationContext;
 	protected final fun getCache ()Lcom/sksamuel/aedile/core/LoadingCache;
+	protected final fun getSelf ()Ldev/slne/surf/cloud/api/server/exposed/service/AbstractExposedDAOService;
 	protected abstract fun load (Ljava/lang/Object;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun setApplicationContext (Lorg/springframework/context/ApplicationContext;)V
 	protected final fun update (Ljava/lang/Object;ZLkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun update$default (Ldev/slne/surf/cloud/api/server/exposed/service/AbstractExposedDAOService;Ljava/lang/Object;ZLkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
-	protected final fun withTransaction (Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public abstract interface annotation class dev/slne/surf/cloud/api/server/exposed/service/DirectCacheAccess : java/lang/annotation/Annotation {
@@ -236,25 +257,6 @@ public class dev/slne/surf/cloud/api/server/exposed/table/AuditableLongIdTable :
 	public synthetic fun <init> (Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun getCreatedAt ()Lorg/jetbrains/exposed/sql/Column;
 	public final fun getUpdatedAt ()Lorg/jetbrains/exposed/sql/Column;
-}
-
-public abstract class dev/slne/surf/cloud/api/server/jpa/SurfAuditableEntity : dev/slne/surf/cloud/api/server/jpa/SurfEntity {
-	public fun <init> ()V
-	public fun getCreatedDate ()Ljava/time/ZonedDateTime;
-	public fun getLastModifiedDate ()Ljava/time/ZonedDateTime;
-	public fun setCreatedDate (Ljava/time/ZonedDateTime;)V
-	public fun setLastModifiedDate (Ljava/time/ZonedDateTime;)V
-}
-
-public abstract class dev/slne/surf/cloud/api/server/jpa/SurfEntity : org/springframework/data/domain/Persistable {
-	public fun <init> ()V
-	public final fun equals (Ljava/lang/Object;)Z
-	public fun getId ()Ljava/lang/Long;
-	public synthetic fun getId ()Ljava/lang/Object;
-	public final fun hashCode ()I
-	public fun isNew ()Z
-	public fun setId (Ljava/lang/Long;)V
-	public fun toString ()Ljava/lang/String;
 }
 
 public abstract class dev/slne/surf/cloud/api/server/jpa/service/AbstractSpringJpaService {
@@ -281,21 +283,69 @@ public abstract interface annotation class dev/slne/surf/cloud/api/server/meta/S
 	public abstract fun value ()Ljava/lang/String;
 }
 
+public final class dev/slne/surf/cloud/api/server/netty/packet/NettyPacketServerExtensionsKt {
+	public static final fun broadcast (Ldev/slne/surf/cloud/api/common/netty/packet/NettyPacket;)V
+}
+
 public abstract interface annotation class dev/slne/surf/cloud/api/server/plugin/AdditionalStandaloneConfiguration : java/lang/annotation/Annotation {
 }
 
-public class dev/slne/surf/cloud/api/server/plugin/JpaAuditingConfiguration {
-	public fun <init> ()V
-	public fun auditingDateTimeProvider ()Lorg/springframework/data/auditing/DateTimeProvider;
+public abstract interface annotation class dev/slne/surf/cloud/api/server/plugin/CoroutineTransactional : java/lang/annotation/Annotation {
+	public abstract fun readOnly ()Ldev/slne/surf/cloud/api/server/plugin/CoroutineTransactional$ReadOnly;
+	public abstract fun transactionIsolation ()I
+	public abstract fun transactionManager ()Ljava/lang/String;
+}
+
+public final class dev/slne/surf/cloud/api/server/plugin/CoroutineTransactional$ReadOnly : java/lang/Enum {
+	public static final field DEFAULT Ldev/slne/surf/cloud/api/server/plugin/CoroutineTransactional$ReadOnly;
+	public static final field FALSE Ldev/slne/surf/cloud/api/server/plugin/CoroutineTransactional$ReadOnly;
+	public static final field TRUE Ldev/slne/surf/cloud/api/server/plugin/CoroutineTransactional$ReadOnly;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public final fun getValue ()Ljava/lang/Boolean;
+	public static fun valueOf (Ljava/lang/String;)Ldev/slne/surf/cloud/api/server/plugin/CoroutineTransactional$ReadOnly;
+	public static fun values ()[Ldev/slne/surf/cloud/api/server/plugin/CoroutineTransactional$ReadOnly;
+}
+
+public abstract interface class dev/slne/surf/cloud/api/server/plugin/CoroutineTransactional$ScopeProvider {
+	public abstract fun getCurrentScope ()Lkotlinx/coroutines/CoroutineScope;
+}
+
+public class dev/slne/surf/cloud/api/server/plugin/CoroutineTransactionalAspect : org/aopalliance/aop/Advice, org/springframework/core/PriorityOrdered {
+	public fun <init> (Lorg/springframework/context/ApplicationContext;)V
+	public fun getOrder ()I
+	public fun wrapSuspendTx (Lorg/aspectj/lang/ProceedingJoinPoint;)Ljava/lang/Object;
 }
 
 public abstract interface class dev/slne/surf/cloud/api/server/plugin/KtorPlugin {
-	public abstract fun configure (Lio/ktor/server/application/Application;)Lkotlin/jvm/functions/Function0;
+	public fun configure (Lio/ktor/server/application/Application;)Lkotlin/jvm/functions/Function0;
 	public abstract fun installRoutes (Lio/ktor/server/routing/Routing;)V
 }
 
 public final class dev/slne/surf/cloud/api/server/plugin/KtorPlugin$DefaultImpls {
 	public static fun configure (Ldev/slne/surf/cloud/api/server/plugin/KtorPlugin;Lio/ktor/server/application/Application;)Lkotlin/jvm/functions/Function0;
+}
+
+public class dev/slne/surf/cloud/api/server/plugin/LoadTimeWeavingConfiguration : org/springframework/context/annotation/LoadTimeWeavingConfigurer {
+	public fun <init> (Lorg/springframework/context/ApplicationContext;)V
+	public fun getLoadTimeWeaver ()Lorg/springframework/instrument/classloading/LoadTimeWeaver;
+	public fun getWeaver ()Ldev/slne/surf/cloud/api/server/plugin/LoadTimeWeavingConfiguration$LoadTimeWeaverImpl;
+}
+
+public final class dev/slne/surf/cloud/api/server/plugin/LoadTimeWeavingConfiguration$LoadTimeWeaverImpl : org/springframework/instrument/classloading/LoadTimeWeaver {
+	public static final field Companion Ldev/slne/surf/cloud/api/server/plugin/LoadTimeWeavingConfiguration$LoadTimeWeaverImpl$Companion;
+	public fun <init> (Ljava/lang/instrument/Instrumentation;Ljava/lang/ClassLoader;Ljava/util/List;)V
+	public fun addTransformer (Ljava/lang/instrument/ClassFileTransformer;)V
+	public fun getInstrumentableClassLoader ()Ljava/lang/ClassLoader;
+	public fun getThrowawayClassLoader ()Ljava/lang/ClassLoader;
+}
+
+public final class dev/slne/surf/cloud/api/server/plugin/LoadTimeWeavingConfiguration$LoadTimeWeaverImpl$Companion {
+	public final fun getInstrumentation ()Ljava/lang/instrument/Instrumentation;
+}
+
+public final class dev/slne/surf/cloud/api/server/plugin/LoadTimeWeavingConfiguration$LoadTimeWeaverImpl$FilteringClassFileTransformer : java/lang/instrument/ClassFileTransformer {
+	public fun <init> (Ljava/lang/instrument/ClassFileTransformer;Ljava/lang/ClassLoader;Ljava/util/List;)V
+	public fun transform (Ljava/lang/ClassLoader;Ljava/lang/String;Ljava/lang/Class;Ljava/security/ProtectionDomain;[B)[B
 }
 
 public abstract interface class dev/slne/surf/cloud/api/server/plugin/PluginManager {
@@ -335,12 +385,11 @@ public abstract class dev/slne/surf/cloud/api/server/plugin/StandalonePlugin : n
 }
 
 public final class dev/slne/surf/cloud/api/server/plugin/StandalonePlugin$Companion {
+	public final fun getPluginMeta (Ljava/lang/ClassLoader;)Ldev/slne/surf/cloud/api/server/plugin/configuration/PluginMeta;
 }
 
 public class dev/slne/surf/cloud/api/server/plugin/TransactionConfiguration {
 	public fun <init> ()V
-	public fun transactionOperations (Lorg/springframework/transaction/PlatformTransactionManager;)Lorg/springframework/transaction/support/TransactionOperations;
-	public fun txManager (Ljavax/sql/DataSource;)Lorg/springframework/jdbc/datasource/DataSourceTransactionManager;
 }
 
 public abstract interface class dev/slne/surf/cloud/api/server/plugin/bootstrap/BootstrapContext : dev/slne/surf/cloud/api/server/plugin/bootstrap/StandalonePluginProviderContext {
@@ -348,7 +397,7 @@ public abstract interface class dev/slne/surf/cloud/api/server/plugin/bootstrap/
 
 public abstract interface class dev/slne/surf/cloud/api/server/plugin/bootstrap/StandalonePluginBootstrap {
 	public abstract fun bootstrap (Ldev/slne/surf/cloud/api/server/plugin/bootstrap/BootstrapContext;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public abstract fun createPlugin (Ldev/slne/surf/cloud/api/server/plugin/bootstrap/StandalonePluginProviderContext;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun createPlugin (Ldev/slne/surf/cloud/api/server/plugin/bootstrap/StandalonePluginProviderContext;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class dev/slne/surf/cloud/api/server/plugin/bootstrap/StandalonePluginBootstrap$DefaultImpls {
@@ -365,7 +414,8 @@ public abstract interface class dev/slne/surf/cloud/api/server/plugin/configurat
 	public abstract fun getAuthors ()Ljava/util/Set;
 	public abstract fun getContributors ()Ljava/util/Set;
 	public abstract fun getDescription ()Ljava/lang/String;
-	public abstract fun getDisplayName ()Ljava/lang/String;
+	public fun getDisplayName ()Ljava/lang/String;
+	public abstract fun getFlywayTableName ()Ljava/lang/String;
 	public abstract fun getLoadBefore ()Ljava/util/Set;
 	public abstract fun getMain ()Ljava/lang/String;
 	public abstract fun getName ()Ljava/lang/String;
@@ -435,35 +485,131 @@ public final class dev/slne/surf/cloud/api/server/plugin/provider/classloader/Sp
 	public final fun getInstance ()Ldev/slne/surf/cloud/api/server/plugin/provider/classloader/SpringPluginClassloaderStorage;
 }
 
+public final class dev/slne/surf/cloud/api/server/plugin/utils/Plugin_utilsKt {
+	public static final fun bean (Ljava/lang/Class;)Ljava/lang/Object;
+	public static final fun bean (Ljava/lang/Class;Ldev/slne/surf/cloud/api/server/plugin/provider/classloader/SpringPluginClassloader;)Ljava/lang/Object;
+	public static final fun currentDb (Ldev/slne/surf/cloud/api/server/plugin/provider/classloader/SpringPluginClassloader;)Lorg/jetbrains/exposed/sql/Database;
+	public static final fun getContext ()Lorg/springframework/context/ConfigurableApplicationContext;
+	public static final fun getCurrentContext ()Lorg/springframework/context/ConfigurableApplicationContext;
+	public static final fun getCurrentDb ()Lorg/jetbrains/exposed/sql/Database;
+	public static final fun pluginContext (Ldev/slne/surf/cloud/api/server/plugin/provider/classloader/SpringPluginClassloader;)Lorg/springframework/context/ConfigurableApplicationContext;
+}
+
+public abstract interface class dev/slne/surf/cloud/api/server/queue/BaseQueue : net/kyori/adventure/text/ComponentLike {
+	public abstract fun dequeue (Ljava/util/UUID;Ldev/slne/surf/cloud/api/common/player/ConnectionResultEnum;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun dequeue$default (Ldev/slne/surf/cloud/api/server/queue/BaseQueue;Ljava/util/UUID;Ldev/slne/surf/cloud/api/common/player/ConnectionResultEnum;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public abstract fun getOnline ()Z
+	public abstract fun getQueueName (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun getSuspended ()Z
+	public abstract fun isQueued (Ljava/util/UUID;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun peek (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun setSuspended (Z)V
+	public abstract fun size (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class dev/slne/surf/cloud/api/server/queue/BaseQueue$DefaultImpls {
+	public static synthetic fun dequeue$default (Ldev/slne/surf/cloud/api/server/queue/BaseQueue;Ljava/util/UUID;Ldev/slne/surf/cloud/api/common/player/ConnectionResultEnum;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+}
+
+public abstract interface class dev/slne/surf/cloud/api/server/queue/GroupQueue : dev/slne/surf/cloud/api/server/queue/BaseQueue {
+	public abstract fun getGroup ()Ljava/lang/String;
+}
+
+public abstract interface class dev/slne/surf/cloud/api/server/queue/QueueEntry : java/lang/Comparable {
+	public abstract fun getAwaitingConnection ()Z
+	public abstract fun getBypassFull ()Z
+	public abstract fun getBypassQueue ()Z
+	public abstract fun getConnectionAttempts ()I
+	public abstract fun getPreferredServerUid ()Ljava/lang/Long;
+	public abstract fun getPriority ()I
+	public abstract fun getUuid ()Ljava/util/UUID;
+	public abstract fun hasConnectionAttemptsLeft ()Z
+}
+
+public abstract interface class dev/slne/surf/cloud/api/server/queue/QueueManager {
+	public static final field Companion Ldev/slne/surf/cloud/api/server/queue/QueueManager$Companion;
+	public abstract fun dequeueEverywhere (Ljava/util/UUID;Ldev/slne/surf/cloud/api/common/player/ConnectionResultEnum;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun getGroupQueue (Ljava/lang/String;)V
+	public abstract fun getQueuePriority (Ldev/slne/surf/cloud/api/common/player/CloudPlayer;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun getQueueTimoutTime (Ldev/slne/surf/cloud/api/common/player/CloudPlayer;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun getServerQueue (Ldev/slne/surf/cloud/api/common/server/CloudServer;)V
+}
+
+public final class dev/slne/surf/cloud/api/server/queue/QueueManager$Companion : dev/slne/surf/cloud/api/server/queue/QueueManager {
+	public fun dequeueEverywhere (Ljava/util/UUID;Ldev/slne/surf/cloud/api/common/player/ConnectionResultEnum;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun getGroupQueue (Ljava/lang/String;)V
+	public fun getQueuePriority (Ldev/slne/surf/cloud/api/common/player/CloudPlayer;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun getQueueTimoutTime (Ldev/slne/surf/cloud/api/common/player/CloudPlayer;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun getServerQueue (Ldev/slne/surf/cloud/api/common/server/CloudServer;)V
+}
+
+public abstract interface class dev/slne/surf/cloud/api/server/queue/QueueMetrics {
+	public static final field Companion Ldev/slne/surf/cloud/api/server/queue/QueueMetrics$Companion;
+	public abstract fun dequeued ()D
+	public abstract fun enqueued ()D
+}
+
+public final class dev/slne/surf/cloud/api/server/queue/QueueMetrics$Companion : dev/slne/surf/cloud/api/server/queue/QueueMetrics {
+	public fun dequeued ()D
+	public fun enqueued ()D
+}
+
+public abstract interface class dev/slne/surf/cloud/api/server/queue/ServerQueue : dev/slne/surf/cloud/api/server/queue/BaseQueue {
+	public abstract fun getServerUid ()J
+	public fun server (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class dev/slne/surf/cloud/api/server/queue/ServerQueue$DefaultImpls {
+	public static fun server (Ldev/slne/surf/cloud/api/server/queue/ServerQueue;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
 public abstract interface class dev/slne/surf/cloud/api/server/server/ServerCloudServer : dev/slne/surf/cloud/api/common/server/CloudServer, dev/slne/surf/cloud/api/server/server/ServerCommonCloudServer {
+	public abstract fun getExpectedPlayers ()I
 }
 
 public final class dev/slne/surf/cloud/api/server/server/ServerCloudServer$DefaultImpls {
+	public static fun getDisplayName (Ldev/slne/surf/cloud/api/server/server/ServerCloudServer;)Ljava/lang/String;
 	public static fun getEmptySlots (Ldev/slne/surf/cloud/api/server/server/ServerCloudServer;)I
 	public static fun hasEmptySlots (Ldev/slne/surf/cloud/api/server/server/ServerCloudServer;)Z
 }
 
 public abstract interface class dev/slne/surf/cloud/api/server/server/ServerCloudServerManager : dev/slne/surf/cloud/api/common/server/CloudServerManager {
 	public static final field Companion Ldev/slne/surf/cloud/api/server/server/ServerCloudServerManager$Companion;
-	public abstract fun retrieveServerByCategoryAndName (Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public abstract fun retrieveServerById (JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public abstract fun retrieveServerByName (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public abstract fun retrieveServersByCategory (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun broadcast (Ldev/slne/surf/cloud/api/common/netty/packet/NettyPacket;)V
+	public abstract fun retrieveAllServers ()Lit/unimi/dsi/fastutil/objects/ObjectCollection;
+	public abstract fun retrieveProxies ()Lit/unimi/dsi/fastutil/objects/ObjectCollection;
+	public abstract fun retrieveServerByCategoryAndName (Ljava/lang/String;Ljava/lang/String;)Ldev/slne/surf/cloud/api/server/server/ServerCommonCloudServer;
+	public abstract fun retrieveServerById (J)Ldev/slne/surf/cloud/api/common/server/CommonCloudServer;
+	public abstract fun retrieveServerByName (Ljava/lang/String;)Ldev/slne/surf/cloud/api/server/server/ServerCommonCloudServer;
+	public abstract fun retrieveServers ()Lit/unimi/dsi/fastutil/objects/ObjectCollection;
+	public abstract fun retrieveServersByCategory (Ljava/lang/String;)Lit/unimi/dsi/fastutil/objects/ObjectList;
+	public abstract fun retrieveServersInGroup (Ljava/lang/String;)Lit/unimi/dsi/fastutil/objects/ObjectList;
 }
 
-public final class dev/slne/surf/cloud/api/server/server/ServerCloudServerManager$Companion {
-	public final fun getInstance ()Ldev/slne/surf/cloud/api/server/server/ServerCloudServerManager;
-}
-
-public final class dev/slne/surf/cloud/api/server/server/ServerCloudServerManagerKt {
-	public static final fun getServerServerManager ()Ldev/slne/surf/cloud/api/server/server/ServerCloudServerManager;
+public final class dev/slne/surf/cloud/api/server/server/ServerCloudServerManager$Companion : dev/slne/surf/cloud/api/server/server/ServerCloudServerManager {
+	public fun broadcast (Ldev/slne/surf/cloud/api/common/netty/packet/NettyPacket;)V
+	public fun broadcast (Lnet/kyori/adventure/text/Component;Ljava/lang/String;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun broadcastToGroup (Ljava/lang/String;Lnet/kyori/adventure/text/Component;Ljava/lang/String;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun pullPlayersToGroup (Ljava/lang/String;Ljava/util/Collection;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun retrieveAllServers ()Lit/unimi/dsi/fastutil/objects/ObjectCollection;
+	public fun retrieveProxies ()Lit/unimi/dsi/fastutil/objects/ObjectCollection;
+	public synthetic fun retrieveServerByCategoryAndName (Ljava/lang/String;Ljava/lang/String;)Ldev/slne/surf/cloud/api/common/server/CommonCloudServer;
+	public fun retrieveServerByCategoryAndName (Ljava/lang/String;Ljava/lang/String;)Ldev/slne/surf/cloud/api/server/server/ServerCommonCloudServer;
+	public fun retrieveServerById (J)Ldev/slne/surf/cloud/api/common/server/CommonCloudServer;
+	public synthetic fun retrieveServerByName (Ljava/lang/String;)Ldev/slne/surf/cloud/api/common/server/CommonCloudServer;
+	public fun retrieveServerByName (Ljava/lang/String;)Ldev/slne/surf/cloud/api/server/server/ServerCommonCloudServer;
+	public fun retrieveServers ()Lit/unimi/dsi/fastutil/objects/ObjectCollection;
+	public fun retrieveServersByCategory (Ljava/lang/String;)Lit/unimi/dsi/fastutil/objects/ObjectList;
+	public fun retrieveServersInGroup (Ljava/lang/String;)Lit/unimi/dsi/fastutil/objects/ObjectList;
 }
 
 public abstract interface class dev/slne/surf/cloud/api/server/server/ServerCommonCloudServer : dev/slne/surf/cloud/api/common/server/CommonCloudServer {
 	public abstract fun getConnection ()Ldev/slne/surf/cloud/api/common/netty/network/Connection;
+	public fun getDisplayName ()Ljava/lang/String;
 }
 
 public final class dev/slne/surf/cloud/api/server/server/ServerCommonCloudServer$DefaultImpls {
+	public static fun getDisplayName (Ldev/slne/surf/cloud/api/server/server/ServerCommonCloudServer;)Ljava/lang/String;
 	public static fun getEmptySlots (Ldev/slne/surf/cloud/api/server/server/ServerCommonCloudServer;)I
 	public static fun hasEmptySlots (Ldev/slne/surf/cloud/api/server/server/ServerCommonCloudServer;)Z
 }
@@ -472,6 +618,7 @@ public abstract interface class dev/slne/surf/cloud/api/server/server/ServerProx
 }
 
 public final class dev/slne/surf/cloud/api/server/server/ServerProxyCloudServer$DefaultImpls {
+	public static fun getDisplayName (Ldev/slne/surf/cloud/api/server/server/ServerProxyCloudServer;)Ljava/lang/String;
 	public static fun getEmptySlots (Ldev/slne/surf/cloud/api/server/server/ServerProxyCloudServer;)I
 	public static fun hasEmptySlots (Ldev/slne/surf/cloud/api/server/server/ServerProxyCloudServer;)Z
 }

@@ -7,6 +7,66 @@ public final class dev/slne/surf/cloud/api/client/paper/Paper_cloud_converterKt 
 	public static final fun toLocation (Ldev/slne/surf/cloud/api/common/player/teleport/TeleportLocation;)Lorg/bukkit/Location;
 }
 
+public final class dev/slne/surf/cloud/api/client/paper/command/args/CloudServerArgument : dev/jorel/commandapi/arguments/CustomArgument {
+	public fun <init> (Ljava/lang/String;)V
+}
+
+public final class dev/slne/surf/cloud/api/client/paper/command/args/CloudServerArgumentKt {
+	public static final fun cloudServerArgument (Ldev/jorel/commandapi/CommandAPICommand;Ljava/lang/String;ZLkotlin/jvm/functions/Function1;)Ldev/jorel/commandapi/CommandAPICommand;
+	public static final fun cloudServerArgument (Ldev/jorel/commandapi/CommandTree;Ljava/lang/String;ZLkotlin/jvm/functions/Function1;)Ldev/jorel/commandapi/CommandTree;
+	public static final fun cloudServerArgument (Ldev/jorel/commandapi/arguments/Argument;Ljava/lang/String;ZLkotlin/jvm/functions/Function1;)Ldev/jorel/commandapi/arguments/Argument;
+	public static synthetic fun cloudServerArgument$default (Ldev/jorel/commandapi/CommandAPICommand;Ljava/lang/String;ZLkotlin/jvm/functions/Function1;ILjava/lang/Object;)Ldev/jorel/commandapi/CommandAPICommand;
+	public static synthetic fun cloudServerArgument$default (Ldev/jorel/commandapi/CommandTree;Ljava/lang/String;ZLkotlin/jvm/functions/Function1;ILjava/lang/Object;)Ldev/jorel/commandapi/CommandTree;
+	public static synthetic fun cloudServerArgument$default (Ldev/jorel/commandapi/arguments/Argument;Ljava/lang/String;ZLkotlin/jvm/functions/Function1;ILjava/lang/Object;)Ldev/jorel/commandapi/arguments/Argument;
+}
+
+public final class dev/slne/surf/cloud/api/client/paper/command/args/CloudServerGroupArgument : dev/jorel/commandapi/arguments/CustomArgument {
+	public static final field Companion Ldev/slne/surf/cloud/api/client/paper/command/args/CloudServerGroupArgument$Companion;
+	public fun <init> (Ljava/lang/String;)V
+}
+
+public final class dev/slne/surf/cloud/api/client/paper/command/args/CloudServerGroupArgument$Companion {
+}
+
+public final class dev/slne/surf/cloud/api/client/paper/command/args/CloudServerGroupArgumentKt {
+	public static final fun cloudServerGroupArgument (Ldev/jorel/commandapi/CommandAPICommand;Ljava/lang/String;ZLkotlin/jvm/functions/Function1;)Ldev/jorel/commandapi/CommandAPICommand;
+	public static final fun cloudServerGroupArgument (Ldev/jorel/commandapi/CommandTree;Ljava/lang/String;ZLkotlin/jvm/functions/Function1;)Ldev/jorel/commandapi/CommandTree;
+	public static final fun cloudServerGroupArgument (Ldev/jorel/commandapi/arguments/Argument;Ljava/lang/String;ZLkotlin/jvm/functions/Function1;)Ldev/jorel/commandapi/arguments/Argument;
+	public static synthetic fun cloudServerGroupArgument$default (Ldev/jorel/commandapi/CommandAPICommand;Ljava/lang/String;ZLkotlin/jvm/functions/Function1;ILjava/lang/Object;)Ldev/jorel/commandapi/CommandAPICommand;
+	public static synthetic fun cloudServerGroupArgument$default (Ldev/jorel/commandapi/CommandTree;Ljava/lang/String;ZLkotlin/jvm/functions/Function1;ILjava/lang/Object;)Ldev/jorel/commandapi/CommandTree;
+	public static synthetic fun cloudServerGroupArgument$default (Ldev/jorel/commandapi/arguments/Argument;Ljava/lang/String;ZLkotlin/jvm/functions/Function1;ILjava/lang/Object;)Ldev/jorel/commandapi/arguments/Argument;
+}
+
+public final class dev/slne/surf/cloud/api/client/paper/command/args/OfflineCloudPlayerArgument : dev/jorel/commandapi/arguments/CustomArgument {
+	public static final field Companion Ldev/slne/surf/cloud/api/client/paper/command/args/OfflineCloudPlayerArgument$Companion;
+	public fun <init> (Ljava/lang/String;)V
+}
+
+public final class dev/slne/surf/cloud/api/client/paper/command/args/OfflineCloudPlayerArgument$Companion {
+}
+
+public final class dev/slne/surf/cloud/api/client/paper/command/args/OfflineCloudPlayerArgumentKt {
+	public static final fun offlineCloudPlayerArgument (Ldev/jorel/commandapi/CommandAPICommand;Ljava/lang/String;ZLkotlin/jvm/functions/Function1;)Ldev/jorel/commandapi/CommandAPICommand;
+	public static final fun offlineCloudPlayerArgument (Ldev/jorel/commandapi/CommandTree;Ljava/lang/String;ZLkotlin/jvm/functions/Function1;)Ldev/jorel/commandapi/CommandTree;
+	public static final fun offlineCloudPlayerArgument (Ldev/jorel/commandapi/arguments/Argument;Ljava/lang/String;ZLkotlin/jvm/functions/Function1;)Ldev/jorel/commandapi/arguments/Argument;
+	public static synthetic fun offlineCloudPlayerArgument$default (Ldev/jorel/commandapi/CommandAPICommand;Ljava/lang/String;ZLkotlin/jvm/functions/Function1;ILjava/lang/Object;)Ldev/jorel/commandapi/CommandAPICommand;
+	public static synthetic fun offlineCloudPlayerArgument$default (Ldev/jorel/commandapi/CommandTree;Ljava/lang/String;ZLkotlin/jvm/functions/Function1;ILjava/lang/Object;)Ldev/jorel/commandapi/CommandTree;
+	public static synthetic fun offlineCloudPlayerArgument$default (Ldev/jorel/commandapi/arguments/Argument;Ljava/lang/String;ZLkotlin/jvm/functions/Function1;ILjava/lang/Object;)Ldev/jorel/commandapi/arguments/Argument;
+}
+
+public final class dev/slne/surf/cloud/api/client/paper/command/args/OnlineCloudPlayerArgument : dev/jorel/commandapi/arguments/CustomArgument {
+	public fun <init> (Ljava/lang/String;)V
+}
+
+public final class dev/slne/surf/cloud/api/client/paper/command/args/OnlineCloudPlayerArgumentKt {
+	public static final fun onlineCloudPlayerArgument (Ldev/jorel/commandapi/CommandAPICommand;Ljava/lang/String;ZLkotlin/jvm/functions/Function1;)Ldev/jorel/commandapi/CommandAPICommand;
+	public static final fun onlineCloudPlayerArgument (Ldev/jorel/commandapi/CommandTree;Ljava/lang/String;ZLkotlin/jvm/functions/Function1;)Ldev/jorel/commandapi/CommandTree;
+	public static final fun onlineCloudPlayerArgument (Ldev/jorel/commandapi/arguments/Argument;Ljava/lang/String;ZLkotlin/jvm/functions/Function1;)Ldev/jorel/commandapi/arguments/Argument;
+	public static synthetic fun onlineCloudPlayerArgument$default (Ldev/jorel/commandapi/CommandAPICommand;Ljava/lang/String;ZLkotlin/jvm/functions/Function1;ILjava/lang/Object;)Ldev/jorel/commandapi/CommandAPICommand;
+	public static synthetic fun onlineCloudPlayerArgument$default (Ldev/jorel/commandapi/CommandTree;Ljava/lang/String;ZLkotlin/jvm/functions/Function1;ILjava/lang/Object;)Ldev/jorel/commandapi/CommandTree;
+	public static synthetic fun onlineCloudPlayerArgument$default (Ldev/jorel/commandapi/arguments/Argument;Ljava/lang/String;ZLkotlin/jvm/functions/Function1;ILjava/lang/Object;)Ldev/jorel/commandapi/arguments/Argument;
+}
+
 public final class dev/slne/surf/cloud/api/client/paper/player/CloudPlayerBukkitExtensionsKt {
 	public static final fun teleport (Ldev/slne/surf/cloud/api/common/player/CloudPlayer;Lorg/bukkit/Location;Lorg/bukkit/event/player/PlayerTeleportEvent$TeleportCause;[Lio/papermc/paper/entity/TeleportFlag;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun teleport$default (Ldev/slne/surf/cloud/api/common/player/CloudPlayer;Lorg/bukkit/Location;Lorg/bukkit/event/player/PlayerTeleportEvent$TeleportCause;[Lio/papermc/paper/entity/TeleportFlag;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;

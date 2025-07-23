@@ -23,7 +23,7 @@ interface QueueTarget<Q : BaseQueue<Q>> {
             metrics: QueueMetricsImpl
         ): ServerQueueImpl = ServerQueueImpl(
             uid,
-            (serverManagerImpl.getServerByIdUnsafe(uid) as? StandaloneCloudServerImpl)?.group
+            (serverManagerImpl.retrieveServerById(uid) as? StandaloneCloudServerImpl)?.group
                 ?: CloudProperties.SERVER_CATEGORY_NOT_SET,
             queueRepo
         )

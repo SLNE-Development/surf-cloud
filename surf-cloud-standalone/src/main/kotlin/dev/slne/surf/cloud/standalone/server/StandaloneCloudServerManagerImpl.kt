@@ -26,9 +26,6 @@ import dev.slne.surf.cloud.standalone.player.StandaloneCloudPlayerImpl
 import dev.slne.surf.surfapi.core.api.util.logger
 import it.unimi.dsi.fastutil.objects.ObjectCollection
 import it.unimi.dsi.fastutil.objects.ObjectList
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.withLock
 import net.kyori.adventure.text.Component
 import org.jetbrains.annotations.Unmodifiable
 import java.util.*
@@ -40,44 +37,38 @@ class StandaloneCloudServerManagerImpl : CommonCloudServerManagerImpl<ServerComm
     private val log = logger()
     private val server by lazy { bean<NettyServerImpl>() }
 
-    suspend fun getCommonStandaloneServerByUid(uid: Long) =
+    fun getCommonStandaloneServerByUid(uid: Long) =
         retrieveServerById(uid) as? CommonStandaloneServer
 
-    fun getPingData() = servers.values.associate { it.name to it.connection.latency }
-    fun getAllServersUnsafe() = servers.values.toList()
+    fun getPingData() = serverCache.asMap().values.associate { it.name to it.connection.latency }
 
-    override suspend fun registerServer(cloudServer: ServerCommonCloudServer) {
-        super.registerServer(cloudServer)
+    override fun registerServer(server: ServerCommonCloudServer) {
+        super.registerServer(server)
         broadcast(
             ClientboundRegisterServerPacket(
-                cloudServer.uid,
-                cloudServer is ServerProxyCloudServer,
-                (cloudServer as? CloudServer)?.lobby ?: false,
-                cloudServer.group,
-                cloudServer.name,
-                cloudServer.playAddress,
+                server.uid,
+                server is ServerProxyCloudServer,
+                (server as? CloudServer)?.lobby ?: false,
+                server.group,
+                server.name,
+                server.playAddress,
             )
         )
 
-        coroutineScope {
-            launch {
-                try {
-                    CloudServerRegisteredEvent(this, cloudServer as CommonCloudServerImpl).post()
-                } catch (e: Exception) {
-                    log.atWarning()
-                        .log(
-                            "Failed to post CloudServerRegisteredEvent for server ${cloudServer.uid}",
-                            e
-                        )
-                }
-            }
+        try {
+            CloudServerRegisteredEvent(this, server as CommonCloudServerImpl).postAndForget()
+        } catch (e: Exception) {
+            log.atWarning()
+                .log(
+                    "Failed to post CloudServerRegisteredEvent for server ${server.uid}",
+                    e
+                )
         }
     }
 
-    override suspend fun unregisterServer(uid: Long) = super.unregisterServer(uid).also {
+    override fun unregisterServer(uid: Long) = super.unregisterServer(uid).also {
         broadcast(ClientboundUnregisterServerPacket(uid))
     }
-
 
     override fun broadcast(packet: NettyPacket) {
         server.connection.broadcast(packet)
@@ -179,17 +170,17 @@ class StandaloneCloudServerManagerImpl : CommonCloudServerManagerImpl<ServerComm
     }
 
     @Suppress("UNCHECKED_CAST")
-    override suspend fun retrieveProxies(): ObjectCollection<StandaloneProxyCloudServerImpl> {
+    override fun retrieveProxies(): ObjectCollection<StandaloneProxyCloudServerImpl> {
         return super.retrieveProxies() as ObjectCollection<StandaloneProxyCloudServerImpl>
     }
 
     @Suppress("UNCHECKED_CAST")
-    override suspend fun retrieveServers(): ObjectCollection<StandaloneCloudServerImpl> {
+    override fun retrieveServers(): ObjectCollection<StandaloneCloudServerImpl> {
         return super.retrieveServers() as ObjectCollection<StandaloneCloudServerImpl>
     }
 
-    private suspend fun singleProxyServer() =
-        serversMutex.withLock { servers.values.single { it is StandaloneProxyCloudServerImpl } }
+    private fun singleProxyServer() =
+        serverCache.asMap().values.single { it is StandaloneProxyCloudServerImpl }
 }
 
 val serverManagerImpl get() = CloudServerManager.instance as StandaloneCloudServerManagerImpl

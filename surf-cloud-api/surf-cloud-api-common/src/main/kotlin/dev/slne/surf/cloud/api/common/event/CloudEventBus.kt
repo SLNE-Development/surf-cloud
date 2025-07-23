@@ -10,6 +10,7 @@ interface CloudEventBus {
     fun register(listener: Any)
     fun unregister(listener: Any)
     suspend fun post(event: CloudEvent)
+    fun postAndForget(event: CloudEvent)
 
     companion object : CloudEventBus by instance {
         @InternalApi

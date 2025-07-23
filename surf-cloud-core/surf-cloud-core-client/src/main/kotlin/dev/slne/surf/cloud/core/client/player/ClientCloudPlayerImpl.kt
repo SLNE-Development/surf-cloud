@@ -80,7 +80,7 @@ abstract class ClientCloudPlayerImpl<PlatformPlayer : Audience>(uuid: UUID, name
     }
 
     override fun currentServer(): CloudServer {
-        val server = serverManagerImpl.getServerByIdUnsafe(
+        val server = serverManagerImpl.retrieveServerById(
             serverUid ?: error("Player is not connected to a server")
         ) ?: error("Server not found for UID: $serverUid")
 
@@ -111,7 +111,7 @@ abstract class ClientCloudPlayerImpl<PlatformPlayer : Audience>(uuid: UUID, name
 
     override fun isInGroup(group: String): Boolean {
         val currentServer = serverUid
-        return currentServer != null && serverManagerImpl.getServerByIdUnsafe(currentServer)?.group?.equals(
+        return currentServer != null && serverManagerImpl.retrieveServerById(currentServer)?.group?.equals(
             group,
             ignoreCase = true
         ) == true

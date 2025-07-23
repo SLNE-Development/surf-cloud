@@ -22,7 +22,7 @@ class CloudServerArgument(nodeName: String) : CustomArgument<CloudServer, String
     StringArgument(nodeName),
     { info ->
         val serverName = info.input
-        val server = CloudServerManager.getServerByNameUnsafe(serverName) ?: run {
+        val server = CloudServerManager.retrieveServerByName(serverName) as? CloudServer ?: run {
             throw CustomArgumentException.fromMessageBuilder(
                 MessageBuilder()
                     .append("Server '")

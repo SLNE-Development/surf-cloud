@@ -16,4 +16,8 @@ abstract class CloudEvent(source: Any) {
     suspend fun post() {
         CloudEventBus.instance.post(this)
     }
+
+    fun postAndForget() {
+        CloudEventBus.instance.postAndForget(this)
+    }
 }

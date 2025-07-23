@@ -75,6 +75,10 @@ class CloudEventBusImpl : CloudEventBus {
         listenerHandler.asMap().entries.removeIf { it.value.isEmpty() }
     }
 
+    override fun postAndForget(event: CloudEvent) {
+        CloudEventBusScope.launch { post(event) }
+    }
+
     override suspend fun post(event: CloudEvent) = withContext(CloudEventBusScope.context) {
         val eventType = ResolvableType.forInstance(event)
         listenerHandler.asMap()

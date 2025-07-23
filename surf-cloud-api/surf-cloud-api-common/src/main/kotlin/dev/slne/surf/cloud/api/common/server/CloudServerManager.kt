@@ -30,32 +30,26 @@ interface CloudServerManager {
      * @param id The unique identifier of the server.
      * @return The [CommonCloudServer] if found, or `null` if no server matches the provided ID.
      */
-    suspend fun retrieveServerById(id: Long): CommonCloudServer?
+    fun retrieveServerById(id: Long): CommonCloudServer?
 
     /**
      * Retrieves a server by its category and name.
-     * If multiple servers share the same name within the same category,
-     * the server with the lowest player count will be returned.
      *
      * @param category The category of the server.
      * @param name The name of the server within the specified category.
      * @return The [CommonCloudServer] if found, or `null` if no server matches the provided category and name.
      */
-    suspend fun retrieveServerByCategoryAndName(category: String, name: String): CommonCloudServer?
+    fun retrieveServerByCategoryAndName(category: String, name: String): CommonCloudServer?
 
     /**
-     * Retrieves a server by its name. If multiple servers share the same name,
-     * the server with the lowest player count will be returned.
+     * Retrieves a server by its name.
      *
      * @param name The name of the server.
      * @return The [CommonCloudServer] if found, or `null` if no server matches the provided name.
      */
-    suspend fun retrieveServerByName(name: String): CommonCloudServer?
+    fun retrieveServerByName(name: String): CommonCloudServer?
 
-    suspend fun retrieveServersInGroup(group: String): ObjectList<out CommonCloudServer>
-
-    @InternalApi
-    fun getServerByNameUnsafe(name: String): CloudServer?
+    fun retrieveServersInGroup(group: String): ObjectList<out CommonCloudServer>
 
     @InternalApi
     fun existsServerGroup(name: String): Boolean
@@ -66,19 +60,25 @@ interface CloudServerManager {
      * @param category The category of servers to retrieve.
      * @return An [ObjectList] of [CommonCloudServer] instances belonging to the specified category.
      */
-    suspend fun retrieveServersByCategory(category: String): ObjectList<out CommonCloudServer>
+    fun retrieveServersByCategory(category: String): ObjectList<out CommonCloudServer>
 
-    suspend fun retrieveAllServers(): ObjectCollection<out CommonCloudServer>
+    fun retrieveAllServers(): ObjectCollection<out CommonCloudServer>
 
-    suspend fun retrieveServers(): ObjectCollection<out CloudServer>
-    suspend fun retrieveProxies(): ObjectCollection<out ProxyCloudServer>
+    fun retrieveServers(): ObjectCollection<out CloudServer>
+    fun retrieveProxies(): ObjectCollection<out ProxyCloudServer>
 
     suspend fun pullPlayersToGroup(
         group: String,
         players: Collection<CloudPlayer>
     ): @Unmodifiable ObjectList<Pair<CloudPlayer, ConnectionResultEnum>>
 
-    suspend fun broadcastToGroup(group: String, message: Component, permission: String? = null, playSound: Boolean = true)
+    suspend fun broadcastToGroup(
+        group: String,
+        message: Component,
+        permission: String? = null,
+        playSound: Boolean = true
+    )
+
     suspend fun broadcast(message: Component, permission: String? = null, playSound: Boolean = true)
 
     companion object : CloudServerManager by INSTANCE {

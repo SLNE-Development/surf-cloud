@@ -24,11 +24,11 @@ class ClientCloudServerManagerImpl : CommonCloudServerManagerImpl<CommonCloudSer
     CloudClientServerManager {
 
     fun updateServerInformationNow(uid: Long, information: ClientInformation) {
-        (servers[uid] as? CommonCloudServerImpl)?.information = information
+        (serverCache.getIfPresent(uid) as? CommonCloudServerImpl)?.information = information
     }
 
     override fun currentServer(): CloudServer {
-        return getServerByIdUnsafe(CloudPersistentData.SERVER_ID) as? CloudServer
+        return retrieveServerById(CloudPersistentData.SERVER_ID) as? CloudServer
             ?: throw AssertionError("Current server not found")
     }
 

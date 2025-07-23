@@ -21,7 +21,7 @@ class ServerQueueImpl(
 
     override var suspended: Boolean by AtomicBoolean()
 
-    override val online get() = serverManagerImpl.getServerByIdUnsafe(serverUid) != null
+    override val online get() = serverManagerImpl.retrieveServerById(serverUid) != null
 
     override suspend fun dequeue(
         uuid: UUID,

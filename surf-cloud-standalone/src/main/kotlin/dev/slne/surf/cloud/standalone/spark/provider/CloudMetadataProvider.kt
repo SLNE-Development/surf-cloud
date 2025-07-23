@@ -43,7 +43,7 @@ object CloudMetadataProvider : MetadataProvider {
     }
 
     fun collectServerInfos() = JsonObject().apply {
-        serverManagerImpl.getAllServersUnsafe().forEach { server ->
+        serverManagerImpl.retrieveAllServers().forEach { server ->
             add(server.name, server.toJsonObject(true))
         }
     }

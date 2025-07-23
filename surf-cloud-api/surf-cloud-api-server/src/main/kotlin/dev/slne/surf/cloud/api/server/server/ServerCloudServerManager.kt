@@ -10,19 +10,19 @@ import org.jetbrains.annotations.ApiStatus
 @ApiStatus.NonExtendable
 interface ServerCloudServerManager : CloudServerManager {
 
-    override suspend fun retrieveServerById(id: Long): CommonCloudServer?
+    override fun retrieveServerById(id: Long): CommonCloudServer?
 
-    override suspend fun retrieveServerByCategoryAndName(
+    override fun retrieveServerByCategoryAndName(
         category: String,
         name: String
     ): ServerCommonCloudServer?
 
-    override suspend fun retrieveServerByName(name: String): ServerCommonCloudServer?
-    override suspend fun retrieveServersInGroup(group: String): ObjectList<out ServerCommonCloudServer>
-    override suspend fun retrieveServersByCategory(category: String): ObjectList<out ServerCommonCloudServer>
-    override suspend fun retrieveAllServers(): ObjectCollection<out ServerCommonCloudServer>
-    override suspend fun retrieveServers(): ObjectCollection<out ServerCloudServer>
-    override suspend fun retrieveProxies(): ObjectCollection<out ServerProxyCloudServer>
+    override fun retrieveServerByName(name: String): ServerCommonCloudServer?
+    override fun retrieveServersInGroup(group: String): ObjectList<out ServerCommonCloudServer>
+    override fun retrieveServersByCategory(category: String): ObjectList<out ServerCommonCloudServer>
+    override fun retrieveAllServers(): ObjectCollection<out ServerCommonCloudServer>
+    override fun retrieveServers(): ObjectCollection<out ServerCloudServer>
+    override fun retrieveProxies(): ObjectCollection<out ServerProxyCloudServer>
 
     fun broadcast(packet: NettyPacket)
 

@@ -32,15 +32,14 @@ class StandaloneCloudServerImpl(
 ) : AbstractCloudServer(uid, group, name, playAddress, lobby), ServerCloudServer,
     CommonStandaloneServer by CommonStandaloneServerImpl() {
 
-    init {
-        wrapper = this
-        startCleanupTask()
-    }
-
     val connectingPlayers = Caffeine.newBuilder()
         .weakKeys()
         .build<StandaloneCloudPlayerImpl, Boolean>()
 
+    init {
+        wrapper = this
+        startCleanupTask()
+    }
 
     override val expectedPlayers: Int
         get() = (currentPlayerCount + connectingPlayers.estimatedSize()).toInt()

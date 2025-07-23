@@ -4,6 +4,7 @@ import com.google.auto.service.AutoService
 import dev.slne.surf.cloud.api.common.player.CloudPlayerManager
 import dev.slne.surf.cloud.api.common.player.OfflineCloudPlayer
 import dev.slne.surf.cloud.api.common.player.task.PrePlayerJoinTask
+import dev.slne.surf.cloud.api.common.util.currentValues
 import dev.slne.surf.cloud.api.server.export.PlayerDataExport
 import dev.slne.surf.cloud.api.server.export.PlayerDataExportEmpty
 import dev.slne.surf.cloud.core.common.coroutines.PlayerDataSaveScope
@@ -163,7 +164,7 @@ class StandaloneCloudPlayerManagerImpl : CloudPlayerManagerImpl<StandaloneCloudP
         return OfflineCloudPlayerImpl(uuid)
     }
 
-    fun getRawOnlinePlayers() = players.values.toList()
+    fun getRawOnlinePlayers() = playerCache.currentValues()
 
     override suspend fun onServerConnect(
         uuid: UUID,

@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.future.await
 import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.logger.slf4j.ComponentLogger
 import java.net.InetSocketAddress
 import java.util.*
 import kotlin.jvm.optionals.getOrNull
@@ -26,6 +27,7 @@ import org.springframework.stereotype.Component as SpringComponent
 @SpringComponent
 class VelocitySpecificPacketListenerExtension : PlatformSpecificPacketListenerExtension {
     private val log = logger()
+    private val logger = ComponentLogger.logger(javaClass.simpleName)
 
     override val playAddress: InetSocketAddress
         get() = proxy.boundAddress
@@ -77,15 +79,13 @@ class VelocitySpecificPacketListenerExtension : PlatformSpecificPacketListenerEx
 
     override fun registerCloudServerToProxy(client: ClientCloudServerImpl) {
         val serverInfo = ServerInfo(client.name, client.playAddress)
-        log.atInfo()
-            .log("Registering server %s to proxy", serverInfo)
+        logger.info("Registering server {} to proxy", serverInfo)
         proxy.registerServer(serverInfo)
     }
 
     override fun unregisterCloudServerFromProxy(client: ClientCloudServerImpl) {
         val info = ServerInfo(client.name, client.playAddress)
-        log.atInfo()
-            .log("Unregistering server %s from proxy", info)
+        logger.info("Unregistering server {} from proxy", info)
         proxy.unregisterServer(info)
     }
 

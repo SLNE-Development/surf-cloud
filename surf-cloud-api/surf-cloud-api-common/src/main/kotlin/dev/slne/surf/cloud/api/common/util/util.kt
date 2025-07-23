@@ -1,5 +1,6 @@
 package dev.slne.surf.cloud.api.common.util
 
+import com.sksamuel.aedile.core.Cache
 import it.unimi.dsi.fastutil.objects.ObjectList
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
@@ -165,3 +166,5 @@ operator fun AtomicBoolean.getValue(thisRef: Any?, property: KProperty<*>): Bool
 operator fun AtomicBoolean.setValue(thisRef: Any?, property: KProperty<*>, value: Boolean) {
     set(value)
 }
+
+fun <K, V> Cache<K, V>.currentValues() = underlying().asMap().values.mapNotNull { it.getNow(null) }

@@ -1,13 +1,12 @@
 package dev.slne.surf.cloud.core.client.player
 
-import dev.slne.surf.cloud.api.common.player.OfflineCloudPlayer
 import dev.slne.surf.cloud.core.common.player.CloudPlayerManagerImpl
 import dev.slne.surf.cloud.core.common.player.CommonOfflineCloudPlayerImpl
 import dev.slne.surf.cloud.core.common.player.playerManagerImpl
 import net.kyori.adventure.audience.Audience
 import java.util.*
 
-abstract class CommonClientCloudPlayerManagerImpl<Platform: Audience, P : ClientCloudPlayerImpl<Platform>> :
+abstract class CommonClientCloudPlayerManagerImpl<Platform : Audience, P : ClientCloudPlayerImpl<Platform>> :
     CloudPlayerManagerImpl<P>() {
     override suspend fun updateProxyServer(
         player: P,

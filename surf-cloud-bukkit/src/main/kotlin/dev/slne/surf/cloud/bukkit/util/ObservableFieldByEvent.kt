@@ -1,6 +1,5 @@
 package dev.slne.surf.cloud.bukkit.util
 
-import dev.slne.surf.cloud.api.common.util.mutableObjectSetOf
 import dev.slne.surf.cloud.api.common.util.observer.ObservableField.ObservableCoroutineScope
 import dev.slne.surf.surfapi.bukkit.api.event.listen
 import kotlinx.coroutines.CoroutineDispatcher
@@ -11,6 +10,7 @@ import kotlinx.coroutines.launch
 import org.bukkit.event.Event
 import org.bukkit.plugin.Plugin
 import org.bukkit.plugin.java.JavaPlugin
+import java.util.concurrent.CopyOnWriteArrayList
 import kotlin.reflect.KClass
 
 class ObservableFieldByEvent<E : Event, T>(
@@ -23,7 +23,7 @@ class ObservableFieldByEvent<E : Event, T>(
     customDispatcher: CoroutineDispatcher? = null
 ) {
     private val channel = Channel<T>(Channel.CONFLATED)
-    private val listener = mutableObjectSetOf<(T) -> Unit>()
+    private val listener = CopyOnWriteArrayList<(T) -> Unit>()
 
     init {
         val dispatcher = customDispatcher?.let { CoroutineScope(it + SupervisorJob()) }

@@ -19,7 +19,6 @@ class ConnectionVerifier : CloudLifecycleAware {
         CloudConnectionVerificationScope.launch {
             while (isActive) {
                 delay(5.minutes)
-
             }
         }
     }

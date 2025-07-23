@@ -14,6 +14,8 @@ import dev.slne.surf.cloud.api.common.player.teleport.TeleportCause
 import dev.slne.surf.cloud.api.common.player.teleport.TeleportFlag
 import dev.slne.surf.cloud.api.common.player.teleport.TeleportLocation
 import dev.slne.surf.cloud.api.common.server.CloudServer
+import dev.slne.surf.cloud.api.common.util.getValue
+import dev.slne.surf.cloud.api.common.util.setValue
 import dev.slne.surf.cloud.core.client.server.serverManagerImpl
 import dev.slne.surf.cloud.core.client.util.luckperms
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.*
@@ -42,6 +44,7 @@ import net.luckperms.api.platform.PlayerAdapter
 import java.net.Inet4Address
 import java.time.ZonedDateTime
 import java.util.*
+import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.days
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ServerboundRequestPlayerDataResponse.NameHistory as NameHistoryResponse
@@ -54,8 +57,7 @@ abstract class ClientCloudPlayerImpl<PlatformPlayer : Audience>(uuid: UUID, name
     @Volatile
     var serverUid: Long? = null
 
-    @Volatile
-    var afk: Boolean = false
+    var afk: Boolean by AtomicBoolean()
 
     override val connectedToProxy get() = proxyServerUid != null
 

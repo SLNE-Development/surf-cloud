@@ -2,43 +2,37 @@ package dev.slne.surf.cloud.core.common.plugin.task
 
 import dev.slne.surf.cloud.api.common.netty.NettyClient
 import dev.slne.surf.cloud.api.common.plugin.spring.task.CloudInitialSynchronizeTask
-import dev.slne.surf.cloud.api.common.util.mutableObjectListOf
-import dev.slne.surf.cloud.api.common.util.synchronize
 import dev.slne.surf.cloud.core.common.coroutines.BeforeStartTaskScope
-import dev.slne.surf.surfapi.core.api.util.freeze
 import dev.slne.surf.surfapi.core.api.util.logger
 import kotlinx.coroutines.launch
 import org.springframework.core.annotation.AnnotationAwareOrderComparator
+import java.util.concurrent.CopyOnWriteArrayList
 import kotlin.system.measureTimeMillis
 
 object CloudSynchronizeTaskManager {
     private val log = logger()
-    private val _tasks = mutableObjectListOf<CloudInitialSynchronizeTask>().synchronize()
-    val tasks = _tasks.freeze()
+    private val tasks = CopyOnWriteArrayList<CloudInitialSynchronizeTask>()
 
     fun registerTask(task: CloudInitialSynchronizeTask) {
-        if (_tasks.contains(task)) return
-        _tasks.add(task)
-        AnnotationAwareOrderComparator.sort(_tasks)
+        if (tasks.addIfAbsent(task)) {
+            AnnotationAwareOrderComparator.sort(tasks)
+        }
     }
 
     fun registerTasks(tasks: Collection<CloudInitialSynchronizeTask>) {
-        for (task in tasks) {
-            if (!this._tasks.contains(task)) {
-                this._tasks.add(task)
-            }
+        if (this.tasks.addAllAbsent(tasks) > 0) {
+            AnnotationAwareOrderComparator.sort(this.tasks)
         }
-        AnnotationAwareOrderComparator.sort(this._tasks)
     }
 
     fun unregisterTask(task: CloudInitialSynchronizeTask) {
-        _tasks.remove(task)
+        tasks.remove(task)
     }
 
     suspend fun executeTasks(client: NettyClient) {
-        for ((position, task) in _tasks.withIndex()) {
+        for ((position, task) in tasks.withIndex()) {
             log.atInfo()
-                .log("Executing initial synchronize task: ${task.name} (${position + 1}/${_tasks.size})")
+                .log("Executing initial synchronize task: ${task.name} (${position + 1}/${tasks.size})")
 
             val duration = measureTimeMillis {
                 BeforeStartTaskScope.launch(BeforeStartTaskScope.TaskName(task.name, position)) {

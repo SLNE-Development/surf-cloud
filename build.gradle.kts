@@ -41,6 +41,8 @@ allprojects {
 
         compileOnly("org.springframework.boot:spring-boot-configuration-processor:3.5.3")
         //    "kapt"("org.springframework.boot:spring-boot-configuration-processor:3.4.3")
+
+        testImplementation(kotlin("test"))
     }
 
 
@@ -52,6 +54,10 @@ allprojects {
             val options = options as StandardJavadocDocletOptions
             options.use()
             options.tags("implNote:a:Implementation Note:")
+        }
+
+        test {
+            useJUnitPlatform()
         }
     }
 }

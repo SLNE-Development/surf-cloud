@@ -33,26 +33,28 @@ class SurfCloudMainApplication : AsyncConfigurer, ApplicationContextAware {
 
     override fun getAsyncUncaughtExceptionHandler() =
         AsyncUncaughtExceptionHandler { ex, method, params ->
-            if (ex is FatalSurfError) {
-                handleFatalSurfError(ex, method, params)
-            } else if (ex is NestedRuntimeException && ex.rootCause is FatalSurfError) {
-                handleFatalSurfError(ex.rootCause as FatalSurfError, method, params)
-            } else {
-                log.atSevere()
+            when (ex) {
+                is FatalSurfError -> handleFatalSurfError(ex, method, params)
+                is NestedRuntimeException if ex.rootCause is FatalSurfError -> handleFatalSurfError(
+                    ex.rootCause as FatalSurfError,
+                    method,
+                    params
+                )
+
+                else -> log.atSevere()
                     .withCause(ex)
                     .log(
                         """
-                            Exception message - %s
-                            Method name - %s
-                            ParameterValues - %s
-                            """.trimIndent(),
+                        Exception message - %s
+                        Method name - %s
+                        ParameterValues - %s
+                        """.trimIndent(),
                         ex.message,
                         method.name,
                         ArrayUtils.toString(params)
                     )
             }
         }
-
 
     private fun handleFatalSurfError(
         fatalSurfError: FatalSurfError,

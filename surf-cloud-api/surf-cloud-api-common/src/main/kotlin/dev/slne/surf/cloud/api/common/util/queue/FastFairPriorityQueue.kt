@@ -167,7 +167,10 @@ class FastFairPriorityQueue<T>(private val prioCmp: Comparator<in T>) : Abstract
     fun snapshot(): ObjectArrayList<T> {
         val size = heap.size()
         if (size == 0) return ObjectArrayList()
-        val buf = heap.backing().copyOfRange(0, size + 1)
+
+        val raw = heap.backing()
+        val buf: Array<Entry<T>?> = arrayOfNulls(size)
+        System.arraycopy(raw, 0, buf, 0, size)
         ObjectArrays.stableSort(buf, entryCmp)
 
         val result = ObjectArrayList<T>(size)
@@ -192,7 +195,7 @@ class FastFairPriorityQueue<T>(private val prioCmp: Comparator<in T>) : Abstract
     private class ExposedHeap<E>(
         cmp: Comparator<E>
     ) : ObjectHeapPriorityQueue<E>(cmp) {
-        fun backing(): Array<E?> = heap
+        fun backing(): Array<Any?> = heap as Array<Any?>
 
         companion object {
             @Serial

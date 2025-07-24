@@ -49,8 +49,11 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.days
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ServerboundRequestPlayerDataResponse.NameHistory as NameHistoryResponse
 
-abstract class ClientCloudPlayerImpl<PlatformPlayer : Audience>(uuid: UUID, name: String) :
-    CommonCloudPlayerImpl(uuid, name) {
+abstract class ClientCloudPlayerImpl<PlatformPlayer : Audience>(
+    uuid: UUID,
+    name: String,
+    private val createIfNotExists: Boolean
+) : CommonCloudPlayerImpl(uuid, name) {
     @Volatile
     var proxyServerUid: Long? = null
 
@@ -60,7 +63,6 @@ abstract class ClientCloudPlayerImpl<PlatformPlayer : Audience>(uuid: UUID, name
     var afk: Boolean by AtomicBoolean()
 
     override val connectedToProxy get() = proxyServerUid != null
-
     override val connectedToServer get() = serverUid != null
 
     /**
@@ -70,6 +72,12 @@ abstract class ClientCloudPlayerImpl<PlatformPlayer : Audience>(uuid: UUID, name
     protected abstract val audience: PlatformPlayer?
 
     protected abstract val platformClass: Class<PlatformPlayer>
+
+    init {
+        if (createIfNotExists && player == null) {
+            ServerboundCreateOfflineCloudPlayerIfNotExistsPacket(uuid).fireAndForget()
+        }
+    }
 
     override suspend fun latestIpAddress(): Inet4Address {
         return request<IpAddress>(DataRequestType.LATEST_IP_ADDRESS).ip
@@ -129,7 +137,7 @@ abstract class ClientCloudPlayerImpl<PlatformPlayer : Audience>(uuid: UUID, name
         ServerboundPlayerPersistentDataContainerUpdatePacket(
             uuid,
             response.verificationId,
-        container.toTagCompound()
+            container.toTagCompound()
         ).fireAndForget()
 
         return result

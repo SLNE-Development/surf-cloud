@@ -118,7 +118,7 @@ object NameHistoryScope : BaseScope(
 )
 
 object PlayerDatabaseScope : BaseScope(
-    dispatcher = newSingleThreadContext("player-database-thread"),
+    dispatcher = Dispatchers.IO,
     name = "player-database"
 )
 

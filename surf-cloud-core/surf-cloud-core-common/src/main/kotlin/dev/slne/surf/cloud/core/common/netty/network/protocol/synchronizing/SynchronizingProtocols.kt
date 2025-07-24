@@ -6,6 +6,7 @@ import dev.slne.surf.cloud.api.common.netty.protocol.buffer.SurfByteBuf
 import dev.slne.surf.cloud.core.common.netty.network.protocol.ProtocolInfoBuilder
 import dev.slne.surf.cloud.core.common.netty.network.protocol.common.*
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ClientboundBatchUpdateServer
+import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ServerboundCreateOfflineCloudPlayerIfNotExistsPacket
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.SyncSetDeltaPacket
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.SyncValueChangePacket
 
@@ -41,6 +42,7 @@ object SynchronizingProtocols {
                 .addPacket(SyncValueChangePacket.STREAM_CODEC)
                 .addPacket(SyncSetDeltaPacket.STREAM_CODEC)
                 .addPacket(FinishSynchronizingPacket.STREAM_CODEC)
+                .addPacket(ServerboundCreateOfflineCloudPlayerIfNotExistsPacket::class.createCodec())
         }
 
     val SERVERBOUND by lazy { SERVERBOUND_TEMPLATE.bind(::SurfByteBuf) }

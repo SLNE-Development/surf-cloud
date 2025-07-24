@@ -28,7 +28,7 @@ interface CloudPlayerManager {
 
     fun getPlayer(name: String): CloudPlayer?
 
-    fun getOfflinePlayer(uuid: UUID): OfflineCloudPlayer
+    fun getOfflinePlayer(uuid: UUID, createIfNotExists: Boolean = true): OfflineCloudPlayer
 
     fun getOnlinePlayers(): UserList
 
@@ -59,19 +59,19 @@ fun Audience?.toCloudPlayer(): CloudPlayer? {
  * or `null` if the [Audience] is not a player or cannot be resolved.
  */
 @JvmName("toOfflineCloudPlayerNullable")
-fun Audience?.toOfflineCloudPlayer(): OfflineCloudPlayer? = this?.toOfflineCloudPlayer()
+fun Audience?.toOfflineCloudPlayer(createIfNotExists: Boolean = true): OfflineCloudPlayer? = this?.toOfflineCloudPlayer(createIfNotExists)
 
-fun Audience.toOfflineCloudPlayer(): OfflineCloudPlayer? {
+fun Audience.toOfflineCloudPlayer(createIfNotExists: Boolean = true): OfflineCloudPlayer? {
     return this.pointers().get(Identity.UUID).getOrNull()
-        ?.let { CloudPlayerManager.getOfflinePlayer(it) }
+        ?.let { CloudPlayerManager.getOfflinePlayer(it, createIfNotExists) }
 }
 
-fun UUID.toOfflineCloudPlayer(): OfflineCloudPlayer =
-    CloudPlayerManager.getOfflinePlayer(this)
+fun UUID.toOfflineCloudPlayer(createIfNotExists: Boolean = true): OfflineCloudPlayer =
+    CloudPlayerManager.getOfflinePlayer(this, createIfNotExists)
 
 @JvmName("toOfflineCloudPlayerNullable")
-fun UUID?.toOfflineCloudPlayer(): OfflineCloudPlayer? =
-    this?.let { CloudPlayerManager.getOfflinePlayer(it) }
+fun UUID?.toOfflineCloudPlayer(createIfNotExists: Boolean = true): OfflineCloudPlayer? =
+    this?.let { CloudPlayerManager.getOfflinePlayer(it, createIfNotExists) }
 
 fun UUID.toCloudPlayer(): CloudPlayer? =
     CloudPlayerManager.getPlayer(this)

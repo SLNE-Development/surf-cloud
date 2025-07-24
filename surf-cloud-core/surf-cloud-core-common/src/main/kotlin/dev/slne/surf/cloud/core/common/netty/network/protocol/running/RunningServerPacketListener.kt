@@ -108,5 +108,7 @@ interface RunningServerPacketListener : ServerCommonPacketListener, TickablePack
 
     fun handleSyncSetDelta(packet: SyncSetDeltaPacket)
 
+    fun handleCreateOfflineCloudPlayerIfNotExists(packet: ServerboundCreateOfflineCloudPlayerIfNotExistsPacket)
+
     fun handlePacket(packet: NettyPacket)
 }

@@ -275,7 +275,10 @@ class ConnectionImpl(
                     }
 
                     is ServerPreRunningPacketListener -> when (msg) {
-                        is ServerboundProceedToSynchronizingAcknowledgedPacket -> listener.handleReadyToRun(msg)
+                        is ServerboundProceedToSynchronizingAcknowledgedPacket -> listener.handleReadyToRun(
+                            msg
+                        )
+
                         is ServerboundPreRunningAcknowledgedPacket -> listener.handlePreRunningAcknowledged(
                             msg
                         )
@@ -287,9 +290,15 @@ class ConnectionImpl(
 
                     is ServerSynchronizingPacketListener -> when (msg) {
                         is FinishSynchronizingPacket -> listener.handleFinishSynchronizing(msg)
-                        is ServerboundSynchronizeFinishAcknowledgedPacket -> listener.handleSynchronizeFinishAcknowledged(msg)
+                        is ServerboundSynchronizeFinishAcknowledgedPacket -> listener.handleSynchronizeFinishAcknowledged(
+                            msg
+                        )
+
                         is SyncValueChangePacket -> listener.handleSyncValueChange(msg)
                         is SyncSetDeltaPacket -> listener.handleSyncSetDelta(msg)
+                        is ServerboundCreateOfflineCloudPlayerIfNotExistsPacket -> listener.handleCreateOfflineCloudPlayerIfNotExists(
+                            msg
+                        )
 
                         else -> listener.handlePacket(msg)
                     }
@@ -409,8 +418,12 @@ class ConnectionImpl(
                         is RequestPlayerPermissionPacket -> listener.handleRequestPlayerPermission(
                             msg
                         )
+
                         is SyncValueChangePacket -> listener.handleSyncValueChange(msg)
                         is SyncSetDeltaPacket -> listener.handleSyncSetDelta(msg)
+                        is ServerboundCreateOfflineCloudPlayerIfNotExistsPacket -> listener.handleCreateOfflineCloudPlayerIfNotExists(
+                            msg
+                        )
 
                         else -> listener.handlePacket(msg) // handle other packets
                     }
@@ -450,19 +463,26 @@ class ConnectionImpl(
                             msg
                         )
 
-                        is ClientboundProceedToSynchronizingPacket -> listener.handleProceedToSynchronizing(msg)
+                        is ClientboundProceedToSynchronizingPacket -> listener.handleProceedToSynchronizing(
+                            msg
+                        )
 
                         else -> error("Unexpected packet $msg")
                     }
 
                     is ClientSynchronizingPacketListener -> when (msg) {
-                        is ClientboundSynchronizeFinishPacket -> listener.handleSynchronizeFinish(msg)
+                        is ClientboundSynchronizeFinishPacket -> listener.handleSynchronizeFinish(
+                            msg
+                        )
+
                         is SyncValueChangePacket -> listener.handleSyncValueChange(msg)
                         is ClientboundBatchSyncValuePacket -> listener.handleBatchSyncValue(msg)
                         is ClientboundBatchSyncSetPacket -> listener.handleBatchSyncSet(msg)
                         is ClientboundBatchUpdateServer -> listener.handleBatchUpdateServer(msg)
                         is SyncSetDeltaPacket -> listener.handleSyncSetDelta(msg)
-                        is ClientboundSetVelocitySecretPacket -> listener.handleSetVelocitySecret(msg)
+                        is ClientboundSetVelocitySecretPacket -> listener.handleSetVelocitySecret(
+                            msg
+                        )
 
                         else -> listener.handlePacket(msg)
                     }
@@ -565,9 +585,12 @@ class ConnectionImpl(
                         is RequestPlayerPermissionPacket -> listener.handleRequestPlayerPermission(
                             msg
                         )
+
                         is SyncValueChangePacket -> listener.handleSyncValueChange(msg)
                         is SyncSetDeltaPacket -> listener.handleSyncSetDelta(msg)
-                        is ClientboundSetVelocitySecretPacket -> listener.handleSetVelocitySecret(msg)
+                        is ClientboundSetVelocitySecretPacket -> listener.handleSetVelocitySecret(
+                            msg
+                        )
 
                         else -> listener.handlePacket(msg)
                     }

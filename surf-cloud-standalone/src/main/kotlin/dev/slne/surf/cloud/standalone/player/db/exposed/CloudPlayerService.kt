@@ -80,6 +80,12 @@ class CloudPlayerService : AbstractExposedDAOService<UUID, CloudPlayerEntity>({
             it.durationSeconds = playtimeSeconds
         }
 
+    suspend fun createIfNotExists(uuid: UUID) {
+        if (find(uuid) == null) {
+            create(uuid)
+        }
+    }
+
     suspend fun loadPlaytimeEntries(uuid: UUID) =
         find(uuid)?.playtimes?.mapTo(mutableObjectListOf()) {
             PlaytimeEntry(

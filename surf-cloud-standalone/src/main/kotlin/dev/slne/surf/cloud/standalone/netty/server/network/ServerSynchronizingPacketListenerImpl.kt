@@ -3,14 +3,12 @@ package dev.slne.surf.cloud.standalone.netty.server.network
 import dev.slne.surf.cloud.api.common.netty.network.ConnectionProtocol
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacketInfo
+import dev.slne.surf.cloud.api.common.player.CloudPlayerManager
 import dev.slne.surf.cloud.core.common.coroutines.BeforeStartTaskScope
 import dev.slne.surf.cloud.core.common.coroutines.PacketHandlerScope
 import dev.slne.surf.cloud.core.common.netty.network.ConnectionImpl
 import dev.slne.surf.cloud.core.common.netty.network.protocol.common.ClientboundSetVelocitySecretPacket
-import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ClientboundBatchUpdateServer
-import dev.slne.surf.cloud.core.common.netty.network.protocol.running.RunningProtocols
-import dev.slne.surf.cloud.core.common.netty.network.protocol.running.SyncSetDeltaPacket
-import dev.slne.surf.cloud.core.common.netty.network.protocol.running.SyncValueChangePacket
+import dev.slne.surf.cloud.core.common.netty.network.protocol.running.*
 import dev.slne.surf.cloud.core.common.netty.network.protocol.synchronizing.ClientboundSynchronizeFinishPacket
 import dev.slne.surf.cloud.core.common.netty.network.protocol.synchronizing.FinishSynchronizingPacket
 import dev.slne.surf.cloud.core.common.netty.network.protocol.synchronizing.ServerSynchronizingPacketListener
@@ -102,6 +100,10 @@ class ServerSynchronizingPacketListenerImpl(
                 .withCause(e)
                 .log("Failed to handle sync set delta for packet $packet")
         }
+    }
+
+    override fun handleCreateOfflineCloudPlayerIfNotExists(packet: ServerboundCreateOfflineCloudPlayerIfNotExistsPacket) {
+        CloudPlayerManager.getOfflinePlayer(packet.uuid, true)
     }
 
     override fun handlePacket(packet: NettyPacket) {

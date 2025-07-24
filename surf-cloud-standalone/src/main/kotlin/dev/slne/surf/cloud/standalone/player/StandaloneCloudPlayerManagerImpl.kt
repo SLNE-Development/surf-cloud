@@ -8,6 +8,7 @@ import dev.slne.surf.cloud.api.common.util.currentValues
 import dev.slne.surf.cloud.api.server.export.PlayerDataExport
 import dev.slne.surf.cloud.api.server.export.PlayerDataExportEmpty
 import dev.slne.surf.cloud.core.common.coroutines.PlayerDataSaveScope
+import dev.slne.surf.cloud.core.common.coroutines.PlayerDatabaseScope
 import dev.slne.surf.cloud.core.common.messages.MessageManager
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ClientboundRunPrePlayerJoinTasksPacket
 import dev.slne.surf.cloud.core.common.player.CloudPlayerManagerImpl
@@ -160,8 +161,14 @@ class StandaloneCloudPlayerManagerImpl : CloudPlayerManagerImpl<StandaloneCloudP
     override fun getProxyServerUid(player: StandaloneCloudPlayerImpl) = player.proxyServer?.uid
     override fun getServerUid(player: StandaloneCloudPlayerImpl) = player.server?.uid
 
-    override fun getOfflinePlayer(uuid: UUID): OfflineCloudPlayer {
-        return OfflineCloudPlayerImpl(uuid)
+    override fun getOfflinePlayer(uuid: UUID, createIfNotExists: Boolean): OfflineCloudPlayer {
+        return OfflineCloudPlayerImpl(uuid).also {
+            if (createIfNotExists) {
+                PlayerDatabaseScope.launch {
+                    bean<CloudPlayerService>().createIfNotExists(uuid)
+                }
+            }
+        }
     }
 
     fun getRawOnlinePlayers() = playerCache.currentValues()

@@ -519,6 +519,10 @@ class ServerRunningPacketListenerImpl(
         }
     }
 
+    override fun handleCreateOfflineCloudPlayerIfNotExists(packet: ServerboundCreateOfflineCloudPlayerIfNotExistsPacket) {
+        CloudPlayerManager.getOfflinePlayer(packet.uuid, true)
+    }
+
     override fun handlePacket(packet: NettyPacket) {
         val listeners = NettyListenerRegistry.getListeners(packet.javaClass) ?: return
         if (listeners.isEmpty()) return

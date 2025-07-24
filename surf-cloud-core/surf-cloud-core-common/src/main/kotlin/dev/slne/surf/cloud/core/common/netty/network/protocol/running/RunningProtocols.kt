@@ -138,6 +138,7 @@ object RunningProtocols {
                 .addPacket(ServerboundQueuePlayerToGroupPacket::class.createCodec())
                 .addPacket(SyncValueChangePacket.STREAM_CODEC)
                 .addPacket(SyncSetDeltaPacket.STREAM_CODEC)
+                .addPacket(ServerboundCreateOfflineCloudPlayerIfNotExistsPacket::class.createCodec())
         }
 
     val SERVERBOUND by lazy { SERVERBOUND_TEMPLATE.freeze().bind(::SurfByteBuf) }

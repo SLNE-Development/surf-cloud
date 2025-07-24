@@ -164,7 +164,7 @@ class CloudCoreInstance : CloudInstance {
         val joinClassLoader = JoinClassLoader(classLoader, parentClassLoader)
         return tempChangeSystemClassLoader(joinClassLoader) {
             val parentContext = internalContext ?: error("Parent context is not initialized yet.")
-            val resourceLoader = DefaultResourceLoader(joinClassLoader)
+            val resourceLoader = DefaultResourceLoader(JoinClassLoader(joinClassLoader, listOf(javaClass.classLoader)))
             val childConfigurations =
                 parentContext.getBeansOfType(CloudChildSpringApplicationConfiguration::class.java)
 

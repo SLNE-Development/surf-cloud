@@ -88,7 +88,7 @@ interface Playtime {
      * @param since Optional start time to filter playtime.
      * @return An [Object2ObjectMap] where keys are server names and values are durations.
      */
-    fun playtimesPerServer(since: ZonedDateTime? = null): Object2ObjectMap<String, Duration>
+    fun playtimesPerServer(since: ZonedDateTime? = null, sortByPlaytime: Boolean = false): Object2ObjectMap<String, Duration>
 
     /**
      * Returns a mapping of categories to their respective total playtime durations.
@@ -96,9 +96,9 @@ interface Playtime {
      * @param since Optional start time to filter playtime.
      * @return An [Object2ObjectMap] where keys are category names and values are durations.
      */
-    fun playtimesPerCategory(since: ZonedDateTime? = null): Object2ObjectMap<String, Duration>
+    fun playtimesPerCategory(since: ZonedDateTime? = null, sortByPlaytime: Boolean = false): Object2ObjectMap<String, Duration>
 
-    fun playtimePerCategoryPerServer(since: ZonedDateTime? = null): Object2ObjectMap<String, Object2ObjectMap<String, Duration>>
+    fun playtimePerCategoryPerServer(since: ZonedDateTime? = null, sortByPlaytime: Boolean = false): Object2ObjectMap<String, Object2ObjectMap<String, Duration>>
 
     /**
      * Returns the average playtime per server, optionally filtered by category and start time.
@@ -167,7 +167,7 @@ interface Playtime {
      * @param since Optional start time to filter playtime.
      * @return An [ObjectList] of pairs, each containing a server name and its corresponding playtime duration.
      */
-    fun topServers(limit: Int = 5, since: ZonedDateTime? = null): ObjectList<Pair<String, Duration>>
+    fun topServers(limit: Int = 5, since: ZonedDateTime? = null, sortByPlaytime: Boolean = false): ObjectList<Pair<String, Duration>>
 
     /**
      * Retrieves a ranked list of categories sorted by total playtime in descending order.
@@ -176,7 +176,7 @@ interface Playtime {
      * @param since Optional start time to filter playtime.
      * @return An [ObjectList] of pairs, each containing a category name and its corresponding playtime duration.
      */
-    fun topCategories(limit: Int = 5, since: ZonedDateTime? = null): ObjectList<Pair<String, Duration>>
+    fun topCategories(limit: Int = 5, since: ZonedDateTime? = null, sortByPlaytime: Boolean = false): ObjectList<Pair<String, Duration>>
 
     fun writeToByteBuf(buf: ByteBuf)
 }

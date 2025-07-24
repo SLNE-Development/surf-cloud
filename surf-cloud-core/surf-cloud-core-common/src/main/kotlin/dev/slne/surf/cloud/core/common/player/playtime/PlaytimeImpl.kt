@@ -61,29 +61,78 @@ class PlaytimeImpl(private val entries: ObjectList<PlaytimeEntry>) : Playtime {
         .sumOf { it.durationSeconds }
         .seconds
 
-    override fun playtimesPerServer(since: ZonedDateTime?): Object2ObjectMap<String, Duration> =
-        entries.filter { since == null || it.createdAt.isAfter(since) }
+    override fun playtimesPerServer(
+        since: ZonedDateTime?,
+        sortByPlaytime: Boolean
+    ): Object2ObjectMap<String, Duration> {
+        val result = entries
+            .filter { since == null || it.createdAt.isAfter(since) }
             .groupBy { it.server }
             .mapValuesTo(mutableObject2ObjectMapOf()) { (_, group) ->
                 group.sumOf { it.durationSeconds }.seconds
             }
 
-    override fun playtimesPerCategory(since: ZonedDateTime?): Object2ObjectMap<String, Duration> =
-        entries.filter { since == null || it.createdAt.isAfter(since) }
+        return if (sortByPlaytime) {
+            result.entries
+                .sortedByDescending { it.value }
+                .associateTo(mutableObject2ObjectMapOf()) { it.toPair() }
+        } else result
+    }
+
+
+    override fun playtimesPerCategory(
+        since: ZonedDateTime?,
+        sortByPlaytime: Boolean
+    ): Object2ObjectMap<String, Duration> {
+        val result = entries
+            .filter { since == null || it.createdAt.isAfter(since) }
             .groupBy { it.category }
             .mapValuesTo(mutableObject2ObjectMapOf()) { (_, group) ->
                 group.sumOf { it.durationSeconds }.seconds
             }
 
-    override fun playtimePerCategoryPerServer(since: ZonedDateTime?): Object2ObjectMap<String, Object2ObjectMap<String, Duration>> =
-        entries.filter { since == null || it.createdAt.isAfter(since) }
-            .groupBy { it.category }
-            .mapValuesTo(mutableObject2ObjectMapOf()) { (_, groupEntries) ->
-                groupEntries.groupBy { it.server }
-                    .mapValuesTo(mutableObject2ObjectMapOf()) { (_, serverEntries) ->
-                        serverEntries.sumOf { it.durationSeconds }.seconds
-                    }
+        return if (sortByPlaytime) {
+            result.entries
+                .sortedByDescending { it.value }
+                .associateTo(mutableObject2ObjectMapOf()) { it.toPair() }
+        } else result
+    }
+
+
+    override fun playtimePerCategoryPerServer(
+        since: ZonedDateTime?,
+        sortByPlaytime: Boolean
+    ): Object2ObjectMap<String, Object2ObjectMap<String, Duration>> {
+        val filtered = entries.asSequence()
+            .filter { since == null || it.createdAt.isAfter(since) }
+
+        val grouped = filtered.groupBy { it.category }
+            .mapValues { (_, entriesByCategory) ->
+                val serverDurations = entriesByCategory
+                    .groupingBy { it.server }
+                    .fold(0L) { acc, e -> acc + e.durationSeconds }
+                    .mapValues { it.value.seconds }
+
+                val sorted = if (sortByPlaytime)
+                    serverDurations.entries.sortedByDescending { it.value }
+                else serverDurations.entries
+
+                mutableObject2ObjectMapOf<String, Duration>().apply {
+                    sorted.forEach { (k, v) -> this[k] = v }
+                }
             }
+
+        val finalResult = if (sortByPlaytime)
+            grouped.entries.sortedByDescending { it.value.values.sumOf { it.inWholeSeconds } }
+        else grouped.entries
+
+        return mutableObject2ObjectMapOf<String, Object2ObjectMap<String, Duration>>().apply {
+            finalResult.forEach { (k, v) -> this[k] = v }
+        }
+    }
+
+
+
 
 
     override fun averagePlaytimePerServer(
@@ -123,7 +172,8 @@ class PlaytimeImpl(private val entries: ObjectList<PlaytimeEntry>) : Playtime {
 
     override fun topServers(
         limit: Int,
-        since: ZonedDateTime?
+        since: ZonedDateTime?,
+        sortByPlaytime: Boolean
     ): ObjectList<Pair<String, Duration>> = entries
         .filter { since == null || it.createdAt.isAfter(since) }
         .groupBy { it.server }
@@ -135,7 +185,8 @@ class PlaytimeImpl(private val entries: ObjectList<PlaytimeEntry>) : Playtime {
 
     override fun topCategories(
         limit: Int,
-        since: ZonedDateTime?
+        since: ZonedDateTime?,
+        sortByPlaytime: Boolean
     ): ObjectList<Pair<String, Duration>> = entries
         .filter { since == null || it.createdAt.isAfter(since) }
         .groupBy { it.category }

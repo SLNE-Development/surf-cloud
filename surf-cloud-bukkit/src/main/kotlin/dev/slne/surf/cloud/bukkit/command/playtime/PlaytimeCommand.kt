@@ -39,7 +39,7 @@ private fun sendPlaytime(sender: CommandSender, player: OfflineCloudPlayer) = pl
         variableValue("${player.name()} (${player.uuid})")
         appendNewPrefixedLine()
         appendNewPrefixedLine {
-            variableKey("Total")
+            variableKey("Gesamt")
             spacer(": ")
             variableValue(complete.toString())
         }

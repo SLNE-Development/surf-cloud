@@ -44,8 +44,8 @@ abstract class CommonClientCloudPlayerManagerImpl<Platform : Audience, P : Clien
         return player.serverUid
     }
 
-    override fun getOfflinePlayer(uuid: UUID): CommonOfflineCloudPlayerImpl {
-        return OfflineCloudPlayerImpl(uuid)
+    override fun getOfflinePlayer(uuid: UUID, createIfNotExists: Boolean): CommonOfflineCloudPlayerImpl {
+        return OfflineCloudPlayerImpl(uuid, createIfNotExists)
     }
 
     abstract fun getAudience(uuid: UUID): Audience?

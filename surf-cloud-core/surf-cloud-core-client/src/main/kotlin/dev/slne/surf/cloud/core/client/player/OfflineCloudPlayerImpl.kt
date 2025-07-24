@@ -1,8 +1,10 @@
 package dev.slne.surf.cloud.core.client.player
 
 import dev.slne.surf.cloud.api.client.netty.packet.fireAndAwaitOrThrow
+import dev.slne.surf.cloud.api.client.netty.packet.fireAndForget
 import dev.slne.surf.cloud.api.common.player.name.NameHistory
 import dev.slne.surf.cloud.api.common.player.playtime.Playtime
+import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ServerboundCreateOfflineCloudPlayerIfNotExistsPacket
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ServerboundRequestPlayerDataPacket
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ServerboundRequestPlayerDataPacket.DataRequestType
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.getGenericValue
@@ -14,7 +16,14 @@ import java.net.Inet4Address
 import java.time.ZonedDateTime
 import java.util.*
 
-class OfflineCloudPlayerImpl(uuid: UUID) : CommonOfflineCloudPlayerImpl(uuid) {
+class OfflineCloudPlayerImpl(uuid: UUID, createIfNotExists: Boolean) :
+    CommonOfflineCloudPlayerImpl(uuid) {
+    init {
+        if (createIfNotExists && player == null) {
+            ServerboundCreateOfflineCloudPlayerIfNotExistsPacket(uuid).fireAndForget()
+        }
+    }
+
     override suspend fun nameHistory(): NameHistory {
         return request(DataRequestType.NAME_HISTORY)
     }

@@ -19,7 +19,7 @@ class ComponentColumnType : ColumnType<Component>() {
         else -> error("Unexpected value of type Component: $value of ${value::class.qualifiedName}")
     }
 
-    override fun nonNullValueToString(value: Component): String =
+    override fun notNullValueToDB(value: Component): Any =
         GsonComponentSerializer.gson().serialize(value)
 }
 

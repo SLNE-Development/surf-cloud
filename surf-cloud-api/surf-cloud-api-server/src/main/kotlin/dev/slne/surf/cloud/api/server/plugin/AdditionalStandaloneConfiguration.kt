@@ -58,6 +58,9 @@ import kotlin.coroutines.startCoroutine
 )
 annotation class AdditionalStandaloneConfiguration
 
+@AdditionalStandaloneConfiguration
+class PluginConfig
+
 
 @EnableTransactionManagement(mode = AdviceMode.ASPECTJ)
 @Configuration

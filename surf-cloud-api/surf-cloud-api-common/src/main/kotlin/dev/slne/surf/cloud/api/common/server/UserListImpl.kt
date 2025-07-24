@@ -5,9 +5,9 @@ import dev.slne.surf.cloud.api.common.netty.protocol.buffer.SurfByteBuf
 import dev.slne.surf.cloud.api.common.player.CloudPlayer
 import dev.slne.surf.cloud.api.common.player.CloudPlayerManager
 import dev.slne.surf.cloud.api.common.util.annotation.InternalApi
-import dev.slne.surf.cloud.api.common.util.mutableObjectSetOf
-import dev.slne.surf.cloud.api.common.util.synchronize
-import dev.slne.surf.cloud.api.common.util.toObjectSet
+import dev.slne.surf.surfapi.core.api.util.mutableObjectSetOf
+import dev.slne.surf.surfapi.core.api.util.synchronize
+import dev.slne.surf.surfapi.core.api.util.toObjectSet
 import it.unimi.dsi.fastutil.objects.ObjectSet
 import java.util.*
 

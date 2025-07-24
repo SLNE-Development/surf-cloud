@@ -3,6 +3,7 @@ package dev.slne.surf.cloud.core.common.netty.network.protocol.common
 import dev.slne.surf.cloud.api.common.netty.network.protocol.await
 import dev.slne.surf.cloud.core.common.netty.network.ConnectionImpl
 import dev.slne.surf.cloud.core.common.netty.network.DisconnectReason
+import dev.slne.surf.cloud.core.common.netty.network.protocol.common.bidirectional.KeepAlivePacket
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlin.time.Duration
@@ -28,7 +29,10 @@ class KeepAliveHandler(
         val elapsedTime = currentTime - keepAliveTime
 
         if (KEEP_ALIVE_TIME.isExpired(elapsedTime)) {
-            if (keepAlivePending && !isDisconnectProcessed() && KEEP_ALIVE_LIMIT.isExpired(elapsedTime)) {
+            if (keepAlivePending && !isDisconnectProcessed() && KEEP_ALIVE_LIMIT.isExpired(
+                    elapsedTime
+                )
+            ) {
                 disconnect(DisconnectReason.TIMEOUT)
             } else if (checkIfClosed(currentTime)) {
                 keepAlivePending = true

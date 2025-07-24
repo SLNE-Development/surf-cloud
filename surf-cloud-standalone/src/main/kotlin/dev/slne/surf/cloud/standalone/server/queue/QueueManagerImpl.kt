@@ -69,7 +69,6 @@ class QueueManagerImpl(
                     player.uuid,
                     ConnectionResultEnum.QUEUE_SWAPPED(other.getQueueName(), target.name)
                 )
-//                player.sendMessage(MessageManager.Queue.getQueueSwap(other.getQueueName(), target.name))
             }
         }
 
@@ -117,7 +116,6 @@ class QueueManagerImpl(
                     player.uuid,
                     ConnectionResultEnum.QUEUE_SWAPPED(other.getQueueName(), target)
                 )
-//                player.sendMessage(MessageManager.Queue.getQueueSwap(other.getQueueName(), target.name))
             }
         }
 

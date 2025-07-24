@@ -13,8 +13,8 @@ import dev.slne.surf.cloud.bukkit.plugin
 import dev.slne.surf.cloud.core.client.netty.network.PlatformSpecificPacketListenerExtension
 import dev.slne.surf.cloud.core.client.server.ClientCloudServerImpl
 import dev.slne.surf.cloud.core.common.coroutines.CommonObservableScope
-import dev.slne.surf.cloud.core.common.netty.network.protocol.running.RegistrationInfo
-import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ServerboundTransferPlayerPacketResponse
+import dev.slne.surf.cloud.core.common.netty.network.protocol.running.clientbound.RegistrationInfo
+import dev.slne.surf.cloud.core.common.netty.network.protocol.running.serverbound.ServerboundTransferPlayerPacketResponse
 import dev.slne.surf.surfapi.bukkit.api.extensions.server
 import dev.slne.surf.surfapi.bukkit.api.nms.NmsUseWithCaution
 import dev.slne.surf.surfapi.bukkit.api.nms.bridges.nmsCommonBridge

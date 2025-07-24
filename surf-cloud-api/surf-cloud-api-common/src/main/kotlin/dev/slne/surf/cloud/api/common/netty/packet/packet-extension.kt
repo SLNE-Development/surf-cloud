@@ -6,7 +6,7 @@ import dev.slne.surf.cloud.api.common.netty.network.codec.StreamCodec
 import dev.slne.surf.cloud.api.common.netty.network.codec.StreamDecoder
 import dev.slne.surf.cloud.api.common.netty.network.codec.StreamMemberEncoder
 import dev.slne.surf.cloud.api.common.netty.protocol.buffer.SurfByteBuf
-import dev.slne.surf.cloud.api.common.util.mutableObject2ObjectMapOf
+import dev.slne.surf.surfapi.core.api.util.mutableObject2ObjectMapOf
 import io.netty.buffer.ByteBuf
 import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.serializer

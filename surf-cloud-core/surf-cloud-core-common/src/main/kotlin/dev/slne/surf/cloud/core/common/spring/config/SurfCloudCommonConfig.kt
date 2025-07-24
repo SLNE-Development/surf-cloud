@@ -1,6 +1,5 @@
 package dev.slne.surf.cloud.core.common.spring.config
 
-import com.fasterxml.jackson.core.JsonParser
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.MapperFeature
 import com.fasterxml.jackson.databind.Module
@@ -19,8 +18,6 @@ class SurfCloudCommonConfig {
         .configure(SerializationFeature.WRITE_DURATIONS_AS_TIMESTAMPS, false)
         .configure(SerializationFeature.WRITE_DATES_WITH_ZONE_ID, true)
         .configure(MapperFeature.PROPAGATE_TRANSIENT_MARKER, true)
-//        .configure(JsonParser.Feature.USE_FAST_DOUBLE_PARSER, true)
-//        .configure(JsonParser.Feature.USE_FAST_BIG_NUMBER_PARSER, true)
         .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
         .addModules(modules.orderedStream().toList())
         .defaultTimeZone(TimeZone.getDefault())

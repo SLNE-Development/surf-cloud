@@ -1,6 +1,8 @@
 package dev.slne.surf.cloud.api.common.util
 
 import com.sksamuel.aedile.core.Cache
+import dev.slne.surf.surfapi.core.api.util.mutableObject2IntMapOf
+import dev.slne.surf.surfapi.core.api.util.mutableObjectListOf
 import it.unimi.dsi.fastutil.objects.ObjectList
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async

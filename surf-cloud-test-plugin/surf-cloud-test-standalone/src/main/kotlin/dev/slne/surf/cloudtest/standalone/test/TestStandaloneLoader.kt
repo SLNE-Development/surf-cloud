@@ -13,7 +13,6 @@ class TestStandaloneLoader : StandalonePluginLoader {
         val resolver = MavenLibraryResolver()
         resolver.addMavenCentral()
 
-//        resolver.addDependency(Dependency(DefaultArtifact("space.kscience:kmath-core:0.4.1"), "compile"))
         resolver.addDependency("commons-io:commons-io:2.18.0")
 
         classpathBuilder.addLibrary(resolver)

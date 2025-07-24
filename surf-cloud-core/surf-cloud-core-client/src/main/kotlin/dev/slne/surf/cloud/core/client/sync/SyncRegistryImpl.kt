@@ -4,8 +4,8 @@ import com.google.auto.service.AutoService
 import dev.slne.surf.cloud.api.client.netty.packet.fireAndForget
 import dev.slne.surf.cloud.api.common.sync.SyncRegistry
 import dev.slne.surf.cloud.core.common.data.CloudPersistentData
-import dev.slne.surf.cloud.core.common.netty.network.protocol.running.SyncSetDeltaPacket
-import dev.slne.surf.cloud.core.common.netty.network.protocol.running.SyncValueChangePacket
+import dev.slne.surf.cloud.core.common.netty.network.protocol.running.bidirectional.SyncSetDeltaPacket
+import dev.slne.surf.cloud.core.common.netty.network.protocol.running.bidirectional.SyncValueChangePacket
 import dev.slne.surf.cloud.core.common.sync.BasicSyncValue
 import dev.slne.surf.cloud.core.common.sync.CommonSyncRegistryImpl
 import dev.slne.surf.surfapi.core.api.util.logger
@@ -33,7 +33,8 @@ class SyncRegistryImpl : CommonSyncRegistryImpl() {
     fun handleSyncSetDelta(packet: SyncSetDeltaPacket) {
         if (!packet.registered) return
         val set =
-            getSet<Any?>(packet.setId) ?: error("SyncSet with id '${packet.setId}' is not registered")
+            getSet<Any?>(packet.setId)
+                ?: error("SyncSet with id '${packet.setId}' is not registered")
         val lastChangeId = lastChangeIds.getLong(packet.setId)
         if (packet.changeId <= lastChangeId) {
             log.atInfo()

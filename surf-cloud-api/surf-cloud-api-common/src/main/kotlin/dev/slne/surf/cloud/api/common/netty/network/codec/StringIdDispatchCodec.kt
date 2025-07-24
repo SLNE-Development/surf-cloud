@@ -4,9 +4,9 @@ package dev.slne.surf.cloud.api.common.netty.network.codec
 
 import dev.slne.surf.cloud.api.common.netty.protocol.buffer.readUtf
 import dev.slne.surf.cloud.api.common.netty.protocol.buffer.writeUtf
-import dev.slne.surf.cloud.api.common.util.freeze
-import dev.slne.surf.cloud.api.common.util.mutableObject2ObjectMapOf
-import dev.slne.surf.cloud.api.common.util.mutableObjectListOf
+import dev.slne.surf.surfapi.core.api.util.freeze
+import dev.slne.surf.surfapi.core.api.util.mutableObject2ObjectMapOf
+import dev.slne.surf.surfapi.core.api.util.mutableObjectListOf
 import io.netty.buffer.ByteBuf
 import io.netty.handler.codec.DecoderException
 import io.netty.handler.codec.EncoderException

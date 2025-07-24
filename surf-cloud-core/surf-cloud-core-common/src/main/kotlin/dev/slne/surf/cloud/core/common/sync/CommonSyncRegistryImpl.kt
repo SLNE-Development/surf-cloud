@@ -5,7 +5,7 @@ import dev.slne.surf.cloud.api.common.netty.protocol.buffer.SurfByteBuf
 import dev.slne.surf.cloud.api.common.sync.SyncRegistry
 import dev.slne.surf.cloud.api.common.sync.SyncSet
 import dev.slne.surf.cloud.api.common.sync.SyncValue
-import dev.slne.surf.cloud.api.common.util.mutableObject2ObjectMapOf
+import dev.slne.surf.surfapi.core.api.util.mutableObject2ObjectMapOf
 import javax.annotation.OverridingMethodsMustInvokeSuper
 
 abstract class CommonSyncRegistryImpl : SyncRegistry {

@@ -19,7 +19,6 @@ abstract class AbstractMuteListener {
         }
     }
 
-
     protected fun processMute(playerUuid: UUID): Boolean {
         val player = playerUuid.toOfflineCloudPlayer()
         val longestActiveMute = player.punishmentManager.longestActiveMute() ?: return false
@@ -27,7 +26,6 @@ abstract class AbstractMuteListener {
 
         return true
     }
-
 
     protected fun isMuted(playerUuid: UUID): Boolean {
         return CloudPlayerManager.getPlayer(playerUuid)?.punishmentManager?.isMuted == true

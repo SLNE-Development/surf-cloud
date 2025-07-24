@@ -1,19 +1,20 @@
 package dev.slne.surf.cloud.standalone.plugin.entrypoint
 
-import dev.slne.surf.cloud.api.common.util.mutableObject2BooleanMapOf
-import dev.slne.surf.cloud.api.common.util.object2ObjectMapOf
 import dev.slne.surf.cloud.standalone.plugin.provider.PluginProvider
 import dev.slne.surf.cloud.standalone.plugin.storage.BootstrapSpringProviderStorage
 import dev.slne.surf.cloud.standalone.plugin.storage.ProviderStorage
 import dev.slne.surf.cloud.standalone.plugin.storage.ServerSpringPluginProviderStorage
+import dev.slne.surf.surfapi.core.api.util.mutableObject2BooleanMapOf
+import dev.slne.surf.surfapi.core.api.util.object2ObjectMapOf
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap
 
 object LaunchEntryPointHandler : EntrypointHandler {
 
-    val storage: Object2ObjectMap<Entrypoint<*>, ProviderStorage<*>> = object2ObjectMapOf<Entrypoint<*>, ProviderStorage<*>>(
-        Entrypoint.SPRING_PLUGIN_BOOTSTRAPPER to BootstrapSpringProviderStorage(),
-        Entrypoint.SPRING_PLUGIN to ServerSpringPluginProviderStorage()
-    )
+    val storage: Object2ObjectMap<Entrypoint<*>, ProviderStorage<*>> =
+        object2ObjectMapOf<Entrypoint<*>, ProviderStorage<*>>(
+            Entrypoint.SPRING_PLUGIN_BOOTSTRAPPER to BootstrapSpringProviderStorage(),
+            Entrypoint.SPRING_PLUGIN to ServerSpringPluginProviderStorage()
+        )
     private val enteredMap = mutableObject2BooleanMapOf<Entrypoint<*>>().apply {
         defaultReturnValue(false)
     }

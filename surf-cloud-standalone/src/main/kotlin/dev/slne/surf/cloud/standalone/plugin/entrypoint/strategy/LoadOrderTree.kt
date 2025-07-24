@@ -3,11 +3,11 @@
 package dev.slne.surf.cloud.standalone.plugin.entrypoint.strategy
 
 import com.google.common.graph.MutableGraph
-import dev.slne.surf.cloud.api.common.util.mutableObjectSetOf
 import dev.slne.surf.cloud.api.server.plugin.configuration.PluginMeta
 import dev.slne.surf.cloud.standalone.plugin.provider.PluginProvider
 import dev.slne.surf.cloud.standalone.plugin.provider.configuration.StandalonePluginMeta
 import dev.slne.surf.surfapi.core.api.util.logger
+import dev.slne.surf.surfapi.core.api.util.mutableObjectSetOf
 
 class LoadOrderTree(
     private val providerMap: Map<String, PluginProvider<*>>,

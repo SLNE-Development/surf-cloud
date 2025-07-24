@@ -4,6 +4,19 @@ import dev.slne.surf.cloud.api.common.netty.network.ConnectionProtocol
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
 import dev.slne.surf.cloud.core.common.netty.network.TickablePacketListener
 import dev.slne.surf.cloud.core.common.netty.network.protocol.common.ServerCommonPacketListener
+import dev.slne.surf.cloud.core.common.netty.network.protocol.running.bidirectional.DisconnectPlayerPacket
+import dev.slne.surf.cloud.core.common.netty.network.protocol.running.bidirectional.PlayerConnectToServerPacket
+import dev.slne.surf.cloud.core.common.netty.network.protocol.running.bidirectional.PlayerDisconnectFromServerPacket
+import dev.slne.surf.cloud.core.common.netty.network.protocol.running.bidirectional.RequestLuckpermsMetaDataPacket
+import dev.slne.surf.cloud.core.common.netty.network.protocol.running.bidirectional.RequestOfflineDisplayNamePacket
+import dev.slne.surf.cloud.core.common.netty.network.protocol.running.bidirectional.RequestPlayerPermissionPacket
+import dev.slne.surf.cloud.core.common.netty.network.protocol.running.bidirectional.SilentDisconnectPlayerPacket
+import dev.slne.surf.cloud.core.common.netty.network.protocol.running.bidirectional.SyncSetDeltaPacket
+import dev.slne.surf.cloud.core.common.netty.network.protocol.running.bidirectional.SyncValueChangePacket
+import dev.slne.surf.cloud.core.common.netty.network.protocol.running.bidirectional.TeleportPlayerPacket
+import dev.slne.surf.cloud.core.common.netty.network.protocol.running.bidirectional.TeleportPlayerToPlayerPacket
+import dev.slne.surf.cloud.core.common.netty.network.protocol.running.bidirectional.UpdateAFKStatePacket
+import dev.slne.surf.cloud.core.common.netty.network.protocol.running.serverbound.*
 
 interface RunningServerPacketListener : ServerCommonPacketListener, TickablePacketListener {
     override val protocol get() = ConnectionProtocol.RUNNING

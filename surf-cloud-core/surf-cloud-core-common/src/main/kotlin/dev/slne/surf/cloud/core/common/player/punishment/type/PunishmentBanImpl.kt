@@ -4,10 +4,10 @@ import com.google.common.net.InetAddresses
 import dev.slne.surf.cloud.api.common.player.punishment.type.PunishmentAttachedIpAddress
 import dev.slne.surf.cloud.api.common.player.punishment.type.ban.PunishmentBan
 import dev.slne.surf.cloud.api.common.player.punishment.type.note.PunishmentNote
-import dev.slne.surf.cloud.api.common.util.toObjectList
 import dev.slne.surf.cloud.core.common.messages.MessageManager
 import dev.slne.surf.cloud.core.common.player.PunishmentManager
 import dev.slne.surf.cloud.core.common.util.bean
+import dev.slne.surf.surfapi.core.api.util.toObjectList
 import it.unimi.dsi.fastutil.objects.ObjectList
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
@@ -37,7 +37,7 @@ data class PunishmentBanImpl(
 
     override suspend fun attachIpAddress(rawIp: String): Boolean {
         require(InetAddresses.isInetAddress(rawIp)) { "Invalid IP address: $rawIp" }
-       return bean<PunishmentManager>().attachIpAddressToBan(id, rawIp)
+        return bean<PunishmentManager>().attachIpAddressToBan(id, rawIp)
     }
 
     override suspend fun fetchIpAddresses(): Set<PunishmentAttachedIpAddress> {
@@ -49,7 +49,7 @@ data class PunishmentBanImpl(
     }
 
     override suspend fun addNote(note: String): PunishmentNote {
-       return bean<PunishmentManager>().attachNoteToBan(id, note)
+        return bean<PunishmentManager>().attachNoteToBan(id, note)
     }
 
     override suspend fun fetchNotes(): ObjectList<out PunishmentNote> {

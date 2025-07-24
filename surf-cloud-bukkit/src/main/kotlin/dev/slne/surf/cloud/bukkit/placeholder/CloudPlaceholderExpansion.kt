@@ -1,11 +1,11 @@
 package dev.slne.surf.cloud.bukkit.placeholder
 
 import dev.slne.surf.cloud.api.common.util.TimeLogger
-import dev.slne.surf.cloud.api.common.util.objectListOf
 import dev.slne.surf.cloud.bukkit.placeholder.afk.CloudAfkPlaceholder
 import dev.slne.surf.cloud.core.common.spring.CloudLifecycleAware
 import dev.slne.surf.surfapi.bukkit.api.hook.papi.expansion.PapiExpansion
 import dev.slne.surf.surfapi.bukkit.api.hook.papi.papiHook
+import dev.slne.surf.surfapi.core.api.util.objectListOf
 import org.springframework.core.annotation.Order
 import org.springframework.stereotype.Component
 

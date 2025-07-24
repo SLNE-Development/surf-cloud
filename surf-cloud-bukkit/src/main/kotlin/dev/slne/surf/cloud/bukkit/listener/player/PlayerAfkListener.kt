@@ -1,7 +1,7 @@
 package dev.slne.surf.cloud.bukkit.listener.player
 
 import dev.slne.surf.cloud.api.client.netty.packet.fireAndForget
-import dev.slne.surf.cloud.core.common.netty.network.protocol.running.UpdateAFKStatePacket
+import dev.slne.surf.cloud.core.common.netty.network.protocol.running.bidirectional.UpdateAFKStatePacket
 import dev.slne.surf.surfapi.core.api.util.mutableObject2BooleanMapOf
 import dev.slne.surf.surfapi.core.api.util.mutableObject2LongMapOf
 import org.bukkit.event.EventHandler

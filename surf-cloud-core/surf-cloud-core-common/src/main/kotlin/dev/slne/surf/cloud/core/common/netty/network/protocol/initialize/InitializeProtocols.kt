@@ -2,6 +2,8 @@ package dev.slne.surf.cloud.core.common.netty.network.protocol.initialize
 
 import dev.slne.surf.cloud.api.common.netty.network.ConnectionProtocol
 import dev.slne.surf.cloud.core.common.netty.network.protocol.ProtocolInfoBuilder
+import dev.slne.surf.cloud.core.common.netty.network.protocol.initialize.clientbound.ClientboundInitializeIdResponsePacket
+import dev.slne.surf.cloud.core.common.netty.network.protocol.initialize.serverbound.ServerboundInitializeRequestIdPacket
 import io.netty.buffer.ByteBuf
 
 object InitializeProtocols {

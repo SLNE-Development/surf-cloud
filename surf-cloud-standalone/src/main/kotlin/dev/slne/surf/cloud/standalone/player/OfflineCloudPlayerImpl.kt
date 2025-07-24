@@ -49,7 +49,7 @@ class OfflineCloudPlayerImpl(uuid: UUID) : CommonOfflineCloudPlayerImpl(uuid) {
 
     override suspend fun playtime(): Playtime {
         return player?.playtime() ?: service.loadPlaytimeEntries(uuid)
-            .let { if (it.isEmpty()) PlaytimeImpl.EMPTY else PlaytimeImpl(it) }
+            .let { if (it.isEmpty()) PlaytimeImpl.EMPTY else PlaytimeImpl(it) } // FIXME: 24.07.2025 19:34 implement missing code
     }
 
     override suspend fun displayName(): Component {

@@ -49,10 +49,6 @@ class ServerLoginPacketListenerImpl(val server: NettyServerImpl, val connection:
 
     private fun startClientVerification() {
         state = State.VERIFYING
-
-//        if (proxy && standaloneConfig.useSingleProxySetup && ProxyServerAutoregistration.hasProxy) {
-//            disconnect(DisconnectReason.PROXY_ALREADY_CONNECTED)
-//        }
     }
 
     private fun verifyLoginAndFinishConnectionSetup() {

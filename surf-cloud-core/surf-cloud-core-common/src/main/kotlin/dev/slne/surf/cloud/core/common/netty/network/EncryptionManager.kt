@@ -28,9 +28,6 @@ abstract class EncryptionManager {
         val missingFiles = files.filter { !it.exists() }.toMutableList()
 
         while (missingFiles.isNotEmpty()) {
-//            log.atInfo()
-//                .log("Waiting for missing files: ${missingFiles.joinToString { it.path }}")
-
             println("[INFO] ${this::class.simpleName}: Waiting for missing files: ${missingFiles.joinToString { it.path }}")
 
             delay(5.seconds)

@@ -1,6 +1,5 @@
 package dev.slne.surf.cloud.standalone.plugin.loader
 
-import dev.slne.surf.cloud.api.common.util.mutableObjectListOf
 import dev.slne.surf.cloud.api.server.plugin.bootstrap.StandalonePluginProviderContext
 import dev.slne.surf.cloud.api.server.plugin.loader.PluginClasspathBuilder
 import dev.slne.surf.cloud.api.server.plugin.loader.library.ClassPathLibrary
@@ -8,6 +7,7 @@ import dev.slne.surf.cloud.standalone.plugin.entrypoint.classloader.ByteCodeModi
 import dev.slne.surf.cloud.standalone.plugin.entrypoint.classloader.SpringPluginClassloaderImpl
 import dev.slne.surf.cloud.standalone.plugin.loader.library.StandaloneLibraryStore
 import dev.slne.surf.cloud.standalone.plugin.provider.configuration.StandalonePluginMeta
+import dev.slne.surf.surfapi.core.api.util.mutableObjectListOf
 import it.unimi.dsi.fastutil.objects.ObjectList
 import java.io.IOException
 import java.net.URL

@@ -1,6 +1,6 @@
 package dev.slne.surf.cloud.core.common.permission
 
-object CommonCloudPermissions {
+object CommonCloudPermissions { // TODO: Auto register to luckperms?
     const val PREFIX = "surfcloud"
     private const val ANNOUNCE_PREFIX = "$PREFIX.announce"
     private const val QUEUE_PREFIX = "$PREFIX.queue"

@@ -4,11 +4,23 @@ import dev.slne.surf.cloud.api.common.netty.network.ConnectionProtocol
 import dev.slne.surf.cloud.api.common.netty.packet.createCodec
 import dev.slne.surf.cloud.api.common.netty.protocol.buffer.SurfByteBuf
 import dev.slne.surf.cloud.core.common.netty.network.protocol.ProtocolInfoBuilder
-import dev.slne.surf.cloud.core.common.netty.network.protocol.common.*
-import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ClientboundBatchUpdateServer
-import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ServerboundCreateOfflineCloudPlayerIfNotExistsPacket
-import dev.slne.surf.cloud.core.common.netty.network.protocol.running.SyncSetDeltaPacket
-import dev.slne.surf.cloud.core.common.netty.network.protocol.running.SyncValueChangePacket
+import dev.slne.surf.cloud.core.common.netty.network.protocol.common.bidirectional.KeepAlivePacket
+import dev.slne.surf.cloud.core.common.netty.network.protocol.common.clientbound.ClientboundBundleDelimiterPacket
+import dev.slne.surf.cloud.core.common.netty.network.protocol.common.clientbound.ClientboundBundlePacket
+import dev.slne.surf.cloud.core.common.netty.network.protocol.common.clientbound.ClientboundPongResponsePacket
+import dev.slne.surf.cloud.core.common.netty.network.protocol.common.clientbound.ClientboundSetVelocitySecretPacket
+import dev.slne.surf.cloud.core.common.netty.network.protocol.common.serverbound.ServerboundBundleDelimiterPacket
+import dev.slne.surf.cloud.core.common.netty.network.protocol.common.serverbound.ServerboundBundlePacket
+import dev.slne.surf.cloud.core.common.netty.network.protocol.common.serverbound.ServerboundPingRequestPacket
+import dev.slne.surf.cloud.core.common.netty.network.protocol.running.bidirectional.SyncSetDeltaPacket
+import dev.slne.surf.cloud.core.common.netty.network.protocol.running.bidirectional.SyncValueChangePacket
+import dev.slne.surf.cloud.core.common.netty.network.protocol.running.clientbound.ClientboundBatchUpdateServer
+import dev.slne.surf.cloud.core.common.netty.network.protocol.running.serverbound.ServerboundCreateOfflineCloudPlayerIfNotExistsPacket
+import dev.slne.surf.cloud.core.common.netty.network.protocol.synchronizing.bidirectional.FinishSynchronizingPacket
+import dev.slne.surf.cloud.core.common.netty.network.protocol.synchronizing.clientbound.ClientboundBatchSyncSetPacket
+import dev.slne.surf.cloud.core.common.netty.network.protocol.synchronizing.clientbound.ClientboundBatchSyncValuePacket
+import dev.slne.surf.cloud.core.common.netty.network.protocol.synchronizing.clientbound.ClientboundSynchronizeFinishPacket
+import dev.slne.surf.cloud.core.common.netty.network.protocol.synchronizing.serverbound.ServerboundSynchronizeFinishAcknowledgedPacket
 
 object SynchronizingProtocols {
 

@@ -4,12 +4,12 @@ package dev.slne.surf.cloud.standalone.plugin.entrypoint.strategy
 
 import com.google.common.collect.Maps
 import com.google.common.graph.GraphBuilder
-import dev.slne.surf.cloud.api.common.util.mutableObject2ObjectMapOf
-import dev.slne.surf.cloud.api.common.util.mutableObjectListOf
 import dev.slne.surf.cloud.standalone.plugin.entrypoint.dependency.PluginMetaDependencyTree
 import dev.slne.surf.cloud.standalone.plugin.exception.UnknownDependencyException
 import dev.slne.surf.cloud.standalone.plugin.provider.PluginProvider
 import dev.slne.surf.surfapi.core.api.util.logger
+import dev.slne.surf.surfapi.core.api.util.mutableObject2ObjectMapOf
+import dev.slne.surf.surfapi.core.api.util.mutableObjectListOf
 import it.unimi.dsi.fastutil.objects.ObjectList
 
 class PluginLoadingStrategy<T>(private val configuration: ProviderConfiguration<T>) :

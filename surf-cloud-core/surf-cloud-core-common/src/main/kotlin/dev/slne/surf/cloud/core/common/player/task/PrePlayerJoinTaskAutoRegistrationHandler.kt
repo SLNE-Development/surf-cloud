@@ -1,7 +1,7 @@
 package dev.slne.surf.cloud.core.common.player.task
 
 import dev.slne.surf.cloud.api.common.player.task.PrePlayerJoinTask
-import dev.slne.surf.cloud.api.common.util.mutableObjectSetOf
+import dev.slne.surf.surfapi.core.api.util.mutableObjectSetOf
 import org.springframework.beans.factory.config.BeanPostProcessor
 import org.springframework.context.SmartLifecycle
 import org.springframework.stereotype.Component

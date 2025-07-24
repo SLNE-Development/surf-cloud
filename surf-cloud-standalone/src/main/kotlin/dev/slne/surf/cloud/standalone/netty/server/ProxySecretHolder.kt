@@ -1,7 +1,7 @@
 package dev.slne.surf.cloud.standalone.netty.server
 
 import dev.slne.surf.cloud.api.server.netty.packet.broadcast
-import dev.slne.surf.cloud.core.common.netty.network.protocol.common.ClientboundSetVelocitySecretPacket
+import dev.slne.surf.cloud.core.common.netty.network.protocol.common.clientbound.ClientboundSetVelocitySecretPacket
 import dev.slne.surf.cloud.standalone.config.ProxyConfig.SecretConfig.SecretType
 import dev.slne.surf.cloud.standalone.config.standaloneConfig
 import org.apache.commons.lang3.RandomStringUtils

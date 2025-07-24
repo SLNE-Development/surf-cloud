@@ -1,7 +1,7 @@
 package dev.slne.surf.cloud.core.common.netty.network
 
-import dev.slne.surf.cloud.api.common.util.mutableObjectListOf
-import dev.slne.surf.cloud.api.common.util.synchronize
+import dev.slne.surf.surfapi.core.api.util.mutableObjectListOf
+import dev.slne.surf.surfapi.core.api.util.synchronize
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 

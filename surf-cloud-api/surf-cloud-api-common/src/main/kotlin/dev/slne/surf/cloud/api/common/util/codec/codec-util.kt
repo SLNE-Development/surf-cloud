@@ -9,9 +9,9 @@ import com.mojang.serialization.codecs.RecordCodecBuilder
 import dev.slne.surf.cloud.api.common.netty.network.codec.streamCodec
 import dev.slne.surf.cloud.api.common.netty.network.codec.streamCodecUnitSimple
 import dev.slne.surf.cloud.api.common.netty.protocol.buffer.*
-import dev.slne.surf.cloud.api.common.util.objectListOf
 import dev.slne.surf.cloud.api.common.util.toIntArray
 import dev.slne.surf.cloud.api.common.util.toUuid
+import dev.slne.surf.surfapi.core.api.util.objectListOf
 import io.netty.buffer.ByteBuf
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet
 import net.kyori.adventure.bossbar.BossBar
@@ -382,7 +382,7 @@ object ExtraCodecs {
     // endregion
     // region nbt
     val COMPOUND_TAG_CODEC = streamCodec<ByteBuf, CompoundBinaryTag>({ buf, tag ->
-        ByteArrayOutputStream().use {out ->
+        ByteArrayOutputStream().use { out ->
             BinaryTagIO.writer().write(tag, out, BinaryTagIO.Compression.GZIP)
             buf.writeByteArray(out.toByteArray())
         }

@@ -4,7 +4,7 @@ import dev.slne.surf.cloud.api.common.netty.protocol.buffer.SurfByteBuf
 import dev.slne.surf.cloud.api.common.player.ppdc.PersistentPlayerDataAdapterContext
 import dev.slne.surf.cloud.api.common.player.ppdc.PersistentPlayerDataContainerView
 import dev.slne.surf.cloud.api.common.player.ppdc.PersistentPlayerDataType
-import dev.slne.surf.cloud.api.common.util.toObjectSet
+import dev.slne.surf.surfapi.core.api.util.toObjectSet
 import it.unimi.dsi.fastutil.objects.ObjectSet
 import net.kyori.adventure.key.Key
 import net.kyori.adventure.nbt.BinaryTag

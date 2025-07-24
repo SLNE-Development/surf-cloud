@@ -5,8 +5,8 @@ import dev.slne.surf.cloud.api.client.netty.packet.fireAndForget
 import dev.slne.surf.cloud.api.common.player.task.PrePlayerJoinTask
 import dev.slne.surf.cloud.core.common.data.CloudPersistentData
 import dev.slne.surf.cloud.core.common.messages.MessageManager
-import dev.slne.surf.cloud.core.common.netty.network.protocol.running.PlayerConnectToServerPacket
-import dev.slne.surf.cloud.core.common.netty.network.protocol.running.PlayerDisconnectFromServerPacket
+import dev.slne.surf.cloud.core.common.netty.network.protocol.running.bidirectional.PlayerConnectToServerPacket
+import dev.slne.surf.cloud.core.common.netty.network.protocol.running.bidirectional.PlayerDisconnectFromServerPacket
 import kotlinx.coroutines.runBlocking
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
@@ -23,7 +23,6 @@ object ConnectionListener : Listener {
         if (loginResult != AsyncPlayerPreLoginEvent.Result.ALLOWED) {
             return
         }
-
 
         /**
          * We are in an async event wich uses a cached thread pool,

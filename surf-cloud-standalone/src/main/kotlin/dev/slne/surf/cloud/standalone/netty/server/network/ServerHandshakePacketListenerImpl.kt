@@ -4,16 +4,19 @@ import dev.slne.surf.cloud.core.common.netty.network.ConnectionImpl
 import dev.slne.surf.cloud.core.common.netty.network.DisconnectReason
 import dev.slne.surf.cloud.core.common.netty.network.DisconnectionDetails
 import dev.slne.surf.cloud.core.common.netty.network.protocol.handshake.ClientIntent
-import dev.slne.surf.cloud.core.common.netty.network.protocol.handshake.PROTOCOL_VERSION
 import dev.slne.surf.cloud.core.common.netty.network.protocol.handshake.ServerHandshakePacketListener
-import dev.slne.surf.cloud.core.common.netty.network.protocol.handshake.ServerboundHandshakePacket
+import dev.slne.surf.cloud.core.common.netty.network.protocol.handshake.serverbound.PROTOCOL_VERSION
+import dev.slne.surf.cloud.core.common.netty.network.protocol.handshake.serverbound.ServerboundHandshakePacket
 import dev.slne.surf.cloud.core.common.netty.network.protocol.initialize.InitializeProtocols
 import dev.slne.surf.cloud.core.common.netty.network.protocol.login.ClientboundLoginDisconnectPacket
 import dev.slne.surf.cloud.core.common.netty.network.protocol.login.LoginProtocols
 import dev.slne.surf.cloud.standalone.netty.server.NettyServerImpl
 import java.net.InetSocketAddress
 
-class ServerHandshakePacketListenerImpl(val server: NettyServerImpl, val connection: ConnectionImpl) :
+class ServerHandshakePacketListenerImpl(
+    val server: NettyServerImpl,
+    val connection: ConnectionImpl
+) :
     ServerHandshakePacketListener {
     override suspend fun handleHandshake(packet: ServerboundHandshakePacket) {
         connection.hostname = "${packet.hostName}:${packet.port}"

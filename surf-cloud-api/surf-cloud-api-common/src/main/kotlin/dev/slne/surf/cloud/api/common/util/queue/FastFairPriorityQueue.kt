@@ -1,6 +1,6 @@
 package dev.slne.surf.cloud.api.common.util.queue
 
-import dev.slne.surf.cloud.api.common.util.mutableObjectListOf
+import dev.slne.surf.surfapi.core.api.util.mutableObjectListOf
 import it.unimi.dsi.fastutil.objects.*
 import java.io.Serial
 import java.util.*

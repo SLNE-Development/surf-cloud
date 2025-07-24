@@ -3,10 +3,10 @@
 package dev.slne.surf.cloud.api.server.plugin.loader.library.impl
 
 import dev.slne.surf.cloud.api.common.util.annotation.InternalApi
-import dev.slne.surf.cloud.api.common.util.mutableObjectListOf
 import dev.slne.surf.cloud.api.server.plugin.loader.library.ClassPathLibrary
 import dev.slne.surf.cloud.api.server.plugin.loader.library.LibraryLoadingException
 import dev.slne.surf.cloud.api.server.plugin.loader.library.LibraryStore
+import dev.slne.surf.surfapi.core.api.util.mutableObjectListOf
 import org.apache.maven.repository.internal.MavenRepositorySystemUtils
 import org.eclipse.aether.RepositorySystem
 import org.eclipse.aether.artifact.DefaultArtifact
@@ -25,28 +25,6 @@ class MavenLibraryResolver : ClassPathLibrary {
     private val log = dev.slne.surf.surfapi.core.api.util.logger()
 
     private val repository: RepositorySystem = RepositorySystemSupplier().get()
-//    private val session = repository.createSessionBuilder().apply {
-//        setSystemProperties(System.getProperties())
-//        setChecksumPolicy(RepositoryPolicy.CHECKSUM_POLICY_FAIL)
-//        withLocalRepositories(LocalRepository("libraries"))
-//        setTransferListener(object : AbstractTransferListener() {
-//            override fun transferInitiated(event: TransferEvent) {
-//                log.atInfo()
-//                    .log(
-//                        "Downloading %s",
-//                        event.resource.repositoryUrl + event.resource.resourceName
-//                    )
-//            }
-//
-//            override fun transferFailed(event: TransferEvent) {
-//                log.atSevere().log(
-//                    "Failed to download %s from %s",
-//                    event.resource.resourceName,
-//                    event.resource.repositoryUrl
-//                )
-//            }
-//        })
-//    }.build()
 
     private val session = MavenRepositorySystemUtils.newSession().apply {
         setSystemProperties(System.getProperties())

@@ -14,7 +14,7 @@ import kotlin.io.path.div
 import kotlin.io.path.notExists
 
 
-object PersistentDataImpl {
+object PersistentDataImpl { // TODO: 24.07.2025 15:35 Think about moving this to a database? Like why is this stored in a file that is not usable accross multiple standalones
     private val file by lazy {
         (coreCloudInstance.dataFolder / "storage" / "data.dat").apply {
             if (notExists()) {

@@ -21,13 +21,13 @@ import dev.slne.surf.cloud.core.common.netty.network.ConnectionImpl
 import dev.slne.surf.cloud.core.common.netty.network.DisconnectReason
 import dev.slne.surf.cloud.core.common.netty.network.DisconnectionDetails
 import dev.slne.surf.cloud.core.common.netty.network.EncryptionManager
-import dev.slne.surf.cloud.core.common.netty.network.protocol.common.ServerboundBundlePacket
+import dev.slne.surf.cloud.core.common.netty.network.protocol.common.serverbound.ServerboundBundlePacket
 import dev.slne.surf.cloud.core.common.netty.network.protocol.initialize.ClientInitializePacketListener
-import dev.slne.surf.cloud.core.common.netty.network.protocol.initialize.ClientboundInitializeIdResponsePacket
-import dev.slne.surf.cloud.core.common.netty.network.protocol.initialize.ServerboundInitializeRequestIdPacket
+import dev.slne.surf.cloud.core.common.netty.network.protocol.initialize.clientbound.ClientboundInitializeIdResponsePacket
+import dev.slne.surf.cloud.core.common.netty.network.protocol.initialize.serverbound.ServerboundInitializeRequestIdPacket
 import dev.slne.surf.cloud.core.common.netty.network.protocol.login.LoginProtocols
 import dev.slne.surf.cloud.core.common.netty.network.protocol.login.ServerboundLoginStartPacket
-import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ServerboundBroadcastPacket
+import dev.slne.surf.cloud.core.common.netty.network.protocol.running.serverbound.ServerboundBroadcastPacket
 import dev.slne.surf.cloud.core.common.util.InetSocketAddress
 import dev.slne.surf.cloud.core.common.util.ServerAddress
 import dev.slne.surf.surfapi.core.api.util.logger

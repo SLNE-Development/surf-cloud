@@ -1,7 +1,6 @@
 package dev.slne.surf.cloud.bukkit.listener
 
 import dev.slne.surf.cloud.api.common.util.TimeLogger
-import dev.slne.surf.cloud.bukkit.listener.exception.SurfFatalErrorExceptionListener
 import dev.slne.surf.cloud.bukkit.listener.player.ConnectionListener
 import dev.slne.surf.cloud.bukkit.listener.player.SilentDisconnectListener
 import dev.slne.surf.cloud.bukkit.plugin
@@ -16,7 +15,7 @@ import org.springframework.stereotype.Component
 @OptIn(NmsUseWithCaution::class)
 @Component
 @Order(CloudLifecycleAware.MISC_PRIORITY)
-class ListenerManager: CloudLifecycleAware {
+class ListenerManager : CloudLifecycleAware {
 
     override suspend fun onEnable(timeLogger: TimeLogger) {
         timeLogger.measureStep("Registering listeners") {
@@ -32,7 +31,6 @@ class ListenerManager: CloudLifecycleAware {
 
     fun registerListeners() {
         ConnectionListener.register()
-        SurfFatalErrorExceptionListener.register()
         nmsBridge.registerClientboundPacketListener(SilentDisconnectListener)
     }
 

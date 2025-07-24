@@ -4,8 +4,8 @@ import dev.slne.surf.cloud.api.common.player.teleport.TeleportCause
 import dev.slne.surf.cloud.api.common.player.teleport.TeleportFlag
 import dev.slne.surf.cloud.api.common.player.teleport.TeleportLocation
 import dev.slne.surf.cloud.core.client.server.ClientCloudServerImpl
-import dev.slne.surf.cloud.core.common.netty.network.protocol.running.RegistrationInfo
-import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ServerboundTransferPlayerPacketResponse
+import dev.slne.surf.cloud.core.common.netty.network.protocol.running.clientbound.RegistrationInfo
+import dev.slne.surf.cloud.core.common.netty.network.protocol.running.serverbound.ServerboundTransferPlayerPacketResponse
 import net.kyori.adventure.text.Component
 import java.net.InetSocketAddress
 import java.util.*

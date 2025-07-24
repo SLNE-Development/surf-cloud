@@ -45,21 +45,6 @@ class Varint21FrameDecoder : ByteToMessageDecoder() {
                 out.add(byteBuf.readRetainedSlice(length))
             }
         }
-
-
-//        byteBuf.markReaderIndex()
-//        helperBuf.clear()
-//
-//        if (!copyVarint(byteBuf, helperBuf)) {
-//            byteBuf.resetReaderIndex()
-//        } else {
-//            val value = VarInt.readVarInt(helperBuf)
-//            if (byteBuf.readableBytes() < value) {
-//                byteBuf.resetReaderIndex()
-//            } else {
-//                out.add(byteBuf.readBytes(value))
-//            }
-//        }
     }
 
     companion object {
@@ -91,8 +76,10 @@ class Varint21FrameDecoder : ByteToMessageDecoder() {
             var preservedBytes = wholeOrMore and (atStop xor (atStop - 1))
 
             // merge together using this trick: https://github.com/netty/netty/pull/14050#discussion_r1597896639
-            preservedBytes = (preservedBytes and 0x007F007F) or ((preservedBytes and 0x00007F00) shr 1)
-            preservedBytes = (preservedBytes and 0x00003FFF) or ((preservedBytes and 0x3FFF0000.toInt()) shr 2)
+            preservedBytes =
+                (preservedBytes and 0x007F007F) or ((preservedBytes and 0x00007F00) shr 1)
+            preservedBytes =
+                (preservedBytes and 0x00003FFF) or ((preservedBytes and 0x3FFF0000.toInt()) shr 2)
             return preservedBytes
         }
 

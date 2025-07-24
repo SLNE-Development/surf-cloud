@@ -4,7 +4,7 @@ import dev.slne.surf.cloud.api.common.netty.exception.SurfNettyListenerRegistrat
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacketInfo
 import dev.slne.surf.cloud.api.common.util.isSuspending
-import dev.slne.surf.cloud.api.common.util.mutableObject2ObjectMapOf
+import dev.slne.surf.surfapi.core.api.util.mutableObject2ObjectMapOf
 import it.unimi.dsi.fastutil.objects.Object2ObjectFunction
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet
 import it.unimi.dsi.fastutil.objects.ObjectSet
@@ -77,42 +77,6 @@ object NettyListenerRegistry {
                     isSuspending
                 )
             )
-
-//        for (i in params.indices) {
-//            val param = params[i]
-//            if (NettyPacket::class.java.isAssignableFrom(param)) {
-//                if (packetClass != null) {
-//                    throw SurfNettyListenerRegistrationException("Listener method must have only one parameter of type NettyPacket")
-//                }
-//
-//                packetClass = param as Class<out NettyPacket<*>>
-//                packetClassIndex = i
-//            } else if (NettyPacketInfo::class.java.isAssignableFrom(param)) {
-//                if (packetInfoIndex != -1) {
-//                    throw SurfNettyListenerRegistrationException("Listener method must have only one parameter of type NettyPacketInfo")
-//                }
-//
-//                packetInfoIndex = i
-//            } else {
-//                throw SurfNettyListenerRegistrationException("Listener method must have one or two parameters of type NettyPacket and optional NettyPacketInfo")
-//            }
-//        }
-//
-//        if (packetClass == null) {
-//            throw SurfNettyListenerRegistrationException("Listener method must have one parameter of type NettyPacket")
-//        }
-//
-//        if (!Modifier.isPublic(listenerMethod.modifiers)) {
-//            throw SurfNettyListenerRegistrationException("Listener method must be public")
-//        }
-//
-//        listeners.computeIfAbsent(packetClass,
-//            Object2ObjectFunction {
-//                ObjectOpenHashSet(
-//                    1
-//                )
-//            })
-//            .add(RegisteredListener(bean, listenerMethod, packetClassIndex, packetInfoIndex))
     }
 
     fun hasListeners(packetClass: Class<out NettyPacket>) = listeners.containsKey(packetClass)

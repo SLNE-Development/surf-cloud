@@ -14,14 +14,6 @@ import dev.slne.surf.cloud.core.common.handleEventuallyFatalError
 import kotlinx.coroutines.runBlocking
 import java.nio.file.Path
 
-//@Plugin(
-//    id = "surf-cloud-velocity",
-//    name = "Surf Cloud Velocity",
-//    version = "1.21.4-1.0.0-SNAPSHOT",
-//    description = "A cloud plugin for Velocity",
-//    authors = ["twisti"],
-//    dependencies = [Dependency("surf-api-velocity"), Dependency("luckperms")]
-//)
 class VelocityMain @Inject constructor(
     val server: ProxyServer,
     val pluginManager: PluginManager,

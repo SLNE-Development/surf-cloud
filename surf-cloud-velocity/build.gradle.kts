@@ -6,8 +6,6 @@ plugins {
 dependencies {
     api(project(":surf-cloud-core:surf-cloud-core-client"))
     api(project(":surf-cloud-api:surf-cloud-api-client:surf-cloud-api-client-velocity"))
-
-//    api("org.springframework.boot:spring-boot-starter-data-jpa")
 }
 
 velocityPluginFile {

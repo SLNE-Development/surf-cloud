@@ -5,6 +5,5 @@ plugins {
 dependencies {
     compileOnly(project(":surf-cloud-api:surf-cloud-api-server"))
 
-    // https://mvnrepository.com/artifact/commons-io/commons-io
     compileOnly("commons-io:commons-io:2.19.0")
 }

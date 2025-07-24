@@ -7,9 +7,9 @@ import dev.slne.surf.cloud.api.server.server.ServerCloudServer
 import dev.slne.surf.cloud.api.server.server.ServerCommonCloudServer
 import dev.slne.surf.cloud.core.common.coroutines.CloudServerCleanupScope
 import dev.slne.surf.cloud.core.common.netty.network.ConnectionImpl
-import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ClientboundTransferPlayerPacket
-import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ClientboundTriggerShutdownPacket
-import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ServerboundTransferPlayerPacketResponse.Status
+import dev.slne.surf.cloud.core.common.netty.network.protocol.running.clientbound.ClientboundTransferPlayerPacket
+import dev.slne.surf.cloud.core.common.netty.network.protocol.running.clientbound.ClientboundTriggerShutdownPacket
+import dev.slne.surf.cloud.core.common.netty.network.protocol.running.serverbound.ServerboundTransferPlayerPacketResponse.Status
 import dev.slne.surf.cloud.core.common.server.AbstractCloudServer
 import dev.slne.surf.cloud.core.common.util.bean
 import dev.slne.surf.cloud.standalone.config.standaloneConfig

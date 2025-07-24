@@ -6,7 +6,7 @@ import dev.slne.surf.cloud.api.common.netty.protocol.buffer.writeCollection
 import dev.slne.surf.cloud.api.common.player.name.NameEntry
 import dev.slne.surf.cloud.api.common.player.name.NameHistory
 import dev.slne.surf.cloud.api.common.player.name.NameHistoryFactory
-import dev.slne.surf.cloud.api.common.util.mutableObjectListOf
+import dev.slne.surf.surfapi.core.api.util.mutableObjectListOf
 import io.netty.buffer.ByteBuf
 import it.unimi.dsi.fastutil.objects.ObjectList
 import it.unimi.dsi.fastutil.objects.ObjectLists

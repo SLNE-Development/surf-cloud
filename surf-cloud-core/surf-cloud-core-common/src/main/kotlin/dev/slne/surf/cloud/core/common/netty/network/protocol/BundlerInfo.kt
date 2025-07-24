@@ -1,7 +1,7 @@
 package dev.slne.surf.cloud.core.common.netty.network.protocol
 
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
-import dev.slne.surf.cloud.api.common.util.mutableObjectListOf
+import dev.slne.surf.surfapi.core.api.util.mutableObjectListOf
 
 interface BundlerInfo {
     companion object {

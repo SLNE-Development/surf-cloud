@@ -14,5 +14,4 @@ import org.springframework.context.annotation.Import
 @AdditionalStandaloneConfiguration
 @ImportAutoConfiguration(ExposedAutoConfiguration::class)
 @Import(TransactionConfiguration::class)
-//@EnableAspectJAutoProxy(proxyTargetClass = true)
 internal class __AdditionalSpringStandaloneConfiguration

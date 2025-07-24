@@ -9,8 +9,8 @@ import dev.slne.surf.cloud.api.common.util.threadFactory
 import dev.slne.surf.cloud.core.common.config.cloudConfig
 import dev.slne.surf.cloud.core.common.coroutines.ConnectionManagementScope
 import dev.slne.surf.cloud.core.common.netty.network.*
-import dev.slne.surf.cloud.core.common.netty.network.protocol.common.ClientboundBundlePacket
-import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ClientboundDisconnectPacket
+import dev.slne.surf.cloud.core.common.netty.network.protocol.common.clientbound.ClientboundBundlePacket
+import dev.slne.surf.cloud.core.common.netty.network.protocol.running.clientbound.ClientboundDisconnectPacket
 import dev.slne.surf.cloud.standalone.netty.server.NettyServerImpl
 import dev.slne.surf.cloud.standalone.netty.server.network.ServerHandshakePacketListenerImpl
 import dev.slne.surf.surfapi.core.api.util.logger

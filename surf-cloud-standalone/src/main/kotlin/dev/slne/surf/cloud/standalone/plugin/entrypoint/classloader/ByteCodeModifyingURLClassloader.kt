@@ -1,7 +1,7 @@
 package dev.slne.surf.cloud.standalone.plugin.entrypoint.classloader
 
-import dev.slne.surf.cloud.api.common.util.mutableObject2ObjectMapOf
-import dev.slne.surf.cloud.api.common.util.synchronize
+import dev.slne.surf.surfapi.core.api.util.mutableObject2ObjectMapOf
+import dev.slne.surf.surfapi.core.api.util.synchronize
 import java.io.IOException
 import java.io.UncheckedIOException
 import java.net.JarURLConnection

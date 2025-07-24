@@ -34,9 +34,6 @@ class NettyPacketProcessor : ApplicationContextInitializer<ConfigurableApplicati
     }
 
     override fun onApplicationEvent(event: ContextRefreshedEvent) {
-//                val basePackages = findBasePackages(event.applicationContext as ConfigurableApplicationContext)
-//                println("Base packages: ${basePackages.toList()}")
-
         val context = event.applicationContext
         val autoConfigurationPackages = AutoConfigurationPackages.get(context)
         log.atInfo()
@@ -64,7 +61,10 @@ class NettyPacketProcessor : ApplicationContextInitializer<ConfigurableApplicati
             }
 
             val protocols = packetMeta.protocols
-            if (!protocols.contains(ConnectionProtocol.RUNNING) && !protocols.contains(ConnectionProtocol.SYNCHRONIZING)) continue
+            if (!protocols.contains(ConnectionProtocol.RUNNING) && !protocols.contains(
+                    ConnectionProtocol.SYNCHRONIZING
+                )
+            ) continue
             val codec = packet.findPacketCodec<SurfByteBuf, NettyPacket>()
 
             if (codec == null) {
@@ -169,22 +169,4 @@ class NettyPacketProcessor : ApplicationContextInitializer<ConfigurableApplicati
                 append(packetMeta.flow.displayName())
             })
     }
-
-//    private fun findBasePackages(context: ConfigurableApplicationContext): Sequence<String> {
-////        val candidates1 = context.beanDefinitionNames
-////            .mapNotNull { context.getType(it)?.`package`?.name }
-////            .distinct()
-//
-//        val candidates2 =
-//            findMainClass(context)?.getAnnotation(SurfCloudApplication::class.java)?.basePackages
-//                ?: emptyArray()
-//
-//        return (candidates2).asSequence().distinct().filter { it.contains("org.springframework") }
-//    }
-//
-//    private fun findMainClass(context: ConfigurableApplicationContext): Class<*>? {
-//        return context.getBeansWithAnnotation(SurfCloudApplication::class.java).values
-//            .map { it::class.java }
-//            .firstOrNull()
-//    }
 }

@@ -167,7 +167,7 @@ interface Playtime {
      * @param since Optional start time to filter playtime.
      * @return An [ObjectList] of pairs, each containing a server name and its corresponding playtime duration.
      */
-    fun topServers(limit: Int = 5, since: ZonedDateTime? = null, sortByPlaytime: Boolean = true): ObjectList<Pair<String, Duration>>
+    fun topServers(limit: Int = 5, since: ZonedDateTime? = null): ObjectList<Pair<String, Duration>>
 
     /**
      * Retrieves a ranked list of categories sorted by total playtime in descending order.
@@ -176,7 +176,7 @@ interface Playtime {
      * @param since Optional start time to filter playtime.
      * @return An [ObjectList] of pairs, each containing a category name and its corresponding playtime duration.
      */
-    fun topCategories(limit: Int = 5, since: ZonedDateTime? = null, sortByPlaytime: Boolean = true): ObjectList<Pair<String, Duration>>
+    fun topCategories(limit: Int = 5, since: ZonedDateTime? = null): ObjectList<Pair<String, Duration>>
 
     fun writeToByteBuf(buf: ByteBuf)
 }

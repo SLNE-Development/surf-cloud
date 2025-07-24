@@ -172,8 +172,7 @@ class PlaytimeImpl(private val entries: ObjectList<PlaytimeEntry>) : Playtime {
 
     override fun topServers(
         limit: Int,
-        since: ZonedDateTime?,
-        sortByPlaytime: Boolean
+        since: ZonedDateTime?
     ): ObjectList<Pair<String, Duration>> = entries
         .filter { since == null || it.createdAt.isAfter(since) }
         .groupBy { it.server }
@@ -185,8 +184,7 @@ class PlaytimeImpl(private val entries: ObjectList<PlaytimeEntry>) : Playtime {
 
     override fun topCategories(
         limit: Int,
-        since: ZonedDateTime?,
-        sortByPlaytime: Boolean
+        since: ZonedDateTime?
     ): ObjectList<Pair<String, Duration>> = entries
         .filter { since == null || it.createdAt.isAfter(since) }
         .groupBy { it.category }

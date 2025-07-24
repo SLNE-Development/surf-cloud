@@ -103,7 +103,7 @@ class PlaytimeImpl(private val entries: ObjectList<PlaytimeEntry>) : Playtime {
         since: ZonedDateTime?,
         sortByPlaytime: Boolean
     ): Object2ObjectMap<String, Object2ObjectMap<String, Duration>> {
-        val filtered = entries.asSequence()
+        val filtered = entries
             .filter { since == null || it.createdAt.isAfter(since) }
 
         val grouped = filtered.groupBy { it.category }

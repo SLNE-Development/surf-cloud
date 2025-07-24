@@ -197,3 +197,8 @@ object CommonObservableScope : BaseScope(
     dispatcher = Dispatchers.Default,
     name = "common-observable"
 )
+
+object CommonScope : BaseScope(
+    dispatcher = Dispatchers.Default,
+    name = "common"
+)

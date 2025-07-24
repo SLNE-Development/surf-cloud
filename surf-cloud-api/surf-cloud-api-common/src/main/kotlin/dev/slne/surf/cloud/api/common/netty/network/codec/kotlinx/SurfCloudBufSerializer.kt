@@ -29,6 +29,8 @@ object SurfCloudBufSerializer {
         contextual(InetSocketAddressSerializer)
         contextual(ZonedDateTimeSerializer)
         contextual(Inet4AddressSerializer)
+        contextual(BigDecimalSerializer)
+        contextual(BigIntegerSerializer)
 
         // Kotlin
         contextual(DurationSerializer)

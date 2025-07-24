@@ -209,7 +209,16 @@ class ServerConnectionListener(val server: NettyServerImpl) {
         val activeProtocols = packet.protocols
         for (connection in connections) {
             if (connection.outboundProtocolInfo.id !in activeProtocols) continue
-            connection.send(packet, flush)
+
+            try {
+                connection.send(packet, flush)
+            } catch (e: Throwable) {
+                log.atWarning()
+                    .withCause(e)
+                    .log(
+                        "Failed to broadcast packet ${packet::class.simpleName} to ${connection.getLoggableAddress(logIps)}"
+                    )
+            }
         }
     }
 
@@ -222,7 +231,16 @@ class ServerConnectionListener(val server: NettyServerImpl) {
 
         for (connection in connections) {
             if (connection.outboundProtocolInfo.id !in activeProtocols) continue
-            connection.send(packet, flush)
+
+            try {
+                connection.send(packet, flush)
+            } catch (e: Throwable) {
+                log.atWarning()
+                    .withCause(e)
+                    .log(
+                        "Failed to broadcast packet ${packet::class.simpleName} to ${connection.getLoggableAddress(logIps)}"
+                    )
+            }
         }
     }
 

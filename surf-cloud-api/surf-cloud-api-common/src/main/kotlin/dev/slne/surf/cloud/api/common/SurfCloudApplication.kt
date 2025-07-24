@@ -6,7 +6,6 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.boot.autoconfigure.domain.EntityScan
 import org.springframework.boot.context.TypeExcludeFilter
 import org.springframework.cache.annotation.EnableCaching
-import org.springframework.context.annotation.AdviceMode
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.FilterType
 import org.springframework.scheduling.annotation.EnableAsync
@@ -25,7 +24,7 @@ import java.lang.annotation.Inherited
 @EnableScheduling
 @EnableAsync(mode = AdviceMode.ASPECTJ)
 @EntityScan
-@EnableCaching(mode = AdviceMode.ASPECTJ)
+@EnableCaching
 @AutoConfigurationPackage
 @Inherited
 @EnableAutoConfiguration

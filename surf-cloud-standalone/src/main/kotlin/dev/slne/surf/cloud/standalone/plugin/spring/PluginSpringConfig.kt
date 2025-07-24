@@ -1,5 +1,6 @@
 package dev.slne.surf.cloud.standalone.plugin.spring
 
+import dev.slne.surf.cloud.api.server.plugin.PluginConfig
 import dev.slne.surf.cloud.api.server.plugin.configuration.PluginMeta
 import dev.slne.surf.cloud.api.server.plugin.provider.classloader.SpringPluginClassloader
 import dev.slne.surf.cloud.core.common.spring.CloudChildSpringApplicationConfiguration
@@ -15,7 +16,7 @@ import org.springframework.boot.builder.SpringApplicationBuilder
 import org.springframework.stereotype.Component
 
 @Component
-class PluginDatabaseConfigModern : CloudChildSpringApplicationConfiguration {
+class PluginSpringConfig : CloudChildSpringApplicationConfiguration {
 
     override fun configureChildApplication(
         builder: SpringApplicationBuilder,
@@ -43,6 +44,7 @@ class PluginDatabaseConfigModern : CloudChildSpringApplicationConfiguration {
             PluginDatasourceConfiguration::class.java,
             PluginFlywayConfigurationCustomizer::class.java,
             ExposedAutoConfiguration::class.java,
+            PluginConfig::class.java
         )
     }
 }

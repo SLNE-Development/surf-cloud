@@ -77,8 +77,7 @@ import dev.slne.surf.cloud.core.common.netty.network.protocol.running.serverboun
 
 abstract class ClientCloudPlayerImpl<PlatformPlayer : Audience>(
     uuid: UUID,
-    name: String,
-    private val createIfNotExists: Boolean
+    name: String
 ) : CommonCloudPlayerImpl(uuid, name) {
     @Volatile
     var proxyServerUid: Long? = null
@@ -98,12 +97,6 @@ abstract class ClientCloudPlayerImpl<PlatformPlayer : Audience>(
     protected abstract val audience: PlatformPlayer?
 
     protected abstract val platformClass: Class<PlatformPlayer>
-
-    init {
-        if (createIfNotExists && player == null) {
-            ServerboundCreateOfflineCloudPlayerIfNotExistsPacket(uuid).fireAndForget()
-        }
-    }
 
     override suspend fun latestIpAddress(): Inet4Address {
         return request<IpAddress>(DataRequestType.LATEST_IP_ADDRESS).ip

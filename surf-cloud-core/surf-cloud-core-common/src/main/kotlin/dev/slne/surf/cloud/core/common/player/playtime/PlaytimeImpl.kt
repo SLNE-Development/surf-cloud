@@ -122,8 +122,12 @@ class PlaytimeImpl(private val entries: ObjectList<PlaytimeEntry>) : Playtime {
                 }
             }
 
+        val categorySums = grouped.mapValues { (_, serverDurations) ->
+            serverDurations.values.sumOf { it.inWholeSeconds }
+        }
+
         val finalResult = if (sortByPlaytime)
-            grouped.entries.sortedByDescending { it.value.values.sumOf { it.inWholeSeconds } }
+            grouped.entries.sortedByDescending { categorySums[it.key] }
         else grouped.entries
 
         return mutableObject2ObjectMapOf<String, Object2ObjectMap<String, Duration>>().apply {

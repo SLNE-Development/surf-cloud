@@ -228,6 +228,7 @@ class CloudCoreInstance : CloudInstance {
                         RootBeanDefinition(PrePlayerJoinTaskAutoRegistrationHandler::class.java)
                     )
                 })
+                .initializers(NettyPacketProcessor())
 
 
 //            builder.parent(parentContext)

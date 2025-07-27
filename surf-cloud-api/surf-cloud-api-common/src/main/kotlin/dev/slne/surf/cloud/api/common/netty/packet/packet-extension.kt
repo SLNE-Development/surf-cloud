@@ -62,7 +62,7 @@ fun Class<out NettyPacket>.getPacketMeta() = kotlin.getPacketMeta()
 private const val DEFAULT_STREAM_CODEC_NAME = "STREAM_CODEC"
 
 // Internal cache for codecs associated with packet classes.
-private val codecCache = mutableObject2ObjectMapOf<KClass<out NettyPacket>, StreamCodec<*, *>>()
+private val codecCache = mutableObject2ObjectMapOf<KClass<*>, StreamCodec<*, *>>()
 
 
 @OptIn(InternalSerializationApi::class)

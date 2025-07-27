@@ -6,10 +6,10 @@ import dev.slne.surf.cloud.api.common.server.CloudServerManager
 import dev.slne.surf.cloud.api.common.server.CommonCloudServer
 import dev.slne.surf.cloud.api.common.server.ProxyCloudServer
 import dev.slne.surf.cloud.api.common.util.annotation.InternalApi
-import dev.slne.surf.cloud.api.common.util.freeze
-import dev.slne.surf.cloud.api.common.util.mutableObjectListOf
-import dev.slne.surf.cloud.api.common.util.mutableObjectSetOf
-import dev.slne.surf.cloud.api.common.util.toObjectSet
+import dev.slne.surf.surfapi.core.api.util.freeze
+import dev.slne.surf.surfapi.core.api.util.mutableObjectListOf
+import dev.slne.surf.surfapi.core.api.util.mutableObjectSetOf
+import dev.slne.surf.surfapi.core.api.util.toObjectSet
 import it.unimi.dsi.fastutil.objects.ObjectCollection
 import it.unimi.dsi.fastutil.objects.ObjectList
 import net.kyori.adventure.text.Component

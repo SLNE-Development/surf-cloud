@@ -9,8 +9,8 @@ import dev.slne.surf.cloud.api.common.util.observer.observingFlow
 import dev.slne.surf.cloud.core.client.netty.network.PlatformSpecificPacketListenerExtension
 import dev.slne.surf.cloud.core.client.server.ClientCloudServerImpl
 import dev.slne.surf.cloud.core.common.coroutines.CommonObservableScope
-import dev.slne.surf.cloud.core.common.netty.network.protocol.running.RegistrationInfo
-import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ServerboundTransferPlayerPacketResponse.Status
+import dev.slne.surf.cloud.core.common.netty.network.protocol.running.clientbound.RegistrationInfo
+import dev.slne.surf.cloud.core.common.netty.network.protocol.running.serverbound.ServerboundTransferPlayerPacketResponse.Status
 import dev.slne.surf.cloud.velocity.proxy
 import dev.slne.surf.cloud.velocity.reflection.VelocityConfigurationProxy
 import dev.slne.surf.surfapi.core.api.util.logger
@@ -121,7 +121,10 @@ class VelocitySpecificPacketListenerExtension : PlatformSpecificPacketListenerEx
             observingFlow({ VelocityConfigurationProxy.instance.getForwardingSecret(proxy.configuration) })
                 .onEach { remote ->
                     if (!remote.contentEquals(currentVelocitySecret)) {
-                        VelocityConfigurationProxy.instance.setForwardingSecret(proxy.configuration, currentVelocitySecret)
+                        VelocityConfigurationProxy.instance.setForwardingSecret(
+                            proxy.configuration,
+                            currentVelocitySecret
+                        )
                     }
                 }
                 .launchIn(CommonObservableScope)

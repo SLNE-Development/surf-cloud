@@ -17,7 +17,6 @@ class ServerEncryptionManager : EncryptionManager() {
 
     override fun setupEncryption(ch: Channel) {
         ch.pipeline().addFirst(
-//            HandlerNames.SPLITTER,
             HandlerNames.SSL_HANDLER,
             buildSslContext().newHandler(ch.alloc())
         )
@@ -34,22 +33,4 @@ class ServerEncryptionManager : EncryptionManager() {
             .clientAuth(ClientAuth.REQUIRE)
             .build()
     }
-
-//    private fun buildTrustManager(): TrustManagerFactory {
-//        val keyStore = KeyStore.getInstance(KeyStore.getDefaultType()).apply { load(null, null) }
-//
-//        clientCertificatesFolder.toFile().listFiles { file -> file.extension == "crt" }
-//            ?.forEachIndexed { index, certFile ->
-//                certFile.inputStream().use { inputStream ->
-//                    val certificate =
-//                        CertificateFactory.getInstance("X.509").generateCertificate(inputStream)
-//                    keyStore.setCertificateEntry("client-cert-$index", certificate)
-//                }
-//            }
-//
-//        val trustManagerFactory =
-//            TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm())
-//        trustManagerFactory.init(keyStore)
-//        return trustManagerFactory
-//    }
 }

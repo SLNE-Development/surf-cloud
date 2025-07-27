@@ -6,8 +6,8 @@ import dev.slne.surf.cloud.api.common.server.state.ServerState
 import dev.slne.surf.cloud.api.common.util.TimeLogger
 import dev.slne.surf.cloud.api.common.util.observer.ObservableField
 import dev.slne.surf.cloud.bukkit.util.ObservableFieldByEvent
-import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ClientInformation
-import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ServerboundClientInformationPacket
+import dev.slne.surf.cloud.core.common.netty.network.protocol.running.serverbound.ClientInformation
+import dev.slne.surf.cloud.core.common.netty.network.protocol.running.serverbound.ServerboundClientInformationPacket
 import dev.slne.surf.cloud.core.common.spring.CloudLifecycleAware
 import org.bukkit.Bukkit
 import org.springframework.core.annotation.Order

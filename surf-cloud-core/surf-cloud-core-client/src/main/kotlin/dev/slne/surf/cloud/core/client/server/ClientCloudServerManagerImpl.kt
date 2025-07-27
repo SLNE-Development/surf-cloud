@@ -10,8 +10,8 @@ import dev.slne.surf.cloud.api.common.server.CloudServer
 import dev.slne.surf.cloud.api.common.server.CloudServerManager
 import dev.slne.surf.cloud.api.common.server.CommonCloudServer
 import dev.slne.surf.cloud.core.common.data.CloudPersistentData
-import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ClientInformation
-import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ServerboundPullPlayersToGroupPacket
+import dev.slne.surf.cloud.core.common.netty.network.protocol.running.serverbound.ClientInformation
+import dev.slne.surf.cloud.core.common.netty.network.protocol.running.serverbound.ServerboundPullPlayersToGroupPacket
 import dev.slne.surf.cloud.core.common.server.CommonCloudServerImpl
 import dev.slne.surf.cloud.core.common.server.CommonCloudServerManagerImpl
 import dev.slne.surf.surfapi.core.api.util.mutableObjectListOf

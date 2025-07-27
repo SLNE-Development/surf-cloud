@@ -4,7 +4,15 @@ import dev.slne.surf.cloud.api.common.netty.network.ConnectionProtocol
 import dev.slne.surf.cloud.api.common.netty.packet.createCodec
 import dev.slne.surf.cloud.api.common.netty.protocol.buffer.SurfByteBuf
 import dev.slne.surf.cloud.core.common.netty.network.protocol.ProtocolInfoBuilder
-import dev.slne.surf.cloud.core.common.netty.network.protocol.common.*
+import dev.slne.surf.cloud.core.common.netty.network.protocol.common.bidirectional.KeepAlivePacket
+import dev.slne.surf.cloud.core.common.netty.network.protocol.common.clientbound.ClientboundBundleDelimiterPacket
+import dev.slne.surf.cloud.core.common.netty.network.protocol.common.clientbound.ClientboundBundlePacket
+import dev.slne.surf.cloud.core.common.netty.network.protocol.common.clientbound.ClientboundPongResponsePacket
+import dev.slne.surf.cloud.core.common.netty.network.protocol.common.clientbound.ClientboundSetVelocitySecretPacket
+import dev.slne.surf.cloud.core.common.netty.network.protocol.common.serverbound.ServerboundPingRequestPacket
+import dev.slne.surf.cloud.core.common.netty.network.protocol.running.bidirectional.*
+import dev.slne.surf.cloud.core.common.netty.network.protocol.running.clientbound.*
+import dev.slne.surf.cloud.core.common.netty.network.protocol.running.serverbound.*
 
 object RunningProtocols {
     val CLIENTBOUND_TEMPLATE =

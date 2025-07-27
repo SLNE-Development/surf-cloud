@@ -35,14 +35,6 @@ object Crypt {
         Base64.getMimeEncoder(76, MIME_LINE_SEPARATOR.toByteArray(Charsets.UTF_8))
 
     fun writeCertificate(file: File, certificate: X509Certificate) {
-//        file.writeText(
-//            """
-//            $CERTIFICATE_HEADER
-//            ${mimeEncoder.encodeToString(certificate.encoded)}
-//            $CERTIFICATE_FOOTER
-//            """.trimIndent()
-//        )
-
         file.writeText(buildString {
             append(CERTIFICATE_HEADER)
             append(MIME_LINE_SEPARATOR)
@@ -146,8 +138,6 @@ object Crypt {
         val keyFactory = KeyFactory.getInstance(ASYMMETRIC_ALGORITHM)
         keyFactory.generatePublic(encodedKeySpec)
     }
-
-    //    }
 
     fun decryptByteToSecretKey(privateKey: PrivateKey, encryptedSecretKey: ByteArray): SecretKey =
         safeCrypto {

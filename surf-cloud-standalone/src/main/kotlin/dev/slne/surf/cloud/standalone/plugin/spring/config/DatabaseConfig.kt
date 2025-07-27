@@ -46,12 +46,5 @@ class DatabaseConfigConfiguration {
 }
 
 
-fun createDatabaseConfig(dataDir: Path): DatabaseConfig {
-//    val config = dataDir / "database.yaml"
-//    if (config.notExists()) {
-//        config.createParentDirectories()
-//        config.createFile()
-//    }
-
-    return surfConfigApi.createSpongeYmlConfig<DatabaseConfig>(dataDir, "database.yaml")
-}
+fun createDatabaseConfig(dataDir: Path) =
+    surfConfigApi.createSpongeYmlConfig<DatabaseConfig>(dataDir, "database.yaml")

@@ -3,7 +3,9 @@ package dev.slne.surf.cloud.core.common.netty.network.protocol.running
 import dev.slne.surf.cloud.api.common.netty.network.ConnectionProtocol
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
 import dev.slne.surf.cloud.core.common.netty.network.protocol.common.ClientCommonPacketListener
-import dev.slne.surf.cloud.core.common.netty.network.protocol.common.ClientboundSetVelocitySecretPacket
+import dev.slne.surf.cloud.core.common.netty.network.protocol.common.clientbound.ClientboundSetVelocitySecretPacket
+import dev.slne.surf.cloud.core.common.netty.network.protocol.running.bidirectional.*
+import dev.slne.surf.cloud.core.common.netty.network.protocol.running.clientbound.*
 
 interface RunningClientPacketListener : ClientCommonPacketListener {
     override val protocol get() = ConnectionProtocol.RUNNING

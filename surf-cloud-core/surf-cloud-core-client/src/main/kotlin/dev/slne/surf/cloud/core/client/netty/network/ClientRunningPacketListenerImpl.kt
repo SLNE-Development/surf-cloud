@@ -19,8 +19,12 @@ import dev.slne.surf.cloud.core.client.util.getOrLoadUser
 import dev.slne.surf.cloud.core.client.util.luckperms
 import dev.slne.surf.cloud.core.common.coroutines.PacketHandlerScope
 import dev.slne.surf.cloud.core.common.netty.network.ConnectionImpl
-import dev.slne.surf.cloud.core.common.netty.network.protocol.common.ClientboundSetVelocitySecretPacket
-import dev.slne.surf.cloud.core.common.netty.network.protocol.running.*
+import dev.slne.surf.cloud.core.common.netty.network.protocol.common.clientbound.ClientboundSetVelocitySecretPacket
+import dev.slne.surf.cloud.core.common.netty.network.protocol.running.RunningClientPacketListener
+import dev.slne.surf.cloud.core.common.netty.network.protocol.running.bidirectional.*
+import dev.slne.surf.cloud.core.common.netty.network.protocol.running.clientbound.*
+import dev.slne.surf.cloud.core.common.netty.network.protocol.running.serverbound.ServerboundIsServerManagedByThisProxyResponse
+import dev.slne.surf.cloud.core.common.netty.network.protocol.running.serverbound.ServerboundTransferPlayerPacketResponse
 import dev.slne.surf.cloud.core.common.netty.registry.listener.NettyListenerRegistry
 import dev.slne.surf.cloud.core.common.player.playerManagerImpl
 import dev.slne.surf.cloud.core.common.player.task.PrePlayerJoinTaskManager

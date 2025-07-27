@@ -11,7 +11,7 @@ import java.util.*
 
 @AutoService(CloudPlayerManager::class)
 class VelocityCloudPlayerManagerImpl :
-    CommonClientCloudPlayerManagerImpl<Player, VelocityClientCloudPlayerImpl>() {
+    CommonClientCloudPlayerManagerImpl<Player, VelocityClientCloudPlayerImpl>() { // FIXME: 24.07.2025 19:39 implement missing code
     init {
         checkInstantiationByServiceLoader()
     }

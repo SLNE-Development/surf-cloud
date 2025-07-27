@@ -22,8 +22,7 @@ import java.lang.annotation.Inherited
 @Target(AnnotationTarget.CLASS)
 @Retention(AnnotationRetention.RUNTIME)
 @EnableScheduling
-@EnableAsync
-//@EnableAspectJAutoProxy(proxyTargetClass = true, exposeProxy = true)
+@EnableAsync(mode = AdviceMode.ASPECTJ)
 @EntityScan
 @EnableCaching
 @AutoConfigurationPackage

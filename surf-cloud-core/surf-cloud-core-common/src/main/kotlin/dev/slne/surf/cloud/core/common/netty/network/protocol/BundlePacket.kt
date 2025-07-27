@@ -1,9 +1,10 @@
 package dev.slne.surf.cloud.core.common.netty.network.protocol
 
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
-import dev.slne.surf.cloud.api.common.util.toObjectSet
+import dev.slne.surf.surfapi.core.api.util.toObjectSet
 
-abstract class BundlePacket protected constructor(val subPackets: Iterable<NettyPacket>): NettyPacket() {
+abstract class BundlePacket protected constructor(val subPackets: Iterable<NettyPacket>) :
+    NettyPacket() {
     init {
         val supportedProtocols = protocols.toObjectSet()
         for (packet in subPackets) {

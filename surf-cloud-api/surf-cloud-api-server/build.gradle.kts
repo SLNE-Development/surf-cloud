@@ -1,4 +1,5 @@
 import dev.slne.surf.surfapi.gradle.util.slneReleases
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     `exclude-kotlin`
@@ -15,7 +16,6 @@ dependencies {
     api(libs.bundles.ktor.api.server)
     api(libs.bson.kotlinx)
     api(libs.spring.boot.starter.actuator)
-//    api(libs.discord.webhooks) { isTransitive = true }
 }
 
 kotlin {
@@ -28,4 +28,9 @@ publishing {
     repositories {
         slneReleases()
     }
+}
+
+val compileKotlin: KotlinCompile by tasks
+compileKotlin.compilerOptions {
+    freeCompilerArgs.set(listOf("-Xwhen-guards"))
 }

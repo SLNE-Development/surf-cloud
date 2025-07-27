@@ -1,10 +1,12 @@
 package dev.slne.surf.cloud.core.common.netty.network.protocol.common
 
 import dev.slne.surf.cloud.core.common.netty.network.ClientboundPacketListener
-import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ClientboundDisconnectPacket
-import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ClientboundPingPacket
+import dev.slne.surf.cloud.core.common.netty.network.protocol.common.bidirectional.KeepAlivePacket
+import dev.slne.surf.cloud.core.common.netty.network.protocol.common.clientbound.ClientboundBundlePacket
+import dev.slne.surf.cloud.core.common.netty.network.protocol.running.clientbound.ClientboundDisconnectPacket
+import dev.slne.surf.cloud.core.common.netty.network.protocol.running.clientbound.ClientboundPingPacket
 
-interface ClientCommonPacketListener: ClientboundPacketListener {
+interface ClientCommonPacketListener : ClientboundPacketListener {
 
     fun handleBundlePacket(packet: ClientboundBundlePacket)
 

@@ -220,6 +220,6 @@ class GroupQueueImpl(
     suspend fun entriesSnapshot() = lock.withLock { entries.snapshot() }
 
     override fun asComponent(): Component {
-        TODO("Not yet implemented")
+        TODO("Not yet implemented") // TODO: Implement this method to return a Component representation of the queue
     }
 }

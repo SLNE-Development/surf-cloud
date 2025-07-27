@@ -31,7 +31,6 @@ dependencies {
         }
     }
 
-//    implementation(fileTree("libs/**/*.jar")) // Include all JARs in libs directory
     implementation(fileTree("libs") {
         include("*.jar")
     })

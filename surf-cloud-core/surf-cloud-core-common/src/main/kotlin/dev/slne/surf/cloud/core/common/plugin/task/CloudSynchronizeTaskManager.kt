@@ -7,7 +7,7 @@ import dev.slne.surf.surfapi.core.api.util.logger
 import kotlinx.coroutines.launch
 import org.springframework.core.annotation.AnnotationAwareOrderComparator
 import java.util.concurrent.CopyOnWriteArrayList
-import kotlin.system.measureTimeMillis
+import kotlin.time.measureTime
 
 object CloudSynchronizeTaskManager {
     private val log = logger()
@@ -34,14 +34,14 @@ object CloudSynchronizeTaskManager {
             log.atInfo()
                 .log("Executing initial synchronize task: ${task.name} (${position + 1}/${tasks.size})")
 
-            val duration = measureTimeMillis {
+            val duration = measureTime {
                 BeforeStartTaskScope.launch(BeforeStartTaskScope.TaskName(task.name, position)) {
                     task.execute(client)
                 }.join()
             }
 
             log.atInfo()
-                .log("Task ${task.name} executed in ${duration}ms")
+                .log("Task ${task.name} executed in $duration")
         }
     }
 }

@@ -32,6 +32,9 @@ import net.kyori.adventure.nbt.CompoundBinaryTag
 import net.kyori.adventure.sound.Sound
 import net.kyori.adventure.text.Component
 import java.io.*
+import java.math.BigDecimal
+import java.math.BigInteger
+import java.math.MathContext
 import java.net.Inet4Address
 import java.net.InetSocketAddress
 import java.net.URI
@@ -97,11 +100,11 @@ open class SurfByteBuf(source: ByteBuf) : WrappedByteBuf(source) {
 
         private val GSON = Gson()
 
-        fun <B: ByteBuf, T> streamCodecFromKotlin(serializer: KSerializer<T>): StreamCodec<B, T> {
+        fun <B : ByteBuf, T> streamCodecFromKotlin(serializer: KSerializer<T>): StreamCodec<B, T> {
             return SerializerCodec(serializer)
         }
 
-        private class SerializerCodec<B: ByteBuf, T>(private val serializer: KSerializer<T>) :
+        private class SerializerCodec<B : ByteBuf, T>(private val serializer: KSerializer<T>) :
             StreamCodec<B, T> {
             override fun decode(buf: B): T {
                 return SurfCloudBufSerializer.serializer.decodeFromBuf(buf, serializer)
@@ -696,6 +699,27 @@ open class SurfByteBuf(source: ByteBuf) : WrappedByteBuf(source) {
         fun <B : ByteBuf> readDuration(buf: B): Duration {
             return buf.readLong().milliseconds
         }
+
+        fun <B : ByteBuf> writeBigInteger(buf: B, value: BigInteger) {
+            writeByteArray(buf, value.toByteArray())
+        }
+
+        fun <B : ByteBuf> readBigInteger(buf: B): BigInteger {
+            return BigInteger(readByteArray(buf))
+        }
+
+        fun <B : ByteBuf> writeBigDecimal(buf: B, value: BigDecimal) {
+            writeBigInteger(buf, value.unscaledValue())
+            buf.writeVarInt(value.scale())
+            buf.writeVarInt(value.precision())
+        }
+
+        fun <B : ByteBuf> readBigDecimal(buf: B): BigDecimal {
+            val unscaledValue = readBigInteger(buf)
+            val scale = buf.readVarInt()
+            val precision = buf.readVarInt()
+            return BigDecimal(unscaledValue, scale, MathContext(precision))
+        }
     }
 
 
@@ -873,6 +897,10 @@ open class SurfByteBuf(source: ByteBuf) : WrappedByteBuf(source) {
     fun readSingleton(classLoader: ClassLoader) = readSingleton(this, classLoader)
     fun writeDuration(duration: Duration) = writeDuration(this, duration)
     fun readDuration() = readDuration(this)
+    fun writeBigInteger(value: BigInteger) = writeBigInteger(this, value)
+    fun readBigInteger() = readBigInteger(this)
+    fun writeBigDecimal(value: BigDecimal) = writeBigDecimal(this, value)
+    fun readBigDecimal() = readBigDecimal(this)
     // @formatter:on
 // endregion
 
@@ -1094,7 +1122,8 @@ fun <B : ByteBuf> B.writeInetSocketAddress(address: InetSocketAddress) =
     SurfByteBuf.writeInetSocketAddress(this, address)
 
 fun <B : ByteBuf> B.readCompoundTag() = SurfByteBuf.readCompoundTag(this)
-fun <B : ByteBuf> B.writeCompoundTag(tag: CompoundBinaryTag) = SurfByteBuf.writeCompoundTag(this, tag)
+fun <B : ByteBuf> B.writeCompoundTag(tag: CompoundBinaryTag) =
+    SurfByteBuf.writeCompoundTag(this, tag)
 
 fun <B : ByteBuf> B.readZonedDateTime() = SurfByteBuf.readZonedDateTime(this)
 fun <B : ByteBuf> B.writeZonedDateTime(time: ZonedDateTime) =
@@ -1111,6 +1140,11 @@ fun <B : ByteBuf> B.writeSingleton(singleton: Any) = SurfByteBuf.writeSingleton(
 
 fun <B : ByteBuf> B.writeDuration(duration: Duration) = SurfByteBuf.writeDuration(this, duration)
 fun <B : ByteBuf> B.readDuration() = SurfByteBuf.readDuration(this)
+
+fun <B : ByteBuf> B.writeBigInteger(value: BigInteger) = SurfByteBuf.writeBigInteger(this, value)
+fun <B : ByteBuf> B.readBigInteger() = SurfByteBuf.readBigInteger(this)
+fun <B : ByteBuf> B.writeBigDecimal(value: BigDecimal) = SurfByteBuf.writeBigDecimal(this, value)
+fun <B : ByteBuf> B.readBigDecimal() = SurfByteBuf.readBigDecimal(this)
 
 fun ByteBuf.wrap() = SurfByteBuf(this)
 // endregion

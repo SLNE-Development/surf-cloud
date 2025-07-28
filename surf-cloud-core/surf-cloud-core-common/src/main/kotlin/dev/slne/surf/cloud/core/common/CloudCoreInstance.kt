@@ -10,6 +10,7 @@ import dev.slne.surf.cloud.api.common.util.classloader.JoinClassLoader
 import dev.slne.surf.cloud.api.common.util.forEachOrdered
 import dev.slne.surf.cloud.core.common.event.CloudEventListenerBeanPostProcessor
 import dev.slne.surf.cloud.core.common.netty.network.EncryptionManager
+import dev.slne.surf.cloud.core.common.netty.registry.listener.processor.NettyListenerRegistryProcessor
 import dev.slne.surf.cloud.core.common.player.punishment.CloudPlayerPunishmentManagerBridgeImpl
 import dev.slne.surf.cloud.core.common.player.task.PrePlayerJoinTaskAutoRegistrationHandler
 import dev.slne.surf.cloud.core.common.plugin.task.CloudBeforeStartTaskHandler
@@ -173,24 +174,6 @@ class CloudCoreInstance : CloudInstance {
                 setProperty("logging.include-application-name", "false")
                 setProperty("logging.level.root", "info")
 
-                setProperty("spring.jpa.show-sql", "false")
-                setProperty(
-                    "spring.jpa.properties.jakarta.persistence.sharedCache.mode",
-                    "ENABLE_SELECTIVE"
-                )
-                setProperty("spring.jpa.properties.hibernate.generate_statistics", "true")
-                setProperty("spring.jpa.properties.hibernate.cache.use_second_level_cache", "true")
-                setProperty("spring.jpa.properties.hibernate.cache.use_query_cache", "true")
-                setProperty("spring.jpa.properties.hibernate.cache.region.factory_class", "jcache")
-                setProperty(
-                    "spring.jpa.properties.hibernate.javax.cache.provider",
-                    "org.ehcache.jsr107.EhcacheCachingProvider"
-                )
-                setProperty(
-                    "spring.jpa.properties.hibernate.javax.cache.missing_cache_strategy",
-                    "create"
-                )
-
                 setProperty(
                     "spring.autoconfigure.exclude",
                     childConfigurations.values.flatMap { it.excludedAutoConfiguration }
@@ -229,6 +212,7 @@ class CloudCoreInstance : CloudInstance {
                     )
                 })
                 .initializers(NettyPacketProcessor())
+                .sources(NettyListenerRegistryProcessor::class.java)
 
 
 //            builder.parent(parentContext)

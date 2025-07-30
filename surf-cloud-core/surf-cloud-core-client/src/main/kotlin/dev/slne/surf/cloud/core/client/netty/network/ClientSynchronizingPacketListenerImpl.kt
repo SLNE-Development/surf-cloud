@@ -140,7 +140,7 @@ class ClientSynchronizingPacketListenerImpl(
                         .withCause(e)
                         .log(
                             "Failed to call listener %s for packet %s",
-                            listener::class.simpleName,
+                            listener.owner::class.simpleName,
                             packet::class.simpleName
                         )
                 }

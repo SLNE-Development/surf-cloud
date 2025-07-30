@@ -11,6 +11,7 @@ import dev.slne.surf.cloud.standalone.plugin.provider.impl.StandalonePluginParen
 import dev.slne.surf.cloud.standalone.plugin.provider.source.DirectoryProviderSource
 import dev.slne.surf.cloud.standalone.plugin.util.EntrypointUtil
 import dev.slne.surf.surfapi.core.api.util.logger
+import kotlinx.coroutines.CompletableDeferred
 import org.springframework.core.annotation.Order
 import org.springframework.stereotype.Component
 import kotlin.io.path.Path
@@ -18,6 +19,8 @@ import kotlin.io.path.Path
 @Component
 @Order(CloudLifecycleAware.PLUGIN_MANAGER_PRIORITY)
 class PluginInitializerManager: CloudLifecycleAware {
+    val pluginsEnabledDeferred = CompletableDeferred<Unit>()
+
     companion object {
         private val log = logger()
         val pluginDirectoryPath = Path("plugins")
@@ -45,6 +48,7 @@ class PluginInitializerManager: CloudLifecycleAware {
     override suspend fun onEnable(timeLogger: TimeLogger) {
         timeLogger.measureStep("Enabling plugins") {
             enablePlugins()
+            pluginsEnabledDeferred.complete(Unit)
         }
     }
 

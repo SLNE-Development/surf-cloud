@@ -1,10 +1,12 @@
 package dev.slne.surf.cloud.standalone.netty.server.network
 
+import dev.slne.surf.cloud.api.server.plugin.utils.bean
 import dev.slne.surf.cloud.core.common.netty.network.ConnectionImpl
 import dev.slne.surf.cloud.core.common.netty.network.protocol.prerunning.*
 import dev.slne.surf.cloud.core.common.netty.network.protocol.synchronizing.SynchronizingProtocols
 import dev.slne.surf.cloud.standalone.netty.server.NettyServerImpl
 import dev.slne.surf.cloud.standalone.netty.server.ServerClientImpl
+import dev.slne.surf.cloud.standalone.plugin.PluginInitializerManager
 
 class ServerPreRunningPacketListenerImpl(
     server: NettyServerImpl,
@@ -15,8 +17,9 @@ class ServerPreRunningPacketListenerImpl(
     private var state = State.PRE_RUNNING
 
     init {
-        // currently no work to do here
-        finishPreRunning()
+        bean<PluginInitializerManager>().pluginsEnabledDeferred.invokeOnCompletion {
+            finishPreRunning()
+        }
     }
 
     private fun finishPreRunning() {

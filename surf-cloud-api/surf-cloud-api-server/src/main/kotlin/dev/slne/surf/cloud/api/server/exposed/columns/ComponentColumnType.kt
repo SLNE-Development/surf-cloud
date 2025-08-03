@@ -20,7 +20,7 @@ class ComponentColumnType : ColumnType<Component>() {
     }
 
     override fun notNullValueToDB(value: Component): Any =
-        GsonComponentSerializer.gson().serialize(value)
+        GsonComponentSerializer.gson().serialize(value.compact())
 }
 
 fun Table.component(name: String): Column<Component> = registerColumn(name, ComponentColumnType())

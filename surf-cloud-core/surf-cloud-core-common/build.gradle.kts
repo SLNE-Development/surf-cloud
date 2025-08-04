@@ -1,3 +1,5 @@
+import dev.slne.surf.surfapi.gradle.util.slneReleases
+
 plugins {
     id("dev.slne.surf.surfapi.gradle.core")
 }
@@ -14,5 +16,11 @@ dependencies {
 kotlin {
     compilerOptions {
         optIn.add("dev.slne.surf.cloud.api.common.util.annotation.InternalApi")
+    }
+}
+
+publishing {
+    repositories {
+        slneReleases()
     }
 }

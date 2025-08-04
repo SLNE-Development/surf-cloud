@@ -15,6 +15,11 @@ dependencies {
     api(platform("org.jetbrains.kotlin-wrappers:kotlin-wrappers-bom:2025.7.8"))
 }
 
+configurations.all {
+    exclude(group = "ch.qos.logback", module = "logback-classic")
+    exclude(group = "org.apache.logging.log4j", module = "log4j-slf4j2-impl")
+}
+
 publishing {
     publications {
         create<MavenPublication>("mavenBom") {

@@ -6,7 +6,7 @@ import it.unimi.dsi.fastutil.objects.ObjectSet
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.serializer
 import org.jetbrains.annotations.ApiStatus
-import org.jetbrains.annotations.UnmodifiableView
+import org.jetbrains.annotations.Unmodifiable
 
 typealias SyncSetListener<T> = (added: Boolean, element: T) -> Unit
 
@@ -21,7 +21,7 @@ interface SyncSet<T> : ObjectSet<T> {
     val codec: StreamCodec<SurfByteBuf, Set<T>>
 
     fun subscribe(listener: SyncSetListener<T>): Boolean
-    fun snapshot(): @UnmodifiableView ObjectSet<T>
+    fun snapshot(): @Unmodifiable ObjectSet<T>
 
     companion object {
         operator fun <T> invoke(

@@ -26,7 +26,7 @@ object ConnectionListener : Listener {
 
 
         /**
-         * We are in an async event wich uses a cached thread pool,
+         * We are in an async event that uses a cached thread pool,
          * so we can use runBlocking here without blocking the main thread
          */
         runBlocking {

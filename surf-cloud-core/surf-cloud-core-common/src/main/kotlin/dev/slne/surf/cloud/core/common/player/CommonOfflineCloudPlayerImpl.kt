@@ -9,6 +9,7 @@ import dev.slne.surf.cloud.api.common.server.CloudServer
 import dev.slne.surf.cloud.api.common.server.CloudServerManager
 import dev.slne.surf.cloud.core.common.coroutines.PunishmentCacheRefreshScope
 import dev.slne.surf.cloud.core.common.player.punishment.CloudPlayerPunishmentManagerImpl
+import dev.slne.surf.cloud.core.common.player.whitelist.CloudPlayerWhitelistManagerImpl
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -28,6 +29,8 @@ abstract class CommonOfflineCloudPlayerImpl(override val uuid: UUID) : OfflineCl
 
     override val punishmentManager: CloudPlayerPunishmentManagerImpl
         get() = punishmentManagerCache.get(uuid)
+
+    override val whitelistManager = CloudPlayerWhitelistManagerImpl(uuid)
 
     companion object {
         internal val punishmentManagerCache = Caffeine.newBuilder()

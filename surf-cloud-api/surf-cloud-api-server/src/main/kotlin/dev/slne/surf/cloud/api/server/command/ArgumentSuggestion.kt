@@ -1,4 +1,4 @@
-package dev.slne.surf.cloud.standalone.commands
+package dev.slne.surf.cloud.api.server.command
 
 import com.google.common.base.CharMatcher
 import com.mojang.brigadier.suggestion.Suggestions

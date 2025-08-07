@@ -2,7 +2,12 @@ package dev.slne.surf.cloud.bukkit.listener.player
 
 import dev.slne.surf.cloud.api.client.netty.packet.fireAndAwait
 import dev.slne.surf.cloud.api.client.netty.packet.fireAndForget
+import dev.slne.surf.cloud.api.client.server.current
 import dev.slne.surf.cloud.api.common.player.task.PrePlayerJoinTask
+import dev.slne.surf.cloud.api.common.player.toOfflineCloudPlayer
+import dev.slne.surf.cloud.api.common.player.whitelist.WhitelistSettings
+import dev.slne.surf.cloud.api.common.player.whitelist.WhitelistStatus
+import dev.slne.surf.cloud.api.common.server.CloudServer
 import dev.slne.surf.cloud.core.common.data.CloudPersistentData
 import dev.slne.surf.cloud.core.common.messages.MessageManager
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.PlayerConnectToServerPacket
@@ -30,6 +35,31 @@ object ConnectionListener : Listener {
          * so we can use runBlocking here without blocking the main thread
          */
         runBlocking {
+            if (WhitelistSettings.isWhitelistEnforcedFor(CloudServer.current())) {
+                val whitelistStatus = uniqueId.toOfflineCloudPlayer(false)
+                    .whitelistManager
+                    .whitelistStatusForServer(CloudServer.current())
+
+                when (whitelistStatus) {
+                    WhitelistStatus.BLOCKED -> disallow(
+                        AsyncPlayerPreLoginEvent.Result.KICK_WHITELIST,
+                        MessageManager.Whitelist.blockedWhitelistDisconnectHeader
+                    )
+
+                    WhitelistStatus.UNKNOWN -> disallow(
+                        AsyncPlayerPreLoginEvent.Result.KICK_WHITELIST,
+                        MessageManager.Whitelist.errorWhileVerifyingWhitelist
+                    )
+
+                    WhitelistStatus.NONE -> disallow(
+                        AsyncPlayerPreLoginEvent.Result.KICK_WHITELIST,
+                        MessageManager.Whitelist.notWhitelistedDisconnectHeader
+                    )
+
+                    WhitelistStatus.ACTIVE -> Unit
+                }
+            }
+
             val result = PlayerConnectToServerPacket(
                 uniqueId,
                 name,

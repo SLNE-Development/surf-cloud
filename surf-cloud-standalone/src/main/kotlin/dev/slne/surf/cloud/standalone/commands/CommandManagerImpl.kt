@@ -8,9 +8,6 @@ import dev.slne.surf.cloud.api.server.command.CommandException
 import dev.slne.surf.cloud.api.server.command.CommandResultCallback
 import dev.slne.surf.cloud.api.server.command.CommandSource
 import dev.slne.surf.cloud.standalone.commands.execution.ExecutionContext
-import dev.slne.surf.cloud.standalone.commands.impl.ShutdownCommand
-import dev.slne.surf.cloud.standalone.commands.impl.SparkCommand
-import dev.slne.surf.cloud.standalone.commands.impl.TestCommand
 import dev.slne.surf.surfapi.core.api.messages.Colors
 import dev.slne.surf.surfapi.core.api.messages.adventure.appendText
 import dev.slne.surf.surfapi.core.api.messages.adventure.buildText
@@ -27,9 +24,9 @@ class CommandManagerImpl {
     private val serverCommandQueue = ConcurrentLinkedQueue<ConsoleInput>()
 
     init {
-        ShutdownCommand.register(dispatcher)
-        TestCommand.register(dispatcher)
-        SparkCommand.register(dispatcher)
+//        ShutdownCommand.register(dispatcher)
+//        TestCommand.register(dispatcher)
+//        SparkCommand.register(dispatcher)
     }
 
     fun createCommandSource(): CommandSource {

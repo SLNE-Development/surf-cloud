@@ -110,5 +110,15 @@ interface RunningServerPacketListener : ServerCommonPacketListener, TickablePack
 
     fun handleCreateOfflineCloudPlayerIfNotExists(packet: ServerboundCreateOfflineCloudPlayerIfNotExistsPacket)
 
+    suspend fun handleRequestWhitelistStatus(packet: ServerboundRequestWhitelistStatusPacket)
+
+    suspend fun handleRequestWhitelist(packet: ServerboundRequestWhitelistPacket)
+
+    suspend fun handleCreateWhitelist(packet: ServerboundCreateWhitelistPacket)
+
+    suspend fun handleUpdateWhitelist(packet: ServerboundUpdateWhitelistPacket)
+
+    fun handleRefreshWhitelist(packet: ServerboundRefreshWhitelistPacket)
+
     fun handlePacket(packet: NettyPacket)
 }

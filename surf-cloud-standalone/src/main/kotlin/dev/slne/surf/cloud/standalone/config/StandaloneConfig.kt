@@ -39,6 +39,9 @@ data class StandaloneConfig(
 
     @Setting("proxy")
     val proxy: ProxyConfig = ProxyConfig(),
+
+    @Setting("whitelist")
+    val whitelist: WhitelistConfig = WhitelistConfig(),
 )
 
 @ConfigSerializable
@@ -102,3 +105,9 @@ data class ProxyConfig(
         }
     }
 }
+
+@ConfigSerializable
+data class WhitelistConfig(
+    val enforcedGroups: MutableSet<String> = mutableSetOf(),
+    val enforcedServers: MutableSet<String> = mutableSetOf(),
+)

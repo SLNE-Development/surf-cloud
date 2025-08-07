@@ -1,5 +1,7 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import dev.slne.surf.surfapi.gradle.util.slnePublic
+import jdk.javadoc.internal.tool.resources.javadoc
+import org.jetbrains.kotlin.gradle.dsl.KotlinJvmExtension
 
 buildscript {
     repositories {
@@ -45,6 +47,13 @@ allprojects {
         testImplementation(kotlin("test"))
     }
 
+    afterEvaluate {
+        extensions.findByType<KotlinJvmExtension>()?.apply {
+            compilerOptions {
+                freeCompilerArgs.add("-Xnested-type-aliases")
+            }
+        }
+    }
 
     tasks {
         configureShadowJar()

@@ -70,3 +70,10 @@ annotation class CoroutineTransactional(
         fun getCurrentScope(): CoroutineScope
     }
 }
+
+@Target(FUNCTION)
+@Retention(RUNTIME)
+@MustBeDocumented
+@Inherited
+@Reflective
+annotation class NotTransactional

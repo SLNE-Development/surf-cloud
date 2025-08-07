@@ -200,7 +200,7 @@ class CoroutineTransactionalAspect(private val context: ApplicationContext) : Ad
      * [CoroutineTransactional].
      */
     @Suppress("UNCHECKED_CAST")
-    @Around("execution(* *(..)) && (@annotation(dev.slne.surf.cloud.api.server.plugin.CoroutineTransactional) || @within(dev.slne.surf.cloud.api.server.plugin.CoroutineTransactional))")
+    @Around("execution(* *(..)) && (@annotation(dev.slne.surf.cloud.api.server.plugin.CoroutineTransactional) || @within(dev.slne.surf.cloud.api.server.plugin.CoroutineTransactional)) && !@annotation(dev.slne.surf.cloud.api.server.plugin.NotTransactional)")
     fun wrapSuspendTx(pjp: ProceedingJoinPoint): Any? {
         val method = (pjp.signature as MethodSignature).method
         // Skip non-suspending functions early.

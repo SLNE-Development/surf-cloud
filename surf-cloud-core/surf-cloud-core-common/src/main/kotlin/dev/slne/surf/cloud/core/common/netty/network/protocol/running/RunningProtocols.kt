@@ -69,6 +69,8 @@ object RunningProtocols {
                 .addPacket(SyncValueChangePacket.STREAM_CODEC)
                 .addPacket(SyncSetDeltaPacket.STREAM_CODEC)
                 .addPacket(ClientboundSetVelocitySecretPacket::class.createCodec())
+                .addPacket(WhitelistStatusResponsePacket::class.createCodec())
+                .addPacket(WhitelistResponsePacket::class.createCodec())
         }
 
     val CLIENTBOUND by lazy { CLIENTBOUND_TEMPLATE.freeze().bind(::SurfByteBuf) }
@@ -139,6 +141,13 @@ object RunningProtocols {
                 .addPacket(SyncValueChangePacket.STREAM_CODEC)
                 .addPacket(SyncSetDeltaPacket.STREAM_CODEC)
                 .addPacket(ServerboundCreateOfflineCloudPlayerIfNotExistsPacket::class.createCodec())
+                .addPacket(ServerboundRequestWhitelistStatusPacket::class.createCodec())
+                .addPacket(WhitelistStatusResponsePacket::class.createCodec())
+                .addPacket(WhitelistResponsePacket::class.createCodec())
+                .addPacket(ServerboundRequestWhitelistPacket::class.createCodec())
+                .addPacket(ServerboundCreateWhitelistPacket::class.createCodec())
+                .addPacket(ServerboundUpdateWhitelistPacket::class.createCodec())
+                .addPacket(ServerboundRefreshWhitelistPacket.STREAM_CODEC)
         }
 
     val SERVERBOUND by lazy { SERVERBOUND_TEMPLATE.freeze().bind(::SurfByteBuf) }

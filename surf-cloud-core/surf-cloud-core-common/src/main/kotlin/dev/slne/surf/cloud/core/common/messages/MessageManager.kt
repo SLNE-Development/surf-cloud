@@ -90,6 +90,45 @@ object MessageManager { // TODO: Add more messages
         variableValue(" Uhr")
     }
 
+    object Whitelist {
+        val notWhitelistedDisconnectHeader = CommonComponents.renderDisconnectMessage(
+            SurfComponentBuilder.builder(),
+            disconnectReason = "DU BEFINDEST DICH NICHT AUF DER WHITELIST",
+            suggestHelp = {
+                spacer("Erfüllst du die Voraussetzungen zum spielen?")
+                appendNewline()
+                spacer("Lasse dich auf dem Discord whitelisten!")
+            },
+            footerRenderer = {
+                appendDiscordLink()
+            }
+        )
+
+        val blockedWhitelistDisconnectHeader = CommonComponents.renderDisconnectMessage(
+            SurfComponentBuilder.builder(),
+            disconnectReason = "DU BEFINDEST DICH NICHT MEHR AUF DEM DISCORD",
+            suggestHelp = {
+                spacer("Um auf dem Server zu spielen,")
+                appendNewline()
+                spacer("musst du ebenfalls Mitglied auf unserem Discord sein.")
+                appendNewline()
+                spacer("Bitte melde dich im Support, sobald du wieder auf dem Discord bist!")
+            },
+            footerRenderer = {
+                appendDiscordLink()
+            }
+        )
+
+        val errorWhileVerifyingWhitelist = CommonComponents.renderDisconnectMessage(
+            SurfComponentBuilder.builder(),
+            disconnectReason = "FEHLER BEIM ÜBERPRÜFEN DER WHITELIST",
+            suggestHelp = {
+                error("Beim Überprüfen deiner Whitelist ist ein Fehler aufgetreten.")
+            },
+            issue = true
+        )
+    }
+
     object Queue {
         fun getMaxRetriesReached(serverName: String, maxRetries: Int) = buildText {
             appendPrefix()

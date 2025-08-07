@@ -7,6 +7,8 @@ import dev.slne.surf.cloud.api.common.netty.packet.NettyPacketInfo
 import dev.slne.surf.cloud.api.common.player.CloudPlayerManager
 import dev.slne.surf.cloud.api.common.player.ConnectionResultEnum
 import dev.slne.surf.cloud.api.common.player.punishment.type.PunishmentType
+import dev.slne.surf.cloud.api.common.player.whitelist.WhitelistSettings
+import dev.slne.surf.cloud.api.common.player.whitelist.WhitelistStatus
 import dev.slne.surf.cloud.api.common.server.CloudServer
 import dev.slne.surf.cloud.api.common.server.CloudServerManager
 import dev.slne.surf.cloud.api.common.util.mutableIntSetOf
@@ -18,6 +20,7 @@ import dev.slne.surf.cloud.core.common.netty.network.protocol.running.*
 import dev.slne.surf.cloud.core.common.netty.registry.listener.NettyListenerRegistry
 import dev.slne.surf.cloud.core.common.player.PunishmentManager
 import dev.slne.surf.cloud.core.common.player.playerManagerImpl
+import dev.slne.surf.cloud.core.common.player.whitelist.WhitelistService
 import dev.slne.surf.cloud.core.common.util.bean
 import dev.slne.surf.cloud.standalone.netty.server.NettyServerImpl
 import dev.slne.surf.cloud.standalone.netty.server.ServerClientImpl
@@ -521,6 +524,64 @@ class ServerRunningPacketListenerImpl(
 
     override fun handleCreateOfflineCloudPlayerIfNotExists(packet: ServerboundCreateOfflineCloudPlayerIfNotExistsPacket) {
         CloudPlayerManager.getOfflinePlayer(packet.uuid, true)
+    }
+
+    override suspend fun handleRequestWhitelistStatus(packet: ServerboundRequestWhitelistStatusPacket) {
+        try {
+            val status = bean<WhitelistService>().whitelistStatus(packet.uuid, packet.groupOrServer)
+            packet.respond(WhitelistStatusResponsePacket(status))
+        } catch (e: Throwable) {
+            log.atWarning()
+                .withCause(e)
+                .log("Failed to handle whitelist status request for %s", packet.uuid)
+            packet.respond(WhitelistStatusResponsePacket(WhitelistStatus.UNKNOWN))
+        }
+    }
+
+    override suspend fun handleRequestWhitelist(packet: ServerboundRequestWhitelistPacket) {
+        try {
+            val whitelist = bean<WhitelistService>().getWhitelist(packet.uuid, packet.groupOrServer)
+            packet.respond(WhitelistResponsePacket(whitelist))
+        } catch (e: Throwable) {
+            log.atWarning()
+                .withCause(e)
+                .log("Failed to handle whitelist request for %s", packet.uuid)
+            packet.respond(WhitelistResponsePacket(null))
+        }
+    }
+
+    override suspend fun handleCreateWhitelist(packet: ServerboundCreateWhitelistPacket) {
+        try {
+            val whitelist = bean<WhitelistService>().createWhitelist(packet.entry)
+            packet.respond(WhitelistResponsePacket(whitelist))
+        } catch (e: Throwable) {
+            log.atWarning()
+                .withCause(e)
+                .log("Failed to handle create whitelist request for %s", packet.entry)
+            packet.respond(WhitelistResponsePacket(null))
+        }
+    }
+
+    override suspend fun handleUpdateWhitelist(packet: ServerboundUpdateWhitelistPacket) {
+        try {
+            val changed = bean<WhitelistService>().updateWhitelist(packet.updated)
+            packet.respond(changed)
+        } catch (e: Throwable) {
+            log.atWarning()
+                .withCause(e)
+                .log("Failed to handle update whitelist request for %s", packet.updated)
+            packet.respond(false)
+        }
+    }
+
+    override fun handleRefreshWhitelist(packet: ServerboundRefreshWhitelistPacket) {
+        try {
+            WhitelistSettings.refresh()
+        } catch (e: Throwable) {
+            log.atWarning()
+                .withCause(e)
+                .log("Failed to handle refresh whitelist request")
+        }
     }
 
     override fun handlePacket(packet: NettyPacket) {

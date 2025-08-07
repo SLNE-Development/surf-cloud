@@ -42,6 +42,8 @@ class CommandSource(
     }
 
     fun sendSuccess(message: String) = sendSuccess(Component.text(message))
+    fun sendFailure(message: String) = sendFailure(Component.text(message))
+    fun sendInfo(message: String) = sendInfo(Component.text(message))
 
     override fun withCallback(callback: CommandResultCallback): CommandSource {
         if (this.callback == callback) return this

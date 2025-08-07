@@ -27,4 +27,8 @@ interface CloudServer : CommonCloudServer {
     val lobby: Boolean
 
     suspend fun pullPlayers(players: Collection<CloudPlayer>): @Unmodifiable ObjectList<Pair<CloudPlayer, ConnectionResultEnum>>
+
+    companion object {
+        fun all() = CloudServerManager.retrieveServers()
+    }
 }

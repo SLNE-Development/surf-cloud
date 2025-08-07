@@ -9,6 +9,7 @@ import dev.slne.surf.cloud.api.common.player.ConnectionResultEnum
 import dev.slne.surf.cloud.api.common.server.CloudServer
 import dev.slne.surf.cloud.api.common.server.CloudServerManager
 import dev.slne.surf.cloud.api.common.server.CommonCloudServer
+import dev.slne.surf.cloud.api.common.server.ProxyCloudServer
 import dev.slne.surf.cloud.core.common.data.CloudPersistentData
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ClientInformation
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ServerboundPullPlayersToGroupPacket
@@ -27,9 +28,19 @@ class ClientCloudServerManagerImpl : CommonCloudServerManagerImpl<CommonCloudSer
         (serverCache.getIfPresent(uid) as? CommonCloudServerImpl)?.information = information
     }
 
-    override fun currentServer(): CloudServer {
-        return retrieveServerById(CloudPersistentData.SERVER_ID) as? CloudServer
+    override fun current(): CommonCloudServer {
+        return retrieveServerById(CloudPersistentData.SERVER_ID)
             ?: throw AssertionError("Current server not found")
+    }
+
+    override fun currentServer(): CloudServer {
+        return current() as? CloudServer
+            ?: error("Current server is not a CloudServer. Ensure you are calling this method on the correct platform.")
+    }
+
+    override fun currentProxy(): ProxyCloudServer {
+        return current() as? ProxyCloudServer
+            ?: error("Current server is not a ProxyCloudServer. Ensure you are calling this method on the correct platform.")
     }
 
     override suspend fun pullPlayersToGroup(

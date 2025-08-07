@@ -11,6 +11,7 @@ import dev.jorel.commandapi.arguments.ArgumentSuggestions
 import dev.jorel.commandapi.arguments.CommandAPIArgumentType
 import dev.jorel.commandapi.executors.CommandArguments
 import dev.slne.surf.cloud.api.common.server.CloudServerManager
+import dev.slne.surf.cloud.api.common.server.CommonCloudServer
 import dev.slne.surf.cloud.api.common.util.annotation.InternalApi
 import dev.slne.surf.surfapi.core.api.messages.adventure.text
 
@@ -22,7 +23,7 @@ class CloudServerGroupArgument(nodeName: String) :
 
     init {
         replaceSuggestions(ArgumentSuggestions.stringCollection {
-            CloudServerManager.retrieveAllServers()
+            CommonCloudServer.all()
                 .filter { it.group.isNotEmpty() }
                 .map { it.group }
                 .distinct()

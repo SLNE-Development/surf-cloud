@@ -4,6 +4,7 @@ import dev.slne.surf.cloud.api.common.netty.network.codec.kotlinx.cloud.OfflineC
 import dev.slne.surf.cloud.api.common.player.name.NameHistory
 import dev.slne.surf.cloud.api.common.player.playtime.Playtime
 import dev.slne.surf.cloud.api.common.player.punishment.CloudPlayerPunishmentManager
+import dev.slne.surf.cloud.api.common.player.whitelist.CloudPlayerWhitelistManager
 import dev.slne.surf.cloud.api.common.server.CloudServer
 import kotlinx.serialization.Serializable
 import net.kyori.adventure.text.Component
@@ -34,6 +35,7 @@ interface OfflineCloudPlayer {
     val player: CloudPlayer?
 
     val punishmentManager: CloudPlayerPunishmentManager
+    val whitelistManager: CloudPlayerWhitelistManager
 
     /**
      * Suspends until the display name of the player is retrieved.

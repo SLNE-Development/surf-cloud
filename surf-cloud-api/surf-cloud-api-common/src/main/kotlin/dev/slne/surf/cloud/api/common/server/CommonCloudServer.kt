@@ -119,4 +119,8 @@ interface CommonCloudServer : ForwardingAudience {
      * This terminates all processes and disconnects all players.
      */
     fun shutdown()
+
+    companion object {
+        fun all() = CloudServerManager.retrieveAllServers()
+    }
 }

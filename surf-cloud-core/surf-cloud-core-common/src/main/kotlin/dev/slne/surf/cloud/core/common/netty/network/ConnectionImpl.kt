@@ -425,6 +425,15 @@ class ConnectionImpl(
                             msg
                         )
 
+                        is ServerboundRequestWhitelistStatusPacket -> listener.handleRequestWhitelistStatus(
+                            msg
+                        )
+
+                        is ServerboundRequestWhitelistPacket -> listener.handleRequestWhitelist(msg)
+                        is ServerboundCreateWhitelistPacket -> listener.handleCreateWhitelist(msg)
+                        is ServerboundUpdateWhitelistPacket -> listener.handleUpdateWhitelist(msg)
+                        is ServerboundRefreshWhitelistPacket -> listener.handleRefreshWhitelist(msg)
+
                         else -> listener.handlePacket(msg) // handle other packets
                     }
                 }

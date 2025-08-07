@@ -13,4 +13,8 @@ import org.jetbrains.annotations.ApiStatus
  * @see CommonCloudServer
  */
 @ApiStatus.NonExtendable
-interface ProxyCloudServer: CommonCloudServer
+interface ProxyCloudServer : CommonCloudServer {
+    companion object {
+        fun all() = CloudServerManager.retrieveProxies()
+    }
+}

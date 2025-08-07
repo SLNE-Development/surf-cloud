@@ -310,7 +310,7 @@ class StandaloneCloudPlayerImpl(uuid: UUID, name: String, val ip: Inet4Address) 
             return false
         }
 
-        return server.group == group
+        return server.group.equals(group, ignoreCase = true)
     }
 
     override suspend fun getLuckpermsMetaData(key: String): String? {

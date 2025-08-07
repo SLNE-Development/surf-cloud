@@ -33,6 +33,8 @@ class CloudPlayerService : AbstractExposedDAOService<UUID, CloudPlayerEntity>({
     suspend fun findFirstSeen(uuid: UUID) = find(uuid) { createdAt }
     suspend fun findLastIpAddress(uuid: UUID) = find(uuid) { lastIpAddress }
 
+    suspend fun findByUuid(uuid: UUID): CloudPlayerEntity? = find(uuid)
+
     suspend fun updateOnDisconnect(player: StandaloneCloudPlayerImpl, oldServer: Long?) {
         update(player.uuid) {
             lastSeen = ZonedDateTime.now()

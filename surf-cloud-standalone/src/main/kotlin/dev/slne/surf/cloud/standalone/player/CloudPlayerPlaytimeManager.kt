@@ -46,7 +46,8 @@ class CloudPlayerPlaytimeManager(private val service: CloudPlayerService) : Disp
             val currentSession = sessionsCache.getIfPresent(uuid)
 
             // If server/category changed or there's no active session, create a new one
-            if (currentSession == null || currentSession.serverName != serverName || currentSession.category != category) {
+            if (currentSession == null || currentSession.serverName != serverName
+                || !currentSession.category.equals(category, ignoreCase = true)) {
                 // Flush old session if present
                 if (currentSession != null) {
                     PlayerPlaytimeScope.launch { partialFlushSession(uuid, currentSession) }

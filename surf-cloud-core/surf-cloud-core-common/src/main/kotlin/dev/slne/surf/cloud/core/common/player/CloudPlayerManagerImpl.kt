@@ -56,7 +56,7 @@ abstract class CloudPlayerManagerImpl<P : CommonCloudPlayerImpl> : CloudPlayerMa
     abstract fun getServerUid(player: P): Long?
 
     override fun getOnlinePlayers(): UserList {
-        return UserListImpl.of(playerCache.currentValues())
+        return UserListImpl.of(playerCache.underlying().synchronous().asMap().keys)
     }
 
     protected inline fun forEachPlayer(action: (P) -> Unit) {

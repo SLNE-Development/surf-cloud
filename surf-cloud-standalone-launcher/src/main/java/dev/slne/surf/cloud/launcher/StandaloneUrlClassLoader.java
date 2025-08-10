@@ -24,10 +24,6 @@ public class StandaloneUrlClassLoader extends URLClassLoader {
   protected Class<?> findClass(String name) throws ClassNotFoundException {
     // This is a workaround for the Spring InstrumentationSavingAgent
     if (INSTRUMENTATION_SAVING_AGENT.equals(name)) {
-      for (int i = 0; i < 10; i++) {
-        System.out.println("Loading InstrumentationSavingAgent");
-      }
-
       return Class.forName(name, false, Main.class.getClassLoader());
     } else if (LAUNCHER_AGENT.equals(name)) {
       return Class.forName(name, false, Main.class.getClassLoader());
@@ -84,8 +80,9 @@ public class StandaloneUrlClassLoader extends URLClassLoader {
 //
 //    byte[] transformedBytes = transformClassBytes(name, classBytes);
 //
-////    CodeSource codeSource = new CodeSource(resource, (java.security.cert.Certificate[]) null);
-////    ProtectionDomain pd = new ProtectionDomain(codeSource, null);
+
+  /// /    CodeSource codeSource = new CodeSource(resource, (java.security.cert.Certificate[])
+  /// null); /    ProtectionDomain pd = new ProtectionDomain(codeSource, null);
 //
 //    return defineClass(name, transformedBytes, 0, transformedBytes.length);
 //  }
@@ -113,7 +110,6 @@ public class StandaloneUrlClassLoader extends URLClassLoader {
 //    }
 //    return current;
 //  }
-
   private boolean isExcludedFromTransformation(String className) {
     return className.startsWith("java.")
         || className.startsWith("javax.")

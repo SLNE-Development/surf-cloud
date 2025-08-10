@@ -1,5 +1,6 @@
 import dev.slne.surf.surfapi.gradle.util.slneReleases
 import java.util.*
+import java.util.zip.ZipFile
 
 plugins {
     id("dev.slne.surf.surfapi.gradle.standalone")
@@ -9,6 +10,46 @@ plugins {
 repositories {
     maven("https://jitpack.io")
 }
+
+val sanitizedLibsDir = layout.buildDirectory.dir("sanitized-libs")
+val sanitizeLibs by tasks.registering {
+    inputs.files(fileTree("libs") { include("*.jar") })
+    outputs.dir(sanitizedLibsDir)
+
+    doLast {
+        val outDir = sanitizedLibsDir.get().asFile
+        outDir.mkdirs()
+
+        fileTree("libs").matching { include("*.jar") }.files.forEach { inJar ->
+            // Nur dann neu packen, wenn das JAR den Provider wirklich enthält
+            val hasProvider = ZipFile(inJar).use { zf ->
+                zf.getEntry("META-INF/services/org.slf4j.spi.SLF4JServiceProvider") != null ||
+                        zf.getEntry("org/slf4j/simple/SimpleServiceProvider.class") != null
+            }
+
+            val dest = outDir.resolve(inJar.name)
+            if (!hasProvider) {
+                // unverändert kopieren
+                inJar.copyTo(dest, overwrite = true)
+            } else {
+                // entpacken -> problematische Einträge ausschließen -> wieder zippen
+                val tmp = layout.buildDirectory.dir("tmp/sanitize/${inJar.nameWithoutExtension}").get().asFile
+                tmp.deleteRecursively(); tmp.mkdirs()
+
+                copy {
+                    from(zipTree(inJar))
+                    exclude(
+                        "META-INF/services/org.slf4j.spi.SLF4JServiceProvider",
+                        "org/slf4j/simple/**"
+                    )
+                    into(tmp)
+                }
+                ant.invokeMethod("zip", mapOf("basedir" to tmp.absolutePath, "destfile" to dest.absolutePath))
+            }
+        }
+    }
+}
+
 
 dependencies {
     api(project(":surf-cloud-core:surf-cloud-core-common"))
@@ -33,12 +74,15 @@ dependencies {
     }
 
 //    implementation(fileTree("libs/**/*.jar")) // Include all JARs in libs directory
-    implementation(fileTree("libs") {
-        include("*.jar")
-    })
+    implementation(fileTree(sanitizedLibsDir) { include("*.jar") })
 }
 
 tasks {
+    assemble {
+        dependsOn(sanitizeLibs)
+        inputs.files(sanitizeLibs)
+    }
+
     bootJar {
         mainClass.set("dev.slne.surf.cloud.standalone.Bootstrap")
     }
@@ -86,6 +130,7 @@ tasks {
         }
     }
 }
+
 
 kotlin {
     compilerOptions {

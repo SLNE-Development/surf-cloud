@@ -121,6 +121,13 @@ interface CommonCloudServer : ForwardingAudience {
     fun shutdown()
 
     companion object {
+        operator fun get(uid: Long) = CloudServerManager.retrieveServerById(uid)
+        operator fun get(category: String, name: String) =
+            CloudServerManager.retrieveServerByCategoryAndName(category, name)
+
+        operator fun get(name: String) = CloudServerManager.retrieveServerByName(name)
         fun all() = CloudServerManager.retrieveAllServers()
+
+
     }
 }

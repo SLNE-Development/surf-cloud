@@ -189,6 +189,12 @@ interface CloudPlayer : Audience, OfflineCloudPlayer { // TODO: conversation but
     fun playSound(sound: Sound, emitter: Sound.Emitter, permission: String)
 
     suspend fun hasPermission(permission: String): Boolean
+
+    companion object {
+        operator fun get(uuid: UUID) = CloudPlayerManager.getPlayer(uuid)
+        operator fun get(name: String) = CloudPlayerManager.getPlayer(name)
+        fun all() = CloudPlayerManager.getOnlinePlayers()
+    }
 }
 
 /**

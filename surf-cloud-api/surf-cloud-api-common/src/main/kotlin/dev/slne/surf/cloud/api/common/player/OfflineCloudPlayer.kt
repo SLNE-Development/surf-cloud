@@ -63,4 +63,8 @@ interface OfflineCloudPlayer {
      */
     suspend fun getLuckpermsMetaData(key: String): String?
 
+    companion object {
+        operator fun get(uuid: UUID, createIfNotExists: Boolean = true) =
+            CloudPlayerManager.getOfflinePlayer(uuid, createIfNotExists)
+    }
 }

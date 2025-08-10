@@ -10,7 +10,7 @@ import dev.slne.surf.cloud.api.server.queue.QueueManager
 import dev.slne.surf.cloud.core.common.coroutines.QueueConnectionScope
 import dev.slne.surf.cloud.core.common.messages.MessageManager
 import dev.slne.surf.cloud.core.common.permission.CommonCloudPermissions
-import dev.slne.surf.cloud.standalone.config.standaloneConfig
+import dev.slne.surf.cloud.standalone.config.StandaloneConfigHolder
 import dev.slne.surf.cloud.standalone.player.StandaloneCloudPlayerImpl
 import dev.slne.surf.cloud.standalone.server.StandaloneCloudServerImpl
 import dev.slne.surf.cloud.standalone.server.queue.repo.QueueRepository
@@ -27,7 +27,8 @@ private const val QUEUE_PRIORITY_KEY = "queue_priority"
 @Component
 class QueueManagerImpl(
     private val queues: QueueRepository,
-    private val timeouts: QueueTimeoutService
+    private val timeouts: QueueTimeoutService,
+    private val configHolder: StandaloneConfigHolder
 ) : QueueManager {
     @CloudEventHandler
     suspend fun onPlayerDisconnect(event: CloudPlayerDisconnectFromNetworkEvent) {
@@ -63,7 +64,7 @@ class QueueManagerImpl(
             return CompletableDeferred(ConnectionResultEnum.ALREADY_QUEUED(target.name))
         }
 
-        if (!standaloneConfig.queue.multiQueue) {
+        if (!configHolder.config.queue.multiQueue) {
             queues.all().find { it.isQueued(player.uuid) }?.let { other ->
                 other.dequeue(
                     player.uuid,
@@ -73,7 +74,7 @@ class QueueManagerImpl(
             }
         }
 
-        if (queue.suspended && !standaloneConfig.queue.allowJoiningSuspendedQueue) {
+        if (queue.suspended && !configHolder.config.queue.allowJoiningSuspendedQueue) {
             return CompletableDeferred(ConnectionResultEnum.QUEUE_SUSPENDED(target.name))
         }
 
@@ -111,7 +112,7 @@ class QueueManagerImpl(
             return CompletableDeferred(ConnectionResultEnum.ALREADY_QUEUED(target))
         }
 
-        if (!standaloneConfig.queue.multiQueue) {
+        if (!configHolder.config.queue.multiQueue) {
             queues.all().find { it.isQueued(player.uuid) }?.let { other ->
                 other.dequeue(
                     player.uuid,
@@ -121,7 +122,7 @@ class QueueManagerImpl(
             }
         }
 
-        if (queue.suspended && !standaloneConfig.queue.allowJoiningSuspendedQueue) {
+        if (queue.suspended && !configHolder.config.queue.allowJoiningSuspendedQueue) {
             return CompletableDeferred(ConnectionResultEnum.QUEUE_SUSPENDED(target))
         }
 

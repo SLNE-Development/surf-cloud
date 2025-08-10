@@ -1,6 +1,6 @@
 package dev.slne.surf.cloud.standalone.spring.config
 
-import dev.slne.surf.cloud.core.common.config.cloudConfig
+import dev.slne.surf.cloud.core.common.config.AbstractSurfCloudConfigHolder
 import dev.slne.surf.surfapi.core.api.util.logger
 import org.springframework.boot.autoconfigure.jdbc.JdbcConnectionDetails
 import org.springframework.boot.autoconfigure.transaction.TransactionAutoConfiguration
@@ -16,8 +16,8 @@ class SurfCloudDataConfig {
     }
 
     @Bean
-    fun connectionDetails(): JdbcConnectionDetails {
-        val databaseConfig = cloudConfig.connectionConfig.databaseConfig
+    fun connectionDetails(@Suppress("SpringJavaInjectionPointsAutowiringInspection") configHolder: AbstractSurfCloudConfigHolder<*>): JdbcConnectionDetails {
+        val databaseConfig = configHolder.config.connectionConfig.databaseConfig
 
         return object : JdbcConnectionDetails {
             override fun getUsername(): String? {

@@ -19,7 +19,6 @@ import dev.slne.surf.cloud.core.common.netty.network.protocol.running.RequestOff
 import dev.slne.surf.cloud.core.common.server.CommonCloudServerImpl
 import dev.slne.surf.cloud.core.common.server.CommonCloudServerManagerImpl
 import dev.slne.surf.cloud.core.common.util.bean
-import dev.slne.surf.cloud.standalone.config.standaloneConfig
 import dev.slne.surf.cloud.standalone.event.server.CloudServerRegisteredEvent
 import dev.slne.surf.cloud.standalone.netty.server.NettyServerImpl
 import dev.slne.surf.cloud.standalone.player.StandaloneCloudPlayerImpl
@@ -75,38 +74,34 @@ class StandaloneCloudServerManagerImpl : CommonCloudServerManagerImpl<ServerComm
     }
 
     suspend fun requestOfflineDisplayName(uuid: UUID): Component? {
-        if (standaloneConfig.useSingleProxySetup) { // easy, we just ask the proxy
-            return RequestOfflineDisplayNamePacket(uuid).awaitOrThrowUrgent(singleProxyServer().connection)
-        } else {
-            // here we play the lottery until we get a response or all servers have been asked
-            val servers = retrieveAllServers()
+        // here we play the lottery until we get a response or all servers have been asked
+        val servers = retrieveAllServers()
 
-            // the chance that a proxy response with a display name is very high,
-            // so let's ask them first
-            val proxies = servers.filterIsInstance<StandaloneProxyCloudServerImpl>()
-            for (proxy in proxies) {
-                val name =
-                    RequestOfflineDisplayNamePacket(uuid).awaitOrThrowUrgent(proxy.connection)
+        // the chance that a proxy response with a display name is very high,
+        // so let's ask them first
+        val proxies = servers.filterIsInstance<StandaloneProxyCloudServerImpl>()
+        for (proxy in proxies) {
+            val name =
+                RequestOfflineDisplayNamePacket(uuid).awaitOrThrowUrgent(proxy.connection)
+            if (name != null) {
+                return name
+            }
+        }
+
+        // if no proxy responded, we ask the other servers
+        for (server in servers) {
+            if (server !is StandaloneProxyCloudServerImpl) {
+                val (name) = RequestOfflineDisplayNamePacket(uuid).fireAndAwaitOrThrowUrgent(
+                    server.connection
+                )
                 if (name != null) {
                     return name
                 }
             }
-
-            // if no proxy responded, we ask the other servers
-            for (server in servers) {
-                if (server !is StandaloneProxyCloudServerImpl) {
-                    val (name) = RequestOfflineDisplayNamePacket(uuid).fireAndAwaitOrThrowUrgent(
-                        server.connection
-                    )
-                    if (name != null) {
-                        return name
-                    }
-                }
-            }
-
-            // I guess no one knows the name
-            return null
         }
+
+        // I guess no one knows the name
+        return null
     }
 
     override suspend fun pullPlayersToGroup(

@@ -1,7 +1,8 @@
 package dev.slne.surf.cloud.standalone.server.queue.display
 
 import dev.slne.surf.cloud.api.common.player.toCloudPlayer
-import dev.slne.surf.cloud.standalone.config.standaloneConfig
+import dev.slne.surf.cloud.core.common.util.bean
+import dev.slne.surf.cloud.standalone.config.StandaloneConfigHolder
 import dev.slne.surf.cloud.standalone.server.queue.GroupQueueImpl
 import dev.slne.surf.cloud.standalone.server.queue.repo.QueueRepository
 import dev.slne.surf.surfapi.core.api.messages.Colors
@@ -67,7 +68,8 @@ class ServerQueueDisplay(private val queue: GroupQueueImpl, private val queues: 
         queueName: String,
         suspended: Boolean
     ) = buildText {
-        val suspendedQueueCharacter = standaloneConfig.queue.suspendedQueueCharacter
+        val suspendedQueueCharacter =
+            bean<StandaloneConfigHolder>().config.queue.suspendedQueueCharacter
         append {
             if (suspended) {
                 error(suspendedQueueCharacter)

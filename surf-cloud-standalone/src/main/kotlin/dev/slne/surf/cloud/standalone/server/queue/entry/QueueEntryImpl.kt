@@ -3,7 +3,8 @@ package dev.slne.surf.cloud.standalone.server.queue.entry
 import dev.slne.surf.cloud.api.common.util.getValue
 import dev.slne.surf.cloud.api.common.util.setValue
 import dev.slne.surf.cloud.api.server.queue.QueueEntry
-import dev.slne.surf.cloud.standalone.config.standaloneConfig
+import dev.slne.surf.cloud.core.common.util.bean
+import dev.slne.surf.cloud.standalone.config.StandaloneConfigHolder
 import java.util.*
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -18,7 +19,7 @@ data class QueueEntryImpl(
     override var connectionAttempts = 0
 
     override fun hasConnectionAttemptsLeft() =
-        connectionAttempts < standaloneConfig.queue.maxConnectionAttempts
+        connectionAttempts < bean<StandaloneConfigHolder>().config.queue.maxConnectionAttempts
 
     override val uuid: UUID
         get() = handle.uuid

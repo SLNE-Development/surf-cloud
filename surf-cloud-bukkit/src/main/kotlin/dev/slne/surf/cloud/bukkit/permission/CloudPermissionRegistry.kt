@@ -19,4 +19,7 @@ object CloudPermissionRegistry: PermissionRegistry() {
     val TIMEOUT_COMMAND = create("$COMMAND_PREFIX.timeout")
     val ANTICHEAT_BAN_COMMAND = create("$COMMAND_PREFIX.acban")
     val PUNISH_COMMAND = create("$COMMAND_PREFIX.punish")
+
+    val CLOUD_COMMAND = create("$COMMAND_PREFIX.cloud")
+    val CLOUD_COMMAND_RELOAD = create("$CLOUD_COMMAND.reload")
 }

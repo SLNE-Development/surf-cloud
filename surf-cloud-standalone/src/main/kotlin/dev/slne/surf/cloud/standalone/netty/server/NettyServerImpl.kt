@@ -2,7 +2,7 @@ package dev.slne.surf.cloud.standalone.netty.server
 
 import com.github.benmanes.caffeine.cache.Caffeine
 import dev.slne.surf.cloud.api.common.util.toObjectList
-import dev.slne.surf.cloud.core.common.config.cloudConfig
+import dev.slne.surf.cloud.core.common.config.AbstractSurfCloudConfigHolder
 import dev.slne.surf.cloud.core.common.netty.network.DisconnectReason
 import dev.slne.surf.cloud.core.common.netty.network.DisconnectionDetails
 import dev.slne.surf.cloud.standalone.netty.server.connection.ServerConnectionListener
@@ -31,13 +31,14 @@ import kotlin.system.measureTimeMillis
 
 @Component
 @Profile("server")
-class NettyServerImpl : InitializingBean, DisposableBean {
+class NettyServerImpl(private val configHolder: AbstractSurfCloudConfigHolder<*>) : InitializingBean,
+    DisposableBean {
     val log = logger()
 
     private lateinit var localIp: String
     private var port = -1
 
-    val connection by lazy { ServerConnectionListener(this) }
+    val connection by lazy { ServerConnectionListener(this, configHolder) }
     private val clients = Caffeine.newBuilder()
         .build<String, ServerClientImpl>()
 
@@ -56,7 +57,7 @@ class NettyServerImpl : InitializingBean, DisposableBean {
     }
 
     suspend fun initServer(): Boolean = withContext(Dispatchers.IO) {
-        val config = cloudConfig.connectionConfig.nettyConfig
+        val config = configHolder.config.connectionConfig.nettyConfig
         localIp = config.host
 
         val bindAddress: SocketAddress

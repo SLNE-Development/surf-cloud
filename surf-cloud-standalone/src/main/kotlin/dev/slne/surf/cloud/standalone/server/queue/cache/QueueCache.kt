@@ -6,7 +6,7 @@ import com.github.benmanes.caffeine.cache.Scheduler
 import com.sksamuel.aedile.core.expireAfterAccess
 import com.sksamuel.aedile.core.withRemovalListener
 import dev.slne.surf.cloud.api.server.queue.BaseQueue
-import dev.slne.surf.cloud.standalone.config.standaloneConfig
+import dev.slne.surf.cloud.standalone.config.StandaloneConfigHolder
 import dev.slne.surf.cloud.standalone.server.queue.GroupQueueImpl
 import dev.slne.surf.cloud.standalone.server.queue.QueueTarget
 import dev.slne.surf.cloud.standalone.server.queue.ServerQueueImpl
@@ -19,11 +19,12 @@ import kotlin.time.Duration.Companion.minutes
 @Component
 class QueueCache(
     private val metrics: QueueMetricsImpl,
-    @Lazy private val queueRepo: QueueRepository
+    @param:Lazy private val queueRepo: QueueRepository,
+    configHolder: StandaloneConfigHolder
 ) {
 
     val cache: LoadingCache<QueueTarget<*>, BaseQueue<*>> = Caffeine.newBuilder()
-        .expireAfterAccess(standaloneConfig.queue.cacheRetainMinutes.minutes)
+        .expireAfterAccess(configHolder.config.queue.cacheRetainMinutes.minutes)
         .scheduler(Scheduler.systemScheduler())
         .withRemovalListener { _, queue, _ ->
             if (queue is GroupQueueImpl) {

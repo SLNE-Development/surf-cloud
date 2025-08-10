@@ -10,7 +10,7 @@ import dev.slne.surf.cloud.api.common.util.DefaultUncaughtExceptionHandlerWithNa
 import dev.slne.surf.cloud.api.common.util.math.lerp
 import dev.slne.surf.cloud.api.common.util.netty.suspend
 import dev.slne.surf.cloud.api.common.util.threadFactory
-import dev.slne.surf.cloud.core.common.config.cloudConfig
+import dev.slne.surf.cloud.core.common.config.AbstractSurfCloudConfigHolder
 import dev.slne.surf.cloud.core.common.coroutines.ConnectionManagementScope
 import dev.slne.surf.cloud.core.common.coroutines.PacketHandlerScope
 import dev.slne.surf.cloud.core.common.netty.network.protocol.common.*
@@ -23,6 +23,7 @@ import dev.slne.surf.cloud.core.common.netty.network.protocol.login.*
 import dev.slne.surf.cloud.core.common.netty.network.protocol.prerunning.*
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.*
 import dev.slne.surf.cloud.core.common.netty.network.protocol.synchronizing.*
+import dev.slne.surf.cloud.core.common.util.bean
 import dev.slne.surf.surfapi.core.api.util.logger
 import io.netty.bootstrap.Bootstrap
 import io.netty.channel.*
@@ -1017,7 +1018,9 @@ class ConnectionImpl(
         clearPacketQueue()
     }
 
-    override fun getLoggableAddress() = getLoggableAddress(cloudConfig.logging.logIps)
+    override fun getLoggableAddress() =
+        getLoggableAddress(bean<AbstractSurfCloudConfigHolder<*>>().config.logging.logIps)
+
     fun getLoggableAddress(logIps: Boolean) =
         if (_address == null) "local" else (if (logIps) _address.toString() else "IP hidden")
 
@@ -1192,7 +1195,7 @@ class ConnectionImpl(
 
             pipeline.addFirst(
                 HandlerNames.LOGGER,
-                LoggingHandler(cloudConfig.logging.nettyLogLevel)
+                LoggingHandler(bean<AbstractSurfCloudConfigHolder<*>>().config.logging.nettyLogLevel)
             )
 //                .addLast(HandlerNames.SSL_HANDLER_ENFORCER, EnforceSslHandler())
                 .addLast(HandlerNames.COMPRESS, ZstdEncoder(8))

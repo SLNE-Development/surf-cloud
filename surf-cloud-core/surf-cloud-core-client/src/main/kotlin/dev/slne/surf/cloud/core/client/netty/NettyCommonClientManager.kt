@@ -3,6 +3,7 @@ package dev.slne.surf.cloud.core.client.netty
 import dev.slne.surf.cloud.api.common.util.TimeLogger
 import dev.slne.surf.cloud.core.client.netty.network.PlatformSpecificPacketListenerExtension
 import dev.slne.surf.cloud.core.common.CloudCoreInstance
+import dev.slne.surf.cloud.core.common.config.AbstractSurfCloudConfigHolder
 import dev.slne.surf.cloud.core.common.coroutines.CloudConnectionVerificationScope
 import dev.slne.surf.cloud.core.common.netty.NettyManager
 import dev.slne.surf.surfapi.core.api.util.logger
@@ -14,9 +15,10 @@ import kotlin.time.Duration.Companion.minutes
 
 abstract class NettyCommonClientManager(
     val proxy: Boolean,
-    val platformExtension: PlatformSpecificPacketListenerExtension
+    val platformExtension: PlatformSpecificPacketListenerExtension,
+    private val configHolder: AbstractSurfCloudConfigHolder<*>
 ) : NettyManager() {
-    val nettyClient by lazy { ClientNettyClientImpl(proxy, platformExtension) }
+    val nettyClient by lazy { ClientNettyClientImpl(proxy, platformExtension, configHolder) }
 
     override suspend fun onBootstrap(
         data: CloudCoreInstance.BootstrapData,

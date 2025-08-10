@@ -1,37 +1,27 @@
 package dev.slne.surf.cloud.standalone.config
 
-import dev.slne.surf.cloud.core.common.coreCloudInstance
-import dev.slne.surf.surfapi.core.api.config.createSpongeYmlConfig
-import dev.slne.surf.surfapi.core.api.config.surfConfigApi
-import dev.slne.surf.surfapi.core.api.util.random
+import dev.slne.surf.cloud.core.common.config.AbstractSurfCloudConfig
+import dev.slne.surf.cloud.core.common.config.AbstractSurfCloudConfigHolder
+import dev.slne.surf.cloud.core.common.config.ConfigReloadAware
+import dev.slne.surf.cloud.standalone.config.ktor.KtorConfig
+import dev.slne.surf.cloud.standalone.config.logging.ServerLoggingConfig
+import dev.slne.surf.cloud.standalone.config.proxy.ProxyConfig
+import dev.slne.surf.cloud.standalone.config.queue.QueueConfig
 import org.spongepowered.configurate.objectmapping.ConfigSerializable
 import org.spongepowered.configurate.objectmapping.meta.Comment
 import org.spongepowered.configurate.objectmapping.meta.Setting
-import java.util.*
-
-
-val standaloneConfig: StandaloneConfig by lazy {
-    surfConfigApi.createSpongeYmlConfig(coreCloudInstance.dataFolder, "standalone-config.yml")
-}
+import org.springframework.beans.factory.ObjectProvider
+import org.springframework.stereotype.Component
 
 @ConfigSerializable
-data class StandaloneConfig(
-
+class StandaloneConfig(
     @Comment("Configuration for the Ktor server.")
     @Setting("ktor")
     val ktor: KtorConfig = KtorConfig(),
 
-    @Comment("Whether only one proxy is used by the network. If enabled the server are automatically registered to the proxy.")
-    @Setting("use-single-proxy-setup2")
-    val useSingleProxySetup: Boolean = false,
-
     @Comment("Configuration for the logging.")
     @Setting("logging")
-    val logging: LoggingConfig = LoggingConfig(),
-
-    @Comment("common configuration for punishments")
-    @Setting("punish")
-    val punish: PunishmentConfig = PunishmentConfig(),
+    val serverLogging: ServerLoggingConfig = ServerLoggingConfig(),
 
     @Comment("Configuration for the queue system.")
     @Setting("queue")
@@ -42,72 +32,8 @@ data class StandaloneConfig(
 
     @Setting("whitelist")
     val whitelist: WhitelistConfig = WhitelistConfig(),
-)
+) : AbstractSurfCloudConfig()
 
-@ConfigSerializable
-data class KtorConfig(
-    val port: Int = 8080,
-    val host: String = "0.0.0.0",
-    val bearerToken: String = generateBearerToken()
-) {
-    companion object {
-        private fun generateBearerToken(length: Int = 32): String {
-            // The default token length of 32 provides a good balance between security and usability.
-            // A minimum length of 16 is enforced to ensure sufficient entropy for security purposes.
-            require(length >= 16) { "Token should be at least 16 characters long" }
-
-            val randomBytes = ByteArray(length)
-            random.nextBytes(randomBytes)
-
-            // Base64 encoding is used to make the token URL-safe and compact while preserving randomness.
-            val token = Base64.getUrlEncoder().withoutPadding().encodeToString(randomBytes)
-            return token
-        }
-    }
-}
-
-@ConfigSerializable
-data class LoggingConfig(
-    val logPlayerConnections: Boolean = true,
-)
-
-@ConfigSerializable
-data class PunishmentConfig(
-    val webhookUrls: List<String> = listOf()
-)
-
-@ConfigSerializable
-data class QueueConfig(
-    val maxConnectionAttempts: Int = 3,
-    val multiQueue: Boolean = true,
-    val allowJoiningSuspendedQueue: Boolean = false,
-    val removePlayerOnServerSwitch: Boolean = true,
-
-    /** How many minutes a queue is held after the last access. */
-    val cacheRetainMinutes: Int = 30,
-
-    val suspendedQueueCharacter: Char = '⏸',
-)
-
-@ConfigSerializable
-data class ProxyConfig(
-    @Setting("secret")
-    val secretConfig: SecretConfig = SecretConfig())
-{
-    @ConfigSerializable
-    data class SecretConfig(
-        val type: SecretType = SecretType.DYNAMIC,
-        val manualSecret: String = "",
-    ) {
-        enum class SecretType {
-            MANUAL,
-            DYNAMIC
-        }
-    }
-}
-
-@ConfigSerializable
-data class WhitelistConfig(
-    val enforcedGroups: MutableSet<String> = mutableSetOf(),
-    val enforcedServers: MutableSet<String> = mutableSetOf(),
-)
+@Component
+class StandaloneConfigHolder(reloadAware: ObjectProvider<ConfigReloadAware>) :
+    AbstractSurfCloudConfigHolder<StandaloneConfig>(reloadAware, StandaloneConfig::class.java)

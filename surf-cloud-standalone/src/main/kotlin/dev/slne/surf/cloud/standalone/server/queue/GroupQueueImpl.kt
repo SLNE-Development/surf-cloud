@@ -7,7 +7,8 @@ import dev.slne.surf.cloud.api.common.util.queue.FastFairPriorityQueue
 import dev.slne.surf.cloud.api.common.util.setValue
 import dev.slne.surf.cloud.api.server.queue.GroupQueue
 import dev.slne.surf.cloud.core.common.coroutines.QueueConnectionScope
-import dev.slne.surf.cloud.standalone.config.standaloneConfig
+import dev.slne.surf.cloud.core.common.util.bean
+import dev.slne.surf.cloud.standalone.config.StandaloneConfigHolder
 import dev.slne.surf.cloud.standalone.server.StandaloneCloudServerImpl
 import dev.slne.surf.cloud.standalone.server.queue.display.ServerQueueDisplay
 import dev.slne.surf.cloud.standalone.server.queue.entry.PlayerQueueHandle
@@ -146,7 +147,7 @@ class GroupQueueImpl(
                         ConnectionResultEnum.MAX_QUEUE_CONNECTION_ATTEMPTS_REACHED(
                             result,
                             getQueueName(),
-                            standaloneConfig.queue.maxConnectionAttempts
+                            bean<StandaloneConfigHolder>().config.queue.maxConnectionAttempts
                         ),
                         preferredServerUid
                     )

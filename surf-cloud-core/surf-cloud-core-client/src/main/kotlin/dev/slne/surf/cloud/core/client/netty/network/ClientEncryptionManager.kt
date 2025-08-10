@@ -1,10 +1,10 @@
 package dev.slne.surf.cloud.core.client.netty.network
 
 import com.google.auto.service.AutoService
-import dev.slne.surf.cloud.core.common.config.cloudConfig
+import dev.slne.surf.cloud.core.common.config.AbstractSurfCloudConfigHolder
 import dev.slne.surf.cloud.core.common.netty.network.EncryptionManager
 import dev.slne.surf.cloud.core.common.netty.network.HandlerNames
-import dev.slne.surf.surfapi.core.api.util.logger
+import dev.slne.surf.cloud.core.common.util.bean
 import io.netty.channel.Channel
 import io.netty.handler.ssl.SslContext
 import io.netty.handler.ssl.SslContextBuilder
@@ -20,7 +20,7 @@ class ClientEncryptionManager : EncryptionManager() {
     private val trustManagerFile = (certificatesFolder / "ca.crt").toFile()
 
     override fun setupEncryption(ch: Channel) {
-        val config = cloudConfig.connectionConfig.nettyConfig
+        val config = bean<AbstractSurfCloudConfigHolder<*>>().config.connectionConfig.nettyConfig
         ch.pipeline().addFirst(
             HandlerNames.SSL_HANDLER,
             sslContext.newHandler(ch.alloc(), config.host, config.port)

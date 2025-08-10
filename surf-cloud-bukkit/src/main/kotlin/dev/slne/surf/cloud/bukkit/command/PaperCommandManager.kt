@@ -2,6 +2,7 @@ package dev.slne.surf.cloud.bukkit.command
 
 import dev.slne.surf.cloud.api.common.util.TimeLogger
 import dev.slne.surf.cloud.bukkit.command.broadcast.broadcastCommand
+import dev.slne.surf.cloud.bukkit.command.cloud.cloudCommand
 import dev.slne.surf.cloud.bukkit.command.connection.disconnectPlayerCommand
 import dev.slne.surf.cloud.bukkit.command.connection.timeoutPlayerCommand
 import dev.slne.surf.cloud.bukkit.command.lastseen.lastSeenCommand
@@ -38,5 +39,6 @@ class PaperCommandManager : CloudLifecycleAware {
         disconnectPlayerCommand()
         anticheatBanCommand()
         punishCommand()
+        cloudCommand()
     }
 }

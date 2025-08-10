@@ -7,6 +7,7 @@ import dev.slne.surf.cloud.api.common.player.CloudPlayerManager
 import dev.slne.surf.cloud.api.common.player.OfflineCloudPlayer
 import dev.slne.surf.cloud.api.common.server.CloudServer
 import dev.slne.surf.cloud.api.common.server.CloudServerManager
+import dev.slne.surf.cloud.api.common.server.forEachWeakUuid
 import dev.slne.surf.cloud.core.common.coroutines.PunishmentCacheRefreshScope
 import dev.slne.surf.cloud.core.common.player.punishment.CloudPlayerPunishmentManagerImpl
 import dev.slne.surf.cloud.core.common.player.whitelist.CloudPlayerWhitelistManagerImpl
@@ -46,7 +47,7 @@ abstract class CommonOfflineCloudPlayerImpl(override val uuid: UUID) : OfflineCl
             PunishmentCacheRefreshScope.launch {
                 while (isActive) {
                     delay(5.minutes)
-                    CloudPlayerManager.getOnlinePlayers().references.forEach { uuid ->
+                    CloudPlayerManager.getOnlinePlayers().forEachWeakUuid { uuid ->
                         punishmentManagerCache.getIfPresent(uuid)
                     }
                 }

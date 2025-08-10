@@ -2,8 +2,9 @@ package dev.slne.surf.cloud.standalone.netty.server
 
 import dev.slne.surf.cloud.api.server.netty.packet.broadcast
 import dev.slne.surf.cloud.core.common.netty.network.protocol.common.ClientboundSetVelocitySecretPacket
-import dev.slne.surf.cloud.standalone.config.ProxyConfig.SecretConfig.SecretType
-import dev.slne.surf.cloud.standalone.config.standaloneConfig
+import dev.slne.surf.cloud.core.common.util.bean
+import dev.slne.surf.cloud.standalone.config.StandaloneConfigHolder
+import dev.slne.surf.cloud.standalone.config.proxy.ProxyConfig.SecretConfig.SecretType
 import org.apache.commons.lang3.RandomStringUtils
 
 object ProxySecretHolder {
@@ -11,7 +12,7 @@ object ProxySecretHolder {
     private var dynamicSecret = randomSecret()
 
     fun currentSecret(): ByteArray {
-        val secretConfig = standaloneConfig.proxy.secretConfig
+        val secretConfig = bean<StandaloneConfigHolder>().config.proxy.secretConfig
         return when (secretConfig.type) {
             SecretType.MANUAL -> secretConfig.manualSecret.toByteArray()
             SecretType.DYNAMIC -> dynamicSecret

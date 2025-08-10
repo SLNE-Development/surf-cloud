@@ -5,12 +5,12 @@ import dev.slne.surf.cloud.api.common.player.toCloudPlayer
 import dev.slne.surf.cloud.api.common.player.whitelist.WhitelistSettings
 import dev.slne.surf.cloud.api.common.player.whitelist.WhitelistStatus
 import dev.slne.surf.cloud.api.common.util.TimeLogger
+import dev.slne.surf.cloud.core.common.config.ConfigReloadAware
 import dev.slne.surf.cloud.core.common.coroutines.CommonScope
 import dev.slne.surf.cloud.core.common.messages.MessageManager
 import dev.slne.surf.cloud.core.common.player.whitelist.AbstractWhitelistSettings
 import dev.slne.surf.cloud.core.common.spring.CloudLifecycleAware
-import dev.slne.surf.cloud.standalone.config.ConfigReloadAware
-import dev.slne.surf.cloud.standalone.config.standaloneConfig
+import dev.slne.surf.cloud.standalone.config.StandaloneConfigHolder
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
@@ -23,13 +23,14 @@ import org.springframework.stereotype.Component
 @Component
 class WhitelistSettingsImpl(
     private val service: WhitelistServiceImpl,
+    private val configHolder: StandaloneConfigHolder
 ) : AbstractWhitelistSettings(), ConfigReloadAware,
     CloudLifecycleAware { // TODO: 06.08.2025 21:02 - config reload
     private val refreshMutex = Mutex()
 
     override suspend fun onEnable(timeLogger: TimeLogger) {
         timeLogger.measureStep("Loading WhitelistSettings") {
-            val whitelistConfig = standaloneConfig.whitelist
+            val whitelistConfig = configHolder.config.whitelist
             enforcedServers.addAll(whitelistConfig.enforcedServers.map { it.lowercase() })
             enforcedGroups.addAll(whitelistConfig.enforcedGroups.map { it.lowercase() })
 
@@ -53,6 +54,14 @@ class WhitelistSettingsImpl(
                 }
             }
         }
+    }
+
+    override fun afterReload() {
+        val whitelistConfig = configHolder.config.whitelist
+        enforcedServers.clear()
+        enforcedServers.addAll(whitelistConfig.enforcedServers.map { it.lowercase() })
+        enforcedGroups.clear()
+        enforcedGroups.addAll(whitelistConfig.enforcedGroups.map { it.lowercase() })
     }
 
     /**

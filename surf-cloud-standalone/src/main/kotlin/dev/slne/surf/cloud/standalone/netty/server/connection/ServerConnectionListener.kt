@@ -6,7 +6,7 @@ import dev.slne.surf.cloud.api.common.netty.packet.RespondingNettyPacket
 import dev.slne.surf.cloud.api.common.util.DefaultUncaughtExceptionHandlerWithName
 import dev.slne.surf.cloud.api.common.util.netty.suspend
 import dev.slne.surf.cloud.api.common.util.threadFactory
-import dev.slne.surf.cloud.core.common.config.cloudConfig
+import dev.slne.surf.cloud.core.common.config.AbstractSurfCloudConfigHolder
 import dev.slne.surf.cloud.core.common.coroutines.ConnectionManagementScope
 import dev.slne.surf.cloud.core.common.netty.network.*
 import dev.slne.surf.cloud.core.common.netty.network.protocol.common.ClientboundBundlePacket
@@ -34,9 +34,12 @@ import java.net.SocketAddress
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.CopyOnWriteArrayList
 
-class ServerConnectionListener(val server: NettyServerImpl) {
+class ServerConnectionListener(
+    val server: NettyServerImpl,
+    private val configHolder: AbstractSurfCloudConfigHolder<*>
+) {
 
-    private val logIps by lazy { cloudConfig.logging.logIps }
+    private val logIps get() = configHolder.config.logging.logIps
 
     @Volatile
     var running = false
@@ -58,7 +61,7 @@ class ServerConnectionListener(val server: NettyServerImpl) {
         val channelClass: Class<out ServerChannel>
         val eventloopgroup: EventLoopGroup
 
-        if (Epoll.isAvailable() && cloudConfig.connectionConfig.nettyConfig.useEpoll) {
+        if (Epoll.isAvailable() && configHolder.config.connectionConfig.nettyConfig.useEpoll) {
             channelClass =
                 if (address is DomainSocketAddress) EpollServerDomainSocketChannel::class.java else EpollServerSocketChannel::class.java
             eventloopgroup = SERVER_EPOLL_EVENT_GROUP
@@ -216,7 +219,11 @@ class ServerConnectionListener(val server: NettyServerImpl) {
                 log.atWarning()
                     .withCause(e)
                     .log(
-                        "Failed to broadcast packet ${packet::class.simpleName} to ${connection.getLoggableAddress(logIps)}"
+                        "Failed to broadcast packet ${packet::class.simpleName} to ${
+                            connection.getLoggableAddress(
+                                logIps
+                            )
+                        }"
                     )
             }
         }
@@ -238,7 +245,11 @@ class ServerConnectionListener(val server: NettyServerImpl) {
                 log.atWarning()
                     .withCause(e)
                     .log(
-                        "Failed to broadcast packet ${packet::class.simpleName} to ${connection.getLoggableAddress(logIps)}"
+                        "Failed to broadcast packet ${packet::class.simpleName} to ${
+                            connection.getLoggableAddress(
+                                logIps
+                            )
+                        }"
                     )
             }
         }

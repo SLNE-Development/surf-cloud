@@ -5,7 +5,7 @@ import dev.slne.surf.cloud.api.server.plugin.KtorPlugin
 import dev.slne.surf.cloud.api.server.plugin.PluginManager
 import dev.slne.surf.cloud.core.common.coroutines.KtorScope
 import dev.slne.surf.cloud.core.common.spring.CloudLifecycleAware
-import dev.slne.surf.cloud.standalone.config.standaloneConfig
+import dev.slne.surf.cloud.standalone.config.StandaloneConfigHolder
 import dev.slne.surf.cloud.standalone.ktor.routes.punish.punishRoutes
 import io.ktor.http.*
 import io.ktor.server.application.*
@@ -25,7 +25,7 @@ import java.security.MessageDigest
 
 @Component
 @Order(CloudLifecycleAware.KTOR_SERVER_PRIORITY)
-class KtorServer : CloudLifecycleAware {
+class KtorServer(private val configHolder: StandaloneConfigHolder) : CloudLifecycleAware {
     private lateinit var server: EmbeddedServer<NettyApplicationEngine, NettyApplicationEngine.Configuration>
 
     override suspend fun onEnable(timeLogger: TimeLogger) {
@@ -41,7 +41,7 @@ class KtorServer : CloudLifecycleAware {
     }
 
     fun start() = KtorScope.launch {
-        val (port, host) = standaloneConfig.ktor
+        val (port, host) = configHolder.config.ktor
         val plugins = PluginManager.instance.getPlugins().filterIsInstance<KtorPlugin>()
 
         server = embeddedServer(Netty, port = port, host = host) {
@@ -53,8 +53,12 @@ class KtorServer : CloudLifecycleAware {
             authentication {
                 bearer {
                     realm = "Access to the '/' path"
-                    authenticate {tokenCredential ->
-                        if (MessageDigest.isEqual(tokenCredential.token.toByteArray(), standaloneConfig.ktor.bearerToken.toByteArray())) {
+                    authenticate { tokenCredential ->
+                        if (MessageDigest.isEqual(
+                                tokenCredential.token.toByteArray(),
+                                configHolder.config.ktor.bearerToken.toByteArray()
+                            )
+                        ) {
                             UserIdPrincipal("Bearer")
                         } else {
                             null

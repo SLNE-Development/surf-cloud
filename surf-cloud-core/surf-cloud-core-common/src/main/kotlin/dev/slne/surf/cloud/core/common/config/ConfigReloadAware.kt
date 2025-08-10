@@ -1,4 +1,4 @@
-package dev.slne.surf.cloud.standalone.config
+package dev.slne.surf.cloud.core.common.config
 
 import org.springframework.stereotype.Component
 
@@ -6,4 +6,6 @@ import org.springframework.stereotype.Component
 interface ConfigReloadAware {
     fun beforeReload() = Unit
     fun afterReload() = Unit
+
+    fun beforeSave() = Unit
 }

@@ -7,13 +7,13 @@ import dev.slne.surf.cloud.api.common.netty.network.protocol.PacketFlow
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
 import dev.slne.surf.cloud.api.common.netty.packet.RespondingNettyPacket
 import dev.slne.surf.cloud.api.common.server.CloudServerConstants
-import dev.slne.surf.cloud.core.client.config.clientConfig
+import dev.slne.surf.cloud.core.client.config.ClientConfigHolder
 import dev.slne.surf.cloud.core.client.netty.network.ClientHandshakePacketListenerImpl
 import dev.slne.surf.cloud.core.client.netty.network.ClientRunningPacketListenerImpl
 import dev.slne.surf.cloud.core.client.netty.network.PlatformSpecificPacketListenerExtension
 import dev.slne.surf.cloud.core.client.netty.network.StatusUpdate
 import dev.slne.surf.cloud.core.client.server.serverManagerImpl
-import dev.slne.surf.cloud.core.common.config.cloudConfig
+import dev.slne.surf.cloud.core.common.config.AbstractSurfCloudConfigHolder
 import dev.slne.surf.cloud.core.common.coroutines.ConnectionTickScope
 import dev.slne.surf.cloud.core.common.data.CloudPersistentData
 import dev.slne.surf.cloud.core.common.netty.CommonNettyClientImpl
@@ -39,6 +39,7 @@ import kotlin.time.Duration.Companion.seconds
 class ClientNettyClientImpl(
     val proxy: Boolean,
     val platformExtension: PlatformSpecificPacketListenerExtension,
+    private val configHolder: AbstractSurfCloudConfigHolder<*>
 ) : CommonNettyClientImpl(
     CloudPersistentData.SERVER_ID,
     CloudProperties.SERVER_CATEGORY,
@@ -67,7 +68,7 @@ class ClientNettyClientImpl(
      * Bootstraps the client. Setup the connection protocol until the PreRunning state.
      */
     suspend fun bootstrap() {
-        val config = cloudConfig.connectionConfig.nettyConfig
+        val config = configHolder.config.connectionConfig.nettyConfig
         connectToServer(ServerAddress(config.host, config.port))
         preRunningCallback.await() // Wait until the connection is in the PreRunning state
     }
@@ -89,7 +90,7 @@ class ClientNettyClientImpl(
             val connection = ConnectionImpl(PacketFlow.CLIENTBOUND, EncryptionManager.instance)
             ConnectionImpl.connect(
                 inetSocketAddress,
-                cloudConfig.connectionConfig.nettyConfig.useEpoll,
+                configHolder.config.connectionConfig.nettyConfig.useEpoll,
                 connection
             )
 
@@ -122,7 +123,7 @@ class ClientNettyClientImpl(
                     serverCategory,
                     serverName,
                     proxy,
-                    clientConfig.isLobby,
+                    (configHolder as ClientConfigHolder).config.isLobby,
                 )
             )
         } catch (e: Exception) {

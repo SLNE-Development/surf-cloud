@@ -1,8 +1,7 @@
 package dev.slne.surf.cloud.standalone.player.whitelist
 
 import dev.slne.surf.cloud.api.common.player.whitelist.MutableWhitelistEntry
-import dev.slne.surf.cloud.api.common.player.whitelist.WhitelistEntry
-import dev.slne.surf.cloud.api.common.player.whitelist.WhitelistStatus
+import dev.slne.surf.cloud.api.common.util.Either
 import dev.slne.surf.cloud.api.common.util.singleOrNullOrThrow
 import dev.slne.surf.cloud.api.server.plugin.CoroutineTransactional
 import dev.slne.surf.cloud.api.server.plugin.NotTransactional
@@ -18,6 +17,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.buffer
 import kotlinx.coroutines.flow.chunked
 import kotlinx.coroutines.flow.transform
+import org.jetbrains.exposed.sql.Query
 import org.jetbrains.exposed.sql.andWhere
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
@@ -33,21 +33,13 @@ class WhitelistRepository(
 
     suspend fun whitelistStatus(
         uuid: UUID,
-        group: String?,
-        server: String?
-    ): WhitelistStatusResult? {
-        val baseQuery = WhitelistTable.select(WhitelistTable.blocked)
-            .where { WhitelistTable.uuid eq uuid }
+        groupOrServerName: Either<String, String>
+    ): WhitelistStatusResult? = WhitelistTable.select(WhitelistTable.blocked)
+        .where { WhitelistTable.uuid eq uuid }
+        .filterByGroupOrServer(groupOrServerName)
+        .singleOrNullOrThrow()
+        ?.let { WhitelistStatusResult(it[WhitelistTable.blocked]) }
 
-        val filteredQuery = when {
-            group != null -> baseQuery.andWhere { WhitelistTable.group eq group }
-            server != null -> baseQuery.andWhere { WhitelistTable.serverName eq server }
-            else -> error("Either group or server must be provided")
-        }
-
-        return filteredQuery.singleOrNullOrThrow()
-            ?.let { WhitelistStatusResult(it[WhitelistTable.blocked]) }
-    }
 
     /**
      * Fetches whitelist rows in batches of [batchSize] and streams the result
@@ -55,12 +47,14 @@ class WhitelistRepository(
      *
      * * Exactly **one** SQL query per batch.
      * * Runs inside `Dispatchers.IO`.
-     * * `@NotTransactional` → caller controls transaction scope.
+     * * `@NotTransactional` -> caller controls transaction scope.
+     *
+     * @param players A flow of pairs containing the player's UUID and a pair of server name and group.
      */
     @OptIn(ExperimentalCoroutinesApi::class)
     @NotTransactional
     suspend fun whitelistStatusBatched(
-        players: Flow<Pair<UUID, Pair<WhitelistEntry.ServerName, WhitelistEntry.Group>>>,
+        players: Flow<Pair<UUID, Pair< /*server name*/ String, /*group*/ String>>>,
         batchSize: Int = 1_000
     ): Flow<Pair<UUID, List<WhitelistStatusResult?>>> = players.chunked(batchSize)
         .transform { chunk ->
@@ -95,7 +89,7 @@ class WhitelistRepository(
                             }?.let { WhitelistStatusResult(it[WhitelistTable.blocked]) }
 
                     val serverStatus = findRow(serverName, group)
-                    val groupStatus  = playerRows.firstOrNull {
+                    val groupStatus = playerRows.firstOrNull {
                         it[WhitelistTable.group].equals(group, ignoreCase = true)
                     }?.let { WhitelistStatusResult(it[WhitelistTable.blocked]) }
 
@@ -106,29 +100,29 @@ class WhitelistRepository(
         .buffer()  // overlap DB & downstream
 
 
-    suspend fun getWhitelist(uuid: UUID, group: String?, server: String?): WhitelistEntryImpl? {
-        val baseQuery = WhitelistTable.selectAll().where { WhitelistTable.uuid eq uuid }
-
-        val filteredQuery = when {
-            group != null -> baseQuery.andWhere { WhitelistTable.group eq group }
-            server != null -> baseQuery.andWhere { WhitelistTable.serverName eq server }
-            else -> error("Either group or server must be provided")
+    suspend fun getWhitelist(
+        uuid: UUID,
+        groupOrServerName: Either<String, String>
+    ): WhitelistEntryImpl? = WhitelistTable.selectAll()
+        .where { WhitelistTable.uuid eq uuid }
+        .filterByGroupOrServer(groupOrServerName)
+        .singleOrNullOrThrow()
+        ?.let { result ->
+            WhitelistEntryImpl(
+                uuid = result[WhitelistTable.uuid],
+                blocked = result[WhitelistTable.blocked],
+                groupOrServerName = Either.of(
+                    result[WhitelistTable.group],
+                    result[WhitelistTable.serverName]
+                ),
+                createdAt = result[WhitelistTable.createdAt],
+                updatedAt = result[WhitelistTable.updatedAt]
+            )
         }
 
-        val result = filteredQuery.singleOrNullOrThrow() ?: return null
-
-        return WhitelistEntryImpl(
-            uuid = result[WhitelistTable.uuid],
-            blocked = result[WhitelistTable.blocked],
-            group = result[WhitelistTable.group],
-            serverName = result[WhitelistTable.serverName],
-            createdAt = result[WhitelistTable.createdAt],
-            updatedAt = result[WhitelistTable.updatedAt]
-        )
-    }
 
     suspend fun createWhitelist(whitelist: WhitelistEntryImpl): WhitelistEntryImpl? {
-        if (whitelistStatus(whitelist.uuid, whitelist.group, whitelist.serverName) != null) {
+        if (whitelistStatus(whitelist.uuid, whitelist.groupOrServerName) != null) {
             return null
         }
 
@@ -137,16 +131,18 @@ class WhitelistRepository(
         val entity = WhitelistEntity.new {
             uuid = whitelist.uuid
             blocked = whitelist.blocked
-            group = whitelist.group
-            serverName = whitelist.serverName
+            group = whitelist.groupOrServerName.leftOrNull()
+            serverName = whitelist.groupOrServerName.rightOrNull()
             this.cloudPlayer = player
         }
 
         return WhitelistEntryImpl(
             uuid = entity.uuid,
             blocked = entity.blocked,
-            group = entity.group,
-            serverName = entity.serverName,
+            groupOrServerName = Either.of(
+                entity.group,
+                entity.serverName
+            ),
             createdAt = entity.createdAt,
             updatedAt = entity.updatedAt
         )
@@ -154,25 +150,24 @@ class WhitelistRepository(
 
     suspend fun editWhitelist(
         uuid: UUID,
-        group: String?,
-        server: String?,
+        groupOrServerName: Either<String, String>,
         edit: MutableWhitelistEntry.() -> Unit
     ): Boolean {
-        val baseQuery = WhitelistTable.selectAll().forUpdate().where { WhitelistTable.uuid eq uuid }
-        val filteredQuery = when {
-            group != null -> baseQuery.andWhere { WhitelistTable.group eq group }
-            server != null -> baseQuery.andWhere { WhitelistTable.serverName eq server }
-            else -> error("Either group or server must be provided")
-        }
-
-        val result = filteredQuery.singleOrNullOrThrow() ?: return false
-        val entity = WhitelistEntity.wrapRow(result)
+        val entity = WhitelistTable.selectAll()
+            .forUpdate()
+            .where { WhitelistTable.uuid eq uuid }
+            .filterByGroupOrServer(groupOrServerName)
+            .singleOrNullOrThrow()
+            ?.let { WhitelistEntity.wrapRow(it) }
+            ?: return false
 
         val mutableEntry = MutableWhitelistEntryImpl(
             uuid = entity.uuid,
             blocked = entity.blocked,
-            group = entity.group,
-            serverName = entity.serverName,
+            groupOrServerName = Either.of(
+                entity.group,
+                entity.serverName
+            ),
             createdAt = entity.createdAt,
             updatedAt = entity.updatedAt
         )
@@ -181,27 +176,24 @@ class WhitelistRepository(
         edited.edit()
 
         entity.blocked = edited.blocked
-        entity.group = edited.group
-        entity.serverName = edited.serverName
+        entity.group = edited.groupOrServerName.leftOrNull()
+        entity.serverName = edited.groupOrServerName.rightOrNull()
 
         return mutableEntry != edited
     }
 
     suspend fun updateWhitelist(updated: MutableWhitelistEntryImpl): Boolean {
-        val baseQuery =
-            WhitelistTable.selectAll().forUpdate().where { WhitelistTable.uuid eq updated.uuid }
-        val filteredQuery = when {
-            updated.group != null -> baseQuery.andWhere { WhitelistTable.group eq updated.group }
-            updated.serverName != null -> baseQuery.andWhere { WhitelistTable.serverName eq updated.serverName }
-            else -> error("Either group or server must be provided")
-        }
-
-        val result = filteredQuery.singleOrNullOrThrow() ?: return false
-        val entity = WhitelistEntity.wrapRow(result)
+        val entity = WhitelistTable.selectAll()
+            .forUpdate()
+            .where { WhitelistTable.uuid eq updated.uuid }
+            .filterByGroupOrServer(updated.groupOrServerName)
+            .singleOrNullOrThrow()
+            ?.let { WhitelistEntity.wrapRow(it) }
+            ?: return false
 
         entity.blocked = updated.blocked
-        entity.group = updated.group
-        entity.serverName = updated.serverName
+        entity.group = updated.groupOrServerName.leftOrNull()
+        entity.serverName = updated.groupOrServerName.rightOrNull()
 
         return entity.flush()
     }
@@ -211,20 +203,9 @@ class WhitelistRepository(
     value class WhitelistStatusResult(val blocked: Boolean)
 }
 
-private fun List<WhitelistRepository.WhitelistStatusResult?>.toWhitelistStatus(): WhitelistStatus {
-    var hasBlocked = false
-    var hasAllowed = false
-    for (entry in this) {
-        when (entry?.blocked) {
-            true -> hasBlocked = true
-            false -> hasAllowed = true
-            null -> continue
-        }
-        if (hasBlocked && hasAllowed) return WhitelistStatus.UNKNOWN
-    }
-    return when {
-        hasBlocked -> WhitelistStatus.BLOCKED
-        hasAllowed -> WhitelistStatus.ACTIVE
-        else -> WhitelistStatus.NONE
-    }
-}
+private fun Query.filterByGroupOrServer(groupOrServerName: Either<String, String>) =
+    groupOrServerName.fold({ group ->
+        andWhere { WhitelistTable.group like group }
+    }, { server ->
+        andWhere { WhitelistTable.serverName like server }
+    })

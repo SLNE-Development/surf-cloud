@@ -1,5 +1,7 @@
 package dev.slne.surf.cloud.api.server.plugin
 
+import com.github.benmanes.caffeine.cache.Caffeine
+import com.sksamuel.aedile.core.expireAfterAccess
 import dev.slne.surf.cloud.api.server.plugin.utils.PluginUtilProxies
 import dev.slne.surf.surfapi.core.api.util.logger
 import kotlinx.coroutines.CoroutineScope
@@ -14,6 +16,7 @@ import org.aspectj.lang.reflect.MethodSignature
 import org.jetbrains.exposed.spring.SpringTransactionManager
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import org.reactivestreams.Publisher
+import org.springframework.beans.factory.NoSuchBeanDefinitionException
 import org.springframework.beans.factory.getBean
 import org.springframework.boot.autoconfigure.AutoConfigurationPackages
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
@@ -21,6 +24,8 @@ import org.springframework.boot.autoconfigure.liquibase.LiquibaseAutoConfigurati
 import org.springframework.cache.annotation.EnableCaching
 import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.*
+import org.springframework.context.event.ContextRefreshedEvent
+import org.springframework.context.event.EventListener
 import org.springframework.core.KotlinDetector
 import org.springframework.core.Ordered
 import org.springframework.core.PriorityOrdered
@@ -35,11 +40,9 @@ import java.lang.instrument.Instrumentation
 import java.lang.reflect.Method
 import java.security.ProtectionDomain
 import java.util.concurrent.CopyOnWriteArrayList
-import kotlin.coroutines.Continuation
+import kotlin.coroutines.*
 import kotlin.coroutines.intrinsics.COROUTINE_SUSPENDED
-import kotlin.coroutines.resume
-import kotlin.coroutines.resumeWithException
-import kotlin.coroutines.startCoroutine
+import kotlin.time.Duration.Companion.minutes
 
 @Target(AnnotationTarget.CLASS)
 @Retention(AnnotationRetention.RUNTIME)
@@ -193,7 +196,20 @@ class LoadTimeWeavingConfiguration(context: ApplicationContext) : LoadTimeWeavin
  */
 @Aspect
 @Component
-class CoroutineTransactionalAspect(private val context: ApplicationContext) : Advice, PriorityOrdered {
+class CoroutineTransactionalAspect(private val context: ApplicationContext) : Advice,
+    PriorityOrdered {
+    val annotationCache = Caffeine.newBuilder()
+        .weakKeys()
+        .expireAfterAccess(30.minutes)
+        .maximumSize(20_000)
+        .build<Method, CoroutineTransactional?>()
+
+    val providerCache = Caffeine.newBuilder()
+        .weakKeys()
+        .weakValues()
+        .maximumSize(1024)
+        .build<Class<out CoroutineTransactional.CoroutineTxContextProvider>,
+                CoroutineTransactional.CoroutineTxContextProvider>()
 
     /**
      * Around-advice for any method or class annotated with
@@ -208,9 +224,9 @@ class CoroutineTransactionalAspect(private val context: ApplicationContext) : Ad
 
         // Outer continuation = continuation passed in by Kotlin call-site.
         val outerCont = pjp.args.last() as Continuation<Any?>
-        val ctxOuter = outerCont.context
         val annotation =
             findAnnotation(method, pjp) ?: error("CoroutineTransactional annotation not found")
+        val ctxOuter = resolveContext(annotation, outerCont.context)
 
         // Build suspending lambda, which encloses the Exposed transaction.
         val job: suspend () -> Any? = {
@@ -237,6 +253,12 @@ class CoroutineTransactionalAspect(private val context: ApplicationContext) : Ad
 
         // Tell Kotlin the original call is now suspended.
         return COROUTINE_SUSPENDED
+    }
+
+    @EventListener(ContextRefreshedEvent::class)
+    fun onContextRefreshed() {
+        annotationCache.invalidateAll()
+        providerCache.invalidateAll()
     }
 
     /**
@@ -275,14 +297,40 @@ class CoroutineTransactionalAspect(private val context: ApplicationContext) : Ad
         }
 
     private fun findAnnotation(method: Method, pjp: ProceedingJoinPoint): CoroutineTransactional? {
-        return AnnotatedElementUtils.findMergedAnnotation(
-            method,
-            CoroutineTransactional::class.java
-        ) ?: AnnotatedElementUtils.findMergedAnnotation(
-            pjp.target.javaClass,
-            CoroutineTransactional::class.java
-        )
+        return annotationCache.get(method) {
+            AnnotatedElementUtils.findMergedAnnotation(
+                method,
+                CoroutineTransactional::class.java
+            ) ?: AnnotatedElementUtils.findMergedAnnotation(
+                pjp.target.javaClass,
+                CoroutineTransactional::class.java
+            )
+        }
     }
+
+    private fun resolveContext(
+        annotation: CoroutineTransactional,
+        outer: CoroutineContext
+    ): CoroutineContext {
+        val provider = resolveProvider(annotation)
+        return provider.provide(outer, annotation, context)
+    }
+
+    private fun resolveProvider(annotation: CoroutineTransactional): CoroutineTransactional.CoroutineTxContextProvider {
+        val kClass = annotation.contextProvider
+        val jClass = kClass.java
+
+        return providerCache.get(jClass) {
+            kClass.objectInstance?.let { return@get it }
+
+            try {
+                context.getBean(jClass)
+            } catch (_: NoSuchBeanDefinitionException) {
+                context.autowireCapableBeanFactory.createBean(kClass.java)
+            }
+        }
+    }
+
 
     override fun getOrder(): Int {
         return Ordered.LOWEST_PRECEDENCE

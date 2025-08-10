@@ -11,7 +11,7 @@ import java.util.*
 
 class CloudPlayerWhitelistManagerImpl(private val uuid: UUID) : CloudPlayerWhitelistManager {
 
-    override suspend fun whitelistStatusForGroup(group: WhitelistEntry.Group): WhitelistStatus {
+    override suspend fun whitelistStatusForGroup(group: String): WhitelistStatus {
         return bean<WhitelistService>().whitelistStatus(uuid, Either.left(group))
     }
 
@@ -24,11 +24,11 @@ class CloudPlayerWhitelistManagerImpl(private val uuid: UUID) : CloudPlayerWhite
         return whitelistStatusForServer(server.name)
     }
 
-    override suspend fun whitelistStatusForServer(serverName: WhitelistEntry.ServerName): WhitelistStatus {
+    override suspend fun whitelistStatusForServer(serverName: String): WhitelistStatus {
         return bean<WhitelistService>().whitelistStatus(uuid, Either.right(serverName))
     }
 
-    override suspend fun whitelistForGroup(group: WhitelistEntry.Group): WhitelistEntry? {
+    override suspend fun whitelistForGroup(group: String): WhitelistEntry? {
         return bean<WhitelistService>().getWhitelist(uuid, Either.left(group))
     }
 
@@ -36,45 +36,43 @@ class CloudPlayerWhitelistManagerImpl(private val uuid: UUID) : CloudPlayerWhite
         return bean<WhitelistService>().getWhitelist(uuid, Either.right(server.name))
     }
 
-    override suspend fun whitelistForServer(serverName: WhitelistEntry.ServerName): WhitelistEntry? {
+    override suspend fun whitelistForServer(serverName: String): WhitelistEntry? {
         return bean<WhitelistService>().getWhitelist(uuid, Either.right(serverName))
     }
 
     override suspend fun createWhitelistForGroup(blocked: Boolean, group: String): WhitelistEntry? {
-        return createWhitelist(blocked, group, null)
+        return createWhitelist(blocked, Either.left(group))
     }
 
     override suspend fun createWhitelistForServer(
         blocked: Boolean,
         server: CloudServer
     ): WhitelistEntry? {
-        return createWhitelist(blocked, null, server.name)
+        return createWhitelistForServer(blocked, server.name)
     }
 
     override suspend fun createWhitelistForServer(
         blocked: Boolean,
-        serverName: WhitelistEntry.ServerName
+        serverName: String
     ): WhitelistEntry? {
-        return createWhitelist(blocked, null, serverName)
+        return createWhitelist(blocked, Either.right(serverName))
     }
 
     private suspend fun createWhitelist(
         blocked: Boolean,
-        group: WhitelistEntry.Group?,
-        server: WhitelistEntry.ServerName?,
+        groupOrServerName: Either<String, String>,
     ): WhitelistEntry? {
         val entry = WhitelistEntryImpl(
             uuid = uuid,
             blocked = blocked,
-            group = group,
-            serverName = server
+            groupOrServerName = groupOrServerName,
         )
 
         return bean<WhitelistService>().createWhitelist(entry)
     }
 
     override suspend fun editWhitelistForGroup(
-        group: WhitelistEntry.Group,
+        group: String,
         edit: MutableWhitelistEntry.() -> Unit
     ): Boolean {
         return bean<WhitelistService>().editWhitelist(uuid, Either.left(group), edit)
@@ -88,7 +86,7 @@ class CloudPlayerWhitelistManagerImpl(private val uuid: UUID) : CloudPlayerWhite
     }
 
     override suspend fun editWhitelistForServer(
-        serverName: WhitelistEntry.ServerName,
+        serverName: String,
         edit: MutableWhitelistEntry.() -> Unit
     ): Boolean {
         return bean<WhitelistService>().editWhitelist(uuid, Either.right(serverName), edit)

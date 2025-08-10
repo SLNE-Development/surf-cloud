@@ -4,12 +4,13 @@ import dev.slne.surf.cloud.api.common.player.CloudPlayerManager
 import dev.slne.surf.cloud.api.common.player.toCloudPlayer
 import dev.slne.surf.cloud.api.common.player.whitelist.WhitelistSettings
 import dev.slne.surf.cloud.api.common.player.whitelist.WhitelistStatus
+import dev.slne.surf.cloud.api.common.util.TimeLogger
 import dev.slne.surf.cloud.core.common.coroutines.CommonScope
 import dev.slne.surf.cloud.core.common.messages.MessageManager
 import dev.slne.surf.cloud.core.common.player.whitelist.AbstractWhitelistSettings
+import dev.slne.surf.cloud.core.common.spring.CloudLifecycleAware
 import dev.slne.surf.cloud.standalone.config.ConfigReloadAware
 import dev.slne.surf.cloud.standalone.config.standaloneConfig
-import jakarta.annotation.PostConstruct
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
@@ -22,34 +23,34 @@ import org.springframework.stereotype.Component
 @Component
 class WhitelistSettingsImpl(
     private val service: WhitelistServiceImpl,
-) :
-    AbstractWhitelistSettings(),
-    ConfigReloadAware { // TODO: 06.08.2025 21:02 - config reload
+) : AbstractWhitelistSettings(), ConfigReloadAware,
+    CloudLifecycleAware { // TODO: 06.08.2025 21:02 - config reload
     private val refreshMutex = Mutex()
 
-    @PostConstruct
-    fun init() {
-        val whitelistConfig = standaloneConfig.whitelist
-        enforcedServers.addAll(whitelistConfig.enforcedServers.map { it.lowercase() })
-        enforcedGroups.addAll(whitelistConfig.enforcedGroups.map { it.lowercase() })
+    override suspend fun onEnable(timeLogger: TimeLogger) {
+        timeLogger.measureStep("Loading WhitelistSettings") {
+            val whitelistConfig = standaloneConfig.whitelist
+            enforcedServers.addAll(whitelistConfig.enforcedServers.map { it.lowercase() })
+            enforcedGroups.addAll(whitelistConfig.enforcedGroups.map { it.lowercase() })
 
-        enforcedServers.subscribe { added, element ->
-            if (added) {
-                whitelistConfig.enforcedServers.add(element)
+            enforcedServers.subscribe { added, element ->
+                if (added) {
+                    whitelistConfig.enforcedServers.add(element)
 //                WhitelistConfig.save()
-            } else {
-                whitelistConfig.enforcedServers.remove(element)
+                } else {
+                    whitelistConfig.enforcedServers.remove(element)
 //                WhitelistConfig.save()
+                }
             }
-        }
 
-        enforcedGroups.subscribe { added, element ->
-            if (added) {
-                whitelistConfig.enforcedGroups.add(element)
+            enforcedGroups.subscribe { added, element ->
+                if (added) {
+                    whitelistConfig.enforcedGroups.add(element)
 //                WhitelistConfig.save()
-            } else {
-                whitelistConfig.enforcedGroups.remove(element)
+                } else {
+                    whitelistConfig.enforcedGroups.remove(element)
 //                WhitelistConfig.save()
+                }
             }
         }
     }

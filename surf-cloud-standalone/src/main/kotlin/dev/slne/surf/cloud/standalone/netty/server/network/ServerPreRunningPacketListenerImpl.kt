@@ -1,9 +1,9 @@
 package dev.slne.surf.cloud.standalone.netty.server.network
 
-import dev.slne.surf.cloud.api.server.plugin.utils.bean
 import dev.slne.surf.cloud.core.common.netty.network.ConnectionImpl
 import dev.slne.surf.cloud.core.common.netty.network.protocol.prerunning.*
 import dev.slne.surf.cloud.core.common.netty.network.protocol.synchronizing.SynchronizingProtocols
+import dev.slne.surf.cloud.core.common.util.bean
 import dev.slne.surf.cloud.standalone.netty.server.NettyServerImpl
 import dev.slne.surf.cloud.standalone.netty.server.ServerClientImpl
 import dev.slne.surf.cloud.standalone.plugin.PluginInitializerManager

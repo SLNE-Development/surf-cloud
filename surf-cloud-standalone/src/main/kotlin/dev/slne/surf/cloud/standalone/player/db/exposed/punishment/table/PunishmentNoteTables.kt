@@ -10,8 +10,12 @@ abstract class AbstractPunishmentNoteTable(
     foreignPunishmentTable: AbstractPunishmentTable
 ) : AuditableLongIdTable(name) {
     val noteId = nativeUuid("note_id").uniqueIndex().clientDefault { UUID.randomUUID() }
-    val punishment =
-        reference("punishment_id", foreignPunishmentTable, onDelete = ReferenceOption.CASCADE)
+    val punishment = reference(
+        "punishment_id",
+        foreignPunishmentTable,
+        onDelete = ReferenceOption.CASCADE,
+        onUpdate = ReferenceOption.CASCADE
+    )
     val note = largeText("note")
     val creatorId = long("creator_id").nullable().default(null)
     val generated = bool("generated").default(false)

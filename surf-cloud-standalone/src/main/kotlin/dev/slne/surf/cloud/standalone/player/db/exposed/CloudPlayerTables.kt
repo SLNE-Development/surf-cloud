@@ -4,6 +4,7 @@ import dev.slne.surf.cloud.api.server.exposed.columns.inet
 import dev.slne.surf.cloud.api.server.exposed.columns.nativeUuid
 import dev.slne.surf.cloud.api.server.exposed.columns.zonedDateTime
 import dev.slne.surf.cloud.api.server.exposed.table.AuditableLongIdTable
+import org.jetbrains.exposed.sql.ReferenceOption
 import java.net.Inet4Address
 
 object CloudPlayerTable : AuditableLongIdTable("cloud_player") {
@@ -20,7 +21,12 @@ object CloudPlayerTable : AuditableLongIdTable("cloud_player") {
 
 object CloudPlayerNameHistoryTable : AuditableLongIdTable("cloud_player_name_history") {
     val name = char("name", 16)
-    val player = reference("cloud_player_id", CloudPlayerTable)
+    val player = reference(
+        "cloud_player_id",
+        CloudPlayerTable,
+        onDelete = ReferenceOption.CASCADE,
+        onUpdate = ReferenceOption.CASCADE
+    )
 }
 
 object CloudPlayerPlaytimesTable : AuditableLongIdTable("cloud_player_playtimes") {
@@ -28,5 +34,9 @@ object CloudPlayerPlaytimesTable : AuditableLongIdTable("cloud_player_playtimes"
     val category = varchar("category", 255)
     val durationSeconds = long("duration_seconds").default(0)
 
-    val player = reference("cloud_player_id", CloudPlayerTable)
+    val player = reference(
+        "cloud_player_id", CloudPlayerTable,
+        onDelete = ReferenceOption.CASCADE,
+        onUpdate = ReferenceOption.CASCADE
+    )
 }

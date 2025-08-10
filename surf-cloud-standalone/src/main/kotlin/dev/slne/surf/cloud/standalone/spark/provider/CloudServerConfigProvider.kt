@@ -56,5 +56,10 @@ object CloudServerConfigProvider : ServerConfigProvider(
         "standalone-config.yml" to YamlConfigParser,
         "config.yml" to YamlConfigParser,
     ),
-    listOf("ktor.bearer-token", "connection.database.password", "proxy.secret.manual-secret")
+    listOf(
+        "ktor.bearer-token",
+        "connection.database.password",
+        "connection.redis.password",
+        "proxy.secret.manual-secret"
+    )
 )

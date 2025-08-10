@@ -5,6 +5,7 @@ import org.springframework.beans.factory.ObjectFactory
 import org.springframework.beans.factory.ObjectProvider
 import org.springframework.core.MethodIntrospector
 import org.springframework.core.annotation.AnnotatedElementUtils
+import org.springframework.core.annotation.AnnotationAwareOrderComparator
 import org.springframework.core.annotation.AnnotationUtils
 import org.springframework.core.type.AnnotationMetadata
 import org.springframework.util.StopWatch
@@ -66,4 +67,8 @@ inline fun <R> StopWatch.measure(taskName: String, block: () -> R): R {
 
 inline fun <T> ObjectProvider<T>.forEachOrdered(action: (T) -> Unit) {
     orderedStream().iterator().forEach(action)
+}
+
+inline fun <T> ObjectProvider<T>.forEachAnnotationOrdered(action: (T) -> Unit) {
+    stream().sorted(AnnotationAwareOrderComparator.INSTANCE).iterator().forEach(action)
 }

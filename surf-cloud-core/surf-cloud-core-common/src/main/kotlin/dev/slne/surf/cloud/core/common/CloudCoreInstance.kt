@@ -7,7 +7,7 @@ import dev.slne.surf.cloud.api.common.exceptions.ExitCodes
 import dev.slne.surf.cloud.api.common.exceptions.FatalSurfError
 import dev.slne.surf.cloud.api.common.util.TimeLogger
 import dev.slne.surf.cloud.api.common.util.classloader.JoinClassLoader
-import dev.slne.surf.cloud.api.common.util.forEachOrdered
+import dev.slne.surf.cloud.api.common.util.forEachAnnotationOrdered
 import dev.slne.surf.cloud.core.common.event.CloudEventListenerBeanPostProcessor
 import dev.slne.surf.cloud.core.common.netty.network.EncryptionManager
 import dev.slne.surf.cloud.core.common.netty.registry.listener.processor.NettyListenerRegistryProcessor
@@ -83,7 +83,7 @@ class CloudCoreInstance : CloudInstance {
             }
         }
 
-        lifecycles.forEachOrdered { it.onBootstrap(data, timeLogger) }
+        lifecycles.forEachAnnotationOrdered { it.onBootstrap(data, timeLogger) }
         timeLogger.printSummary()
     }
 
@@ -126,25 +126,25 @@ class CloudCoreInstance : CloudInstance {
 
     suspend fun onLoad() {
         val timeLogger = TimeLogger("SurfCloud load")
-        lifecycles.forEachOrdered { it.onLoad(timeLogger) }
+        lifecycles.forEachAnnotationOrdered { it.onLoad(timeLogger) }
         timeLogger.printSummary()
     }
 
     suspend fun onEnable() {
         val timeLogger = TimeLogger("SurfCloud enable")
-        lifecycles.forEachOrdered { it.onEnable(timeLogger) }
+        lifecycles.forEachAnnotationOrdered { it.onEnable(timeLogger) }
         timeLogger.printSummary()
     }
 
     suspend fun afterStart() {
         val timeLogger = TimeLogger("SurfCloud afterStart")
-        lifecycles.forEachOrdered { it.afterStart(timeLogger) }
+        lifecycles.forEachAnnotationOrdered { it.afterStart(timeLogger) }
         timeLogger.printSummary()
     }
 
     suspend fun onDisable() {
         val timeLogger = TimeLogger("SurfCloud disable")
-        lifecycles.forEachOrdered { it.onDisable(timeLogger) }
+        lifecycles.forEachAnnotationOrdered { it.onDisable(timeLogger) }
         timeLogger.printSummary()
     }
 

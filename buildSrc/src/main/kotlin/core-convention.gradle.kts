@@ -12,7 +12,7 @@ repositories {
 }
 
 dependencies {
-    implementation(platform("org.springframework.boot:spring-boot-dependencies:3.5.3"))
+    implementation(platform("org.springframework.boot:spring-boot-dependencies:3.5.4"))
     implementation(platform("io.ktor:ktor-bom:3.2.1"))
     implementation(platform("org.jetbrains.kotlin-wrappers:kotlin-wrappers-bom:2025.7.8"))
 

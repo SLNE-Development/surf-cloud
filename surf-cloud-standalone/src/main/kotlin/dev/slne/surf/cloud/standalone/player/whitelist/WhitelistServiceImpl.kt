@@ -1,7 +1,6 @@
 package dev.slne.surf.cloud.standalone.player.whitelist
 
 import dev.slne.surf.cloud.api.common.player.whitelist.MutableWhitelistEntry
-import dev.slne.surf.cloud.api.common.player.whitelist.WhitelistEntry
 import dev.slne.surf.cloud.api.common.player.whitelist.WhitelistStatus
 import dev.slne.surf.cloud.api.common.util.Either
 import dev.slne.surf.cloud.core.common.player.whitelist.MutableWhitelistEntryImpl
@@ -16,9 +15,9 @@ import java.util.*
 class WhitelistServiceImpl(private val service: WhitelistRepository) : WhitelistService {
     override suspend fun whitelistStatus(
         uuid: UUID,
-        groupOrServer: Either<WhitelistEntry.Group, WhitelistEntry.ServerName>
+        groupOrServer: Either<String, String>
     ): WhitelistStatus {
-        val status = service.whitelistStatus(uuid, groupOrServer.left, groupOrServer.right)
+        val status = service.whitelistStatus(uuid, groupOrServer)
         return when {
             status == null -> WhitelistStatus.NONE
             status.blocked -> WhitelistStatus.BLOCKED
@@ -26,16 +25,14 @@ class WhitelistServiceImpl(private val service: WhitelistRepository) : Whitelist
         }
     }
 
-
     override suspend fun getWhitelist(
         uuid: UUID,
-        groupOrServer: Either<WhitelistEntry.Group, WhitelistEntry.ServerName>
+        groupOrServer: Either<String, String>
     ): WhitelistEntryImpl? {
-        return service.getWhitelist(uuid, groupOrServer.left, groupOrServer.right)
+        return service.getWhitelist(uuid, groupOrServer)
     }
 
     override suspend fun createWhitelist(whitelist: WhitelistEntryImpl): WhitelistEntryImpl? {
-        check((whitelist.group == null && whitelist.serverName != null) || (whitelist.group != null && whitelist.serverName == null)) { "Either group or server must be provided, but not both." }
         return service.createWhitelist(whitelist)
     }
 
@@ -44,7 +41,7 @@ class WhitelistServiceImpl(private val service: WhitelistRepository) : Whitelist
         groupOrServer: Either<String, String>,
         edit: MutableWhitelistEntry.() -> Unit
     ): Boolean {
-        return service.editWhitelist(uuid, groupOrServer.left, groupOrServer.right, edit)
+        return service.editWhitelist(uuid, groupOrServer, edit)
     }
 
     override suspend fun updateWhitelist(updated: MutableWhitelistEntryImpl): Boolean {
@@ -58,7 +55,7 @@ class WhitelistServiceImpl(private val service: WhitelistRepository) : Whitelist
      * Input  : `(UUID, (serverName, group))`
      * Output : `(UUID, WhitelistStatus)`
      */
-    suspend fun whitelistStatusFor(players: Flow<Pair<UUID, Pair<WhitelistEntry.ServerName, WhitelistEntry.Group>>>): Flow<Pair<UUID, WhitelistStatus>> =
+    suspend fun whitelistStatusFor(players: Flow<Pair<UUID, Pair< /*server name*/ String, /*group*/ String>>>): Flow<Pair<UUID, WhitelistStatus>> =
         service.whitelistStatusBatched(players)
             .mapNotNull { (uuid, list) ->
                 val present = list.filterNotNull()

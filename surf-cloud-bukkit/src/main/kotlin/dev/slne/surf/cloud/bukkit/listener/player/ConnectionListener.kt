@@ -58,6 +58,10 @@ object ConnectionListener : Listener {
 
                     WhitelistStatus.ACTIVE -> Unit
                 }
+
+                if (whitelistStatus != WhitelistStatus.ACTIVE) {
+                    return@runBlocking
+                }
             }
 
             val result = PlayerConnectToServerPacket(

@@ -4,7 +4,6 @@ import dev.slne.surf.cloud.api.common.player.whitelist.WhitelistEntry
 import dev.slne.surf.cloud.api.common.util.Either
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.Transient
 import java.time.ZonedDateTime
 import java.util.*
 
@@ -12,20 +11,15 @@ import java.util.*
 data class WhitelistEntryImpl(
     override val uuid: @Contextual UUID,
     override val blocked: Boolean,
-    val group: String?,
-    val serverName: String?,
+    override val groupOrServerName: Either<String, String>,
     override val createdAt: @Contextual ZonedDateTime = ZonedDateTime.now(),
     override val updatedAt: @Contextual ZonedDateTime = ZonedDateTime.now(),
 ) : WhitelistEntry {
 
-    @Transient
-    override val groupOrServerName = createGroupOrServerRaw(group, serverName)
-
     fun toMutableWhitelistEntry() = MutableWhitelistEntryImpl(
         uuid = uuid,
         blocked = blocked,
-        group = group,
-        serverName = serverName,
+        groupOrServerName = groupOrServerName,
         createdAt = createdAt,
         updatedAt = updatedAt
     )
@@ -34,7 +28,7 @@ data class WhitelistEntryImpl(
         fun createGroupOrServerRaw(
             group: String?,
             serverName: String?
-        ): Either<WhitelistEntry.Group, WhitelistEntry.ServerName> {
+        ): Either<String, String> {
             var found = false
             var either: Either<String, String>? = null
 

@@ -1,6 +1,5 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import dev.slne.surf.surfapi.gradle.util.slnePublic
-import jdk.javadoc.internal.tool.resources.javadoc
 import org.jetbrains.kotlin.gradle.dsl.KotlinJvmExtension
 
 buildscript {
@@ -9,7 +8,7 @@ buildscript {
         maven("https://repo.slne.dev/repository/maven-public/") { name = "maven-public" }
     }
     dependencies {
-        classpath("dev.slne.surf:surf-api-gradle-plugin:1.21.7+")
+        classpath("dev.slne.surf:surf-api-gradle-plugin:1.21.8+")
     }
 }
 
@@ -41,7 +40,7 @@ allprojects {
 
         implementation(platform(project(":surf-cloud-bom")))
 
-        compileOnly("org.springframework.boot:spring-boot-configuration-processor:3.5.3")
+        compileOnly("org.springframework.boot:spring-boot-configuration-processor:3.5.4")
         //    "kapt"("org.springframework.boot:spring-boot-configuration-processor:3.4.3")
 
         testImplementation(kotlin("test"))

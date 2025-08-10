@@ -47,13 +47,14 @@ class WhitelistCommand : AbstractConsoleCommand() {
             } else {
                 text("❌", Colors.WHITE)
             }
-            spacer("]")
+            spacer("  ]")
         }
 
         source.sendInfo(buildText {
             spacer("——————————————————————— ")
             primary("Whitelist")
             spacer(" ——————————————————————————")
+            appendNewline()
 
             for ((group, server) in groupedServer) {
                 val enforcedForGroup = WhitelistSettings.isWhitelistEnforcedForGroup(group)
@@ -64,7 +65,7 @@ class WhitelistCommand : AbstractConsoleCommand() {
                 appendSpace()
                 appendWhitelistStatus(enforcedForGroup, false)
 
-                appendCollectionNewLine(server, Component.text("    — ", Colors.SPACER)) { server ->
+                appendCollectionNewLine(server, Component.text("    ", Colors.SPACER)) { server ->
                     buildText {
                         variableValue(server.name)
                         appendSpace()
@@ -76,6 +77,7 @@ class WhitelistCommand : AbstractConsoleCommand() {
                 }
             }
 
+            appendNewline()
             spacer("————————————————————————————————————————————————————————————")
         })
     }

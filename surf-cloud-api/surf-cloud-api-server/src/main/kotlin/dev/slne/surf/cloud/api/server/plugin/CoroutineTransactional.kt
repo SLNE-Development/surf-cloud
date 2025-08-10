@@ -1,11 +1,17 @@
 package dev.slne.surf.cloud.api.server.plugin
 
-import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
+import org.intellij.lang.annotations.Language
 import org.springframework.aot.hint.annotation.Reflective
+import org.springframework.context.ApplicationContext
 import java.lang.annotation.Inherited
 import kotlin.annotation.AnnotationRetention.RUNTIME
 import kotlin.annotation.AnnotationTarget.CLASS
 import kotlin.annotation.AnnotationTarget.FUNCTION
+import kotlin.coroutines.ContinuationInterceptor
+import kotlin.coroutines.CoroutineContext
+import kotlin.reflect.KClass
 
 /**
  * Marks a class or function whose **`suspend`** methods should run inside a
@@ -40,6 +46,7 @@ import kotlin.annotation.AnnotationTarget.FUNCTION
  *   read-only.
  *   - `DEFAULT` → use Exposed default.
  */
+@Suppress("InjectedReferences")
 @Target(CLASS, FUNCTION)
 @Retention(RUNTIME)
 @MustBeDocumented
@@ -49,6 +56,11 @@ annotation class CoroutineTransactional(
     val transactionManager: String = "",
     val transactionIsolation: Int = -1,
     val readOnly: ReadOnly = ReadOnly.DEFAULT,
+
+    val dispatcher: Dispatcher = Dispatcher.IO,
+    @Language("spring-bean-name") val dispatcherBean: String = "",
+    val dispatcherType: KClass<out CoroutineDispatcher> = CoroutineDispatcher::class,
+    val contextProvider: KClass<out CoroutineTxContextProvider> = CoroutineTxContextProvider.Default::class,
 ) {
 
     /**
@@ -61,16 +73,60 @@ annotation class CoroutineTransactional(
         DEFAULT(null);
     }
 
-    interface ScopeProvider {
-        /**
-         * Provides the current coroutine scope for the transaction.
-         * This is used to ensure that the transaction is suspended correctly
-         * when the coroutine yields.
-         */
-        fun getCurrentScope(): CoroutineScope
+    enum class Dispatcher { CALLER, IO, DEFAULT, UNCONFINED }
+
+    fun interface CoroutineTxContextProvider {
+        fun provide(
+            outer: CoroutineContext,
+            annotation: CoroutineTransactional,
+            ctx: ApplicationContext
+        ): CoroutineContext
+
+        class Default : CoroutineTxContextProvider {
+            override fun provide(
+                outer: CoroutineContext,
+                annotation: CoroutineTransactional,
+                ctx: ApplicationContext
+            ): CoroutineContext {
+                val d = resolveDispatcher(annotation, ctx, outer)
+                return outer + d
+            }
+
+            private fun resolveDispatcher(
+                a: CoroutineTransactional,
+                ctx: ApplicationContext,
+                outer: CoroutineContext
+            ): CoroutineDispatcher {
+                if (a.dispatcherBean.isNotBlank())
+                    return ctx.getBean(a.dispatcherBean, CoroutineDispatcher::class.java)
+
+                if (a.dispatcherType != CoroutineDispatcher::class)
+                    return ctx.getBean(a.dispatcherType.java)
+
+                return when (a.dispatcher) {
+                    Dispatcher.CALLER ->
+                        outer[ContinuationInterceptor] as? CoroutineDispatcher
+                            ?: Dispatchers.Default
+
+                    Dispatcher.IO -> Dispatchers.IO
+                    Dispatcher.DEFAULT -> Dispatchers.Default
+                    Dispatcher.UNCONFINED -> Dispatchers.Unconfined
+                }
+            }
+        }
     }
+
 }
 
+/**
+ * Marks a function that should **not** be wrapped in a
+ * coroutine-friendly Exposed transaction by the `CoroutineTransactionalAspect`.
+ *
+ * ### Use Case
+ * Use this annotation to exclude specific methods from the
+ * `CoroutineTransactional` aspect, especially when you want to control
+ * transaction management manually or use a different approach.
+ */
 @Target(FUNCTION)
 @Retention(RUNTIME)
 @MustBeDocumented

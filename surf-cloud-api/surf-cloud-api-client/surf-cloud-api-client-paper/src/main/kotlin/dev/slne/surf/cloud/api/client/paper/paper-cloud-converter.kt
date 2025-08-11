@@ -1,15 +1,15 @@
 package dev.slne.surf.cloud.api.client.paper
 
 import dev.slne.surf.cloud.api.common.player.teleport.TeleportCause
-import dev.slne.surf.cloud.api.common.player.teleport.TeleportLocation
+import dev.slne.surf.cloud.api.common.player.teleport.WorldLocation
 import io.papermc.paper.entity.TeleportFlag
 import org.bukkit.Bukkit
 import org.bukkit.Location
 import org.bukkit.event.player.PlayerTeleportEvent
 import dev.slne.surf.cloud.api.common.player.teleport.TeleportFlag as CloudTeleportFlag
 
-fun Location.toCloudTpLocation() = TeleportLocation(world.uid, x, y, z, yaw, pitch)
-fun TeleportLocation.toLocation() = Location(Bukkit.getWorld(world), x, y, z, yaw, pitch)
+fun Location.toCloudTpLocation() = WorldLocation(world.uid, x, y, z, yaw, pitch)
+fun WorldLocation.toLocation() = Location(Bukkit.getWorld(world), x, y, z, yaw, pitch)
 fun PlayerTeleportEvent.TeleportCause.toCloudTpCause(): TeleportCause = when (this) {
     PlayerTeleportEvent.TeleportCause.PLUGIN -> TeleportCause.PLUGIN
     PlayerTeleportEvent.TeleportCause.COMMAND -> TeleportCause.COMMAND

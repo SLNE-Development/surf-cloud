@@ -4,7 +4,7 @@ import com.velocitypowered.api.proxy.ConnectionRequestBuilder
 import com.velocitypowered.api.proxy.server.ServerInfo
 import dev.slne.surf.cloud.api.common.player.teleport.TeleportCause
 import dev.slne.surf.cloud.api.common.player.teleport.TeleportFlag
-import dev.slne.surf.cloud.api.common.player.teleport.TeleportLocation
+import dev.slne.surf.cloud.api.common.player.teleport.WorldLocation
 import dev.slne.surf.cloud.api.common.util.observer.observingFlow
 import dev.slne.surf.cloud.core.client.netty.network.PlatformSpecificPacketListenerExtension
 import dev.slne.surf.cloud.core.client.server.ClientCloudServerImpl
@@ -65,7 +65,7 @@ class VelocitySpecificPacketListenerExtension : PlatformSpecificPacketListenerEx
 
     override suspend fun teleportPlayer(
         uuid: UUID,
-        location: TeleportLocation,
+        location: WorldLocation,
         teleportCause: TeleportCause,
         flags: Array<out TeleportFlag>
     ): Boolean {

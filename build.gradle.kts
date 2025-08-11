@@ -49,7 +49,6 @@ allprojects {
     afterEvaluate {
         extensions.findByType<KotlinJvmExtension>()?.apply {
             compilerOptions {
-                freeCompilerArgs.add("-Xnested-type-aliases")
             }
         }
     }

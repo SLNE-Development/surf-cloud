@@ -5,7 +5,7 @@ import com.github.shynixn.mccoroutine.folia.globalRegionDispatcher
 import com.github.shynixn.mccoroutine.folia.launch
 import dev.slne.surf.cloud.api.common.player.teleport.TeleportCause
 import dev.slne.surf.cloud.api.common.player.teleport.TeleportFlag
-import dev.slne.surf.cloud.api.common.player.teleport.TeleportLocation
+import dev.slne.surf.cloud.api.common.player.teleport.WorldLocation
 import dev.slne.surf.cloud.api.common.player.toCloudPlayer
 import dev.slne.surf.cloud.api.common.util.observer.observingFlow
 import dev.slne.surf.cloud.bukkit.listener.player.SilentDisconnectListener
@@ -58,7 +58,7 @@ class BukkitSpecificPacketListenerExtension : PlatformSpecificPacketListenerExte
 
     override suspend fun teleportPlayer(
         uuid: UUID,
-        location: TeleportLocation,
+        location: WorldLocation,
         teleportCause: TeleportCause,
         flags: Array<out TeleportFlag>
     ): Boolean {

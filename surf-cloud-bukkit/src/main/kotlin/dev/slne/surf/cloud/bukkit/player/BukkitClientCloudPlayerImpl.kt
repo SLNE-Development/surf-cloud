@@ -6,7 +6,7 @@ import dev.slne.surf.cloud.api.client.paper.toBukkitTpFlag
 import dev.slne.surf.cloud.api.client.paper.toLocation
 import dev.slne.surf.cloud.api.common.player.teleport.TeleportCause
 import dev.slne.surf.cloud.api.common.player.teleport.TeleportFlag
-import dev.slne.surf.cloud.api.common.player.teleport.TeleportLocation
+import dev.slne.surf.cloud.api.common.player.teleport.WorldLocation
 import dev.slne.surf.cloud.bukkit.listener.player.SilentDisconnectListener
 import dev.slne.surf.cloud.bukkit.plugin
 import dev.slne.surf.cloud.core.client.player.ClientCloudPlayerImpl
@@ -82,7 +82,7 @@ class BukkitClientCloudPlayerImpl(uuid: UUID, name: String) : ClientCloudPlayerI
     }
 
     override suspend fun teleport(
-        location: TeleportLocation,
+        location: WorldLocation,
         teleportCause: TeleportCause,
         vararg flags: TeleportFlag
     ): Boolean {

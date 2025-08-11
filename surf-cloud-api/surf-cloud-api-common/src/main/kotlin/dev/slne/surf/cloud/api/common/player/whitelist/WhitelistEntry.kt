@@ -7,14 +7,11 @@ import java.util.*
 
 interface WhitelistEntry {
     val uuid: UUID
-    val groupOrServerName: Either<Group, ServerName>
+    val groupOrServerName: Either<String, String>
     val blocked: Boolean
 
     val createdAt: ZonedDateTime
     val updatedAt: ZonedDateTime
-
-    typealias Group = String
-    typealias ServerName = String
 }
 
 

@@ -2,7 +2,7 @@ package dev.slne.surf.cloud.core.client.netty.network
 
 import dev.slne.surf.cloud.api.common.player.teleport.TeleportCause
 import dev.slne.surf.cloud.api.common.player.teleport.TeleportFlag
-import dev.slne.surf.cloud.api.common.player.teleport.TeleportLocation
+import dev.slne.surf.cloud.api.common.player.teleport.WorldLocation
 import dev.slne.surf.cloud.core.client.server.ClientCloudServerImpl
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.RegistrationInfo
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ServerboundTransferPlayerPacketResponse
@@ -27,7 +27,7 @@ interface PlatformSpecificPacketListenerExtension {
 
     suspend fun teleportPlayer(
         uuid: UUID,
-        location: TeleportLocation,
+        location: WorldLocation,
         teleportCause: TeleportCause,
         flags: Array<out TeleportFlag>
     ): Boolean

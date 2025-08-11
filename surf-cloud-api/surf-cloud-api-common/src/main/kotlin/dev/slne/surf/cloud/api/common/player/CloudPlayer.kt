@@ -6,7 +6,7 @@ import dev.slne.surf.cloud.api.common.netty.network.codec.streamCodec
 import dev.slne.surf.cloud.api.common.player.ppdc.PersistentPlayerDataContainer
 import dev.slne.surf.cloud.api.common.player.teleport.TeleportCause
 import dev.slne.surf.cloud.api.common.player.teleport.TeleportFlag
-import dev.slne.surf.cloud.api.common.player.teleport.TeleportLocation
+import dev.slne.surf.cloud.api.common.player.teleport.WorldLocation
 import dev.slne.surf.cloud.api.common.server.CloudServer
 import dev.slne.surf.surfapi.core.api.messages.adventure.buildText
 import io.netty.buffer.ByteBuf
@@ -151,7 +151,7 @@ interface CloudPlayer : Audience, OfflineCloudPlayer { // TODO: conversation but
      * @throws IllegalStateException If the player is not connected to a supported server.
      */
     suspend fun teleport(
-        location: TeleportLocation,
+        location: WorldLocation,
         teleportCause: TeleportCause = TeleportCause.PLUGIN,
         vararg flags: TeleportFlag
     ): Boolean
@@ -178,7 +178,7 @@ interface CloudPlayer : Audience, OfflineCloudPlayer { // TODO: conversation but
         pitch: Float = 0.0f,
         teleportCause: TeleportCause = TeleportCause.PLUGIN,
         vararg flags: TeleportFlag,
-    ) = teleport(TeleportLocation(world, x, y, z, yaw, pitch), teleportCause, *flags)
+    ) = teleport(WorldLocation(world, x, y, z, yaw, pitch), teleportCause, *flags)
 
     suspend fun teleport(target: CloudPlayer): Boolean
 

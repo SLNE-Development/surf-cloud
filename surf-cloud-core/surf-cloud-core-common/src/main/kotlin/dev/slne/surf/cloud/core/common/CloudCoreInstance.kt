@@ -8,6 +8,7 @@ import dev.slne.surf.cloud.api.common.exceptions.FatalSurfError
 import dev.slne.surf.cloud.api.common.util.TimeLogger
 import dev.slne.surf.cloud.api.common.util.classloader.JoinClassLoader
 import dev.slne.surf.cloud.api.common.util.forEachAnnotationOrdered
+import dev.slne.surf.cloud.api.common.util.forEachAnnotationOrderedReversed
 import dev.slne.surf.cloud.core.common.event.CloudEventListenerBeanPostProcessor
 import dev.slne.surf.cloud.core.common.netty.network.EncryptionManager
 import dev.slne.surf.cloud.core.common.netty.registry.listener.processor.NettyListenerRegistryProcessor
@@ -144,7 +145,7 @@ class CloudCoreInstance : CloudInstance {
 
     suspend fun onDisable() {
         val timeLogger = TimeLogger("SurfCloud disable")
-        lifecycles.forEachAnnotationOrdered { it.onDisable(timeLogger) }
+        lifecycles.forEachAnnotationOrderedReversed { it.onDisable(timeLogger) }
         timeLogger.printSummary()
     }
 

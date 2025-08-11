@@ -12,7 +12,7 @@ import dev.slne.surf.cloud.api.common.player.playtime.Playtime
 import dev.slne.surf.cloud.api.common.player.ppdc.PersistentPlayerDataContainer
 import dev.slne.surf.cloud.api.common.player.teleport.TeleportCause
 import dev.slne.surf.cloud.api.common.player.teleport.TeleportFlag
-import dev.slne.surf.cloud.api.common.player.teleport.TeleportLocation
+import dev.slne.surf.cloud.api.common.player.teleport.WorldLocation
 import dev.slne.surf.cloud.api.common.server.CloudServer
 import dev.slne.surf.cloud.api.common.util.getValue
 import dev.slne.surf.cloud.api.common.util.setValue
@@ -419,7 +419,7 @@ abstract class ClientCloudPlayerImpl<PlatformPlayer : Audience>(
     }
 
     override suspend fun teleport(
-        location: TeleportLocation,
+        location: WorldLocation,
         teleportCause: TeleportCause,
         vararg flags: TeleportFlag
     ) = TeleportPlayerPacket(uuid, location, teleportCause, *flags).fireAndAwaitOrThrow().result

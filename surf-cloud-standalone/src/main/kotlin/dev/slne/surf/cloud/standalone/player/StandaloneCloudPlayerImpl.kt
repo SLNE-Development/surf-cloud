@@ -10,7 +10,7 @@ import dev.slne.surf.cloud.api.common.player.playtime.Playtime
 import dev.slne.surf.cloud.api.common.player.ppdc.PersistentPlayerDataContainer
 import dev.slne.surf.cloud.api.common.player.teleport.TeleportCause
 import dev.slne.surf.cloud.api.common.player.teleport.TeleportFlag
-import dev.slne.surf.cloud.api.common.player.teleport.TeleportLocation
+import dev.slne.surf.cloud.api.common.player.teleport.WorldLocation
 import dev.slne.surf.cloud.api.common.server.CloudServer
 import dev.slne.surf.cloud.api.server.server.ServerCommonCloudServer
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.*
@@ -448,7 +448,7 @@ class StandaloneCloudPlayerImpl(uuid: UUID, name: String, val ip: Inet4Address) 
     }
 
     override suspend fun teleport(
-        location: TeleportLocation,
+        location: WorldLocation,
         teleportCause: TeleportCause,
         vararg flags: TeleportFlag
     ): Boolean {

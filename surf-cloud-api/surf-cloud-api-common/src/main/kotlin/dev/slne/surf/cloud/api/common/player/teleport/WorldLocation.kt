@@ -5,7 +5,7 @@ import dev.slne.surf.cloud.api.common.netty.protocol.buffer.SurfByteBuf
 import java.util.*
 import kotlin.math.sqrt
 
-data class TeleportLocation(
+data class WorldLocation(
     val world: UUID,
     val x: Double,
     val y: Double,
@@ -14,7 +14,7 @@ data class TeleportLocation(
     val pitch: Float = 0.0f
 ) {
     companion object {
-        val STREAM_CODEC = streamCodec<SurfByteBuf, TeleportLocation>({ buf, value ->
+        val STREAM_CODEC = streamCodec<SurfByteBuf, WorldLocation>({ buf, value ->
             buf.writeUuid(value.world)
             buf.writeDouble(value.x)
             buf.writeDouble(value.y)
@@ -22,7 +22,7 @@ data class TeleportLocation(
             buf.writeFloat(value.yaw)
             buf.writeFloat(value.pitch)
         }, { buf ->
-            TeleportLocation(
+            WorldLocation(
                 buf.readUuid(),
                 buf.readDouble(),
                 buf.readDouble(),
@@ -33,7 +33,7 @@ data class TeleportLocation(
         })
     }
 
-    fun distanceSquared(other: TeleportLocation): Double { // TODO: Replace with fast math
+    fun distanceSquared(other: WorldLocation): Double { // TODO: Replace with fast math
         if (world != other.world) error("Cannot calculate distance between locations in different worlds")
 
         val dx = x - other.x
@@ -43,7 +43,7 @@ data class TeleportLocation(
         return dx * dx + dy * dy + dz * dz
     }
 
-    fun distance(other: TeleportLocation): Double {
+    fun distance(other: WorldLocation): Double {
         return sqrt(distanceSquared(other))
     }
 }
@@ -55,4 +55,4 @@ fun fineLocation(
     z: Double,
     yaw: Float = 0.0f,
     pitch: Float = 0.0f
-) = TeleportLocation(world, x, y, z, yaw, pitch)
+) = WorldLocation(world, x, y, z, yaw, pitch)

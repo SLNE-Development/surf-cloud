@@ -7,9 +7,9 @@ import dev.slne.surf.cloud.api.common.netty.packet.RespondingNettyPacket
 import dev.slne.surf.cloud.api.common.netty.packet.packetCodec
 import dev.slne.surf.cloud.api.common.netty.protocol.buffer.SurfByteBuf
 import dev.slne.surf.cloud.api.common.netty.protocol.buffer.readEnum
-import dev.slne.surf.cloud.api.common.player.teleport.TeleportLocation
 import dev.slne.surf.cloud.api.common.player.teleport.TeleportCause
 import dev.slne.surf.cloud.api.common.player.teleport.TeleportFlag
+import dev.slne.surf.cloud.api.common.player.teleport.WorldLocation
 import java.util.*
 
 @SurfNettyPacket(DefaultIds.BIDIRECTIONAL_TELEPORT_PLAYER, PacketFlow.BIDIRECTIONAL)
@@ -23,13 +23,13 @@ class TeleportPlayerPacket : RespondingNettyPacket<TeleportPlayerResultPacket> {
     }
 
     val uuid: UUID
-    val location: TeleportLocation
+    val location: WorldLocation
     val teleportCause: TeleportCause
     val flags: Array<out TeleportFlag>
 
     constructor(
         uuid: UUID,
-        location: TeleportLocation,
+        location: WorldLocation,
         teleportCause: TeleportCause,
         vararg flags: TeleportFlag
     ) {
@@ -41,14 +41,14 @@ class TeleportPlayerPacket : RespondingNettyPacket<TeleportPlayerResultPacket> {
 
     private constructor(buf: SurfByteBuf) {
         this.uuid = buf.readUuid()
-        this.location = TeleportLocation.STREAM_CODEC.decode(buf)
+        this.location = WorldLocation.STREAM_CODEC.decode(buf)
         this.flags = buf.readArray { it.readEnum() }
         this.teleportCause = buf.readEnum()
     }
 
     private fun write(buf: SurfByteBuf) {
         buf.writeUuid(uuid)
-        TeleportLocation.STREAM_CODEC.encode(buf, location)
+        WorldLocation.STREAM_CODEC.encode(buf, location)
         buf.writeArray(flags, SurfByteBuf::writeEnum)
         buf.writeEnum(teleportCause)
     }

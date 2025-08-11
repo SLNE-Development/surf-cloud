@@ -9,6 +9,7 @@ import dev.slne.surf.cloud.api.common.netty.network.codec.kotlinx.cloud.OfflineC
 import dev.slne.surf.cloud.api.common.netty.network.codec.kotlinx.java.*
 import dev.slne.surf.cloud.api.common.netty.network.codec.kotlinx.kotlin.DurationSerializer
 import dev.slne.surf.cloud.api.common.netty.network.codec.kotlinx.nbt.CompoundTagSerializer
+import dev.slne.surf.cloud.api.common.netty.network.codec.kotlinx.sponge.Vector3iSerializer
 import dev.slne.surf.cloud.api.common.util.annotation.InternalApi
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.contextual
@@ -41,6 +42,9 @@ object SurfCloudBufSerializer {
         // Cloud
         contextual(CloudPlayerSerializer)
         contextual(OfflineCloudPlayerSerializer)
+
+        // sponge
+        contextual(Vector3iSerializer)
     }
 
     val serializer = Buf(serializerModule)

@@ -72,3 +72,7 @@ inline fun <T> ObjectProvider<T>.forEachOrdered(action: (T) -> Unit) {
 inline fun <T> ObjectProvider<T>.forEachAnnotationOrdered(action: (T) -> Unit) {
     stream().sorted(AnnotationAwareOrderComparator.INSTANCE).iterator().forEach(action)
 }
+
+inline fun <T> ObjectProvider<T>.forEachAnnotationOrderedReversed(action: (T) -> Unit) {
+    stream().sorted(AnnotationAwareOrderComparator.INSTANCE.reversed()).iterator().forEach(action)
+}

@@ -7,7 +7,7 @@ import dev.slne.surf.cloud.api.server.exposed.table.AuditableLongIdTable
 import org.jetbrains.exposed.sql.ReferenceOption
 import java.net.Inet4Address
 
-object CloudPlayerTable : AuditableLongIdTable("cloud_player") {
+object CloudPlayerTable : AuditableLongIdTable("cloud_players") {
     val uuid = nativeUuid("uuid").uniqueIndex()
     val lastServer = char("last_server", 255).nullable()
     val lastSeen = zonedDateTime("last_seen").nullable()
@@ -19,7 +19,7 @@ object CloudPlayerTable : AuditableLongIdTable("cloud_player") {
         .nullable()
 }
 
-object CloudPlayerNameHistoryTable : AuditableLongIdTable("cloud_player_name_history") {
+object CloudPlayerNameHistoryTable : AuditableLongIdTable("cloud_player_name_histories") {
     val name = char("name", 16)
     val player = reference(
         "cloud_player_id",

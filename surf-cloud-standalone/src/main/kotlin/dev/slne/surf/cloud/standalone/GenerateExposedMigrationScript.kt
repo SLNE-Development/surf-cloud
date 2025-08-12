@@ -16,6 +16,6 @@ fun main() {
         MutePunishmentNoteTable,
         WarnPunishmentNoteTable,
         WhitelistTable,
-        scriptName = "V7__add_whitelist_table",
+        scriptName = "V8__change_tables_add_cloud_player_references",
     )
 }

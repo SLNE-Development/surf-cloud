@@ -7,8 +7,7 @@ import org.jetbrains.exposed.sql.ReferenceOption
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.or
 
-object WhitelistTable : AuditableLongIdTable("whitelist") {
-    val uuid = nativeUuid("uuid").index()
+object WhitelistTable : AuditableLongIdTable("whitelists") {
     val blocked = bool("blocked").default(false)
     val group = varchar("group", 255).nullable()
     val serverName = varchar("server_name", 255).nullable()
@@ -25,6 +24,6 @@ object WhitelistTable : AuditableLongIdTable("whitelist") {
         }
 
         uniqueIndex(uuid, group)
-        uniqueIndex(uuid, serverName,)
+        uniqueIndex(uuid, serverName)
     }
 }

@@ -7,7 +7,12 @@ abstract class AbstractUnpunishableExpirablePunishmentTable(name: String) :
     AbstractPunishmentTable(name) {
     val unpunished = bool("unpunished").default(false)
     val unpunishedDate = zonedDateTime("unpunished_date").nullable().default(null)
-    val unpunisherUuid = nativeUuid("unpunisher_uuid").nullable().default(null)
+    val unpunisherPlayer = reference(
+        "unpunisher_id",
+        CloudPlayerTable,
+        onDelete = ReferenceOption.CASCADE,
+        onUpdate = ReferenceOption.CASCADE
+    ).nullable().default(null)
     val expirationDate = zonedDateTime("expiration_date").nullable().default(null)
     val permanent = bool("permanent").default(false)
 

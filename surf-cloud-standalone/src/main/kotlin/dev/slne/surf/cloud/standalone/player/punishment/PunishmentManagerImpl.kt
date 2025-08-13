@@ -72,7 +72,8 @@ class PunishmentManagerImpl(private val service: PunishmentService) : Punishment
         punishedUuid: UUID,
         issuerUuid: UUID?,
         reason: String?,
-        initialNotes: List<String>
+        initialNotes: List<String>,
+        parentId: Long?
     ): PunishmentKickImpl {
         val punishmentId = generatePunishmentId()
         val kick = service.createKickWithNotes(
@@ -80,7 +81,8 @@ class PunishmentManagerImpl(private val service: PunishmentService) : Punishment
             punishedUuid,
             issuerUuid,
             reason,
-            initialNotes
+            initialNotes,
+            parentId
         )
 
         broadcastPunishmentCreation(kick)
@@ -92,7 +94,8 @@ class PunishmentManagerImpl(private val service: PunishmentService) : Punishment
         punishedUuid: UUID,
         issuerUuid: UUID?,
         reason: String?,
-        initialNotes: List<String>
+        initialNotes: List<String>,
+        parentId: Long?
     ): PunishmentWarnImpl {
         val punishmentId = generatePunishmentId()
         val warning = service.createWarningWithNotes(
@@ -100,7 +103,8 @@ class PunishmentManagerImpl(private val service: PunishmentService) : Punishment
             punishedUuid,
             issuerUuid,
             reason,
-            initialNotes
+            initialNotes,
+            parentId
         )
 
         broadcastPunishmentCreation(warning)
@@ -114,7 +118,8 @@ class PunishmentManagerImpl(private val service: PunishmentService) : Punishment
         reason: String?,
         permanent: Boolean,
         expirationDate: ZonedDateTime?,
-        initialNotes: List<String>
+        initialNotes: List<String>,
+        parentId: Long?
     ): PunishmentMuteImpl {
         val punishmentId = generatePunishmentId()
         val punishment = service.createMuteWithNotes(
@@ -124,7 +129,8 @@ class PunishmentManagerImpl(private val service: PunishmentService) : Punishment
             reason,
             permanent,
             expirationDate,
-            initialNotes
+            initialNotes,
+            parentId
         )
 
         broadcastPunishmentCreation(punishment)
@@ -140,7 +146,8 @@ class PunishmentManagerImpl(private val service: PunishmentService) : Punishment
         securityBan: Boolean,
         raw: Boolean,
         initialNotes: List<String>,
-        initialIpAddresses: List<String>
+        initialIpAddresses: List<String>,
+        parentId: Long?
     ): PunishmentBanImpl {
         val punishmentId = generatePunishmentId()
         val punishment = service.createBanWithNotesAndIpAddresses(
@@ -153,7 +160,8 @@ class PunishmentManagerImpl(private val service: PunishmentService) : Punishment
             securityBan,
             raw,
             initialNotes,
-            initialIpAddresses
+            initialIpAddresses,
+            parentId
         )
 
         broadcastPunishmentCreation(punishment)
@@ -232,9 +240,9 @@ class PunishmentManagerImpl(private val service: PunishmentService) : Punishment
             note
         ) { it.toApiObject() }
 
-    suspend fun <PunishmentEntity : AbstractPunishmentEntity, NoteEntity : AbstractPunishmentNoteEntity<PunishmentEntity>, Api : AbstractPunishment> attachNoteToPunishment(
+    suspend fun <PunishmentEntity : AbstractPunishmentEntity<PunishmentEntity, PunishmentEntityClass>, PunishmentEntityClass : LongEntityClass<PunishmentEntity>, NoteEntity : AbstractPunishmentNoteEntity<PunishmentEntity, PunishmentEntityClass>, Api : AbstractPunishment> attachNoteToPunishment(
         id: Long,
-        entityClass: LongEntityClass<PunishmentEntity>,
+        entityClass: PunishmentEntityClass,
         noteEntityClass: LongEntityClass<NoteEntity>,
         note: String,
         toApi: (PunishmentEntity) -> Api,
@@ -265,7 +273,7 @@ class PunishmentManagerImpl(private val service: PunishmentService) : Punishment
     override suspend fun fetchIpAddressesForBan(id: Long): List<PunishmentAttachedIpAddressImpl> =
         service.fetchIpAddressesForBan(id)
 
-    private suspend fun <P : AbstractPunishmentEntity, E : AbstractPunishmentNoteEntity<P>> fetchNotesForPunishment(
+    private suspend fun <P : AbstractPunishmentEntity<P, PC>, PC: LongEntityClass<P>, E : AbstractPunishmentNoteEntity<P, PC>> fetchNotesForPunishment(
         id: Long,
         noteEntityClass: LongEntityClass<E>
     ) = service.fetchNotesForPunishment(id, noteEntityClass)
@@ -309,16 +317,16 @@ class PunishmentManagerImpl(private val service: PunishmentService) : Punishment
             punishedUuid
         ) { it.toApiObject() }
 
-    private suspend fun <E : AbstractUnpunishableExpirablePunishmentEntity, T> fetchPunishments(
-        entityClass: AuditableLongEntityClass<E>,
+    private suspend fun <E : AbstractUnpunishableExpirablePunishmentEntity<E, EC>, EC: AuditableLongEntityClass<E>, T> fetchPunishments(
+        entityClass: EC,
         table: AbstractUnpunishableExpirablePunishmentTable,
         punishedUuid: UUID,
         onlyActive: Boolean,
         toApiObject: (E) -> T
     ): List<T> = service.fetchPunishments(entityClass, table, punishedUuid, onlyActive, toApiObject)
 
-    private suspend fun <E : AbstractPunishmentEntity, T> fetchPunishments(
-        entityClass: AuditableLongEntityClass<E>,
+    private suspend fun <E : AbstractPunishmentEntity<E, EC>, EC: AuditableLongEntityClass<E>, T> fetchPunishments(
+        entityClass: EC,
         table: AbstractPunishmentTable,
         punishedUuid: UUID,
         toApiObject: (E) -> T

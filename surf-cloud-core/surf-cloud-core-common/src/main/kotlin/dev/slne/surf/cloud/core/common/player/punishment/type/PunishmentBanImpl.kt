@@ -32,6 +32,7 @@ data class PunishmentBanImpl(
     override val unpunished: Boolean = false,
     override val unpunishedDate: @Contextual ZonedDateTime? = null,
     override val unpunisherUuid: @Contextual UUID? = null,
+    override val parent: PunishmentBanImpl? = null,
 ) : AbstractUnpunishablePunishment(), PunishmentBan {
     override val punishmentUrlReplacer: String = "bans"
 

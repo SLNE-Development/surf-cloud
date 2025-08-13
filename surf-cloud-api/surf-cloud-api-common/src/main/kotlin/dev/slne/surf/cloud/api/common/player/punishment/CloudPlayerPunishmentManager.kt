@@ -66,13 +66,13 @@ interface CloudPlayerPunishmentManager {
     suspend fun fetchWarnings(): @Unmodifiable ObjectList<out PunishmentWarn>
     suspend fun fetchKicks(): @Unmodifiable ObjectList<out PunishmentKick>
 
-    suspend fun <P : Punishment, Spec : PunishSpec<P, Spec, Builder>, Builder : NoteBuilder> punish(
+    suspend fun <P : Punishment, Spec : PunishSpec<P, Spec, Builder>, Builder : NoteBuilder<P>> punish(
         type: PunishType<P, Spec, Builder>,
         reason: String?,
         issuerUuid: UUID? = null
     ): P = punish(type.emptySpec(), reason, issuerUuid)
 
-    suspend fun <P : Punishment, Spec : PunishSpec<P, Spec, Builder>, Builder : NoteBuilder> punish(
+    suspend fun <P : Punishment, Spec : PunishSpec<P, Spec, Builder>, Builder : NoteBuilder<P>> punish(
         spec: Spec,
         reason: String?,
         issuerUuid: UUID? = null

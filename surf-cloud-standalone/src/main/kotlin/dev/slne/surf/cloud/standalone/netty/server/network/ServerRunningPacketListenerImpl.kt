@@ -353,7 +353,8 @@ class ServerRunningPacketListenerImpl(
                 punishedUuid = packet.punishedUuid,
                 issuerUuid = packet.issuerUuid,
                 reason = packet.reason,
-                initialNotes = packet.initialNotes
+                initialNotes = packet.initialNotes,
+                parentId = packet.parentId
             )
 
             packet.respond(ClientboundCreatedPunishmentResponsePacket(punishment))
@@ -366,7 +367,8 @@ class ServerRunningPacketListenerImpl(
                 punishedUuid = packet.punishedUuid,
                 issuerUuid = packet.issuerUuid,
                 reason = packet.reason,
-                initialNotes = packet.initialNotes
+                initialNotes = packet.initialNotes,
+                parentId = packet.parentId
             )
 
             packet.respond(ClientboundCreatedPunishmentResponsePacket(punishment))
@@ -381,7 +383,8 @@ class ServerRunningPacketListenerImpl(
                 reason = packet.reason,
                 permanent = packet.permanent,
                 expirationDate = packet.expirationDate,
-                initialNotes = packet.initialNotes
+                initialNotes = packet.initialNotes,
+                parentId = packet.parentId
             )
 
             packet.respond(ClientboundCreatedPunishmentResponsePacket(punishment))
@@ -399,7 +402,8 @@ class ServerRunningPacketListenerImpl(
                 securityBan = packet.securityBan,
                 raw = packet.raw,
                 initialNotes = packet.initialNotes,
-                initialIpAddresses = packet.initialIpAddresses
+                initialIpAddresses = packet.initialIpAddresses,
+                parentId = packet.parentId
             )
 
             packet.respond(ClientboundCreatedPunishmentResponsePacket(punishment))

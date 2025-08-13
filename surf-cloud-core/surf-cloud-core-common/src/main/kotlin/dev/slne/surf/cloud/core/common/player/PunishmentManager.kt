@@ -18,14 +18,16 @@ interface PunishmentManager {
         punishedUuid: UUID,
         issuerUuid: UUID?,
         reason: String?,
-        initialNotes: List<String>
+        initialNotes: List<String>,
+        parentId: Long?
     ): PunishmentKickImpl
 
     suspend fun createWarn(
         punishedUuid: UUID,
         issuerUuid: UUID?,
         reason: String?,
-        initialNotes: List<String>
+        initialNotes: List<String>,
+        parentId: Long?
     ): PunishmentWarnImpl
 
     suspend fun createMute(
@@ -34,7 +36,8 @@ interface PunishmentManager {
         reason: String?,
         permanent: Boolean,
         expirationDate: ZonedDateTime?,
-        initialNotes: List<String>
+        initialNotes: List<String>,
+        parentId: Long?
     ): PunishmentMuteImpl
 
     suspend fun createBan(
@@ -46,7 +49,8 @@ interface PunishmentManager {
         securityBan: Boolean,
         raw: Boolean,
         initialNotes: List<String>,
-        initialIpAddresses: List<String>
+        initialIpAddresses: List<String>,
+        parentId: Long?
     ): PunishmentBanImpl
 
     suspend fun broadcastBan(ban: PunishmentBanImpl)

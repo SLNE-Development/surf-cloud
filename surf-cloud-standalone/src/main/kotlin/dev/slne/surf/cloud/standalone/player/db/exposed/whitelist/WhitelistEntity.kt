@@ -8,7 +8,6 @@ import org.jetbrains.exposed.dao.id.EntityID
 class WhitelistEntity(id: EntityID<Long>) : AuditableLongEntity(id, WhitelistTable) {
     companion object : AuditableLongEntityClass<WhitelistEntity>(WhitelistTable)
 
-    var uuid by WhitelistTable.uuid
     var blocked by WhitelistTable.blocked
     var group by WhitelistTable.group
     var serverName by WhitelistTable.serverName

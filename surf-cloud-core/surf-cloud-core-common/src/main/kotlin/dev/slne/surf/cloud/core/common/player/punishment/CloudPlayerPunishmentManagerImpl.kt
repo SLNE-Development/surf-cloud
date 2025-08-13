@@ -12,7 +12,10 @@ import dev.slne.surf.cloud.api.common.player.punishment.type.warn.PunishmentWarn
 import dev.slne.surf.cloud.api.common.util.emptyObjectList
 import dev.slne.surf.cloud.api.common.util.toObjectList
 import dev.slne.surf.cloud.core.common.player.PunishmentManager
+import dev.slne.surf.cloud.core.common.player.punishment.type.PunishmentBanImpl
+import dev.slne.surf.cloud.core.common.player.punishment.type.PunishmentKickImpl
 import dev.slne.surf.cloud.core.common.player.punishment.type.PunishmentMuteImpl
+import dev.slne.surf.cloud.core.common.player.punishment.type.PunishmentWarnImpl
 import dev.slne.surf.cloud.core.common.util.bean
 import dev.slne.surf.surfapi.core.api.util.logger
 import it.unimi.dsi.fastutil.objects.ObjectList
@@ -107,7 +110,7 @@ class CloudPlayerPunishmentManagerImpl(private val playerUuid: UUID) :
     }
 
     @Suppress("UNCHECKED_CAST")
-    override suspend fun <P : Punishment, Spec : PunishSpec<P, Spec, Builder>, Builder : NoteBuilder> punish(
+    override suspend fun <P : Punishment, Spec : PunishSpec<P, Spec, Builder>, Builder : NoteBuilder<P>> punish(
         spec: Spec,
         reason: String?,
         issuerUuid: UUID?
@@ -123,7 +126,8 @@ class CloudPlayerPunishmentManagerImpl(private val playerUuid: UUID) :
                 securityBan = type.security,
                 raw = type.raw,
                 initialNotes = spec.notes,
-                initialIpAddresses = (spec as PunishSpec.BanSpec).ipAddresses
+                initialIpAddresses = (spec as PunishSpec.BanSpec).ipAddresses,
+                parentId = (spec.parent as? PunishmentBanImpl)?.id
             )
 
             is PunishType.KICK -> manager.createKick(
@@ -131,6 +135,7 @@ class CloudPlayerPunishmentManagerImpl(private val playerUuid: UUID) :
                 issuerUuid = issuerUuid,
                 reason = reason,
                 initialNotes = spec.notes,
+                parentId = (spec.parent as? PunishmentKickImpl)?.id
             )
 
             is PunishType.MUTE -> manager.createMute(
@@ -140,6 +145,7 @@ class CloudPlayerPunishmentManagerImpl(private val playerUuid: UUID) :
                 initialNotes = spec.notes,
                 permanent = type.permanent,
                 expirationDate = type.expirationDate,
+                parentId = (spec.parent as? PunishmentMuteImpl)?.id
             )
 
             is PunishType.WARN -> manager.createWarn(
@@ -147,6 +153,7 @@ class CloudPlayerPunishmentManagerImpl(private val playerUuid: UUID) :
                 issuerUuid = issuerUuid,
                 reason = reason,
                 initialNotes = spec.notes,
+                parentId = (spec.parent as? PunishmentWarnImpl)?.id
             )
         } as P
 

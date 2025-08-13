@@ -17,6 +17,7 @@ class ServerboundCreateKickPacket(
     val issuerUuid: @Contextual UUID?,
     val reason: String?,
     val initialNotes: List<String>,
+    val parentId: Long?
 ) : RespondingNettyPacket<ClientboundCreatedPunishmentResponsePacket>()
 
 @Serializable
@@ -26,6 +27,7 @@ class ServerboundCreateWarnPacket(
     val issuerUuid: @Contextual UUID?,
     val reason: String?,
     val initialNotes: List<String>,
+    val parentId: Long?
 ) : RespondingNettyPacket<ClientboundCreatedPunishmentResponsePacket>()
 
 @Serializable
@@ -37,6 +39,7 @@ class ServerboundCreateMutePacket(
     val permanent: Boolean,
     val expirationDate: @Contextual ZonedDateTime?,
     val initialNotes: List<String>,
+    val parentId: Long?
 ) : RespondingNettyPacket<ClientboundCreatedPunishmentResponsePacket>()
 
 @Serializable
@@ -51,6 +54,7 @@ class ServerboundCreateBanPacket(
     val raw: Boolean,
     val initialNotes: List<String>,
     val initialIpAddresses: List<String>,
+    val parentId: Long?
 ) : RespondingNettyPacket<ClientboundCreatedPunishmentResponsePacket>()
 
 @Serializable

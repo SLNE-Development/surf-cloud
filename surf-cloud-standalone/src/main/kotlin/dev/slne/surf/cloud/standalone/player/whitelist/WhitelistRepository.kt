@@ -34,11 +34,15 @@ class WhitelistRepository(
     suspend fun whitelistStatus(
         uuid: UUID,
         groupOrServerName: Either<String, String>
-    ): WhitelistStatusResult? = WhitelistTable.select(WhitelistTable.blocked)
-        .where { WhitelistTable.uuid eq uuid }
-        .filterByGroupOrServer(groupOrServerName)
-        .singleOrNullOrThrow()
-        ?.let { WhitelistStatusResult(it[WhitelistTable.blocked]) }
+    ): WhitelistStatusResult? {
+        val playerId = playerService.findIdByUuid(uuid) ?: return null
+
+        return WhitelistTable.select(WhitelistTable.blocked)
+            .where { WhitelistTable.cloudPlayerId eq playerId }
+            .filterByGroupOrServer(groupOrServerName)
+            .singleOrNullOrThrow()
+            ?.let { WhitelistStatusResult(it[WhitelistTable.blocked]) }
+    }
 
 
     /**
@@ -62,19 +66,23 @@ class WhitelistRepository(
             val uuids = chunk.map { it.first }
 
             newSuspendedTransaction(Dispatchers.IO, dbProvider.current) {
+                val uuidToId = playerService.findIdsByUuids(uuids)
+                val ids = uuidToId.values
+
                 val rowsByUuid = WhitelistTable
                     .select(
-                        WhitelistTable.uuid,
+                        WhitelistTable.cloudPlayerId,
                         WhitelistTable.blocked,
                         WhitelistTable.serverName,
                         WhitelistTable.group
                     )
-                    .where { WhitelistTable.uuid inList uuids }
-                    .groupBy { it[WhitelistTable.uuid] }
+                    .where { WhitelistTable.cloudPlayerId inList ids }
+                    .groupBy { it[WhitelistTable.cloudPlayerId] }
 
                 for ((uuid, serverAndGroup) in chunk) {
                     val (serverName, group) = serverAndGroup
-                    val playerRows = rowsByUuid[uuid].orEmpty()
+                    val id = uuidToId[uuid] ?: continue
+                    val playerRows = rowsByUuid[id].orEmpty()
 
                     /** Looks for the first row matching `server` or, as fallback, `group`. */
                     fun findRow(
@@ -103,22 +111,25 @@ class WhitelistRepository(
     suspend fun getWhitelist(
         uuid: UUID,
         groupOrServerName: Either<String, String>
-    ): WhitelistEntryImpl? = WhitelistTable.selectAll()
-        .where { WhitelistTable.uuid eq uuid }
-        .filterByGroupOrServer(groupOrServerName)
-        .singleOrNullOrThrow()
-        ?.let { result ->
-            WhitelistEntryImpl(
-                uuid = result[WhitelistTable.uuid],
-                blocked = result[WhitelistTable.blocked],
-                groupOrServerName = Either.of(
-                    result[WhitelistTable.group],
-                    result[WhitelistTable.serverName]
-                ),
-                createdAt = result[WhitelistTable.createdAt],
-                updatedAt = result[WhitelistTable.updatedAt]
-            )
-        }
+    ): WhitelistEntryImpl? {
+        val id = playerService.findIdByUuid(uuid) ?: return null
+        return WhitelistTable.selectAll()
+            .where { WhitelistTable.cloudPlayerId eq id }
+            .filterByGroupOrServer(groupOrServerName)
+            .singleOrNullOrThrow()
+            ?.let { result ->
+                WhitelistEntryImpl(
+                    uuid = uuid,
+                    blocked = result[WhitelistTable.blocked],
+                    groupOrServerName = Either.of(
+                        result[WhitelistTable.group],
+                        result[WhitelistTable.serverName]
+                    ),
+                    createdAt = result[WhitelistTable.createdAt],
+                    updatedAt = result[WhitelistTable.updatedAt]
+                )
+            }
+    }
 
 
     suspend fun createWhitelist(whitelist: WhitelistEntryImpl): WhitelistEntryImpl? {
@@ -129,7 +140,6 @@ class WhitelistRepository(
         val player = playerService.findByUuid(whitelist.uuid)
             ?: error("Player with UUID ${whitelist.uuid} not found")
         val entity = WhitelistEntity.new {
-            uuid = whitelist.uuid
             blocked = whitelist.blocked
             group = whitelist.groupOrServerName.leftOrNull()
             serverName = whitelist.groupOrServerName.rightOrNull()
@@ -137,7 +147,7 @@ class WhitelistRepository(
         }
 
         return WhitelistEntryImpl(
-            uuid = entity.uuid,
+            uuid = whitelist.uuid,
             blocked = entity.blocked,
             groupOrServerName = Either.of(
                 entity.group,
@@ -153,16 +163,17 @@ class WhitelistRepository(
         groupOrServerName: Either<String, String>,
         edit: MutableWhitelistEntry.() -> Unit
     ): Boolean {
+        val id = playerService.findIdByUuid(uuid) ?: return false
         val entity = WhitelistTable.selectAll()
             .forUpdate()
-            .where { WhitelistTable.uuid eq uuid }
+            .where { WhitelistTable.cloudPlayerId eq id }
             .filterByGroupOrServer(groupOrServerName)
             .singleOrNullOrThrow()
             ?.let { WhitelistEntity.wrapRow(it) }
             ?: return false
 
         val mutableEntry = MutableWhitelistEntryImpl(
-            uuid = entity.uuid,
+            uuid = uuid,
             blocked = entity.blocked,
             groupOrServerName = Either.of(
                 entity.group,
@@ -183,9 +194,10 @@ class WhitelistRepository(
     }
 
     suspend fun updateWhitelist(updated: MutableWhitelistEntryImpl): Boolean {
+        val playerId = playerService.findIdByUuid(updated.uuid) ?: return false
         val entity = WhitelistTable.selectAll()
             .forUpdate()
-            .where { WhitelistTable.uuid eq updated.uuid }
+            .where { WhitelistTable.cloudPlayerId eq playerId }
             .filterByGroupOrServer(updated.groupOrServerName)
             .singleOrNullOrThrow()
             ?.let { WhitelistEntity.wrapRow(it) }

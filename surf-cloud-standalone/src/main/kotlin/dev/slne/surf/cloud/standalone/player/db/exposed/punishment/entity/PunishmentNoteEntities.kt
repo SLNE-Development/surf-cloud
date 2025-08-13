@@ -7,10 +7,10 @@ import dev.slne.surf.cloud.standalone.player.db.exposed.punishment.table.*
 import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 
-abstract class AbstractPunishmentNoteEntity<E : AbstractPunishmentEntity>(
+abstract class AbstractPunishmentNoteEntity<E : AbstractPunishmentEntity<E, C>, C: LongEntityClass<E>>(
     id: EntityID<Long>,
     table: AbstractPunishmentNoteTable,
-    punishmentEntityClass: LongEntityClass<E>
+    punishmentEntityClass: C
 ) : AuditableLongEntity(id, table) {
     var noteId by table.noteId
     var note by table.note
@@ -28,7 +28,7 @@ abstract class AbstractPunishmentNoteEntity<E : AbstractPunishmentEntity>(
 }
 
 class BanPunishmentNoteEntity(id: EntityID<Long>) :
-    AbstractPunishmentNoteEntity<BanPunishmentEntity>(
+    AbstractPunishmentNoteEntity<BanPunishmentEntity, BanPunishmentEntity.Companion>(
         id,
         BanPunishmentNoteTable,
         BanPunishmentEntity
@@ -37,7 +37,7 @@ class BanPunishmentNoteEntity(id: EntityID<Long>) :
 }
 
 class KickPunishmentNoteEntity(id: EntityID<Long>) :
-    AbstractPunishmentNoteEntity<KickPunishmentEntity>(
+    AbstractPunishmentNoteEntity<KickPunishmentEntity, KickPunishmentEntity.Companion>(
         id,
         KickPunishmentNoteTable,
         KickPunishmentEntity
@@ -46,7 +46,7 @@ class KickPunishmentNoteEntity(id: EntityID<Long>) :
 }
 
 class MutePunishmentNoteEntity(id: EntityID<Long>) :
-    AbstractPunishmentNoteEntity<MutePunishmentEntity>(
+    AbstractPunishmentNoteEntity<MutePunishmentEntity, MutePunishmentEntity.Companion>(
         id,
         MutePunishmentNoteTable,
         MutePunishmentEntity
@@ -55,7 +55,7 @@ class MutePunishmentNoteEntity(id: EntityID<Long>) :
 }
 
 class WarnPunishmentNoteEntity(id: EntityID<Long>) :
-    AbstractPunishmentNoteEntity<WarnPunishmentEntity>(
+    AbstractPunishmentNoteEntity<WarnPunishmentEntity, WarnPunishmentEntity.Companion>(
         id,
         WarnPunishmentNoteTable,
         WarnPunishmentEntity

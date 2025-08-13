@@ -23,6 +23,7 @@ data class PunishmentWarnImpl(
     override val reason: String?,
 
     override val punishmentDate: @Contextual ZonedDateTime = ZonedDateTime.now(),
+    override val parent: PunishmentWarnImpl? = null,
 ) : AbstractPunishment(), PunishmentWarn {
     override val punishmentUrlReplacer: String = "warns"
     override fun punishmentPlayerComponent(): Component {

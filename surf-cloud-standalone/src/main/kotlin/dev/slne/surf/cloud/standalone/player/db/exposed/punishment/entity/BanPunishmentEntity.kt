@@ -8,7 +8,11 @@ import dev.slne.surf.cloud.standalone.player.db.exposed.punishment.table.BanPuni
 import org.jetbrains.exposed.dao.id.EntityID
 
 class BanPunishmentEntity(id: EntityID<Long>) :
-    AbstractUnpunishableExpirablePunishmentEntity(id, BanPunishmentTable) {
+    AbstractUnpunishableExpirablePunishmentEntity<BanPunishmentEntity, BanPunishmentEntity.Companion>(
+        id,
+        BanPunishmentTable,
+        BanPunishmentEntity
+    ) {
     companion object : AuditableLongEntityClass<BanPunishmentEntity>(BanPunishmentTable)
 
     var securityBan by BanPunishmentTable.securityBan
@@ -17,19 +21,20 @@ class BanPunishmentEntity(id: EntityID<Long>) :
     val notes by BanPunishmentNoteEntity referrersOn BanPunishmentNoteTable
     val ipAddresses by BanPunishmentIpAddressEntity referrersOn BanPunishmentIpAddressTable
 
-    fun toApiObject() = PunishmentBanImpl(
+    fun toApiObject(): PunishmentBanImpl = PunishmentBanImpl(
         id = id.value,
         punishmentId = punishmentId,
-        punishedUuid =  punishedUuid,
-        issuerUuid = issuerUuid,
+        punishedUuid = punishedPlayer.uuid,
+        issuerUuid = issuerPlayer?.uuid,
         reason = reason,
         permanent = permanent,
         expirationDate = expirationDate,
         punishmentDate = createdAt,
         unpunished = unpunished,
         unpunishedDate = unpunishedDate,
-        unpunisherUuid = unpunisherUuid,
+        unpunisherUuid = unpunisherPlayer?.uuid,
         securityBan = securityBan,
         raw = raw,
+        parent = parentPunishment?.toApiObject()
     )
 }

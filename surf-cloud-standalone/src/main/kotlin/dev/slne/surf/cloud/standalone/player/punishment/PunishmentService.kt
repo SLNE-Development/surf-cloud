@@ -4,12 +4,14 @@ import dev.slne.surf.cloud.api.common.player.punishment.type.PunishmentAttachedI
 import dev.slne.surf.cloud.api.common.player.punishment.type.note.PunishmentNote.PunishmentNoteImpl
 import dev.slne.surf.cloud.api.server.exposed.table.AuditableLongEntityClass
 import dev.slne.surf.cloud.api.server.plugin.CoroutineTransactional
+import dev.slne.surf.cloud.api.server.plugin.NotTransactional
 import dev.slne.surf.cloud.core.common.player.punishment.type.*
+import dev.slne.surf.cloud.standalone.player.db.exposed.CloudPlayerService
 import dev.slne.surf.cloud.standalone.player.db.exposed.punishment.entity.*
 import dev.slne.surf.cloud.standalone.player.db.exposed.punishment.table.*
 import dev.slne.surf.surfapi.core.api.util.logger
-import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.LongEntityClass
+import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.greater
@@ -34,7 +36,7 @@ class PunishmentNotFoundException(entity: String, id: Long) :
  */
 @Service
 @CoroutineTransactional
-class PunishmentService {
+class PunishmentService(private val playerService: CloudPlayerService) {
     private val log = logger()
 
     // region -- Count operations --
@@ -113,7 +115,8 @@ class PunishmentService {
         punishedUuid: UUID,
         issuerUuid: UUID?,
         reason: String?,
-        initialNotes: List<String>
+        initialNotes: List<String>,
+        parentId: Long?
     ): PunishmentKickImpl {
         require(punishmentId.isNotBlank()) { "punishmentId must not be blank" }
         log.atInfo().log(
@@ -123,15 +126,24 @@ class PunishmentService {
             issuerUuid
         )
 
+        val punishedPlayer = playerService.findByUuid(punishedUuid)
+            ?: error("Punished player with UUID $punishedUuid not found")
+        val issuerPlayer = issuerUuid?.let { playerService.findByUuid(it) }
+        val parent = parentId?.let { KickPunishmentEntity[it] }
+
         val punishment = KickPunishmentEntity.new {
             this.punishmentId = punishmentId
-            this.punishedUuid = punishedUuid
-            this.issuerUuid = issuerUuid
+            this.punishedPlayer = punishedPlayer
+            this.issuerPlayer = issuerPlayer
             this.reason = reason
+            this.parentPunishment = parent
         }
 
         if (initialNotes.isNotEmpty()) {
-            KickPunishmentNoteTable.batchInsert(initialNotes) { noteText ->
+            KickPunishmentNoteTable.batchInsert(
+                initialNotes,
+                shouldReturnGeneratedValues = false
+            ) { noteText ->
                 this[KickPunishmentNoteTable.punishment] = punishment.id
                 this[KickPunishmentNoteTable.note] = noteText
             }
@@ -156,7 +168,8 @@ class PunishmentService {
         punishedUuid: UUID,
         issuerUuid: UUID?,
         reason: String?,
-        initialNotes: List<String>
+        initialNotes: List<String>,
+        parentId: Long?
     ): PunishmentWarnImpl {
         require(punishmentId.isNotBlank()) { "punishmentId must not be blank" }
         log.atInfo().log(
@@ -166,11 +179,17 @@ class PunishmentService {
             issuerUuid
         )
 
+        val punishedPlayer = playerService.findByUuid(punishedUuid)
+            ?: error("Punished player with UUID $punishedUuid not found")
+        val issuerPlayer = issuerUuid?.let { playerService.findByUuid(it) }
+        val parent = parentId?.let { WarnPunishmentEntity[it] }
+
         val punishment = WarnPunishmentEntity.new {
             this.punishmentId = punishmentId
-            this.punishedUuid = punishedUuid
-            this.issuerUuid = issuerUuid
+            this.punishedPlayer = punishedPlayer
+            this.issuerPlayer = issuerPlayer
             this.reason = reason
+            this.parentPunishment = parent
         }
 
         if (initialNotes.isNotEmpty()) {
@@ -202,7 +221,8 @@ class PunishmentService {
         reason: String?,
         permanent: Boolean,
         expirationDate: ZonedDateTime?,
-        initialNotes: List<String>
+        initialNotes: List<String>,
+        parentId: Long?
     ): PunishmentMuteImpl {
         require(punishmentId.isNotBlank()) { "punishmentId must not be blank" }
         log.atInfo().log(
@@ -213,17 +233,27 @@ class PunishmentService {
             permanent
         )
 
+        val punishedPlayer = playerService.findByUuid(punishedUuid)
+            ?: error("Punished player with UUID $punishedUuid not found")
+        val issuerPlayer = issuerUuid?.let { playerService.findByUuid(it) }
+        val parent = parentId?.let { MutePunishmentEntity[it] }
+
+
         val punishment = MutePunishmentEntity.new {
             this.punishmentId = punishmentId
-            this.punishedUuid = punishedUuid
-            this.issuerUuid = issuerUuid
+            this.punishedPlayer = punishedPlayer
+            this.issuerPlayer = issuerPlayer
             this.reason = reason
             this.expirationDate = expirationDate
             this.permanent = permanent
+            this.parentPunishment = parent
         }
 
         if (initialNotes.isNotEmpty()) {
-            MutePunishmentNoteTable.batchInsert(initialNotes) { noteText ->
+            MutePunishmentNoteTable.batchInsert(
+                initialNotes,
+                shouldReturnGeneratedValues = false
+            ) { noteText ->
                 this[MutePunishmentNoteTable.punishment] = punishment.id
                 this[MutePunishmentNoteTable.note] = noteText
             }
@@ -257,7 +287,8 @@ class PunishmentService {
         securityBan: Boolean,
         raw: Boolean,
         initialNotes: List<String>,
-        initialIpAddresses: List<String>
+        initialIpAddresses: List<String>,
+        parentId: Long?
     ): PunishmentBanImpl {
         require(punishmentId.isNotBlank()) { "punishmentId must not be blank" }
         log.atInfo().log(
@@ -270,15 +301,21 @@ class PunishmentService {
             raw
         )
 
+        val punishedPlayer = playerService.findByUuid(punishedUuid)
+            ?: error("Punished player with UUID $punishedUuid not found")
+        val issuerPlayer = issuerUuid?.let { playerService.findByUuid(it) }
+        val parent = parentId?.let { BanPunishmentEntity[it] }
+
         val punishment = BanPunishmentEntity.new {
             this.punishmentId = punishmentId
-            this.punishedUuid = punishedUuid
-            this.issuerUuid = issuerUuid
+            this.punishedPlayer = punishedPlayer
+            this.issuerPlayer = issuerPlayer
             this.reason = reason
             this.expirationDate = expirationDate
             this.permanent = permanent
             this.securityBan = securityBan
             this.raw = raw
+            this.parentPunishment = parent
         }
 
         if (initialNotes.isNotEmpty()) {
@@ -347,9 +384,9 @@ class PunishmentService {
      * @param toApi function mapping entity to API object
      * @return Pair of (punishmentApiObject, createdNoteApiObject)
      */
-    suspend fun <PunishmentEntity : AbstractPunishmentEntity, NoteEntity : AbstractPunishmentNoteEntity<PunishmentEntity>, Api : AbstractPunishment> attachNoteToPunishment(
+    suspend fun <PunishmentEntity : AbstractPunishmentEntity<PunishmentEntity, PunishmentEntityClass>, PunishmentEntityClass : LongEntityClass<PunishmentEntity>, NoteEntity : AbstractPunishmentNoteEntity<PunishmentEntity, PunishmentEntityClass>, Api : AbstractPunishment> attachNoteToPunishment(
         id: Long,
-        entityClass: LongEntityClass<PunishmentEntity>,
+        entityClass: PunishmentEntityClass,
         noteEntityClass: LongEntityClass<NoteEntity>,
         note: String,
         toApi: (PunishmentEntity) -> Api,
@@ -357,7 +394,8 @@ class PunishmentService {
         require(note.isNotBlank()) { "Note must not be blank" }
         log.atFine().log("Attaching note to punishment id=%s note=%s", id, note)
 
-        val entity = entityClass.findById(id) ?: throw PunishmentNotFoundException("Punishment", id)
+        val entity = entityClass.findById(id)
+            ?: throw PunishmentNotFoundException(entityClass.table.tableName, id)
         val note = noteEntityClass.new {
             this.note = note
             this.punishment = entity
@@ -389,7 +427,7 @@ class PunishmentService {
      * @param noteEntityClass DAO class of the note entity
      * @return list of note API objects
      */
-    suspend fun <P : AbstractPunishmentEntity, E : AbstractPunishmentNoteEntity<P>> fetchNotesForPunishment(
+    suspend fun <P : AbstractPunishmentEntity<P, PC>, PC : LongEntityClass<P>, E : AbstractPunishmentNoteEntity<P, PC>> fetchNotesForPunishment(
         id: Long,
         noteEntityClass: LongEntityClass<E>
     ): List<PunishmentNoteImpl> {
@@ -445,23 +483,28 @@ class PunishmentService {
      * @param toApiObject mapping from entity to API object
      * @return list of punishment API objects
      */
-    suspend fun <E : AbstractUnpunishableExpirablePunishmentEntity, T> fetchPunishments(
-        entityClass: AuditableLongEntityClass<E>,
+    suspend fun <E : AbstractUnpunishableExpirablePunishmentEntity<E, EC>, EC : AuditableLongEntityClass<E>, T> fetchPunishments(
+        entityClass: EC,
         table: AbstractUnpunishableExpirablePunishmentTable,
         punishedUuid: UUID,
         onlyActive: Boolean,
         toApiObject: (E) -> T
     ): List<T> {
-        log.atFine().log("Fetching expirable punishments for uuid=%s onlyActive=%s", punishedUuid, onlyActive)
+        log.atFine().log(
+            "Fetching expirable punishments for uuid=%s onlyActive=%s",
+            punishedUuid,
+            onlyActive
+        )
+        val playerId = playerService.findIdByUuid(punishedUuid) ?: return emptyList()
 
         val now = ZonedDateTime.now()
         val query = if (onlyActive) {
             entityClass.find {
-                punishedUuidFilter(table, punishedUuid) and activePunishmentFilter(table, now)
+                punishedPlayerFilter(table, playerId) and activePunishmentFilter(table, now)
             }
         } else {
             entityClass.find {
-                punishedUuidFilter(table, punishedUuid)
+                punishedPlayerFilter(table, playerId)
             }
         }
 
@@ -477,36 +520,23 @@ class PunishmentService {
      * @param toApiObject mapping from entity to API object
      * @return list of punishment API objects
      */
-    suspend fun <E : AbstractPunishmentEntity, T> fetchPunishments(
+    suspend fun <E : AbstractPunishmentEntity<E, EC>, EC : AuditableLongEntityClass<E>, T> fetchPunishments(
         entityClass: AuditableLongEntityClass<E>,
         table: AbstractPunishmentTable,
         punishedUuid: UUID,
         toApiObject: (E) -> T
     ): List<T> {
         log.atFine().log("Fetching all punishments for uuid=%s", punishedUuid)
-        return entityClass.find { punishedUuidFilter(table, punishedUuid) }.map { toApiObject(it) }
+        val playerId = playerService.findIdByUuid(punishedUuid) ?: return emptyList()
+        return entityClass.find { punishedPlayerFilter(table, playerId) }.map { toApiObject(it) }
     }
 
     // endregion
     // region -- Internal helpers --
-
     /**
-     * Creates note entities for a punishment.
+     * Builds a filter for active, unpunished, and unexpired punishments.
      */
-    private fun <T : LongEntity> createNotes(
-        notes: List<String>,
-        punishment: T,
-        factory: (T, String) -> Unit
-    ) {
-        for (note in notes) {
-            factory(punishment, note)
-        }
-    }
-
-
-    /**
-     * Builds a filter for active, unpunished and unexpired punishments.
-     */
+    @NotTransactional
     private fun <T : AbstractUnpunishableExpirablePunishmentTable> activePunishmentFilter(
         table: T,
         now: ZonedDateTime
@@ -516,10 +546,11 @@ class PunishmentService {
     /**
      * Builds a filter for punishments by player UUID.
      */
-    private fun <T : AbstractPunishmentTable> punishedUuidFilter(
+    @NotTransactional
+    private fun <T : AbstractPunishmentTable> punishedPlayerFilter(
         table: T,
-        punishedUuid: UUID
-    ): Op<Boolean> = (table.punishedUuid eq punishedUuid)
+        punishedPlayerId: EntityID<Long>
+    ): Op<Boolean> = (table.punishedPlayerId eq punishedPlayerId)
 
     // endregion
 }

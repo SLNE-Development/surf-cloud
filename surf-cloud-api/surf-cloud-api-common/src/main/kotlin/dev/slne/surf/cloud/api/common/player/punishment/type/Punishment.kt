@@ -11,6 +11,7 @@ import java.util.*
 
 interface Punishment: ResolvableTypeProvider {
     val type: PunishmentType
+    val parent: Punishment?
 
     @PunishmentIdPattern
     val punishmentId: String

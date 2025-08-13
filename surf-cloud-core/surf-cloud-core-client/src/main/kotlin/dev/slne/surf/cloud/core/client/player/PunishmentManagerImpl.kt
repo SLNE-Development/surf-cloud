@@ -25,24 +25,28 @@ class PunishmentManagerImpl : PunishmentManager {
         punishedUuid: UUID,
         issuerUuid: UUID?,
         reason: String?,
-        initialNotes: List<String>
+        initialNotes: List<String>,
+        parentId: Long?
     ): PunishmentKickImpl = ServerboundCreateKickPacket(
         punishedUuid,
         issuerUuid,
         reason,
-        initialNotes
+        initialNotes,
+        parentId
     ).fireAndAwaitOrThrow().punishment as PunishmentKickImpl
 
     override suspend fun createWarn(
         punishedUuid: UUID,
         issuerUuid: UUID?,
         reason: String?,
-        initialNotes: List<String>
+        initialNotes: List<String>,
+        parentId: Long?
     ): PunishmentWarnImpl = ServerboundCreateWarnPacket(
         punishedUuid,
         issuerUuid,
         reason,
-        initialNotes
+        initialNotes,
+        parentId
     ).fireAndAwaitOrThrow().punishment as PunishmentWarnImpl
 
     override suspend fun createMute(
@@ -51,14 +55,16 @@ class PunishmentManagerImpl : PunishmentManager {
         reason: String?,
         permanent: Boolean,
         expirationDate: ZonedDateTime?,
-        initialNotes: List<String>
+        initialNotes: List<String>,
+        parentId: Long?
     ): PunishmentMuteImpl = ServerboundCreateMutePacket(
         punishedUuid,
         issuerUuid,
         reason,
         permanent,
         expirationDate,
-        initialNotes
+        initialNotes,
+        parentId
     ).fireAndAwaitOrThrow().punishment as PunishmentMuteImpl
 
     override suspend fun createBan(
@@ -70,7 +76,8 @@ class PunishmentManagerImpl : PunishmentManager {
         securityBan: Boolean,
         raw: Boolean,
         initialNotes: List<String>,
-        initialIpAddresses: List<String>
+        initialIpAddresses: List<String>,
+        parentId: Long?
     ): PunishmentBanImpl = ServerboundCreateBanPacket(
         punishedUuid,
         issuerUuid,
@@ -80,7 +87,8 @@ class PunishmentManagerImpl : PunishmentManager {
         securityBan,
         raw,
         initialNotes,
-        initialIpAddresses
+        initialIpAddresses,
+        parentId
     ).fireAndAwaitOrThrow().punishment as PunishmentBanImpl
 
     override suspend fun broadcastBan(ban: PunishmentBanImpl) {

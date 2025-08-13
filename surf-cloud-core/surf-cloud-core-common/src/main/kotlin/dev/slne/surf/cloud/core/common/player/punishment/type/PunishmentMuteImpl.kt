@@ -28,6 +28,7 @@ data class PunishmentMuteImpl(
     override val unpunished: Boolean = false,
     override val unpunishedDate: @Contextual ZonedDateTime? = null,
     override val unpunisherUuid: @Contextual UUID? = null,
+    override val parent: PunishmentMuteImpl? = null,
 ) : AbstractUnpunishablePunishment(), PunishmentMute {
     override val punishmentUrlReplacer: String = "mutes"
 

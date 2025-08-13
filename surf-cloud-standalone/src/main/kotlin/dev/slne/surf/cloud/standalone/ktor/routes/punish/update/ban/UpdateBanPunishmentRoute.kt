@@ -1,5 +1,6 @@
 package dev.slne.surf.cloud.standalone.ktor.routes.punish.update.ban
 
+import dev.slne.surf.cloud.core.common.player.punishment.type.PunishmentBanImpl
 import dev.slne.surf.cloud.standalone.ktor.types.ZonedDateTimeAsString
 import dev.slne.surf.surfapi.core.api.service.UUIDAsString
 import io.ktor.resources.*
@@ -20,4 +21,22 @@ class UpdateBanPunishmentRoute(
     val unpunished: Boolean = false,
     val unpunishedDate: ZonedDateTimeAsString? = null,
     val unpunisherUuid: UUIDAsString? = null,
-)
+    val parent: UpdateBanPunishmentRoute? = null,
+) {
+    fun toApiObject(): PunishmentBanImpl = PunishmentBanImpl(
+        id = id,
+        punishmentId = punishmentId,
+        punishedUuid = punishedUuid,
+        issuerUuid = issuerUuid,
+        reason = reason,
+        permanent = permanent,
+        securityBan = securityBan,
+        raw = raw,
+        expirationDate = expirationDate,
+        punishmentDate = punishmentDate,
+        unpunished = unpunished,
+        unpunishedDate = unpunishedDate,
+        unpunisherUuid = unpunisherUuid,
+        parent = parent?.toApiObject()
+    )
+}

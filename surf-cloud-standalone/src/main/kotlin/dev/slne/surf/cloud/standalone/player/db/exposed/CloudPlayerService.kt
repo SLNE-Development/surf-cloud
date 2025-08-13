@@ -2,12 +2,15 @@ package dev.slne.surf.cloud.standalone.player.db.exposed
 
 import dev.slne.surf.cloud.api.common.player.name.NameHistoryFactory
 import dev.slne.surf.cloud.api.common.util.mutableObjectListOf
+import dev.slne.surf.cloud.api.common.util.singleOrNullOrThrow
 import dev.slne.surf.cloud.api.server.exposed.service.AbstractExposedDAOService
 import dev.slne.surf.cloud.api.server.plugin.CoroutineTransactional
+import dev.slne.surf.cloud.api.server.plugin.NotTransactional
 import dev.slne.surf.cloud.core.common.player.playtime.PlaytimeEntry
 import dev.slne.surf.cloud.standalone.player.StandaloneCloudPlayerImpl
 import dev.slne.surf.cloud.standalone.player.name.create
 import dev.slne.surf.cloud.standalone.server.serverManagerImpl
+import org.jetbrains.exposed.dao.id.EntityID
 import org.springframework.stereotype.Service
 import java.time.ZonedDateTime
 import java.util.*
@@ -34,6 +37,20 @@ class CloudPlayerService : AbstractExposedDAOService<UUID, CloudPlayerEntity>({
     suspend fun findLastIpAddress(uuid: UUID) = find(uuid) { lastIpAddress }
 
     suspend fun findByUuid(uuid: UUID): CloudPlayerEntity? = find(uuid)
+
+    @NotTransactional
+    suspend fun findIdByUuid(uuid: UUID) = CloudPlayerTable.select(CloudPlayerTable.id)
+        .where { CloudPlayerTable.uuid eq uuid }
+        .singleOrNullOrThrow()
+        ?.let { it[CloudPlayerTable.id] }
+
+    @NotTransactional
+    suspend fun findIdsByUuids(uuids: Collection<UUID>): Map<UUID, EntityID<Long>> {
+        if (uuids.isEmpty()) return emptyMap()
+        return CloudPlayerTable.select(CloudPlayerTable.id, CloudPlayerTable.uuid)
+            .where { CloudPlayerTable.uuid inList uuids }
+            .associate { it[CloudPlayerTable.uuid] to it[CloudPlayerTable.id] }
+    }
 
     suspend fun updateOnDisconnect(player: StandaloneCloudPlayerImpl, oldServer: Long?) {
         update(player.uuid) {

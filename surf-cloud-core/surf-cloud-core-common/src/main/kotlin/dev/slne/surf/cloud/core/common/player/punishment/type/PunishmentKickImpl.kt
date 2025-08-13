@@ -23,6 +23,7 @@ data class PunishmentKickImpl(
     override val reason: String?,
 
     override val punishmentDate: @Contextual ZonedDateTime = ZonedDateTime.now(),
+    override val parent: PunishmentKickImpl? = null,
 ) : AbstractPunishment(), PunishmentKick {
     override val punishmentUrlReplacer: String = "kicks"
 

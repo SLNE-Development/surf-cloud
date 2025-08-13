@@ -6,22 +6,27 @@ import dev.slne.surf.cloud.standalone.player.db.exposed.punishment.table.MutePun
 import org.jetbrains.exposed.dao.id.EntityID
 
 class MutePunishmentEntity(id: EntityID<Long>) :
-    AbstractUnpunishableExpirablePunishmentEntity(id, MutePunishmentTable) {
+    AbstractUnpunishableExpirablePunishmentEntity<MutePunishmentEntity, MutePunishmentEntity.Companion>(
+        id,
+        MutePunishmentTable,
+        MutePunishmentEntity
+    ) {
     companion object : AuditableLongEntityClass<MutePunishmentEntity>(MutePunishmentTable)
 
     val notes by MutePunishmentEntity referrersOn MutePunishmentTable
 
-    fun toApiObject() = PunishmentMuteImpl(
+    fun toApiObject(): PunishmentMuteImpl = PunishmentMuteImpl(
         id = id.value,
         punishmentId = punishmentId,
-        punishedUuid =  punishedUuid,
-        issuerUuid = issuerUuid,
+        punishedUuid = punishedPlayer.uuid,
+        issuerUuid = issuerPlayer?.uuid,
         reason = reason,
         permanent = permanent,
         expirationDate = expirationDate,
         punishmentDate = createdAt,
         unpunished = unpunished,
         unpunishedDate = unpunishedDate,
-        unpunisherUuid = unpunisherUuid
+        unpunisherUuid = unpunisherPlayer?.uuid,
+        parent = parentPunishment?.toApiObject()
     )
 }

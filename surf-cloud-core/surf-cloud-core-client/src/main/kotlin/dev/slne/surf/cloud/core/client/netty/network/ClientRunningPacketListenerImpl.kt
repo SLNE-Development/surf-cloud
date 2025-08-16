@@ -3,6 +3,7 @@ package dev.slne.surf.cloud.core.client.netty.network
 import com.google.common.flogger.StackSize
 import dev.slne.surf.cloud.api.common.event.offlineplayer.punishment.CloudPlayerPunishEvent
 import dev.slne.surf.cloud.api.common.event.offlineplayer.punishment.CloudPlayerPunishmentUpdatedEvent
+import dev.slne.surf.cloud.api.common.event.player.afk.AfkStateChangeEvent
 import dev.slne.surf.cloud.api.common.netty.network.ConnectionProtocol
 import dev.slne.surf.cloud.api.common.netty.network.protocol.respond
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
@@ -274,6 +275,7 @@ class ClientRunningPacketListenerImpl(
         playerManagerImpl.getPlayer(packet.uuid)?.let { player ->
             require(player is ClientCloudPlayerImpl<*>) { "Player $player is not a client player" }
             player.afk = packet.isAfk
+            AfkStateChangeEvent(packet.isAfk, this, player).postAndForget()
         }
     }
 

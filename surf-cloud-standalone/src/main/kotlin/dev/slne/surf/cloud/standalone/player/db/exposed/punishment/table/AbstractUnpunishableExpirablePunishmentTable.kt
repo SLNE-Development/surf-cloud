@@ -19,7 +19,6 @@ abstract class AbstractUnpunishableExpirablePunishmentTable(name: String) :
     val permanent = bool("permanent").default(false)
 
     init {
-        index("idx_punished_uuid_unpunished", false, punishedPlayerId, unpunished)
         index("idx_permanent_exp", false, permanent, expirationDate)
     }
 }

@@ -8,17 +8,24 @@ import dev.slne.surf.cloud.core.common.spring.CloudLifecycleAware
 import dev.slne.surf.cloud.standalone.config.StandaloneConfigHolder
 import dev.slne.surf.cloud.standalone.ktor.routes.punish.punishRoutes
 import io.ktor.http.*
+import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.engine.*
 import io.ktor.server.html.*
 import io.ktor.server.netty.*
 import io.ktor.server.plugins.*
+import io.ktor.server.plugins.ContentTransformationException
+import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.plugins.statuspages.*
+import io.ktor.server.request.*
 import io.ktor.server.resources.*
+import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.coroutines.launch
 import kotlinx.html.*
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
 import org.springframework.core.annotation.Order
 import org.springframework.stereotype.Component
 import java.security.MessageDigest
@@ -50,6 +57,12 @@ class KtorServer(private val configHolder: StandaloneConfigHolder) : CloudLifecy
 //                pingPeriod = 15.seconds
 //            }
             install(Resources)
+            install(ContentNegotiation) {
+                json(Json {
+                    isLenient = true
+                    ignoreUnknownKeys = true
+                })
+            }
             authentication {
                 bearer {
                     realm = "Access to the '/' path"
@@ -78,10 +91,23 @@ class KtorServer(private val configHolder: StandaloneConfigHolder) : CloudLifecy
                     }
                     punishRoutes()
                 }
+
+                trace {
+                    println(it.buildText())
+                }
+
+                post("/test") {
+                    val testData = call.receive<TestData>()
+                    println("Received test data: ${testData.name}")
+                    call.respondText("Test data received successfully.", status = HttpStatusCode.OK)
+                }
             }
         }
         server.start(wait = true)
     }
+
+    @Serializable
+    data class TestData(val name: String)
 
     private fun StatusPagesConfig.configure() {
         status(HttpStatusCode.NotFound) { call, _ ->

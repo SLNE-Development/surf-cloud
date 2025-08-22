@@ -3,9 +3,10 @@ package dev.slne.surf.cloud.standalone.ktor.routes.punish.create.kick
 import dev.slne.surf.cloud.core.common.player.punishment.type.PunishmentKickImpl
 import dev.slne.surf.cloud.standalone.ktor.types.ZonedDateTimeAsString
 import dev.slne.surf.surfapi.core.api.service.UUIDAsString
-import io.ktor.resources.*
+import kotlinx.serialization.Serializable
 
-@Resource("/kick")
+//@Resource("/kick")
+@Serializable
 class CreateKickPunishmentRoute(
     val id: Long,
     val punishmentId: String,

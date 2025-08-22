@@ -33,7 +33,8 @@ val sanitizeLibs by tasks.registering {
                 inJar.copyTo(dest, overwrite = true)
             } else {
                 // entpacken -> problematische Einträge ausschließen -> wieder zippen
-                val tmp = layout.buildDirectory.dir("tmp/sanitize/${inJar.nameWithoutExtension}").get().asFile
+                val tmp = layout.buildDirectory.dir("tmp/sanitize/${inJar.nameWithoutExtension}")
+                    .get().asFile
                 tmp.deleteRecursively(); tmp.mkdirs()
 
                 copy {
@@ -44,7 +45,10 @@ val sanitizeLibs by tasks.registering {
                     )
                     into(tmp)
                 }
-                ant.invokeMethod("zip", mapOf("basedir" to tmp.absolutePath, "destfile" to dest.absolutePath))
+                ant.invokeMethod(
+                    "zip",
+                    mapOf("basedir" to tmp.absolutePath, "destfile" to dest.absolutePath)
+                )
             }
         }
     }

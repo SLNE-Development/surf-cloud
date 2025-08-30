@@ -26,6 +26,7 @@ import kotlin.contracts.contract
 
 class PaperMain : SuspendingJavaPlugin() {
     override suspend fun onLoadAsync() {
+
         try {
             coreCloudInstance.onLoad()
         } catch (t: Throwable) {
@@ -34,6 +35,7 @@ class PaperMain : SuspendingJavaPlugin() {
     }
 
     override suspend fun onEnableAsync() {
+
         try {
             coreCloudInstance.onEnable()
         } catch (t: Throwable) {

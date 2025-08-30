@@ -25,13 +25,19 @@ import kotlinx.coroutines.future.await
 import net.kyori.adventure.text.Component
 import org.bukkit.Bukkit
 import java.net.InetSocketAddress
+import java.net.URI
 import java.util.*
 import org.springframework.stereotype.Component as SpringComponent
 
 @SpringComponent
 class BukkitSpecificPacketListenerExtension : PlatformSpecificPacketListenerExtension {
     @OptIn(NmsUseWithCaution::class)
-    override val playAddress: InetSocketAddress by lazy { nmsCommonBridge.getServerIp() }
+    override val playAddress: InetSocketAddress by lazy {
+        InetSocketAddress.createUnresolved(
+            URI("https://checkip.amazonaws.com").toURL().readText().trim(),
+            server.port
+        )
+    }
 
     override fun isServerManagedByThisProxy(address: InetSocketAddress): Boolean {
         error("Requested wrong server! This packet can only be acknowledged on a proxy!")

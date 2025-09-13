@@ -4,6 +4,7 @@ import dev.slne.surf.bytebufserializer.Buf
 import dev.slne.surf.cloud.api.common.netty.network.codec.kotlinx.adventure.AdventureComponentSerializer
 import dev.slne.surf.cloud.api.common.netty.network.codec.kotlinx.adventure.AdventureKeySerializer
 import dev.slne.surf.cloud.api.common.netty.network.codec.kotlinx.adventure.AdventureSoundSerializer
+import dev.slne.surf.cloud.api.common.netty.network.codec.kotlinx.adventure.AdventureTextColorSerializer
 import dev.slne.surf.cloud.api.common.netty.network.codec.kotlinx.cloud.CloudPlayerSerializer
 import dev.slne.surf.cloud.api.common.netty.network.codec.kotlinx.cloud.OfflineCloudPlayerSerializer
 import dev.slne.surf.cloud.api.common.netty.network.codec.kotlinx.java.*
@@ -21,6 +22,7 @@ object SurfCloudBufSerializer {
         contextual(AdventureKeySerializer)
         contextual(AdventureSoundSerializer)
         contextual(AdventureComponentSerializer)
+        contextual(AdventureTextColorSerializer)
 
         // Java
         contextual(UUIDSerializer)

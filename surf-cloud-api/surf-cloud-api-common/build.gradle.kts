@@ -1,8 +1,13 @@
 import dev.slne.surf.surfapi.gradle.util.slneReleases
+import gradle.kotlin.dsl.accessors._2c95f20277cbe6143532f6e8d67e36cc.processResources
+import org.gradle.internal.impldep.org.junit.experimental.categories.Categories.CategoryFilter.exclude
+import org.jetbrains.kotlin.gradle.idea.proto.com.google.protobuf.api
+import org.jetbrains.kotlin.gradle.internal.config.AnalysisFlags.optIn
 
 plugins {
     `exclude-kotlin`
     id("dev.slne.surf.surfapi.gradle.core")
+    `generate-stream-codec`
 }
 
 dependencies {

@@ -1,6 +1,7 @@
 package dev.slne.surf.cloud.api.common.player
 
 import dev.slne.surf.cloud.api.common.netty.network.codec.kotlinx.cloud.OfflineCloudPlayerSerializer
+import dev.slne.surf.cloud.api.common.player.cache.CloudPlayerCache
 import dev.slne.surf.cloud.api.common.player.name.NameHistory
 import dev.slne.surf.cloud.api.common.player.playtime.Playtime
 import dev.slne.surf.cloud.api.common.player.punishment.CloudPlayerPunishmentManager
@@ -36,6 +37,7 @@ interface OfflineCloudPlayer {
 
     val punishmentManager: CloudPlayerPunishmentManager
     val whitelistManager: CloudPlayerWhitelistManager
+    val cache: CloudPlayerCache
 
     /**
      * Suspends until the display name of the player is retrieved.

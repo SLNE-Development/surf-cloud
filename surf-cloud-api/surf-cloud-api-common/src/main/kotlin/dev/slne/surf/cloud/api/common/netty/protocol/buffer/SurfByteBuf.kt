@@ -6,6 +6,7 @@ import com.google.gson.Gson
 import com.google.gson.JsonElement
 import com.mojang.serialization.Codec
 import com.mojang.serialization.JsonOps
+import dev.slne.surf.cloud.api.common.netty.network.codec.ByteBufCodecs
 import dev.slne.surf.cloud.api.common.netty.network.codec.StreamCodec
 import dev.slne.surf.cloud.api.common.netty.network.codec.kotlinx.SurfCloudBufSerializer
 import dev.slne.surf.cloud.api.common.netty.protocol.buffer.SurfByteBuf.Companion
@@ -16,12 +17,11 @@ import dev.slne.surf.cloud.api.common.netty.protocol.buffer.ecoder.EncodeFactory
 import dev.slne.surf.cloud.api.common.netty.protocol.buffer.types.Utf8String
 import dev.slne.surf.cloud.api.common.netty.protocol.buffer.types.VarInt
 import dev.slne.surf.cloud.api.common.netty.protocol.buffer.types.VarLong
-import dev.slne.surf.cloud.api.common.util.codec.ExtraCodecs
 import dev.slne.surf.cloud.api.common.util.createUnresolvedInetSocketAddress
 import dev.slne.surf.cloud.api.common.util.fromJson
 import io.netty.buffer.ByteBuf
-import io.netty.buffer.ByteBufAllocator
-import io.netty.buffer.PooledByteBufAllocator
+import io.netty.buffer.Unpooled
+import io.netty.buffer.Unpooled.copiedBuffer
 import io.netty.handler.codec.DecoderException
 import io.netty.handler.codec.EncoderException
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
@@ -38,8 +38,6 @@ import java.math.MathContext
 import java.net.Inet4Address
 import java.net.InetSocketAddress
 import java.net.URI
-import java.time.Instant
-import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.util.*
 import java.util.function.Consumer
@@ -96,13 +94,14 @@ private const val NUMBER_DOUBLE: Byte = 5
  */
 open class SurfByteBuf(source: ByteBuf) : WrappedByteBuf(source) {
     companion object {
-        val alloc: ByteBufAllocator = PooledByteBufAllocator.DEFAULT
-
         private val GSON = Gson()
 
         fun <B : ByteBuf, T> streamCodecFromKotlin(serializer: KSerializer<T>): StreamCodec<B, T> {
             return SerializerCodec(serializer)
         }
+
+        fun of(bytes: ByteArray) = SurfByteBuf(copiedBuffer(bytes))
+        fun buffer() = SurfByteBuf(Unpooled.buffer())
 
         private class SerializerCodec<B : ByteBuf, T>(private val serializer: KSerializer<T>) :
             StreamCodec<B, T> {
@@ -124,7 +123,7 @@ open class SurfByteBuf(source: ByteBuf) : WrappedByteBuf(source) {
          * @param buf the buf
          * @return the key
          */
-        fun readKey(buf: ByteBuf): Key = ExtraCodecs.STREAM_KEY_CODEC.decode(buf)
+        fun readKey(buf: ByteBuf): Key = ByteBufCodecs.KEY_CODEC.decode(buf)
 
         /**
          * Write key.
@@ -133,18 +132,18 @@ open class SurfByteBuf(source: ByteBuf) : WrappedByteBuf(source) {
          * @param key the key
          */
         fun writeKey(buf: ByteBuf, key: Key) {
-            ExtraCodecs.STREAM_KEY_CODEC.encode(buf, key)
+            ByteBufCodecs.KEY_CODEC.encode(buf, key)
         }
 
         fun writeSound(buf: ByteBuf, sound: Sound) {
-            ExtraCodecs.STREAM_SOUND_CODEC.encode(buf, sound)
+            ByteBufCodecs.SOUND_CODEC.encode(buf, sound)
         }
 
-        fun readSound(buf: ByteBuf) = ExtraCodecs.STREAM_SOUND_CODEC.decode(buf)
+        fun readSound(buf: ByteBuf) = ByteBufCodecs.SOUND_CODEC.decode(buf)
 
-        fun readComponent(buf: ByteBuf) = ExtraCodecs.COMPONENT_STREAM.decode(buf)
+        fun readComponent(buf: ByteBuf) = ByteBufCodecs.COMPONENT_CODEC.decode(buf)
         fun writeComponent(buf: ByteBuf, component: Component) =
-            ExtraCodecs.COMPONENT_STREAM.encode(buf, component)
+            ByteBufCodecs.COMPONENT_CODEC.encode(buf, component)
 
         fun writeNumber(buf: ByteBuf, number: Number): Any = when (number) {
             is Byte -> {
@@ -656,20 +655,17 @@ open class SurfByteBuf(source: ByteBuf) : WrappedByteBuf(source) {
             createUnresolvedInetSocketAddress(readUtf(buf), buf.readVarInt())
 
         fun <B : ByteBuf> writeCompoundTag(buf: B, tag: CompoundBinaryTag) {
-            ExtraCodecs.COMPOUND_TAG_CODEC.encode(buf, tag)
+            ByteBufCodecs.COMPOUND_TAG_CODEC.encode(buf, tag)
         }
 
-        fun <B : ByteBuf> readCompoundTag(buf: B) = ExtraCodecs.COMPOUND_TAG_CODEC.decode(buf)
+        fun <B : ByteBuf> readCompoundTag(buf: B) = ByteBufCodecs.COMPOUND_TAG_CODEC.decode(buf)
 
         fun <B : ByteBuf> writeZonedDateTime(buf: B, time: ZonedDateTime) {
-            buf.writeLong(time.toInstant().toEpochMilli())
-            writeUtf(buf, time.zone.id)
+            ByteBufCodecs.ZONED_DATE_TIME_CODEC.encode(buf, time)
         }
 
         fun <B : ByteBuf> readZonedDateTime(buf: B): ZonedDateTime {
-            val epoch = buf.readLong()
-            val zone = readUtf(buf)
-            return ZonedDateTime.ofInstant(Instant.ofEpochMilli(epoch), ZoneId.of(zone))
+            return ByteBufCodecs.ZONED_DATE_TIME_CODEC.decode(buf)
         }
 
         fun <B : ByteBuf> writeInet4Address(buf: B, address: Inet4Address) {
@@ -742,6 +738,14 @@ open class SurfByteBuf(source: ByteBuf) : WrappedByteBuf(source) {
             GSON.toJson(result.getOrThrow { EncoderException("Failed to encode: $it ${value.toString()}") }),
             maxLength
         )
+    }
+
+    fun <T> writeWithCodec(codec: StreamCodec<in SurfByteBuf, T>, value: T) {
+        codec.encode(this, value)
+    }
+
+    fun <T> readWithCodec(codec: StreamCodec<in SurfByteBuf, T>): T {
+        return codec.decode(this)
     }
 
     // @formatter:off

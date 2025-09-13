@@ -43,6 +43,7 @@ object SynchronizingProtocols {
                 .addPacket(SyncSetDeltaPacket.STREAM_CODEC)
                 .addPacket(FinishSynchronizingPacket.STREAM_CODEC)
                 .addPacket(ServerboundCreateOfflineCloudPlayerIfNotExistsPacket::class.createCodec())
+                .addPacket(ServerboundCacheRegisterKeysPacket::class.createCodec())
         }
 
     val SERVERBOUND by lazy { SERVERBOUND_TEMPLATE.bind(::SurfByteBuf) }

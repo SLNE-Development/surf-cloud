@@ -16,6 +16,8 @@ fun Routing.createPunishRoutes() = route("/create") {
         call.respond(HttpStatusCode.OK, "Ban punishment broadcasted successfully.")
     }
 
+
+
     post<CreateKickPunishmentRoute> { kickMeta ->
         bean<PunishmentManager>().broadcastKick(kickMeta.toApiObject())
         call.respond(HttpStatusCode.OK, "Kick punishment broadcasted successfully.")

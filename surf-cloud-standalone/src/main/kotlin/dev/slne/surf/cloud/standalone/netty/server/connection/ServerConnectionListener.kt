@@ -162,7 +162,7 @@ class ServerConnectionListener(
         ConnectionImpl.NETWORK_WORKER_GROUP.shutdownGracefully().suspend()
     }
 
-    private suspend fun addPending() {
+    private fun addPending() {
         while (true) {
             val connection = pending.poll() ?: break
             connections.add(connection)
@@ -206,12 +206,13 @@ class ServerConnectionListener(
         }
     }
 
-    fun broadcast(packet: NettyPacket, flush: Boolean = true) {
+    fun broadcast(packet: NettyPacket, flush: Boolean = true, except: (ConnectionImpl) -> Boolean = { false }) {
         require(packet !is RespondingNettyPacket<*>) { "Cannot broadcast responding packets" }
 
         val activeProtocols = packet.protocols
         for (connection in connections) {
             if (connection.outboundProtocolInfo.id !in activeProtocols) continue
+            if (except(connection)) continue
 
             try {
                 connection.send(packet, flush)

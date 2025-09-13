@@ -2,13 +2,14 @@ package dev.slne.surf.cloud.core.common.netty.network.protocol.running
 
 import dev.slne.surf.cloud.api.common.meta.DefaultIds
 import dev.slne.surf.cloud.api.common.meta.SurfNettyPacket
+import dev.slne.surf.cloud.api.common.netty.network.codec.ByteBufCodecs
 import dev.slne.surf.cloud.api.common.netty.network.protocol.PacketFlow
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
 import dev.slne.surf.cloud.api.common.netty.packet.packetCodec
 import dev.slne.surf.cloud.api.common.netty.protocol.buffer.SurfByteBuf
 import dev.slne.surf.cloud.api.common.util.codec.ExtraCodecs
 import net.kyori.adventure.sound.Sound
-import java.util.UUID
+import java.util.*
 
 @SurfNettyPacket(DefaultIds.SERVERBOUND_PLAY_SOUND_PACKET, PacketFlow.SERVERBOUND)
 class ServerboundPlaySoundPacket : NettyPacket {
@@ -59,7 +60,7 @@ class ServerboundPlaySoundPacket : NettyPacket {
 
     private constructor(buf: SurfByteBuf) {
         this.uuid = buf.readUuid()
-        this.sound = ExtraCodecs.STREAM_SOUND_CODEC.decode(buf)
+        this.sound = ByteBufCodecs.SOUND_CODEC.decode(buf)
         this.emitter = buf.readNullable { buffer ->
             ExtraCodecs.STREAM_EMITTER_SELF_CODEC.decode(buffer)
         }
@@ -71,7 +72,7 @@ class ServerboundPlaySoundPacket : NettyPacket {
 
     private fun write(buf: SurfByteBuf) {
         buf.writeUuid(uuid)
-        ExtraCodecs.STREAM_SOUND_CODEC.encode(buf, sound)
+        ByteBufCodecs.SOUND_CODEC.encode(buf, sound)
         buf.writeNullable(emitter) { buffer, emitter ->
             ExtraCodecs.STREAM_EMITTER_SELF_CODEC.encode(buffer, emitter)
         }

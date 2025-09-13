@@ -294,21 +294,6 @@ object ExtraCodecs {
         )
     })
 
-    val STREAM_SOUND_CODEC = streamCodec<ByteBuf, Sound>({ buf, sound ->
-        buf.writeEnum(sound.source())
-        buf.writeFloat(sound.volume())
-        buf.writeFloat(sound.pitch())
-        buf.writeOptionalLong(sound.seed())
-        buf.writeKey(sound.name())
-    }, { buf ->
-        Sound.sound()
-            .source(buf.readEnum<Sound.Source>())
-            .volume(buf.readFloat())
-            .pitch(buf.readFloat())
-            .seed(buf.readOptionalLong())
-            .type(buf.readKey())
-            .build()
-    })
 
     val STREAM_EMITTER_SELF_CODEC = streamCodecUnitSimple(Sound.Emitter.self())
 
@@ -372,12 +357,6 @@ object ExtraCodecs {
         Codec.STRING.comapFlatMap(
             { if (Key.parseable(it)) DataResult.success(Key.key(it)) else DataResult.error { "Cannot convert $it to adventure Key" } },
             { it.asString() })
-
-    val STREAM_KEY_CODEC = streamCodec<ByteBuf, Key>({ buf, key ->
-        buf.writeUtf(key.asString())
-    }, { buf ->
-        Key.key(buf.readUtf())
-    })
 
     // endregion
     // region nbt

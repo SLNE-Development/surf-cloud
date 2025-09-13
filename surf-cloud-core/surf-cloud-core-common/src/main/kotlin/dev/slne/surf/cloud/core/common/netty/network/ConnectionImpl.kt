@@ -434,6 +434,10 @@ class ConnectionImpl(
                         is ServerboundCreateWhitelistPacket -> listener.handleCreateWhitelist(msg)
                         is ServerboundUpdateWhitelistPacket -> listener.handleUpdateWhitelist(msg)
                         is ServerboundRefreshWhitelistPacket -> listener.handleRefreshWhitelist(msg)
+                        is ServerboundCacheRegisterKeysPacket -> listener.handleCacheRegisterKeys(msg)
+                        is ServerboundCacheOpPacket -> listener.handleCacheOp(msg)
+                        is ServerboundCacheFetchPacket -> listener.handleCacheFetch(msg)
+                        is ServerboundCacheWatchPlayersPacket -> listener.handleCacheWatchPlayers(msg)
 
                         else -> listener.handlePacket(msg) // handle other packets
                     }
@@ -491,6 +495,15 @@ class ConnectionImpl(
                         is ClientboundBatchUpdateServer -> listener.handleBatchUpdateServer(msg)
                         is SyncSetDeltaPacket -> listener.handleSyncSetDelta(msg)
                         is ClientboundSetVelocitySecretPacket -> listener.handleSetVelocitySecret(
+                            msg
+                        )
+                        is ClientboundPlayerCacheHydrateStartPacket -> listener.handlePlayerCacheHydrateStart(
+                            msg
+                        )
+                        is ClientboundPlayerCacheHydrateChunkPacket -> listener.handlePlayerCacheHydrateChunk(
+                            msg
+                        )
+                        is ClientboundPlayerCacheHydrateEndPacket -> listener.handlePlayerCacheHydrateEnd(
                             msg
                         )
 
@@ -601,6 +614,9 @@ class ConnectionImpl(
                         is ClientboundSetVelocitySecretPacket -> listener.handleSetVelocitySecret(
                             msg
                         )
+                        is ClientboundCacheRegisterAckPacket -> listener.handleCacheRegisterAck(msg)
+                        is ClientboundCacheDeltaPacket -> listener.handleCacheDelta(msg)
+                        is ClientboundCacheErrorPacket -> listener.handleCacheError(msg)
 
                         else -> listener.handlePacket(msg)
                     }

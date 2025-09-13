@@ -202,3 +202,13 @@ object CommonScope : BaseScope(
     dispatcher = Dispatchers.Default,
     name = "common"
 )
+
+object PlayerCacheSaveScope : BaseScope(
+    dispatcher = Dispatchers.IO,
+    name = "player-cache-save"
+)
+
+object PlayerCacheLoadScope : BaseScope(
+    dispatcher = Dispatchers.IO,
+    name = "player-cache-load"
+)

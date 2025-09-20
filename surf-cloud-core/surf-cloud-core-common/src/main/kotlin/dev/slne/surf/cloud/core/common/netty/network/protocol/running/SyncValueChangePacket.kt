@@ -15,20 +15,20 @@ class SyncValueChangePacket : NettyPacket {
         val STREAM_CODEC = packetCodec(SyncValueChangePacket::write, ::SyncValueChangePacket)
     }
 
-    val origin: Long?
+    val originServerName: String?
     val syncId: String
     val value: Any?
     val registered: Boolean
 
-    constructor(origin: Long?, value: BasicSyncValue<*>) {
-        this.origin = origin
+    constructor(originServerName: String?, value: BasicSyncValue<*>) {
+        this.originServerName = originServerName
         this.syncId = value.id
         this.value = value.get()
         this.registered = true
     }
 
     constructor(buf: SurfByteBuf) {
-        this.origin = buf.readNullableLong()
+        this.originServerName = buf.readNullableString()
         this.syncId = buf.readUtf()
         val codec = CommonSyncRegistryImpl.instance.getSyncValueCodec(syncId)
 
@@ -43,7 +43,7 @@ class SyncValueChangePacket : NettyPacket {
     }
 
     private fun write(buf: SurfByteBuf) {
-        buf.writeNullable(origin)
+        buf.writeNullable(originServerName)
         buf.writeUtf(syncId)
         val codec = CommonSyncRegistryImpl.instance.getSyncValueCodec(syncId)
             ?: error("'$syncId' is not registered in SyncRegistry")
@@ -53,7 +53,7 @@ class SyncValueChangePacket : NettyPacket {
 
     override fun toString(): String {
         return "SyncValueChangePacket(" +
-                "origin=$origin, " +
+                "origin=$originServerName, " +
                 "syncId='$syncId', " +
                 "value=$value" +
                 ")" +

@@ -50,7 +50,6 @@ object CloudMetadataProvider : MetadataProvider {
 
     fun CommonCloudServer.toJsonObject(fullInfo: Boolean = false): JsonObject {
         return JsonObject().apply {
-            addProperty("uid", uid)
             addProperty("group", group)
             addProperty("name", name)
             if (!fullInfo) return@apply

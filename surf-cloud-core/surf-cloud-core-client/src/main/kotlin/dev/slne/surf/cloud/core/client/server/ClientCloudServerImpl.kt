@@ -6,14 +6,13 @@ import dev.slne.surf.cloud.core.common.server.AbstractCloudServer
 import java.net.InetSocketAddress
 
 class ClientCloudServerImpl(
-    uid: Long,
     group: String,
     name: String,
     playAddress: InetSocketAddress,
     lobby: Boolean
 ) :
-    AbstractCloudServer(uid, group, name, playAddress, lobby) {
+    AbstractCloudServer(group, name, playAddress, lobby) {
     override fun shutdown() {
-        ServerboundShutdownServerPacket(uid).fireAndForget()
+        ServerboundShutdownServerPacket(name).fireAndForget()
     }
 }

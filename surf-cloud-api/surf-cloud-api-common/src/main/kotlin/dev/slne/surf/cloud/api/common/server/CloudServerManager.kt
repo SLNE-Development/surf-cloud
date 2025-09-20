@@ -25,14 +25,6 @@ import org.jetbrains.annotations.Unmodifiable
 interface CloudServerManager {
 
     /**
-     * Retrieves a server by its unique ID.
-     *
-     * @param id The unique identifier of the server.
-     * @return The [CommonCloudServer] if found, or `null` if no server matches the provided ID.
-     */
-    fun retrieveServerById(id: Long): CommonCloudServer?
-
-    /**
      * Retrieves a server by its category and name.
      *
      * @param category The category of the server.

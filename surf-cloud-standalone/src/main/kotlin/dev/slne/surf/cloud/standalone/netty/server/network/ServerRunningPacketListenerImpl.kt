@@ -55,7 +55,7 @@ class ServerRunningPacketListenerImpl(
             packet.name,
             packet.proxy,
             packet.playerIp,
-            packet.serverUid,
+            packet.serverName,
             true
         )
 
@@ -65,18 +65,18 @@ class ServerRunningPacketListenerImpl(
             PlayerConnectedToServerPacket(
                 packet.uuid,
                 packet.name,
-                packet.serverUid,
+                packet.serverName,
                 packet.proxy,
                 packet.playerIp
             )
         )
-        serverManagerImpl.getCommonStandaloneServerByUid(packet.serverUid)
+        serverManagerImpl.getCommonStandaloneServerByName(packet.serverName)
             ?.handlePlayerConnect(packet.uuid)
     }
 
     override suspend fun handlePlayerDisconnectFromServer(packet: PlayerDisconnectFromServerPacket) {
-        playerManagerImpl.updateOrRemoveOnDisconnect(packet.uuid, packet.serverUid, packet.proxy)
-        serverManagerImpl.getCommonStandaloneServerByUid(packet.serverUid)
+        playerManagerImpl.updateOrRemoveOnDisconnect(packet.uuid, packet.serverName, packet.proxy)
+        serverManagerImpl.getCommonStandaloneServerByName(packet.serverName)
             ?.handlePlayerDisconnect(packet.uuid)
         broadcast(packet)
     }
@@ -215,7 +215,7 @@ class ServerRunningPacketListenerImpl(
     }
 
     override suspend fun handleClientInformation(packet: ServerboundClientInformationPacket) {
-        val server = serverManagerImpl.retrieveServerById(packet.serverId) ?: return
+        val server = serverManagerImpl.retrieveServerByName(packet.serverName) ?: return
 
         if (server is StandaloneProxyCloudServerImpl) {
             server.information = packet.information
@@ -223,7 +223,7 @@ class ServerRunningPacketListenerImpl(
             server.information = packet.information
         }
 
-        broadcast(ClientboundUpdateServerInformationPacket(packet.serverId, packet.information))
+        broadcast(ClientboundUpdateServerInformationPacket(packet.serverName, packet.information))
     }
 
     override suspend fun handleRequestLuckpermsMetaData(packet: RequestLuckpermsMetaDataPacket) {
@@ -262,10 +262,10 @@ class ServerRunningPacketListenerImpl(
     }
 
     override suspend fun handleConnectPlayerToServer(packet: ServerboundConnectPlayerToServerPacket) {
-        val (uuid, serverId, queue, sendQueuedMessage) = packet
+        val (uuid, serverName, queue, sendQueuedMessage) = packet
         withPlayer(uuid) {
-            val result = when (val server = CloudServerManager.retrieveServerById(serverId)) {
-                null -> ConnectionResultEnum.SERVER_NOT_FOUND(serverId.toString())
+            val result = when (val server = CloudServerManager.retrieveServerByName(serverName)) {
+                null -> ConnectionResultEnum.SERVER_NOT_FOUND(serverName.toString())
                 !is CloudServer -> ConnectionResultEnum.CANNOT_CONNECT_TO_PROXY
                 else -> withContext(QueueConnectionScope.context) {
                     if (queue) connectToServerOrQueue(server, sendQueuedMessage)
@@ -321,7 +321,7 @@ class ServerRunningPacketListenerImpl(
     }
 
     override suspend fun handleShutdownServer(packet: ServerboundShutdownServerPacket) {
-        val server = CloudServerManager.retrieveServerById(packet.serverId) ?: return
+        val server = CloudServerManager.retrieveServerByName(packet.serverName) ?: return
         server.shutdown()
     }
 

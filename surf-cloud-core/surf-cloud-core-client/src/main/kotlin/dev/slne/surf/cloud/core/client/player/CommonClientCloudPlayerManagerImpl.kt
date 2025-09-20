@@ -10,38 +10,38 @@ abstract class CommonClientCloudPlayerManagerImpl<Platform : Audience, P : Clien
     CloudPlayerManagerImpl<P>() {
     override suspend fun updateProxyServer(
         player: P,
-        serverUid: Long
+        serverName: String
     ) {
-        player.proxyServerUid = serverUid
+        player.proxyServerName = serverName
     }
 
     override suspend fun updateServer(
         player: P,
-        serverUid: Long
+        serverName: String
     ) {
-        player.serverUid = serverUid
+        player.serverName = serverName
     }
 
     override suspend fun removeProxyServer(
         player: P,
-        serverUid: Long
+        serverName: String
     ) {
-        player.proxyServerUid = null
+        player.proxyServerName = null
     }
 
     override suspend fun removeServer(
         player: P,
-        serverUid: Long
+        serverName: String
     ) {
-        player.serverUid = null
+        player.serverName = null
     }
 
-    override fun getProxyServerUid(player: P): Long? {
-        return player.proxyServerUid
+    override fun getProxyServerName(player: P): String? {
+        return player.proxyServerName
     }
 
-    override fun getServerUid(player: P): Long? {
-        return player.serverUid
+    override fun getServerName(player: P): String? {
+        return player.serverName
     }
 
     override fun getOfflinePlayer(uuid: UUID, createIfNotExists: Boolean): CommonOfflineCloudPlayerImpl {

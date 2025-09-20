@@ -30,7 +30,7 @@ class QueueCache(
             if (queue is GroupQueueImpl) {
                 queue.stop(null)
             } else if (queue is ServerQueueImpl) {
-                queue.groupQueue.stop(queue.serverUid)
+                queue.groupQueue.stop(queue.serverName)
             }
         }
         .build { it.createQueue(queueRepo, metrics) }

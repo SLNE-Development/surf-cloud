@@ -95,71 +95,71 @@ class StandaloneCloudPlayerManagerImpl : CloudPlayerManagerImpl<StandaloneCloudP
         name: String,
         proxy: Boolean,
         ip: Inet4Address,
-        serverUid: Long
+        serverName: String
     ): StandaloneCloudPlayerImpl {
         return StandaloneCloudPlayerImpl(uuid, name, ip).also {
-            val server = serverUid.toServer()
+            val server = serverName.toServer()
             if (server != null) {
                 if (proxy) {
-                    check(server is StandaloneProxyCloudServerImpl) { "Server with id $serverUid is not a proxy server but specified as proxy" }
+                    check(server is StandaloneProxyCloudServerImpl) { "Server with id $serverName is not a proxy server but specified as proxy" }
                     it.proxyServer = server
                 } else {
-                    check(server is StandaloneCloudServerImpl) { "Server with id $serverUid is not a standalone server but specified as standalone" }
+                    check(server is StandaloneCloudServerImpl) { "Server with id $serverName is not a standalone server but specified as standalone" }
                     it.server = server
                 }
             } else {
                 log.atWarning()
-                    .log("Could not find server with id $serverUid for player $uuid")
+                    .log("Could not find server with id $serverName for player $uuid")
             }
         }
     }
 
-    override suspend fun updateProxyServer(player: StandaloneCloudPlayerImpl, serverUid: Long) {
-        val server = serverUid.toServer()
-        check(server == null || server is StandaloneProxyCloudServerImpl) { "Server with id $serverUid is not a proxy server but specified as proxy" }
+    override suspend fun updateProxyServer(player: StandaloneCloudPlayerImpl, serverName: String) {
+        val server = serverName.toServer()
+        check(server == null || server is StandaloneProxyCloudServerImpl) { "Server with id $serverName is not a proxy server but specified as proxy" }
 
         if (server != null) {
             player.proxyServer = server
         } else {
-            logServerNotFound(serverUid, player)
+            logServerNotFound(serverName, player)
         }
     }
 
-    override suspend fun updateServer(player: StandaloneCloudPlayerImpl, serverUid: Long) {
-        val server = serverUid.toServer()
-        check(server == null || server is StandaloneCloudServerImpl) { "Server with id $serverUid is not a standalone server but specified as standalone" }
+    override suspend fun updateServer(player: StandaloneCloudPlayerImpl, serverName: String) {
+        val server = serverName.toServer()
+        check(server == null || server is StandaloneCloudServerImpl) { "Server with id $serverName is not a standalone server but specified as standalone" }
 
         if (server != null) {
             player.server = server
         } else {
-            logServerNotFound(serverUid, player)
+            logServerNotFound(serverName, player)
         }
     }
 
-    override suspend fun removeProxyServer(player: StandaloneCloudPlayerImpl, serverUid: Long) {
-        val server = serverUid.toServer()
-        check(server == null || server is StandaloneProxyCloudServerImpl) { "Server with id $serverUid is not a proxy server but specified as proxy" }
+    override suspend fun removeProxyServer(player: StandaloneCloudPlayerImpl, serverName: String) {
+        val server = serverName.toServer()
+        check(server == null || server is StandaloneProxyCloudServerImpl) { "Server with id $serverName is not a proxy server but specified as proxy" }
 
         if (server != null && player.proxyServer == server) {
             player.proxyServer = null
         } else {
-            logServerNotFound(serverUid, player)
+            logServerNotFound(serverName, player)
         }
     }
 
-    override suspend fun removeServer(player: StandaloneCloudPlayerImpl, serverUid: Long) {
-        val server = serverUid.toServer()
-        check(server == null || server is StandaloneCloudServerImpl) { "Server with id $serverUid is not a standalone server but specified as standalone" }
+    override suspend fun removeServer(player: StandaloneCloudPlayerImpl, serverName: String) {
+        val server = serverName.toServer()
+        check(server == null || server is StandaloneCloudServerImpl) { "Server with id $serverName is not a standalone server but specified as standalone" }
 
         if (server != null && player.server == server) {
             player.server = null
         } else {
-            logServerNotFound(serverUid, player)
+            logServerNotFound(serverName, player)
         }
     }
 
-    override fun getProxyServerUid(player: StandaloneCloudPlayerImpl) = player.proxyServer?.uid
-    override fun getServerUid(player: StandaloneCloudPlayerImpl) = player.server?.uid
+    override fun getProxyServerName(player: StandaloneCloudPlayerImpl): String? = player.proxyServer?.name
+    override fun getServerName(player: StandaloneCloudPlayerImpl): String? = player.server?.name
 
     override fun getOfflinePlayer(uuid: UUID, createIfNotExists: Boolean): OfflineCloudPlayer {
         return OfflineCloudPlayerImpl(uuid).also {
@@ -176,7 +176,7 @@ class StandaloneCloudPlayerManagerImpl : CloudPlayerManagerImpl<StandaloneCloudP
     override suspend fun onServerConnect(
         uuid: UUID,
         player: StandaloneCloudPlayerImpl,
-        serverUid: Long
+        serverName: String
     ) {
         supervisorScope {
             awaitAll(
@@ -186,7 +186,7 @@ class StandaloneCloudPlayerManagerImpl : CloudPlayerManagerImpl<StandaloneCloudP
             )
         }
 
-        super.onServerConnect(uuid, player, serverUid)
+        super.onServerConnect(uuid, player, serverName)
     }
 
     override suspend fun onNetworkConnect(
@@ -209,8 +209,8 @@ class StandaloneCloudPlayerManagerImpl : CloudPlayerManagerImpl<StandaloneCloudP
     override suspend fun onNetworkDisconnect(
         uuid: UUID,
         player: StandaloneCloudPlayerImpl,
-        oldProxy: Long?,
-        oldServer: Long?
+        oldProxy: String?,
+        oldServer: String?
     ) {
         super.onNetworkDisconnect(uuid, player, oldProxy, oldServer)
 
@@ -226,7 +226,7 @@ class StandaloneCloudPlayerManagerImpl : CloudPlayerManagerImpl<StandaloneCloudP
         }
     }
 
-    private suspend fun Long.toServer() = serverManagerImpl.retrieveServerById(this)
+    private suspend fun String.toServer() = serverManagerImpl.retrieveServerByName(this)
 
     suspend fun exportPlayerData(uuid: UUID): PlayerDataExport {
         return PlayerDataExportEmpty
@@ -236,9 +236,9 @@ class StandaloneCloudPlayerManagerImpl : CloudPlayerManagerImpl<StandaloneCloudP
 
     }
 
-    private fun logServerNotFound(uid: Long, player: StandaloneCloudPlayerImpl) {
+    private fun logServerNotFound(name: String, player: StandaloneCloudPlayerImpl) {
         log.atWarning()
-            .log("Could not find server with id $uid for player ${player.uuid}")
+            .log("Could not find server '$name' for player ${player.uuid}")
     }
 }
 

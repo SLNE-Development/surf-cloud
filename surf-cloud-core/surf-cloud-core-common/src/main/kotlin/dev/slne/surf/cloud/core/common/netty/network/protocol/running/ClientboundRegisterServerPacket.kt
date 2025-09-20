@@ -16,44 +16,39 @@ class ClientboundRegisterServerPacket : NettyPacket {
             packetCodec(ClientboundRegisterServerPacket::write, ::ClientboundRegisterServerPacket)
     }
 
-    val serverId: Long
     val proxy: Boolean
     val lobby: Boolean
     val group: String
-    val name: String
+    val serverName: String
     val playAddress: InetSocketAddress
 
     constructor(
-        serverId: Long,
         proxy: Boolean,
         lobby: Boolean,
         group: String,
         name: String,
         address: InetSocketAddress,
     ) {
-        this.serverId = serverId
         this.proxy = proxy
         this.lobby = lobby
         this.group = group
-        this.name = name
+        this.serverName = name
         this.playAddress = address
     }
 
     private constructor(buf: SurfByteBuf) {
-        serverId = buf.readVarLong()
         proxy = buf.readBoolean()
         lobby = buf.readBoolean()
         group = buf.readUtf()
-        name = buf.readUtf()
+        serverName = buf.readUtf()
         playAddress = buf.readInetSocketAddress()
     }
 
     private fun write(buf: SurfByteBuf) {
-        buf.writeVarLong(serverId)
         buf.writeBoolean(proxy)
         buf.writeBoolean(lobby)
         buf.writeUtf(group)
-        buf.writeUtf(name)
+        buf.writeUtf(serverName)
         buf.writeInetSocketAddress(playAddress)
     }
 }

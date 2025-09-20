@@ -11,7 +11,6 @@ import kotlin.time.Duration
  * Interface for a Netty client, managing network communication and packet handling.
  */
 interface NettyClient {
-    val serverId: Long
     val serverCategory: String
     val serverName: String
 

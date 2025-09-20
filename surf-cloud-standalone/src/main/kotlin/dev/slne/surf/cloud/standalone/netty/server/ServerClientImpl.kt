@@ -8,11 +8,10 @@ import java.net.InetSocketAddress
 
 class ServerClientImpl(
     val server: NettyServerImpl,
-    serverId: Long,
     serverCategory: String,
     serverName: String,
     val lobbyServer: Boolean,
-) : CommonNettyClientImpl(serverId, serverCategory, serverName) {
+) : CommonNettyClientImpl(serverCategory, serverName) {
 
     override lateinit var playAddress: InetSocketAddress
 
@@ -34,7 +33,6 @@ class ServerClientImpl(
         fun fromPacket(server: NettyServerImpl, packet: ServerboundLoginStartPacket) =
             ServerClientImpl(
                 server,
-                packet.serverId,
                 packet.serverCategory,
                 packet.serverName,
                 packet.lobby

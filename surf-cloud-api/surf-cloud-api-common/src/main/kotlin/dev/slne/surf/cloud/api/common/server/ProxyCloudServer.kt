@@ -15,7 +15,6 @@ import org.jetbrains.annotations.ApiStatus
 @ApiStatus.NonExtendable
 interface ProxyCloudServer : CommonCloudServer {
     companion object {
-        operator fun get(uid: Long) = CloudServerManager.retrieveServerById(uid) as? ProxyCloudServer
         operator fun get(category: String, name: String) =
             CloudServerManager.retrieveServerByCategoryAndName(category, name) as? ProxyCloudServer
 

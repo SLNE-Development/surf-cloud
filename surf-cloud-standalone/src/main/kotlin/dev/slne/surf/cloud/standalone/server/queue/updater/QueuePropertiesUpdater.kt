@@ -15,7 +15,7 @@ class QueuePropertiesUpdater(private val queues: QueueRepository) {
         val server = event.server
         if (server !is StandaloneCloudServerImpl) return
 
-        val queue = queues.getServerOrNull(server.uid) ?: return
+        val queue = queues.getServerOrNull(server.name) ?: return
         queue.latestGroup = server.group
     }
 }

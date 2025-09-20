@@ -9,7 +9,6 @@ import dev.slne.surf.cloud.api.server.plugin.NotTransactional
 import dev.slne.surf.cloud.core.common.player.playtime.PlaytimeEntry
 import dev.slne.surf.cloud.standalone.player.StandaloneCloudPlayerImpl
 import dev.slne.surf.cloud.standalone.player.name.create
-import dev.slne.surf.cloud.standalone.server.serverManagerImpl
 import org.jetbrains.exposed.dao.id.EntityID
 import org.springframework.stereotype.Service
 import java.time.ZonedDateTime
@@ -52,14 +51,12 @@ class CloudPlayerService : AbstractExposedDAOService<UUID, CloudPlayerEntity>({
             .associate { it[CloudPlayerTable.uuid] to it[CloudPlayerTable.id] }
     }
 
-    suspend fun updateOnDisconnect(player: StandaloneCloudPlayerImpl, oldServer: Long?) {
+    suspend fun updateOnDisconnect(player: StandaloneCloudPlayerImpl, oldServerName: String?) {
         update(player.uuid) {
             lastSeen = ZonedDateTime.now()
             lastIpAddress = player.ip
-            if (oldServer != null) {
-                serverManagerImpl.retrieveServerById(oldServer)?.name?.let {
-                    lastServer = it
-                }
+            if (oldServerName != null) {
+                lastServer = oldServerName
             }
         }
     }

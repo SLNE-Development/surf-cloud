@@ -6,13 +6,13 @@ import java.util.*
 
 class QueueEntryImplTest {
 
-    private fun newEntry(priority: Int, preferredServer: Long? = null) =
+    private fun newEntry(priority: Int, preferredServerName: String? = null) =
         QueueEntryImpl(
             PlayerQueueHandle(UUID.randomUUID()),
             priority,
             bypassFull = false,
             bypassQueue = false,
-            preferredServerUid = preferredServer
+            preferredServerName = preferredServerName
         )
 
     @Test
@@ -26,8 +26,8 @@ class QueueEntryImplTest {
 
     @Test
     fun `compareTo prioritizes preferred server`() {
-        val a = newEntry(priority = 5, preferredServer = 1)
-        val b = newEntry(priority = 5, preferredServer = null)
+        val a = newEntry(priority = 5, preferredServerName = "server1")
+        val b = newEntry(priority = 5, preferredServerName = null)
 
         assertEquals(-1, a.compareTo(b))
         assertEquals(1, b.compareTo(a))
@@ -35,7 +35,7 @@ class QueueEntryImplTest {
 
     @Test
     fun `compareTo equality when all fields equal`() {
-        val a = newEntry(priority = 5, preferredServer = 1)
+        val a = newEntry(priority = 5, preferredServerName = "server1")
         val b = a.copy()
 
         assertEquals(0, a.compareTo(b))

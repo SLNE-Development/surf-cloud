@@ -16,14 +16,14 @@ interface QueueTarget<Q : BaseQueue<Q>> {
         metrics: QueueMetricsImpl
     ): Q
 
-    data class Server(val uid: Long) : QueueTarget<ServerQueue> {
-        override val id = "server:$uid"
+    data class Server(val serverName: String) : QueueTarget<ServerQueue> {
+        override val id = "server:$serverName"
         override fun createQueue(
             queueRepo: QueueRepository,
             metrics: QueueMetricsImpl
         ): ServerQueueImpl = ServerQueueImpl(
-            uid,
-            (serverManagerImpl.retrieveServerById(uid) as? StandaloneCloudServerImpl)?.group
+            serverName,
+            (serverManagerImpl.retrieveServerByName(serverName) as? StandaloneCloudServerImpl)?.group
                 ?: CloudProperties.SERVER_CATEGORY_NOT_SET,
             queueRepo
         )

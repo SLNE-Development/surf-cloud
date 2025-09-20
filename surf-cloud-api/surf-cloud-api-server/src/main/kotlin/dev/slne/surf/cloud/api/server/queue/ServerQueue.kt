@@ -6,7 +6,7 @@ import org.jetbrains.annotations.ApiStatus
 
 @ApiStatus.NonExtendable
 interface ServerQueue : BaseQueue<ServerQueue> {
-    val serverUid: Long
+    val serverName: String
 
-    suspend fun server() = CloudServerManager.retrieveServerById(serverUid) as? CloudServer
+    suspend fun server() = CloudServerManager.retrieveServerByName(serverName) as? CloudServer
 }

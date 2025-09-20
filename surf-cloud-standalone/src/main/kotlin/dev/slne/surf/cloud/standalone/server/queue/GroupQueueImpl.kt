@@ -46,14 +46,14 @@ class GroupQueueImpl(
         dequeue(uuid, reason, null)
     }
 
-    suspend fun dequeue(uuid: UUID, reason: ConnectionResultEnum?, serverUid: Long?) {
+    suspend fun dequeue(uuid: UUID, reason: ConnectionResultEnum?, serverName: String?) {
         lock.withLock {
             val iterator = entries.iterator()
             while (iterator.hasNext()) {
                 val entry = iterator.next()
                 val handle = entry.handle
 
-                if (handle.uuid == uuid && (serverUid == null || entry.preferredServerUid == serverUid)) {
+                if (handle.uuid == uuid && (serverName == null || entry.preferredServerName == serverName)) {
                     iterator.remove()
                     if (reason == null) {
                         handle.cancel()
@@ -68,18 +68,18 @@ class GroupQueueImpl(
 
     override suspend fun peek(): QueueEntryImpl? = lock.withLock { entries.peek() }
 
-    suspend fun peek(preferredServerUid: Long): QueueEntryImpl? =
-        lock.withLock { entries.firstOrNull { it.preferredServerUid == preferredServerUid } }
+    suspend fun peek(preferredServerName: String): QueueEntryImpl? =
+        lock.withLock { entries.firstOrNull { it.preferredServerName == preferredServerName } }
 
     override suspend fun size() = lock.withLock { entries.size }
-    suspend fun size(preferredServerUid: Long): Int =
-        lock.withLock { entries.count { it.preferredServerUid == preferredServerUid } }
+    suspend fun size(preferredServerName: String): Int =
+        lock.withLock { entries.count { it.preferredServerName == preferredServerName } }
 
     override suspend fun isQueued(uuid: UUID): Boolean =
         lock.withLock { entries.any { it.handle.uuid == uuid } }
 
-    suspend fun isQueued(uuid: UUID, preferredServerUid: Long): Boolean =
-        lock.withLock { entries.any { it.handle.uuid == uuid && it.preferredServerUid == preferredServerUid } }
+    suspend fun isQueued(uuid: UUID, preferredServerName: String): Boolean =
+        lock.withLock { entries.any { it.handle.uuid == uuid && it.preferredServerName == preferredServerName } }
 
     override suspend fun getQueueName(): String {
         return group
@@ -90,10 +90,10 @@ class GroupQueueImpl(
         priority: Int,
         bypassFull: Boolean,
         bypassQueue: Boolean,
-        preferredServerUid: Long? = null
+        preferredServerName: String? = null
     ): Deferred<ConnectionResultEnum> {
         val handle = PlayerQueueHandle(uuid)
-        val entry = QueueEntryImpl(handle, priority, bypassFull, bypassQueue, preferredServerUid)
+        val entry = QueueEntryImpl(handle, priority, bypassFull, bypassQueue, preferredServerName)
 
         if (bypassQueue && bypassFull) {
             QueueConnectionScope.launch {
@@ -125,9 +125,9 @@ class GroupQueueImpl(
                 ConnectionResultEnum.DISCONNECTED
             )
 
-            val preferredServerUid = entry.preferredServerUid
-            val result = if (preferredServerUid != null) {
-                (serverManagerImpl.retrieveServerById(preferredServerUid) as? StandaloneCloudServerImpl)?.let { server ->
+            val preferredServerName = entry.preferredServerName
+            val result = if (preferredServerName != null) {
+                (serverManagerImpl.retrieveServerByName(preferredServerName) as? StandaloneCloudServerImpl)?.let { server ->
                     player.connectToServer(server)
                 }
             } else {
@@ -149,7 +149,7 @@ class GroupQueueImpl(
                             getQueueName(),
                             bean<StandaloneConfigHolder>().config.queue.maxConnectionAttempts
                         ),
-                        preferredServerUid
+                        preferredServerName
                     )
                 }
             }
@@ -165,15 +165,15 @@ class GroupQueueImpl(
 
         if (suspended) return
 
-        var entry = peek()?.takeUnless { !it.bypassFull && isFull(it.preferredServerUid) } ?: return
-        val preferredServerUid = entry.preferredServerUid
+        var entry = peek()?.takeUnless { !it.bypassFull && isFull(it.preferredServerName) } ?: return
+        val preferredServerUid = entry.preferredServerName
 
         if (preferredServerUid != null) {
             val serverQueue = queues.getServerOrNull(preferredServerUid)
             if (serverQueue != null) {
                 if (serverQueue.suspended) {
                     entry =
-                        entries.firstOrNull { it.preferredServerUid == null || it.preferredServerUid != preferredServerUid }
+                        entries.firstOrNull { it.preferredServerName == null || it.preferredServerName != preferredServerUid }
                             ?: return
                 }
             }
@@ -188,10 +188,10 @@ class GroupQueueImpl(
         sendDirect(entry)
     }
 
-    suspend fun isFull(preferredServerUid: Long?): Boolean {
-        if (preferredServerUid != null) {
+    suspend fun isFull(preferredServerName: String?): Boolean {
+        if (preferredServerName != null) {
             val server =
-                serverManagerImpl.retrieveServerById(preferredServerUid) as? StandaloneCloudServerImpl
+                serverManagerImpl.retrieveServerByName(preferredServerName) as? StandaloneCloudServerImpl
                     ?: return true
             return !server.hasEmptySlots()
         }
@@ -200,13 +200,13 @@ class GroupQueueImpl(
         return servers.all { !it.hasEmptySlots() }
     }
 
-    suspend fun stop(preferredServerUid: Long?) {
+    suspend fun stop(preferredServerName: String?) {
         lock.withLock {
-            if (preferredServerUid != null) {
+            if (preferredServerName != null) {
                 val iterator = entries.iterator()
                 while (iterator.hasNext()) {
                     val entry = iterator.next()
-                    if (entry.preferredServerUid == preferredServerUid) {
+                    if (entry.preferredServerName == preferredServerName) {
                         iterator.remove()
                         entry.handle.cancel()
                     }

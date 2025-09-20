@@ -15,7 +15,6 @@ import dev.slne.surf.cloud.core.client.netty.network.StatusUpdate
 import dev.slne.surf.cloud.core.client.server.serverManagerImpl
 import dev.slne.surf.cloud.core.common.config.AbstractSurfCloudConfigHolder
 import dev.slne.surf.cloud.core.common.coroutines.ConnectionTickScope
-import dev.slne.surf.cloud.core.common.data.CloudPersistentData
 import dev.slne.surf.cloud.core.common.netty.CommonNettyClientImpl
 import dev.slne.surf.cloud.core.common.netty.network.ConnectionImpl
 import dev.slne.surf.cloud.core.common.netty.network.DisconnectReason
@@ -23,7 +22,6 @@ import dev.slne.surf.cloud.core.common.netty.network.DisconnectionDetails
 import dev.slne.surf.cloud.core.common.netty.network.EncryptionManager
 import dev.slne.surf.cloud.core.common.netty.network.protocol.common.ServerboundBundlePacket
 import dev.slne.surf.cloud.core.common.netty.network.protocol.initialize.ClientInitializePacketListener
-import dev.slne.surf.cloud.core.common.netty.network.protocol.initialize.ClientboundInitializeIdResponsePacket
 import dev.slne.surf.cloud.core.common.netty.network.protocol.initialize.ServerboundInitializeRequestIdPacket
 import dev.slne.surf.cloud.core.common.netty.network.protocol.login.LoginProtocols
 import dev.slne.surf.cloud.core.common.netty.network.protocol.login.ServerboundLoginStartPacket
@@ -41,7 +39,6 @@ class ClientNettyClientImpl(
     val platformExtension: PlatformSpecificPacketListenerExtension,
     private val configHolder: AbstractSurfCloudConfigHolder<*>
 ) : CommonNettyClientImpl(
-    CloudPersistentData.SERVER_ID,
     CloudProperties.SERVER_CATEGORY,
     CloudProperties.SERVER_NAME
 ) {
@@ -119,7 +116,6 @@ class ClientNettyClientImpl(
             CloudProperties
             connection.send(
                 ServerboundLoginStartPacket(
-                    serverId,
                     serverCategory,
                     serverName,
                     proxy,
@@ -135,7 +131,6 @@ class ClientNettyClientImpl(
                 cause(cause)
                 exitCode(ExitCodes.CLIENT_COULD_NOT_CONNECT_TO_SERVER)
                 additionalInformation("Server address: ${serverAddress.host}:${serverAddress.port}")
-                additionalInformation("Server ID: $serverId")
                 additionalInformation("Server category: $serverCategory")
                 possibleSolution("Check if the server is online and reachable.")
                 possibleSolution("Check if the server address is correct.")
@@ -144,20 +139,16 @@ class ClientNettyClientImpl(
     }
 
     private suspend fun fetchAndUpdateData(address: InetSocketAddress) {
-        if (serverId == CloudPersistentData.SERVER_ID_NOT_SET) {
+        if (false) {
             val connection = connectToServer(address, false)
             log.atInfo()
-                .log("Generating server ID...")
-            val responseId = CompletableDeferred<Long>()
+                .log("Updating data...")
+            val data = CompletableDeferred<Any>()
 
             val listener = object : ClientInitializePacketListener {
-                override fun handleIdResponse(packet: ClientboundInitializeIdResponsePacket) {
-                    responseId.complete(packet.generatedId)
-                }
-
                 override suspend fun onDisconnect(details: DisconnectionDetails) {
-                    if (!responseId.isCompleted) {
-                        responseId.completeExceptionally(IllegalStateException("The connection was closed before the server ID could be fetched."))
+                    if (!data.isCompleted) {
+                        data.completeExceptionally(IllegalStateException("The connection was closed before the data could be fetched."))
                     }
                 }
 
@@ -182,8 +173,6 @@ class ClientNettyClientImpl(
                     listener
                 )
                 connection.sendWithIndication(ServerboundInitializeRequestIdPacket)
-                internalServerId = responseId.await()
-                CloudPersistentData.SERVER_ID = (internalServerId)
                 connection.disconnect(DisconnectionDetails(DisconnectReason.SERVER_ID_FETCHED))
             } catch (e: Throwable) {
                 throw FatalSurfError {
@@ -221,7 +210,7 @@ class ClientNettyClientImpl(
     }
 
     suspend fun doShutdown() {
-        val server = serverManagerImpl.retrieveServerById(serverId)
+        val server = serverManagerImpl.retrieveServerByName(serverName)
 
         try {
             withTimeout(1.minutes) { server?.sendAll(CloudServerConstants.LOBBY_CATEGORY) }

@@ -31,7 +31,8 @@ import kotlin.system.measureTimeMillis
 
 @Component
 @Profile("server")
-class NettyServerImpl(private val configHolder: AbstractSurfCloudConfigHolder<*>) : InitializingBean,
+class NettyServerImpl(private val configHolder: AbstractSurfCloudConfigHolder<*>) :
+    InitializingBean,
     DisposableBean {
     val log = logger()
 
@@ -149,7 +150,6 @@ class NettyServerImpl(private val configHolder: AbstractSurfCloudConfigHolder<*>
 
         val server = if (proxy) {
             StandaloneProxyCloudServerImpl(
-                client.serverId,
                 client.serverCategory,
                 client.serverName,
                 client.playAddress,
@@ -157,7 +157,6 @@ class NettyServerImpl(private val configHolder: AbstractSurfCloudConfigHolder<*>
             )
         } else {
             StandaloneCloudServerImpl(
-                client.serverId,
                 client.serverCategory,
                 client.serverName,
                 client.playAddress,
@@ -172,7 +171,7 @@ class NettyServerImpl(private val configHolder: AbstractSurfCloudConfigHolder<*>
     suspend fun unregisterClient(client: ServerClientImpl) {
         clients.invalidate(client.serverName)
         log.atInfo().log("Unregistered client ${client.displayName}")
-        serverManagerImpl.unregisterServer(client.serverId)
+        serverManagerImpl.unregisterServer(client.serverName)
     }
 
     suspend fun forEachClient(action: suspend (ServerClientImpl) -> Unit) {

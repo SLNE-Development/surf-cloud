@@ -9,7 +9,7 @@ interface QueueEntry : Comparable<QueueEntry> {
     val bypassQueue: Boolean
     val awaitingConnection: Boolean
     val connectionAttempts: Int
-    val preferredServerUid: Long?
+    val preferredServerName: String?
 
     fun hasConnectionAttemptsLeft(): Boolean
 }

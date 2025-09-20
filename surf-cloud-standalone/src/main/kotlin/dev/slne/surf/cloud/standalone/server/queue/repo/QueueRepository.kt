@@ -7,10 +7,10 @@ import dev.slne.surf.cloud.standalone.server.queue.ServerQueueImpl
 import java.util.*
 
 interface QueueRepository {
-    fun getServer(uid: Long): ServerQueueImpl
+    fun getServer(serverName: String): ServerQueueImpl
     fun getGroup(group: String): GroupQueueImpl
 
-    fun getServerOrNull(uid: Long): ServerQueueImpl?
+    fun getServerOrNull(serverName: String): ServerQueueImpl?
     fun getGroupOrNull(group: String): GroupQueueImpl?
 
     fun all(): Collection<BaseQueue<*>>

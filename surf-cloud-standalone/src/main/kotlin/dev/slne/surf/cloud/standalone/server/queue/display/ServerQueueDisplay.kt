@@ -7,7 +7,7 @@ import dev.slne.surf.cloud.standalone.server.queue.GroupQueueImpl
 import dev.slne.surf.cloud.standalone.server.queue.repo.QueueRepository
 import dev.slne.surf.surfapi.core.api.messages.Colors
 import dev.slne.surf.surfapi.core.api.messages.adventure.buildText
-import dev.slne.surf.surfapi.core.api.util.mutableLong2IntMapOf
+import dev.slne.surf.surfapi.core.api.util.mutableObject2IntMapOf
 import net.kyori.adventure.text.format.TextDecoration
 
 class ServerQueueDisplay(private val queue: GroupQueueImpl, private val queues: QueueRepository) {
@@ -21,19 +21,19 @@ class ServerQueueDisplay(private val queue: GroupQueueImpl, private val queues: 
         if (snapshot.isEmpty()) return
 
         var unspecifiedCount = 0                                           // preferred == null
-        val preferredCounts = mutableLong2IntMapOf() // uid -> count
+                val preferredCounts = mutableObject2IntMapOf<String>() // serverName -> count
 
         snapshot.forEach { e ->
-            val key = e.preferredServerUid
+            val key = e.preferredServerName
             if (key == null) unspecifiedCount++
             else preferredCounts.mergeInt(key, 1, Int::plus)
         }
 
         var unspecifiedIndex = 0
-        val preferredIndices = mutableLong2IntMapOf() // uid -> next index
+        val preferredIndices = mutableObject2IntMapOf<String>() // uid -> next index
 
         snapshot.forEach { entry ->
-            val preferredUid = entry.preferredServerUid
+            val preferredUid = entry.preferredServerName
 
             val pos: Int
             val max: Int
@@ -51,7 +51,7 @@ class ServerQueueDisplay(private val queue: GroupQueueImpl, private val queues: 
                 preferredIndices[preferredUid] = suffixIndex + 1
 
                 val serverQueue = queues.getServer(preferredUid)
-                max = unspecifiedCount + preferredCounts.get(preferredUid)
+                max = unspecifiedCount + preferredCounts.getInt(preferredUid)
                 queueName = serverQueue.getQueueName()
                 suspended = serverQueue.suspended
             }

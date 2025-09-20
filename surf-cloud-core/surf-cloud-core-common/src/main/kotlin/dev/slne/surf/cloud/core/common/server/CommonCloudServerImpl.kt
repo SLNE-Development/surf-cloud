@@ -18,7 +18,6 @@ import net.kyori.adventure.text.Component
 import java.net.InetSocketAddress
 
 abstract class CommonCloudServerImpl(
-    override val uid: Long,
     override val group: String,
     override val name: String,
     override val users: UserListImpl,
@@ -87,19 +86,20 @@ abstract class CommonCloudServerImpl(
     override fun audiences() = users
 
     override fun toString(): String {
-        return "CloudServerImpl(group='$group', uid=$uid, name='$name, users=$users, information=$information, maxPlayerCount=$maxPlayerCount, currentPlayerCount=$currentPlayerCount, state=$state)"
+        return "CloudServerImpl(group='$group', name='$name, users=$users, information=$information, maxPlayerCount=$maxPlayerCount, currentPlayerCount=$currentPlayerCount, state=$state)"
     }
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is CommonCloudServerImpl) return false
 
-        if (uid != other.uid) return false
+        if (name != other.name) return false
 
         return true
     }
 
     override fun hashCode(): Int {
-        return uid.hashCode()
+        return name.hashCode()
     }
+
 }

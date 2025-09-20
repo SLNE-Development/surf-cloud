@@ -18,21 +18,21 @@ class ClientboundRemovePlayerFromServerPacket : NettyPacket {
         )
     }
 
-    val serverUid: Long
+    val serverName: String
     val playerUuid: UUID
 
-    constructor(serverUid: Long, playerUuid: UUID) {
-        this.serverUid = serverUid
+    constructor(serverName: String, playerUuid: UUID) {
+        this.serverName = serverName
         this.playerUuid = playerUuid
     }
 
     private constructor(buf: SurfByteBuf) {
-        serverUid = buf.readLong()
+        serverName = buf.readUtf()
         playerUuid = buf.readUuid()
     }
 
     private fun write(buf: SurfByteBuf) {
-        buf.writeLong(serverUid)
+        buf.writeUtf(serverName)
         buf.writeUuid(playerUuid)
     }
 }

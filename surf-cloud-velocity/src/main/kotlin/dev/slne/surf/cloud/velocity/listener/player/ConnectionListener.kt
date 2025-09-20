@@ -9,9 +9,9 @@ import com.velocitypowered.api.event.player.PlayerChooseInitialServerEvent
 import dev.slne.surf.cloud.api.client.netty.packet.fireAndAwait
 import dev.slne.surf.cloud.api.client.netty.packet.fireAndForget
 import dev.slne.surf.cloud.api.client.velocity.server.toRegisteredServer
+import dev.slne.surf.cloud.api.common.config.properties.CloudProperties
 import dev.slne.surf.cloud.api.common.player.task.PrePlayerJoinTask.Result
 import dev.slne.surf.cloud.api.common.server.CloudServerManager
-import dev.slne.surf.cloud.core.common.data.CloudPersistentData
 import dev.slne.surf.cloud.core.common.messages.MessageManager
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.PlayerConnectToServerPacket
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.PlayerDisconnectFromServerPacket
@@ -31,7 +31,7 @@ class ConnectionListener {
         val result = PlayerConnectToServerPacket(
             player.uniqueId,
             player.username,
-            CloudPersistentData.SERVER_ID,
+            CloudProperties.SERVER_NAME,
             true,
             player.remoteAddress.address as? Inet4Address
                 ?: error("Player address is not an Inet4Address")
@@ -47,7 +47,7 @@ class ConnectionListener {
     fun onDisconnect(event: DisconnectEvent) {
         PlayerDisconnectFromServerPacket(
             event.player.uniqueId,
-            CloudPersistentData.SERVER_ID,
+            CloudProperties.SERVER_NAME,
             true
         ).fireAndForget()
     }

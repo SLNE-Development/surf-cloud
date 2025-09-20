@@ -50,13 +50,13 @@ class ClientRunningPacketListenerImpl(
             packet.name,
             packet.proxy,
             packet.playerIp,
-            packet.serverUid,
+            packet.serverName,
             false
         )
     }
 
     override suspend fun handlePlayerDisconnectFromServer(packet: PlayerDisconnectFromServerPacket) {
-        playerManagerImpl.updateOrRemoveOnDisconnect(packet.uuid, packet.serverUid, packet.proxy)
+        playerManagerImpl.updateOrRemoveOnDisconnect(packet.uuid, packet.serverName, packet.proxy)
     }
 
     override fun handleSendResourcePacks(packet: ClientboundSendResourcePacksPacket) {
@@ -181,16 +181,14 @@ class ClientRunningPacketListenerImpl(
     override suspend fun handleRegisterServerPacket(packet: ClientboundRegisterServerPacket) {
         val server = if (packet.proxy) {
             ClientProxyCloudServerImpl(
-                packet.serverId,
                 packet.group,
-                packet.name,
+                packet.serverName,
                 packet.playAddress,
             )
         } else {
             ClientCloudServerImpl(
-                packet.serverId,
                 packet.group,
-                packet.name,
+                packet.serverName,
                 packet.playAddress,
                 packet.lobby
             ).also { client ->
@@ -202,23 +200,24 @@ class ClientRunningPacketListenerImpl(
     }
 
     override suspend fun handleUnregisterServerPacket(packet: ClientboundUnregisterServerPacket) {
-        val removed = serverManagerImpl.unregisterServer(packet.serverId)
+        val removed = serverManagerImpl.unregisterServer(packet.serverName)
+        println("Unregistered server (${packet.serverName}): $removed")
         if (removed is ClientCloudServerImpl) {
             platformExtension.unregisterCloudServerFromProxy(removed)
         }
     }
 
     override suspend fun handleAddPlayerToServer(packet: ClientboundAddPlayerToServerPacket) {
-        (serverManagerImpl.retrieveServerById(packet.serverUid)?.users as? UserListImpl)?.add(packet.playerUuid)
+        (serverManagerImpl.retrieveServerByName(packet.serverName)?.users as? UserListImpl)?.add(packet.playerUuid)
     }
 
     override suspend fun handleRemovePlayerFromServer(packet: ClientboundRemovePlayerFromServerPacket) {
-        (serverManagerImpl.retrieveServerById(packet.serverUid)?.users as? UserListImpl)
+        (serverManagerImpl.retrieveServerByName(packet.serverName)?.users as? UserListImpl)
             ?.remove(packet.playerUuid)
     }
 
     override fun handleUpdateServerInformation(packet: ClientboundUpdateServerInformationPacket) {
-        serverManagerImpl.updateServerInformationNow(packet.serverId, packet.information)
+        serverManagerImpl.updateServerInformationNow(packet.serverName, packet.information)
     }
 
     override fun handleIsServerManagedByThisProxy(packet: ClientboundIsServerManagedByThisProxyPacket) {

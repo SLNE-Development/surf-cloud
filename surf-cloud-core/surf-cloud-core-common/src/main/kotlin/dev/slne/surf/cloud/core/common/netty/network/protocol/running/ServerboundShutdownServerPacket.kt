@@ -8,16 +8,16 @@ import dev.slne.surf.cloud.api.common.netty.packet.packetCodec
 import dev.slne.surf.cloud.api.common.netty.protocol.buffer.SurfByteBuf
 
 @SurfNettyPacket(DefaultIds.SERVERBOUND_SHUTDOWN_SERVER_PACKET, PacketFlow.SERVERBOUND)
-class ServerboundShutdownServerPacket(val serverId: Long) : NettyPacket() {
+class ServerboundShutdownServerPacket(val serverName: String) : NettyPacket() {
 
     companion object {
         val STREAM_CODEC =
             packetCodec(ServerboundShutdownServerPacket::write, ::ServerboundShutdownServerPacket)
     }
 
-    private constructor(buf: SurfByteBuf) : this(buf.readVarLong())
+    private constructor(buf: SurfByteBuf) : this(buf.readUtf())
 
     private fun write(buf: SurfByteBuf) {
-        buf.writeVarLong(serverId)
+        buf.writeUtf(serverName)
     }
 }

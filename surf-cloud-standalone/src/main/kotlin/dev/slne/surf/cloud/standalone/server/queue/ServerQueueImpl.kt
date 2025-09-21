@@ -12,7 +12,7 @@ import java.util.*
 import java.util.concurrent.atomic.AtomicBoolean
 
 class ServerQueueImpl(
-    override val serverUid: Long,
+    override val serverName: String,
     var latestGroup: String,
     private val queues: QueueRepository,
 ) : ServerQueue {
@@ -21,25 +21,25 @@ class ServerQueueImpl(
 
     override var suspended: Boolean by AtomicBoolean()
 
-    override val online get() = serverManagerImpl.retrieveServerById(serverUid) != null
+    override val online get() = serverManagerImpl.retrieveServerByName(serverName) != null
 
     override suspend fun dequeue(
         uuid: UUID,
         reason: ConnectionResultEnum?
     ) {
-        groupQueue.dequeue(uuid, reason, serverUid)
+        groupQueue.dequeue(uuid, reason, serverName)
     }
 
     override suspend fun size(): Int {
-        return groupQueue.size(serverUid)
+        return groupQueue.size(serverName)
     }
 
     override suspend fun isQueued(uuid: UUID): Boolean {
-        return groupQueue.isQueued(uuid, serverUid)
+        return groupQueue.isQueued(uuid, serverName)
     }
 
     override suspend fun peek(): QueueEntry? {
-        return groupQueue.peek(serverUid)
+        return groupQueue.peek(serverName)
     }
 
     suspend fun queue(
@@ -52,11 +52,10 @@ class ServerQueueImpl(
         priority = priority,
         bypassFull = bypassFull,
         bypassQueue = bypassQueue,
-        preferredServerUid = serverUid
+        preferredServerName = serverName
     )
 
-    override suspend fun getQueueName() =
-        serverManagerImpl.retrieveServerById(serverUid)?.name ?: serverUid.toString()
+    override suspend fun getQueueName() = serverName
 
     override fun asComponent(): Component {
         TODO("Not yet implemented")

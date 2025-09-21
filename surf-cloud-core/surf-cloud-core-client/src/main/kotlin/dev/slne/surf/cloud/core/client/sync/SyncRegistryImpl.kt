@@ -2,8 +2,8 @@ package dev.slne.surf.cloud.core.client.sync
 
 import com.google.auto.service.AutoService
 import dev.slne.surf.cloud.api.client.netty.packet.fireAndForget
+import dev.slne.surf.cloud.api.common.config.properties.CloudProperties
 import dev.slne.surf.cloud.api.common.sync.SyncRegistry
-import dev.slne.surf.cloud.core.common.data.CloudPersistentData
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.SyncSetDeltaPacket
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.SyncValueChangePacket
 import dev.slne.surf.cloud.core.common.sync.BasicSyncValue
@@ -19,7 +19,7 @@ class SyncRegistryImpl : CommonSyncRegistryImpl() {
 
     override fun afterChange(syncValue: BasicSyncValue<*>) {
         super.afterChange(syncValue)
-        SyncValueChangePacket(CloudPersistentData.SERVER_ID, syncValue).fireAndForget()
+        SyncValueChangePacket(CloudProperties.SERVER_NAME, syncValue).fireAndForget()
     }
 
     fun applyBatchSyncValue(syncValues: List<Pair<String, Any?>>) {

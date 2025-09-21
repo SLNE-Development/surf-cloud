@@ -59,7 +59,7 @@ class QueueManagerImpl(
             return QueueConnectionScope.async { player.connectToServer(target) }
         }
 
-        val queue = queues.getServer(target.uid)
+        val queue = queues.getServer(target.name)
         if (queue.isQueued(player.uuid)) {
             return CompletableDeferred(ConnectionResultEnum.ALREADY_QUEUED(target.name))
         }
@@ -151,7 +151,7 @@ class QueueManagerImpl(
         player.getLuckpermsMetaData(QUEUE_PRIORITY_KEY)?.toIntOrNull() ?: 0
 
     override fun getServerQueue(server: CloudServer) {
-        queues.getServer(server.uid)
+        queues.getServer(server.name)
     }
 
     override fun getGroupQueue(group: String) {

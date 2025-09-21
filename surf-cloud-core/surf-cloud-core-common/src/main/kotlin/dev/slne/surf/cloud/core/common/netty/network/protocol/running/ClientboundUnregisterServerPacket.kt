@@ -14,17 +14,17 @@ class ClientboundUnregisterServerPacket: NettyPacket {
         val STREAM_CODEC = packetCodec(ClientboundUnregisterServerPacket::write, ::ClientboundUnregisterServerPacket)
     }
 
-    val serverId: Long
+    val serverName: String
 
-    constructor(serverId: Long) {
-        this.serverId = serverId
+    constructor(serverName: String) {
+        this.serverName = serverName
     }
 
     private constructor(buf: SurfByteBuf) {
-        serverId = buf.readVarLong()
+        serverName = buf.readUtf()
     }
 
     private fun write(buf: SurfByteBuf) {
-        buf.writeVarLong(serverId)
+        buf.writeUtf(serverName)
     }
 }

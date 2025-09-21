@@ -14,12 +14,12 @@ class CommonStandaloneServerImpl : CommonStandaloneServer {
 
     override fun handlePlayerConnect(playerUUID: UUID) {
         (wrapper.users as UserListImpl).add(playerUUID)
-        broadcast(ClientboundAddPlayerToServerPacket(wrapper.uid, playerUUID))
+        broadcast(ClientboundAddPlayerToServerPacket(wrapper.name, playerUUID))
     }
 
     override fun handlePlayerDisconnect(playerUUID: UUID) {
         (wrapper.users as UserListImpl).remove(playerUUID)
-        broadcast(ClientboundRemovePlayerFromServerPacket(wrapper.uid, playerUUID))
+        broadcast(ClientboundRemovePlayerFromServerPacket(wrapper.name, playerUUID))
     }
 
     private fun send(packet: NettyPacket) {

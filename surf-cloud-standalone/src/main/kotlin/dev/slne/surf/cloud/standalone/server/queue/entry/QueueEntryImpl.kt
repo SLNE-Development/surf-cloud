@@ -13,7 +13,7 @@ data class QueueEntryImpl(
     override var priority: Int,
     override val bypassFull: Boolean,
     override val bypassQueue: Boolean,
-    override val preferredServerUid: Long? = null,
+    override val preferredServerName: String? = null,
 ) : QueueEntry {
     override var awaitingConnection by AtomicBoolean()
     override var connectionAttempts = 0
@@ -26,8 +26,8 @@ data class QueueEntryImpl(
 
     override fun compareTo(other: QueueEntry): Int = when {
         priority != other.priority -> other.priority.compareTo(priority)
-        preferredServerUid != null && other.preferredServerUid == null -> -1
-        preferredServerUid == null && other.preferredServerUid != null -> 1
+        preferredServerName != null && other.preferredServerName == null -> -1
+        preferredServerName == null && other.preferredServerName != null -> 1
         else -> 0
     }
 }

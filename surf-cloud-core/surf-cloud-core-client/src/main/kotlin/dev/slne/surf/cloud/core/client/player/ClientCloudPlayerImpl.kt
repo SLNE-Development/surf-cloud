@@ -54,15 +54,15 @@ abstract class ClientCloudPlayerImpl<PlatformPlayer : Audience>(
     name: String
 ) : CommonCloudPlayerImpl(uuid, name) {
     @Volatile
-    var proxyServerUid: Long? = null
+    var proxyServerName: String? = null
 
     @Volatile
-    var serverUid: Long? = null
+    var serverName: String? = null
 
     var afk: Boolean by AtomicBoolean()
 
-    override val connectedToProxy get() = proxyServerUid != null
-    override val connectedToServer get() = serverUid != null
+    override val connectedToProxy get() = proxyServerName != null
+    override val connectedToServer get() = serverName != null
 
     /**
      * The audience for this player. If the player is on this server, this will point to
@@ -83,9 +83,9 @@ abstract class ClientCloudPlayerImpl<PlatformPlayer : Audience>(
     }
 
     override fun currentServer(): CloudServer {
-        val server = serverManagerImpl.retrieveServerById(
-            serverUid ?: error("Player is not connected to a server")
-        ) ?: error("Server not found for UID: $serverUid")
+        val server = serverManagerImpl.retrieveServerByName(
+            serverName ?: error("Player is not connected to a server")
+        ) ?: error("Server not found for UID: $serverName")
 
         require(server is CloudServer) { "Expected CloudServer, but got ${server::class.simpleName}" }
 
@@ -109,12 +109,12 @@ abstract class ClientCloudPlayerImpl<PlatformPlayer : Audience>(
     }
 
     override fun isOnServer(server: CloudServer): Boolean {
-        return server.uid == serverUid
+        return server.name.equals(serverName, true)
     }
 
     override fun isInGroup(group: String): Boolean {
-        val currentServer = serverUid
-        return currentServer != null && serverManagerImpl.retrieveServerById(currentServer)?.group?.equals(
+        val currentServer = serverName
+        return currentServer != null && serverManagerImpl.retrieveServerByName(currentServer)?.group?.equals(
             group,
             ignoreCase = true
         ) == true
@@ -162,7 +162,7 @@ abstract class ClientCloudPlayerImpl<PlatformPlayer : Audience>(
     override suspend fun connectToServer(server: CloudServer): ConnectionResultEnum {
         return ServerboundConnectPlayerToServerPacket(
             uuid,
-            server.uid,
+            server.name,
             false
         ).fireAndAwaitOrThrow(1.days).result
     }
@@ -173,7 +173,7 @@ abstract class ClientCloudPlayerImpl<PlatformPlayer : Audience>(
     ): ConnectionResultEnum {
         return ServerboundConnectPlayerToServerPacket(
             uuid,
-            server.uid,
+            server.name,
             sendQueuedMessage
         ).fireAndAwaitOrThrow(1.days).result
     }

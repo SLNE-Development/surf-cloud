@@ -27,11 +27,6 @@ typealias BatchTransferResult = Pair<Boolean, Object2ObjectMap<CloudPlayer, Conn
 interface CommonCloudServer : ForwardingAudience {
 
     /**
-     * The unique identifier (UID) of the server.
-     */
-    val uid: Long
-
-    /**
      * The group this server belongs to.
      */
     val group: String
@@ -77,7 +72,7 @@ interface CommonCloudServer : ForwardingAudience {
     val playAddress: InetSocketAddress
 
     val displayName: String
-        get() = "$group/$uid $name"
+        get() = "$name/$group"
 
     /**
      * Provides the list of audiences corresponding to the server's users.
@@ -121,7 +116,6 @@ interface CommonCloudServer : ForwardingAudience {
     fun shutdown()
 
     companion object {
-        operator fun get(uid: Long) = CloudServerManager.retrieveServerById(uid)
         operator fun get(category: String, name: String) =
             CloudServerManager.retrieveServerByCategoryAndName(category, name)
 

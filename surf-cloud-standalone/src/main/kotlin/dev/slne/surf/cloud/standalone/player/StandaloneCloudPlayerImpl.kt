@@ -1,5 +1,6 @@
 package dev.slne.surf.cloud.standalone.player
 
+import dev.slne.surf.cloud.api.common.event.player.afk.AfkStateChangeEvent
 import dev.slne.surf.cloud.api.common.netty.network.protocol.await
 import dev.slne.surf.cloud.api.common.netty.network.protocol.awaitOrThrow
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
@@ -51,6 +52,7 @@ import java.time.ZonedDateTime
 import java.time.temporal.ChronoUnit
 import java.util.*
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
@@ -88,8 +90,7 @@ class StandaloneCloudPlayerImpl(uuid: UUID, name: String, val ip: Inet4Address) 
     private val ppdcMutex = Mutex()
     private var firstSeenCache: ZonedDateTime? = null
 
-    var afk = false
-        private set
+    private val afk = AtomicBoolean(false)
 
     var sessionStartTime: ZonedDateTime = ZonedDateTime.now()
 
@@ -105,7 +106,7 @@ class StandaloneCloudPlayerImpl(uuid: UUID, name: String, val ip: Inet4Address) 
     }
 
     override fun isAfk(): Boolean {
-        return afk
+        return afk.get()
     }
 
     override suspend fun currentSessionDuration(): Duration {
@@ -114,15 +115,15 @@ class StandaloneCloudPlayerImpl(uuid: UUID, name: String, val ip: Inet4Address) 
     }
 
     fun updateAfkStatus(newValue: Boolean) {
-        if (newValue == afk) return
-        afk = newValue
+        if (!afk.compareAndSet(!newValue, newValue)) return
 
-        nettyServer.connection.broadcast(UpdateAFKStatePacket(uuid, afk))
+        nettyServer.connection.broadcast(UpdateAFKStatePacket(uuid, newValue))
+        AfkStateChangeEvent(newValue, this, this).postAndForget()
 
         sendText {
             appendPrefix()
             info("Du bist nun ")
-            if (afk) {
+            if (newValue) {
                 info("AFK und erhältst keine weiteren Paychecks.")
             } else {
                 info("nicht mehr AFK.")

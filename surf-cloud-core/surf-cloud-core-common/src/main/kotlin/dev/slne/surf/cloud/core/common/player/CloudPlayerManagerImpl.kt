@@ -43,17 +43,17 @@ abstract class CloudPlayerManagerImpl<P : CommonCloudPlayerImpl> : CloudPlayerMa
         name: String,
         proxy: Boolean,
         ip: Inet4Address,
-        serverUid: Long
+        serverName: String
     ): P
 
-    abstract suspend fun updateProxyServer(player: P, serverUid: Long)
-    abstract suspend fun updateServer(player: P, serverUid: Long)
+    abstract suspend fun updateProxyServer(player: P, serverName: String)
+    abstract suspend fun updateServer(player: P, serverName: String)
 
-    abstract suspend fun removeProxyServer(player: P, serverUid: Long)
-    abstract suspend fun removeServer(player: P, serverUid: Long)
+    abstract suspend fun removeProxyServer(player: P, serverName: String)
+    abstract suspend fun removeServer(player: P, serverName: String)
 
-    abstract fun getProxyServerUid(player: P): Long?
-    abstract fun getServerUid(player: P): Long?
+    abstract fun getProxyServerName(player: P): String?
+    abstract fun getServerName(player: P): String?
 
     override fun getOnlinePlayers(): UserList {
         return UserListImpl.of(playerCache.underlying().synchronous().asMap().keys)
@@ -68,7 +68,7 @@ abstract class CloudPlayerManagerImpl<P : CommonCloudPlayerImpl> : CloudPlayerMa
      * or creates a new player if one does not exist.
      *
      * @param uuid The UUID of the player to update or create.
-     * @param serverUid The unique identifier of the server the player is connecting to.
+     * @param serverName The unique identifier of the server the player is connecting to.
      * @param proxy A boolean indicating if the player is connecting through a proxy.
      */
     suspend fun updateOrCreatePlayer(
@@ -76,30 +76,30 @@ abstract class CloudPlayerManagerImpl<P : CommonCloudPlayerImpl> : CloudPlayerMa
         name: String,
         proxy: Boolean,
         ip: Inet4Address,
-        serverUid: Long,
+        serverName: String,
         runPreJoinTasks: Boolean
     ): PrePlayerJoinTask.Result {
         val existing = playerCache.getOrNull(uuid)
         if (existing != null) {
             if (proxy) {
-                updateProxyServer(existing, serverUid)
+                updateProxyServer(existing, serverName)
             } else {
-                updateServer(existing, serverUid)
+                updateServer(existing, serverName)
             }
-            onServerConnect(uuid, existing, serverUid)
+            onServerConnect(uuid, existing, serverName)
             return PrePlayerJoinTask.Result.ALLOWED
         }
 
         return try {
             playerCache.get(uuid) {
-                val newPlayer = createPlayer(uuid, name, proxy, ip, serverUid)
+                val newPlayer = createPlayer(uuid, name, proxy, ip, serverName)
 
                 if (runPreJoinTasks) {
                     val pre = preJoin(newPlayer)
                     if (pre !is PrePlayerJoinTask.Result.ALLOWED) throw PreJoinDenied(pre)
                 }
                 onNetworkConnect(uuid, newPlayer)
-                onServerConnect(uuid, newPlayer, serverUid)
+                onServerConnect(uuid, newPlayer, serverName)
                 newPlayer
             }
             PrePlayerJoinTask.Result.ALLOWED
@@ -241,20 +241,20 @@ abstract class CloudPlayerManagerImpl<P : CommonCloudPlayerImpl> : CloudPlayerMa
      * or removes the player if they are no longer connected to any server or proxy.
      *
      * @param uuid The unique identifier of the player.
-     * @param serverUid The unique identifier of the server.
+     * @param serverName The unique identifier of the server.
      * @param proxy A boolean indicating if the player was connected through a proxy.
      */
-    suspend fun updateOrRemoveOnDisconnect(uuid: UUID, serverUid: Long, proxy: Boolean) {
+    suspend fun updateOrRemoveOnDisconnect(uuid: UUID, serverName: String, proxy: Boolean) {
         val player = playerCache.getIfPresent(uuid)
         if (player != null) {
-            val oldProxy = getProxyServerUid(player)
-            val oldServer = getServerUid(player)
+            val oldProxy = getProxyServerName(player)
+            val oldServer = getServerName(player)
             if (proxy) {
-                removeProxyServer(player, serverUid)
+                removeProxyServer(player, serverName)
             } else {
-                removeServer(player, serverUid)
+                removeServer(player, serverName)
             }
-            onServerDisconnect(uuid, player, serverUid)
+            onServerDisconnect(uuid, player, serverName)
 
             if (!player.connected) {
                 playerCache.invalidate(uuid)
@@ -268,15 +268,15 @@ abstract class CloudPlayerManagerImpl<P : CommonCloudPlayerImpl> : CloudPlayerMa
     }
 
     @MustBeInvokedByOverriders
-    open suspend fun onServerConnect(uuid: UUID, player: P, serverUid: Long) {
+    open suspend fun onServerConnect(uuid: UUID, player: P, serverName: String) {
     }
 
     @MustBeInvokedByOverriders
-    open suspend fun onServerDisconnect(uuid: UUID, player: P, serverUid: Long) {
+    open suspend fun onServerDisconnect(uuid: UUID, player: P, serverName: String) {
     }
 
     @MustBeInvokedByOverriders
-    open suspend fun onNetworkDisconnect(uuid: UUID, player: P, oldProxy: Long?, oldServer: Long?) {
+    open suspend fun onNetworkDisconnect(uuid: UUID, player: P, oldProxy: String?, oldServer: String?) {
         try {
             CloudPlayerDisconnectFromNetworkEvent(this, player).post()
         } catch (e: Throwable) {

@@ -18,7 +18,10 @@ import dev.slne.surf.cloud.core.common.netty.network.protocol.handshake.ClientIn
 import dev.slne.surf.cloud.core.common.netty.network.protocol.handshake.HandshakeProtocols
 import dev.slne.surf.cloud.core.common.netty.network.protocol.handshake.ServerHandshakePacketListener
 import dev.slne.surf.cloud.core.common.netty.network.protocol.handshake.ServerboundHandshakePacket
-import dev.slne.surf.cloud.core.common.netty.network.protocol.initialize.*
+import dev.slne.surf.cloud.core.common.netty.network.protocol.initialize.ClientInitializePacketListener
+import dev.slne.surf.cloud.core.common.netty.network.protocol.initialize.InitializeProtocols
+import dev.slne.surf.cloud.core.common.netty.network.protocol.initialize.ServerInitializePacketListener
+import dev.slne.surf.cloud.core.common.netty.network.protocol.initialize.ServerboundInitializeRequestIdPacket
 import dev.slne.surf.cloud.core.common.netty.network.protocol.login.*
 import dev.slne.surf.cloud.core.common.netty.network.protocol.prerunning.*
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.*
@@ -459,10 +462,6 @@ class ConnectionImpl(
 
                 when (listener) {
                     is ClientInitializePacketListener -> when (msg) {
-                        is ClientboundInitializeIdResponsePacket -> listener.handleIdResponse(
-                            msg
-                        )
-
                         else -> error("Unexpected packet $msg")
                     }
 

@@ -23,13 +23,12 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
 class StandaloneCloudServerImpl(
-    uid: Long,
     group: String,
     name: String,
     playAddress: InetSocketAddress,
     lobby: Boolean,
     override val connection: ConnectionImpl,
-) : AbstractCloudServer(uid, group, name, playAddress, lobby), ServerCloudServer,
+) : AbstractCloudServer(group, name, playAddress, lobby), ServerCloudServer,
     CommonStandaloneServer by CommonStandaloneServerImpl() {
 
     val connectingPlayers = Caffeine.newBuilder()

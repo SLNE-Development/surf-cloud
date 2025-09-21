@@ -102,12 +102,12 @@ class PaperMain : SuspendingJavaPlugin() {
         }
 
         commandAPICommand("cshutdown") {
-            longArgument("id")
+            stringArgument("serverName")
             anyExecutor { sender, args ->
-                val id: Long by args
+                val serverName: String by args
                 launch {
-                    val server = CloudServerManager.retrieveServerById(id)
-                    requireCommand(server != null) { Component.text("Server with id $id not found") }
+                    val server = CloudServerManager.retrieveServerByName(serverName)
+                    requireCommand(server != null) { Component.text("Server '$serverName' not found") }
 
                     server.shutdown()
                 }

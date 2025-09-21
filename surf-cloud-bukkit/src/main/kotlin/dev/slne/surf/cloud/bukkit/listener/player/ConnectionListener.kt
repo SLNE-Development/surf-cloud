@@ -3,12 +3,12 @@ package dev.slne.surf.cloud.bukkit.listener.player
 import dev.slne.surf.cloud.api.client.netty.packet.fireAndAwait
 import dev.slne.surf.cloud.api.client.netty.packet.fireAndForget
 import dev.slne.surf.cloud.api.client.server.current
+import dev.slne.surf.cloud.api.common.config.properties.CloudProperties
 import dev.slne.surf.cloud.api.common.player.task.PrePlayerJoinTask
 import dev.slne.surf.cloud.api.common.player.toOfflineCloudPlayer
 import dev.slne.surf.cloud.api.common.player.whitelist.WhitelistSettings
 import dev.slne.surf.cloud.api.common.player.whitelist.WhitelistStatus
 import dev.slne.surf.cloud.api.common.server.CloudServer
-import dev.slne.surf.cloud.core.common.data.CloudPersistentData
 import dev.slne.surf.cloud.core.common.messages.MessageManager
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.PlayerConnectToServerPacket
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.PlayerDisconnectFromServerPacket
@@ -67,7 +67,7 @@ object ConnectionListener : Listener {
             val result = PlayerConnectToServerPacket(
                 uniqueId,
                 name,
-                CloudPersistentData.SERVER_ID,
+                CloudProperties.SERVER_NAME,
                 false,
                 address as? Inet4Address
                     ?: error("Player address is not an Inet4Address")
@@ -87,7 +87,7 @@ object ConnectionListener : Listener {
     fun PlayerQuitEvent.onPlayerQuit() {
         PlayerDisconnectFromServerPacket(
             player.uniqueId,
-            CloudPersistentData.SERVER_ID,
+            CloudProperties.SERVER_NAME,
             false
         ).fireAndForget()
     }

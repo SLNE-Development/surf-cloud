@@ -12,7 +12,7 @@ import java.util.*
 @Serializable
 data class ServerboundConnectPlayerToServerPacket(
     val uuid: @Contextual UUID,
-    val serverId: Long,
+    val serverName: String,
     val queue: Boolean,
     val sendQueuedMessage: Boolean = false,
 ) : RespondingNettyPacket<ClientboundConnectPlayerToServerResponse>()

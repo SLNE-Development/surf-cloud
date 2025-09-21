@@ -6,7 +6,7 @@ import dev.slne.surf.cloud.api.common.netty.network.protocol.PacketFlow
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
 import dev.slne.surf.cloud.api.common.netty.packet.packetCodec
 import dev.slne.surf.cloud.api.common.netty.protocol.buffer.SurfByteBuf
-import java.util.UUID
+import java.util.*
 
 @SurfNettyPacket(DefaultIds.PLAYER_DISCONNECT_FROM_SERVER_PACKET, PacketFlow.BIDIRECTIONAL)
 class PlayerDisconnectFromServerPacket: NettyPacket {
@@ -16,24 +16,24 @@ class PlayerDisconnectFromServerPacket: NettyPacket {
     }
 
     val uuid: UUID
-    val serverUid: Long
+    val serverName: String
     val proxy: Boolean
 
-    constructor(uuid: UUID, serverUid: Long, proxy: Boolean) {
+    constructor(uuid: UUID, serverName: String, proxy: Boolean) {
         this.uuid = uuid
-        this.serverUid = serverUid
+        this.serverName = serverName
         this.proxy = proxy
     }
 
     private constructor(buffer: SurfByteBuf) {
         this.uuid = buffer.readUuid()
-        this.serverUid = buffer.readLong()
+        this.serverName = buffer.readUtf()
         this.proxy = buffer.readBoolean()
     }
 
     private fun write(buffer: SurfByteBuf) {
         buffer.writeUuid(uuid)
-        buffer.writeLong(serverUid)
+        buffer.writeUtf(serverName)
         buffer.writeBoolean(proxy)
     }
 }

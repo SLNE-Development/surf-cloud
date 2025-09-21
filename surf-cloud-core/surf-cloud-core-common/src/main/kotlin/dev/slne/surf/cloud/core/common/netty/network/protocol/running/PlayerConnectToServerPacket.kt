@@ -27,7 +27,7 @@ import java.util.*
 data class PlayerConnectToServerPacket(
     val uuid: @Contextual UUID,
     val name: String,
-    val serverUid: Long,
+    val serverName: String,
     val proxy: Boolean,
     val playerIp: @Contextual Inet4Address,
 ) : RespondingNettyPacket<PlayerConnectToServerResponsePacket>()
@@ -37,7 +37,7 @@ data class PlayerConnectToServerPacket(
 data class PlayerConnectedToServerPacket(
     val uuid: @Contextual UUID,
     val name: String,
-    val serverUid: Long,
+    val serverName: String,
     val proxy: Boolean,
     val playerIp: @Contextual Inet4Address,
 ) : NettyPacket()

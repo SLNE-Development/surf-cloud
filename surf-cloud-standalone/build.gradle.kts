@@ -21,7 +21,6 @@ val sanitizeLibs by tasks.registering {
         outDir.mkdirs()
 
         fileTree("libs").matching { include("*.jar") }.files.forEach { inJar ->
-            // Nur dann neu packen, wenn das JAR den Provider wirklich enthält
             val hasProvider = ZipFile(inJar).use { zf ->
                 zf.getEntry("META-INF/services/org.slf4j.spi.SLF4JServiceProvider") != null ||
                         zf.getEntry("org/slf4j/simple/SimpleServiceProvider.class") != null
@@ -29,10 +28,8 @@ val sanitizeLibs by tasks.registering {
 
             val dest = outDir.resolve(inJar.name)
             if (!hasProvider) {
-                // unverändert kopieren
                 inJar.copyTo(dest, overwrite = true)
             } else {
-                // entpacken -> problematische Einträge ausschließen -> wieder zippen
                 val tmp = layout.buildDirectory.dir("tmp/sanitize/${inJar.nameWithoutExtension}").get().asFile
                 tmp.deleteRecursively(); tmp.mkdirs()
 
@@ -74,14 +71,19 @@ dependencies {
     }
 
 //    implementation(fileTree("libs/**/*.jar")) // Include all JARs in libs directory
-    implementation(fileTree(sanitizedLibsDir) { include("*.jar") })
+//    implementation(fileTree(sanitizedLibsDir) { include("*.jar") })
+    implementation(fileTree(sanitizedLibsDir) { include("*.jar") }.builtBy(sanitizeLibs))
 }
 
 tasks {
-    assemble {
-        dependsOn(sanitizeLibs)
-        inputs.files(sanitizeLibs)
-    }
+//    assemble {
+//        dependsOn(sanitizeLibs)
+//        inputs.files(sanitizeLibs)
+//    }
+//
+//    build {
+//        dependsOn(sanitizeLibs)
+//    }
 
     bootJar {
         mainClass.set("dev.slne.surf.cloud.standalone.Bootstrap")

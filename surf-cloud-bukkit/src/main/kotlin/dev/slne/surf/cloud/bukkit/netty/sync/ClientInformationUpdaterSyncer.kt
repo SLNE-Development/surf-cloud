@@ -2,6 +2,7 @@ package dev.slne.surf.cloud.bukkit.netty.sync
 
 import com.destroystokyo.paper.event.server.WhitelistToggleEvent
 import dev.slne.surf.cloud.api.client.netty.packet.fireAndForget
+import dev.slne.surf.cloud.api.common.config.properties.CloudProperties
 import dev.slne.surf.cloud.api.common.server.state.ServerState
 import dev.slne.surf.cloud.api.common.util.TimeLogger
 import dev.slne.surf.cloud.api.common.util.observer.ObservableField
@@ -45,6 +46,6 @@ class ClientInformationUpdaterSyncer : CloudLifecycleAware {
             Bukkit.hasWhitelist(),
             ServerState.ONLINE
         )
-        ServerboundClientInformationPacket(info).fireAndForget()
+        ServerboundClientInformationPacket(CloudProperties.SERVER_NAME, info).fireAndForget()
     }
 }

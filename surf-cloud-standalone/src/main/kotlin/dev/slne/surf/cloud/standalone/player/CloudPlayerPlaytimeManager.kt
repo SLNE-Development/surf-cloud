@@ -64,7 +64,7 @@ class CloudPlayerPlaytimeManager(private val service: CloudPlayerService) : Disp
                 sessionsCache.put(uuid, newSession)
                 toCreate += uuid to newSession
             } else {
-                if (player.afk) return@forEach
+                if (player.isAfk()) return@forEach
                 // Just increment current session
                 currentSession.accumulatedSeconds++
             }

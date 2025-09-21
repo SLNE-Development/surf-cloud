@@ -16,11 +16,10 @@ import net.kyori.adventure.text.Component
 
 abstract class CommonCloudServerManagerImpl<CommonServer : CommonCloudServer> : CloudServerManager {
     protected val serverCache = Caffeine.newBuilder()
-        .build<Long, CommonServer>()
+        .build<String, CommonServer>()
 
-    open fun registerServer(server: CommonServer) = serverCache.put(server.uid, server)
-    open fun unregisterServer(uid: Long): CommonServer? = serverCache.asMap().remove(uid)
-    override fun retrieveServerById(id: Long): CommonServer? = serverCache.getIfPresent(id)
+    open fun registerServer(server: CommonServer) = serverCache.put(server.name, server)
+    open fun unregisterServer(name: String): CommonServer? = serverCache.asMap().remove(name)
 
     override fun retrieveServerByCategoryAndName(
         category: String,
@@ -48,7 +47,7 @@ abstract class CommonCloudServerManagerImpl<CommonServer : CommonCloudServer> : 
 
 
     fun batchUpdateServer(update: List<CommonCloudServer>) {
-        serverCache.putAll(update.associateBy { it.uid } as Map<Long, CommonServer>)
+        serverCache.putAll(update.associateBy { it.name } as Map<String, CommonServer>)
     }
 
     override fun retrieveAllServers(): ObjectCollection<CommonServer> {

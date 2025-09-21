@@ -8,12 +8,11 @@ import dev.slne.surf.cloud.core.common.server.AbstractProxyCloudServer
 import java.net.InetSocketAddress
 
 class StandaloneProxyCloudServerImpl(
-    uid: Long,
     group: String,
     name: String,
     playAddress: InetSocketAddress,
     override val connection: ConnectionImpl
-) : AbstractProxyCloudServer(uid, group, name, playAddress), ServerProxyCloudServer,
+) : AbstractProxyCloudServer(group, name, playAddress), ServerProxyCloudServer,
     CommonStandaloneServer by CommonStandaloneServerImpl() {
 
     override fun shutdown() {

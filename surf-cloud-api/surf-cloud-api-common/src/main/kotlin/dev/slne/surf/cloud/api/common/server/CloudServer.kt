@@ -29,7 +29,6 @@ interface CloudServer : CommonCloudServer {
     suspend fun pullPlayers(players: Collection<CloudPlayer>): @Unmodifiable ObjectList<Pair<CloudPlayer, ConnectionResultEnum>>
 
     companion object {
-        operator fun get(uid: Long) = CloudServerManager.retrieveServerById(uid) as? CloudServer
         operator fun get(category: String, name: String) =
             CloudServerManager.retrieveServerByCategoryAndName(category, name) as? CloudServer
 

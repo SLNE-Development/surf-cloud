@@ -3,16 +3,13 @@ package dev.slne.surf.cloud.api.server.server
 import dev.slne.surf.cloud.api.common.netty.network.Connection
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
 import dev.slne.surf.cloud.api.common.server.CloudServerManager
-import dev.slne.surf.cloud.api.common.server.CommonCloudServer
 import it.unimi.dsi.fastutil.objects.ObjectCollection
 import it.unimi.dsi.fastutil.objects.ObjectList
 import org.jetbrains.annotations.ApiStatus
 
 @ApiStatus.NonExtendable
 interface ServerCloudServerManager : CloudServerManager {
-
-    override fun retrieveServerById(id: Long): CommonCloudServer?
-
+    
     override fun retrieveServerByCategoryAndName(
         category: String,
         name: String

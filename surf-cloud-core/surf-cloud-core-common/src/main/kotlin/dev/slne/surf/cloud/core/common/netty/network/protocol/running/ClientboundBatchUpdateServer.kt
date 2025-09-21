@@ -28,7 +28,6 @@ class ClientboundBatchUpdateServer(
 
     constructor(servers: Iterable<CommonCloudServer>) : this(servers.map { server ->
         UpdateServerData(
-            server.uid,
             server is ProxyCloudServer,
             (server as? CloudServer)?.lobby ?: false,
             server.group,
@@ -39,7 +38,6 @@ class ClientboundBatchUpdateServer(
 
     private constructor(buf: SurfByteBuf) : this(buf.readList {
         UpdateServerData(
-            buf.readVarLong(),
             buf.readBoolean(),
             buf.readBoolean(),
             buf.readUtf(),
@@ -50,7 +48,6 @@ class ClientboundBatchUpdateServer(
 
     private fun write(buf: SurfByteBuf) {
         buf.writeCollection(servers) { buf, data ->
-            buf.writeVarLong(data.serverId)
             buf.writeBoolean(data.proxy)
             buf.writeBoolean(data.lobby)
             buf.writeUtf(data.group)
@@ -61,7 +58,6 @@ class ClientboundBatchUpdateServer(
 }
 
 data class UpdateServerData(
-    val serverId: Long,
     val proxy: Boolean,
     val lobby: Boolean,
     val group: String,

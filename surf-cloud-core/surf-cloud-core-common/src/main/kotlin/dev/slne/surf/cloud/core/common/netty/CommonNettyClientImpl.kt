@@ -12,14 +12,9 @@ import java.net.InetSocketAddress
 import kotlin.time.Duration
 
 abstract class CommonNettyClientImpl(
-    serverId: Long,
     override val serverCategory: String,
     override val serverName: String
 ) : NettyClient {
-    protected var internalServerId: Long = serverId
-
-    override val serverId: Long get() = internalServerId
-
     private val packetQueue by lazy { mutableObject2ObjectMapOf<NettyPacket, CompletableDeferred<Boolean>?>().synchronize() }
 
     private var _connection: ConnectionImpl? = null
@@ -43,7 +38,7 @@ abstract class CommonNettyClientImpl(
     override val connection get() = _connection ?: error("connection not yet set")
 
     abstract val playAddress: InetSocketAddress
-    val displayName get() = "${serverCategory}/${serverId} $serverName (${_connection?.getLoggableAddress()})"
+    val displayName get() = "$serverName/$serverCategory (${_connection?.getLoggableAddress()})"
 
     override fun fireAndForget(packet: NettyPacket) {
         val connection = _connection
@@ -73,7 +68,10 @@ abstract class CommonNettyClientImpl(
         }
     }
 
-    override suspend fun <P : ResponseNettyPacket> fireAndAwait(packet: RespondingNettyPacket<P>, timeout: Duration): P? {
+    override suspend fun <P : ResponseNettyPacket> fireAndAwait(
+        packet: RespondingNettyPacket<P>,
+        timeout: Duration
+    ): P? {
         return packet.fireAndAwait(connection, timeout)
     }
 

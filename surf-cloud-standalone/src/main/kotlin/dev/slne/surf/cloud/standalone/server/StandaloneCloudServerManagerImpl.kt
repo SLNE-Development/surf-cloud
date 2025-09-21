@@ -37,8 +37,8 @@ class StandaloneCloudServerManagerImpl : CommonCloudServerManagerImpl<ServerComm
     private val log = logger()
     private val server by lazy { bean<NettyServerImpl>() }
 
-    fun getCommonStandaloneServerByUid(uid: Long) =
-        retrieveServerById(uid) as? CommonStandaloneServer
+    fun getCommonStandaloneServerByName(name: String) =
+        retrieveServerByName(name) as? CommonStandaloneServer
 
     fun getPingData() = serverCache.asMap().values.associate { it.name to it.connection.latency }
 
@@ -46,7 +46,6 @@ class StandaloneCloudServerManagerImpl : CommonCloudServerManagerImpl<ServerComm
         super.registerServer(server)
         broadcast(
             ClientboundRegisterServerPacket(
-                server.uid,
                 server is ServerProxyCloudServer,
                 (server as? CloudServer)?.lobby ?: false,
                 server.group,
@@ -60,15 +59,16 @@ class StandaloneCloudServerManagerImpl : CommonCloudServerManagerImpl<ServerComm
         } catch (e: Exception) {
             log.atWarning()
                 .log(
-                    "Failed to post CloudServerRegisteredEvent for server ${server.uid}",
+                    "Failed to post CloudServerRegisteredEvent for server ${server.name}",
                     e
                 )
         }
     }
 
-    override fun unregisterServer(uid: Long) = super.unregisterServer(uid).also {
-        broadcast(ClientboundUnregisterServerPacket(uid))
-    }
+    override fun unregisterServer(name: String): ServerCommonCloudServer? =
+        super.unregisterServer(name).also { server ->
+            broadcast(ClientboundUnregisterServerPacket(name))
+        }
 
     override fun broadcast(packet: NettyPacket, except: (Connection) -> Boolean) {
         server.connection.broadcast(packet, except = except)

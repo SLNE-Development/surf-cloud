@@ -13,7 +13,6 @@ import dev.slne.surf.cloud.api.common.util.codec.bool
 import dev.slne.surf.cloud.api.common.util.codec.createRecordCodec
 import dev.slne.surf.cloud.api.common.util.codec.enum
 import dev.slne.surf.cloud.api.common.util.codec.int
-import dev.slne.surf.cloud.core.common.data.CloudPersistentData
 
 
 @SurfNettyPacket(
@@ -29,22 +28,22 @@ class ServerboundClientInformationPacket : NettyPacket {
         )
     }
 
-    val serverId: Long
+    val serverName: String
     val information: ClientInformation
 
-    constructor(information: ClientInformation) {
+    constructor(serverName: String, information: ClientInformation) {
+        this.serverName = serverName
         this.information = information
-        this.serverId = CloudPersistentData.SERVER_ID
     }
 
     private constructor(buffer: SurfByteBuf) {
+        serverName = buffer.readUtf()
         information = buffer.readJsonWithCodec(ClientInformation.CODEC)
-        serverId = buffer.readVarLong()
     }
 
     private fun write(buffer: SurfByteBuf) {
+        buffer.writeUtf(serverName)
         buffer.writeJsonWithCodec(ClientInformation.CODEC, information)
-        buffer.writeVarLong(serverId)
     }
 }
 

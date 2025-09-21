@@ -14,21 +14,21 @@ class ClientboundUpdateServerInformationPacket: NettyPacket {
         val STREAM_CODEC = packetCodec(ClientboundUpdateServerInformationPacket::write, ::ClientboundUpdateServerInformationPacket)
     }
 
-    val serverId: Long
+    val serverName: String
     val information: ClientInformation
 
-    constructor(serverId: Long, information: ClientInformation) {
-        this.serverId = serverId
+    constructor(serverName: String, information: ClientInformation) {
+        this.serverName = serverName
         this.information = information
     }
 
     private constructor(buf: SurfByteBuf) {
-        serverId = buf.readVarLong()
+        serverName = buf.readUtf()
         information = ClientInformation.STREAM_CODEC.decode(buf)
     }
 
     private fun write(buf: SurfByteBuf) {
-        buf.writeVarLong(serverId)
+        buf.writeUtf(serverName)
         ClientInformation.STREAM_CODEC.encode(buf, information)
     }
 }

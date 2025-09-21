@@ -40,7 +40,7 @@ allprojects {
 
         implementation(platform(project(":surf-cloud-bom")))
 
-        compileOnly("org.springframework.boot:spring-boot-configuration-processor:3.5.4")
+        compileOnly("org.springframework.boot:spring-boot-configuration-processor:3.5.6")
         //    "kapt"("org.springframework.boot:spring-boot-configuration-processor:3.4.3")
 
         testImplementation(kotlin("test"))

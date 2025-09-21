@@ -10,9 +10,9 @@ javaPlatform {
 }
 
 dependencies {
-    api(platform("org.springframework.boot:spring-boot-dependencies:3.5.4"))
-    api(platform("io.ktor:ktor-bom:3.2.3"))
-    api(platform("org.jetbrains.kotlin-wrappers:kotlin-wrappers-bom:2025.8.10"))
+    api(platform("org.springframework.boot:spring-boot-dependencies:3.5.6"))
+    api(platform("io.ktor:ktor-bom:3.3.0"))
+    api(platform("org.jetbrains.kotlin-wrappers:kotlin-wrappers-bom:2025.9.8"))
 }
 
 configurations.all {

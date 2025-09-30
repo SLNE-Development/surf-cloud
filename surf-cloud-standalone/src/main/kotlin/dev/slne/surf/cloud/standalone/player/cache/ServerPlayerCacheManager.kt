@@ -126,10 +126,10 @@ class ServerPlayerCacheManager(
         }
 
         for (uuid in newWatched) {
-            val connections = subscribers.get(uuid) { Collections.newSetFromMap(WeakHashMap()) }
-            if (connections.add()) {
-
-            }
+            subscribers.get(uuid) { Collections.newSetFromMap(WeakHashMap()) }
+//            if (connections.add()) {
+//
+//            }
         }
     }
 

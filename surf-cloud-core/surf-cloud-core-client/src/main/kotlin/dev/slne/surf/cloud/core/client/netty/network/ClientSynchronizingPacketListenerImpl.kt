@@ -12,10 +12,7 @@ import dev.slne.surf.cloud.core.common.coroutines.BeforeStartTaskScope
 import dev.slne.surf.cloud.core.common.coroutines.PacketHandlerScope
 import dev.slne.surf.cloud.core.common.netty.network.ConnectionImpl
 import dev.slne.surf.cloud.core.common.netty.network.protocol.common.ClientboundSetVelocitySecretPacket
-import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ClientboundBatchUpdateServer
-import dev.slne.surf.cloud.core.common.netty.network.protocol.running.RunningProtocols
-import dev.slne.surf.cloud.core.common.netty.network.protocol.running.SyncSetDeltaPacket
-import dev.slne.surf.cloud.core.common.netty.network.protocol.running.SyncValueChangePacket
+import dev.slne.surf.cloud.core.common.netty.network.protocol.running.*
 import dev.slne.surf.cloud.core.common.netty.network.protocol.synchronizing.*
 import dev.slne.surf.cloud.core.common.netty.registry.listener.NettyListenerRegistry
 import dev.slne.surf.cloud.core.common.plugin.task.CloudSynchronizeTaskManager
@@ -122,6 +119,18 @@ class ClientSynchronizingPacketListenerImpl(
                 .withCause(e)
                 .log("Failed to set velocity secret for packet $packet")
         }
+    }
+
+    override fun handlePlayerCacheHydrateStart(packet: ClientboundPlayerCacheHydrateStartPacket) {
+        TODO("Not yet implemented")
+    }
+
+    override fun handlePlayerCacheHydrateChunk(packet: ClientboundPlayerCacheHydrateChunkPacket) {
+        TODO("Not yet implemented")
+    }
+
+    override fun handlePlayerCacheHydrateEnd(packet: ClientboundPlayerCacheHydrateEndPacket) {
+        TODO("Not yet implemented")
     }
 
     override fun handlePacket(packet: NettyPacket) {

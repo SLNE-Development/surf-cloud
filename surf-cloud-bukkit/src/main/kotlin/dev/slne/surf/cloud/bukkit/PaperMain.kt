@@ -13,7 +13,6 @@ import dev.slne.surf.cloud.api.common.server.CloudServerManager
 import dev.slne.surf.cloud.core.common.coreCloudInstance
 import dev.slne.surf.cloud.core.common.handleEventuallyFatalError
 import dev.slne.surf.surfapi.bukkit.api.event.listen
-import io.papermc.paper.registry.TypedKey
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
 import org.bukkit.Location
@@ -35,7 +34,6 @@ class PaperMain : SuspendingJavaPlugin() {
     }
 
     override suspend fun onEnableAsync() {
-        TypedKey
         try {
             coreCloudInstance.onEnable()
         } catch (t: Throwable) {

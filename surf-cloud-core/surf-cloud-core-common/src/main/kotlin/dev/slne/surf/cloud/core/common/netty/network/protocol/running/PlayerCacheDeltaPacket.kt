@@ -3,7 +3,6 @@ package dev.slne.surf.cloud.core.common.netty.network.protocol.running
 import dev.slne.surf.cloud.api.common.meta.SurfNettyPacket
 import dev.slne.surf.cloud.api.common.netty.network.protocol.PacketFlow
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
-import dev.slne.surf.cloud.api.common.player.cache.key.CacheKey
 import dev.slne.surf.cloud.api.common.player.cache.key.CacheNetworkKey
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
@@ -120,7 +119,7 @@ data class PlayerCacheListDeltaPacket(
 @Serializable
 data class PlayerCacheSetDeltaPacket(
     override val playerId: @Contextual UUID,
-    override val key: CacheKey.Set<*>,
+    override val key: CacheNetworkKey,
     val ops: Array<out SetOp>,
     override val changeId: Long
 ) : NettyPacket(), PlayerCacheDeltaPacket {
@@ -192,7 +191,7 @@ data class PlayerCacheSetDeltaPacket(
 @Serializable
 data class PlayerCacheMapDeltaPacket(
     override val playerId: @Contextual UUID,
-    override val key: CacheKey.Map<*, *>,
+    override val key: CacheNetworkKey,
     val ops: Array<out MapOp>,
     override val changeId: Long
 ) : NettyPacket(), PlayerCacheDeltaPacket {

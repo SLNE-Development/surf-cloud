@@ -33,8 +33,6 @@ import java.io.ByteArrayOutputStream
 import java.time.Duration
 import java.util.*
 import java.util.function.Function
-import java.util.function.IntFunction
-import java.util.function.ToIntFunction
 import java.util.stream.Stream
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
@@ -136,18 +134,18 @@ object ExtraCodecs {
     }.xmap({ input -> entries.first { it.name == input } }, { it.name })
 
     fun <E> idResolverCodec(
-        elementToRawId: ToIntFunction<E?>,
-        rawIdToElement: IntFunction<E?>,
+        elementToRawId: (E) -> Int,
+        rawIdToElement: (Int) -> E?,
         errorRawId: Int
     ): Codec<E> = Codec.INT
         .flatXmap(
             { rawId ->
-                Optional.ofNullable(rawIdToElement.apply(rawId))
+                Optional.ofNullable(rawIdToElement(rawId))
                     .map { DataResult.success(it) }
                     .orElseGet { DataResult.error { "Unknown element id: $rawId" } }
             },
             { element ->
-                val rawId = elementToRawId.applyAsInt(element as E)
+                val rawId = elementToRawId(element)
                 if (rawId == errorRawId) DataResult.error { "Element with unknown id: $element" }
                 else DataResult.success(rawId)
             }

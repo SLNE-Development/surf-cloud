@@ -10,6 +10,7 @@ fun interface StreamEncoder<O, T> {
 }
 
 
+@JvmName("encodeToByteArrayWithByteArray")
 inline fun <O, T> StreamEncoder<O, T>.encodeToByteArray(
     size: Int,
     creator: (ByteArray) -> O,

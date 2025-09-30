@@ -12,5 +12,5 @@ import java.util.*
 data class PlayerCacheFullSyncPacket(
     val playerId: @Contextual UUID,
     val changeId: Long,
-    val entries: List<PlayerCacheEntrySnapshot>
+//    val entries: List<PlayerCacheEntrySnapshot>
 ) : NettyPacket()

@@ -10,7 +10,6 @@ import java.lang.reflect.Method
 import java.nio.file.Path
 import java.util.*
 import java.util.concurrent.atomic.AtomicBoolean
-import java.util.function.ToIntFunction
 import kotlin.io.path.deleteIfExists
 import kotlin.io.path.exists
 import kotlin.io.path.isRegularFile
@@ -20,17 +19,22 @@ import kotlin.reflect.jvm.kotlinFunction
 
 const val LINEAR_LOOKUP_THRESHOLD = 8
 
-fun <T> createIndexLookup(values: List<T>): ToIntFunction<T> {
+fun <T> createIndexLookup(values: List<T>): (T) -> Int {
     val size = values.size
     return if (size < LINEAR_LOOKUP_THRESHOLD) {
-        ToIntFunction { values.indexOf(it) }
+        val function: (T) -> Int = { element -> values.indexOf(element) }
+        function
     } else {
-        mutableObject2IntMapOf<T>().apply {
+        val map = mutableObject2IntMapOf<T>().apply {
             for (index in 0 until size) {
                 put(values[index], index)
             }
             defaultReturnValue(-1)
         }
+        val function: (T) -> Int = { element: T ->
+            map.getInt(element)
+        }
+        function
     }
 }
 

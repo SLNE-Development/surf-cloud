@@ -1,9 +1,11 @@
 package dev.slne.surf.cloud.standalone.player.cache
 
 import com.google.common.util.concurrent.Striped
+import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
 import dev.slne.surf.cloud.api.common.player.cache.key.CacheKey
 import dev.slne.surf.cloud.api.common.player.cache.key.CacheNetworkKey
 import dev.slne.surf.cloud.api.common.player.cache.key.PlayerCacheKeyRegistry
+import dev.slne.surf.cloud.core.common.netty.network.protocol.BundlePacket
 import dev.slne.surf.cloud.core.common.player.cache.AbstractCloudPlayerCache
 import dev.slne.surf.cloud.core.common.player.cache.CacheOperation
 import dev.slne.surf.cloud.core.common.player.cache.CacheOperationResult
@@ -47,7 +49,7 @@ class ServerPlayerCache(uuid: UUID) : AbstractCloudPlayerCache(uuid, ChangeCount
                 is CacheOperation.StructuredDelta<*> -> TODO()
             }
         }
-
+        TODO("Not yet implemented")
     }
 
     private fun applyValueSet(
@@ -109,10 +111,34 @@ class ServerPlayerCache(uuid: UUID) : AbstractCloudPlayerCache(uuid, ChangeCount
             }
         }
 
+        TODO("Not yet implemented")
     }
 
     fun exportData(): List<Pair<CacheNetworkKey, Entry>> {
+        TODO("Not yet implemented")
+    }
 
+    override fun wireSend(packet: NettyPacket) {
+        TODO("Not yet implemented")
+    }
+
+    override fun createBundle(packets: List<NettyPacket>): BundlePacket {
+        TODO("Not yet implemented")
+    }
+
+    override fun <T : Any> get(key: CacheKey<T>): T? {
+        TODO("Not yet implemented")
+    }
+
+    override fun <T : Any> set(
+        key: CacheKey.Value<T>,
+        value: T
+    ) {
+        TODO("Not yet implemented")
+    }
+
+    override fun remove(key: CacheKey<*>) {
+        TODO("Not yet implemented")
     }
 
     class Entry(initial: Any?) {
@@ -128,6 +154,7 @@ class ServerPlayerCache(uuid: UUID) : AbstractCloudPlayerCache(uuid, ChangeCount
         fun incrementVersion() = version.incrementAndGet()
 
         fun valueBytes(keyRegistry: PlayerCacheKeyRegistry): ByteArray {
+            TODO("Not yet implemented")
         }
     }
 }

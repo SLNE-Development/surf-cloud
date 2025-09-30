@@ -11,7 +11,7 @@ plugins {
     java
 }
 
-tasks.register("generateStreamCodecComposites") {
+val genComposites = tasks.register("generateStreamCodecComposites") {
     group = "generate"
 
     outputs.dir(generatedDir)
@@ -83,9 +83,10 @@ tasks.register("generateStreamCodecComposites") {
             StandardOpenOption.WRITE
         )
 
-        println("Generated ${file.relativeTo(project.projectDir)} with composite${compositeStartFrom}..$compositeMaxArity")
+        println("Generated ${file.relativeTo(project.projectDir)} with composite ${compositeStartFrom}..$compositeMaxArity")
     }
 }
+
 sourceSets {
     named("main") {
         java.srcDir(generatedDir)
@@ -93,5 +94,5 @@ sourceSets {
 }
 
 tasks.named("compileKotlin") {
-    dependsOn("generateStreamCodecComposites")
+    mustRunAfter(genComposites)
 }

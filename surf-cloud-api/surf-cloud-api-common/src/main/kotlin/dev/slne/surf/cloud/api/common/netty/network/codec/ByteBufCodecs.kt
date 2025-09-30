@@ -2,8 +2,8 @@ package dev.slne.surf.cloud.api.common.netty.network.codec
 
 import dev.slne.surf.cloud.api.common.netty.protocol.buffer.*
 import dev.slne.surf.cloud.api.common.netty.protocol.buffer.types.Utf8String
+import dev.slne.surf.cloud.api.common.util.ByIdMap
 import dev.slne.surf.cloud.api.common.util.createUnresolvedInetSocketAddress
-import dev.slne.surf.surfapi.core.api.messages.adventure.key
 import io.netty.buffer.ByteBuf
 import net.kyori.adventure.key.Key
 import net.kyori.adventure.nbt.BinaryTagIO
@@ -54,11 +54,18 @@ object ByteBufCodecs {
     }
 
     val KEY_CODEC = streamCodecComposite(STRING_CODEC, Key::asString, Key::key)
+
+
+    private val SOUND_SOURCE_BY_ID = ByIdMap.continuous(
+        { it.ordinal },
+        Sound.Source.entries.toTypedArray(),
+        ByIdMap.OutOfBoundsStrategy.ZERO
+    )
     val SOUND_CODEC = streamCodecComposite(
         KEY_CODEC,
         Sound::name,
-        enumStreamCodec<Sound.Source>(),
-        Sound::source,
+        idMapper(SOUND_SOURCE_BY_ID) { it.ordinal },
+        { it.source() },
         FLOAT_CODEC,
         Sound::volume,
         FLOAT_CODEC,
@@ -132,13 +139,20 @@ object ByteBufCodecs {
     }
 
 
-    fun <E : Enum<E>> enumStreamCodec(clazz: Class<E>) =
+    fun <E : Enum<E>> enumStreamCodec(clazz: Class<E>): StreamCodec<ByteBuf, E> =
         streamCodec(ByteBuf::writeEnum) { it.readEnum(clazz) }
 
-    inline fun <reified E : Enum<E>> enumStreamCodec() =
+    inline fun <reified E : Enum<E>> enumStreamCodec(): StreamCodec<ByteBuf, E> =
         streamCodec(ByteBuf::writeEnum) { it.readEnum<E>() }
 
-    private fun test() {
-        Sound.sound(key(""), Sound.Source.MASTER, 1f, 1f)
+
+    fun <T> idMapper(
+        idLookup: (Int) -> T,
+        idGetter: (T) -> Int
+    ): StreamCodec<ByteBuf, T> = object : StreamCodec<ByteBuf, T> {
+        override fun decode(buf: ByteBuf): T = idLookup(buf.readVarInt())
+        override fun encode(buf: ByteBuf, value: T) {
+            buf.writeVarInt(idGetter(value))
+        }
     }
 }

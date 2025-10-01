@@ -30,7 +30,7 @@ import java.util.*
 class PluginCommand : AbstractConsoleCommand() {
 
     override fun register(dispatcher: CommandDispatcher<CommandSource>) {
-        val root = literal<CommandSource>("plugins") {
+        val root = dispatcher.register(literal<CommandSource>("plugins") {
             executes { ctx ->
                 val plugins =
                     TreeMap<String, PluginProvider<StandalonePlugin>>(String.CASE_INSENSITIVE_ORDER)
@@ -57,12 +57,9 @@ class PluginCommand : AbstractConsoleCommand() {
                 ctx.source.sendMessage(infoMessage)
                 Command.SINGLE_SUCCESS
             }
-        }
-
-        dispatcher.register(root)
-        dispatcher.register(literal("pl") {
-            redirect(root.build())
         })
+
+        dispatcher.register(literal("pl") { redirect(root) })
     }
 
     private fun <T> formatProviders(plugins: TreeMap<String, PluginProvider<T>>): List<Component> {

@@ -58,8 +58,7 @@ class DefaultBanPunishmentHandler(private val punishmentManager: PunishmentManag
             return PrePlayerJoinTask.Result.ERROR
         }
         val player = player as StandaloneCloudPlayerImpl
-        val activeBans = cache.bans.filter { it.active }
-        activeBans.mapAsync { it.attachIpAddress(player.ip) }.awaitAll()
+        cache.activeBans.mapAsync { it.attachIpAddress(player.ip) }.awaitAll()
 
         return PrePlayerJoinTask.Result.ALLOWED
     }

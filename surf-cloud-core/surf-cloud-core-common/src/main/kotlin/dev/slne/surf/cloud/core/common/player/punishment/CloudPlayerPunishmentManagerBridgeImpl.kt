@@ -98,7 +98,7 @@ class CloudPlayerPunishmentManagerBridgeImpl : CloudPlayerPunishmentManagerBridg
                 return PrePlayerJoinTask.Result.ERROR
             }
 
-            val longestBan = cache.bans.find { it.active }
+            val longestBan = cache.activeBans.find { it.active }
             val banResult = if (longestBan != null) {
                 PrePlayerJoinTask.Result.DENIED(
                     MessageManager.Punish.Ban(longestBan).banDisconnectComponent()
@@ -114,7 +114,7 @@ class CloudPlayerPunishmentManagerBridgeImpl : CloudPlayerPunishmentManagerBridg
 
             for (validation in loginValidations) {
                 val result = validation.performLoginCheck(player, cache)
-                if (result !is PunishmentLoginValidation.Result.ALLOWED) {
+                if (!result.allowed) {
                     return wrap(result)
                 }
             }
@@ -126,6 +126,7 @@ class CloudPlayerPunishmentManagerBridgeImpl : CloudPlayerPunishmentManagerBridg
             PunishmentLoginValidation.Result.ALLOWED -> PrePlayerJoinTask.Result.ALLOWED
             is PunishmentLoginValidation.Result.DENIED -> PrePlayerJoinTask.Result.DENIED(from.reason)
             PunishmentLoginValidation.Result.ERROR -> PrePlayerJoinTask.Result.ERROR
+            else -> PrePlayerJoinTask.Result.ERROR
         }
     }
 }

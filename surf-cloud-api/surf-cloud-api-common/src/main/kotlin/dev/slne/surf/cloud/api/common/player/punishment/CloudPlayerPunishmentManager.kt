@@ -95,22 +95,35 @@ interface PunishmentLoginValidation {
 
     @NonExtendable
     interface PunishmentCache {
-        val mutes: List<PunishmentMute>
-        val bans: List<PunishmentBan>
+        val activeMutes: List<PunishmentMute>
+        val activeBans: List<PunishmentBan>
         val kicks: List<PunishmentKick>
         val warnings: List<PunishmentWarn>
     }
 
     @Serializable
+    @Suppress("ClassName")
     sealed interface Result {
+        val allowed: Boolean
 
         @Serializable
-        data object ALLOWED : Result
+        data object ALLOWED : Result {
+            override val allowed: Boolean = true
+        }
 
         @Serializable
-        data class DENIED(val reason: Component) : Result
+        data class DENIED(val reason: Component) : Result {
+            override val allowed: Boolean = false
+        }
 
         @Serializable
-        data object ERROR : Result
+        data object ERROR : Result {
+            override val allowed: Boolean = false
+        }
+
+        @Serializable
+        data object NOT_HANDLED : Result {
+            override val allowed: Boolean = true
+        }
     }
 }

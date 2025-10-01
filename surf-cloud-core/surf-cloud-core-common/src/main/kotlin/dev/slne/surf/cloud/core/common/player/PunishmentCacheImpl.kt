@@ -9,8 +9,8 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class PunishmentCacheImpl(
-    override val mutes: List<PunishmentMuteImpl>,
-    override val bans: List<PunishmentBanImpl>,
+    override val activeMutes: List<PunishmentMuteImpl>,
+    override val activeBans: List<PunishmentBanImpl>,
     override val kicks: List<PunishmentKickImpl>,
     override val warnings: List<PunishmentWarnImpl>,
 ) : PunishmentLoginValidation.PunishmentCache

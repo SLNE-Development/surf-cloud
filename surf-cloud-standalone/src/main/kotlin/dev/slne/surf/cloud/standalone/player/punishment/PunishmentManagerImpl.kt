@@ -343,14 +343,14 @@ class PunishmentManagerImpl(private val service: PunishmentService) : Punishment
     }
 
     private suspend fun fetchPunishmentCache(uuid: UUID): PunishmentCacheImpl = coroutineScope {
-        val mutesDeferred = async { fetchMutes(uuid, onlyActive = false) }
-        val bansDeferred = async { fetchBans(uuid, onlyActive = false) }
+        val mutesDeferred = async { fetchMutes(uuid, onlyActive = true) }
+        val bansDeferred = async { fetchBans(uuid, onlyActive = true) }
         val kicksDeferred = async { fetchKicks(uuid) }
         val warningsDeferred = async { fetchWarnings(uuid) }
 
         PunishmentCacheImpl(
-            mutes = mutesDeferred.await().sorted().toObjectList(),
-            bans = bansDeferred.await().sorted().toObjectList(),
+            activeMutes = mutesDeferred.await().sorted().toObjectList(),
+            activeBans = bansDeferred.await().sorted().toObjectList(),
             kicks = kicksDeferred.await().toObjectList(),
             warnings = warningsDeferred.await().toObjectList()
         )

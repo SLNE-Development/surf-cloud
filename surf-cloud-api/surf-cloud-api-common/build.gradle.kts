@@ -3,6 +3,7 @@ import dev.slne.surf.surfapi.gradle.util.slneReleases
 plugins {
     `exclude-kotlin`
     id("dev.slne.surf.surfapi.gradle.core")
+    `generate-stream-codec`
 }
 
 dependencies {

@@ -1,5 +1,6 @@
 package dev.slne.surf.cloud.api.common.netty.protocol.buffer.types
 
+import dev.slne.surf.cloud.api.common.netty.network.codec.streamCodec
 import dev.slne.surf.cloud.api.common.netty.protocol.buffer.checkDecoded
 import dev.slne.surf.cloud.api.common.netty.protocol.buffer.checkEncoded
 import dev.slne.surf.cloud.api.common.netty.protocol.buffer.readVarInt
@@ -15,6 +16,10 @@ import java.nio.charset.StandardCharsets
  * and encoding constraints are enforced to prevent errors or buffer overflows.
  */
 object Utf8String {
+    val STREAM_CODEC = streamCodec<ByteBuf, String>(
+        { buf, string -> write(buf, string, Int.MAX_VALUE) },
+        { buf -> read(buf, Int.MAX_VALUE) }
+    )
 
     /**
      * Reads a UTF-8 encoded string from the specified [ByteBuf].

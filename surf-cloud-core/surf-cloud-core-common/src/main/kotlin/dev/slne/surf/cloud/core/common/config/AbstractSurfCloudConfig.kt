@@ -30,12 +30,7 @@ abstract class AbstractSurfCloudConfigHolder<C : AbstractSurfCloudConfig>(
     private val manager: SpongeConfigManager<C>
 
     init {
-        surfConfigApi.createSpongeYmlConfig(
-            configClass,
-            coreCloudInstance.dataFolder,
-            "config.yml"
-        )
-
+        createConfig(configClass)
         manager = surfConfigApi.getSpongeConfigManagerForConfig(configClass)
     }
 
@@ -52,5 +47,13 @@ abstract class AbstractSurfCloudConfigHolder<C : AbstractSurfCloudConfig>(
     fun saveToFile() {
         reloadAware.forEachAnnotationOrdered { it.beforeSave() }
         manager.save()
+    }
+
+    companion object {
+        fun <C> createConfig(configClass: Class<C>) = surfConfigApi.createSpongeYmlConfig(
+            configClass,
+            coreCloudInstance.dataFolder,
+            "config.yml"
+        )
     }
 }

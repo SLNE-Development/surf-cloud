@@ -20,8 +20,18 @@ data class DatabaseConfig(
 
     @Comment("Type of database to connect to")
     @Setting("type")
-    val type: DatabaseType = DatabaseType.MARIADB
+    val type: DatabaseType = DatabaseType.MARIADB,
+
+    val flyway: FlywayConfig = FlywayConfig()
 ) {
+
+    @ConfigSerializable
+    data class FlywayConfig(
+        val enabled: Boolean = true,
+        val baselineOnMigrate: Boolean = false,
+    )
+
+
     enum class DatabaseType(val driver: String) {
         MYSQL("com.mysql.cj.jdbc.Driver"),
         MARIADB("org.mariadb.jdbc.Driver"),

@@ -22,6 +22,7 @@ import dev.slne.surf.cloud.core.common.coroutines.PacketHandlerScope
 import dev.slne.surf.cloud.core.common.netty.network.ConnectionImpl
 import dev.slne.surf.cloud.core.common.netty.network.protocol.common.ClientboundSetVelocitySecretPacket
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.*
+import dev.slne.surf.cloud.core.common.netty.network.protocol.synchronizing.ClientboundCacheRegisterAckPacket
 import dev.slne.surf.cloud.core.common.netty.registry.listener.NettyListenerRegistry
 import dev.slne.surf.cloud.core.common.player.playerManagerImpl
 import dev.slne.surf.cloud.core.common.player.task.PrePlayerJoinTaskManager
@@ -352,6 +353,18 @@ class ClientRunningPacketListenerImpl(
                 .withCause(e)
                 .log("Failed to set velocity secret for packet $packet")
         }
+    }
+
+    override fun handleCacheRegisterAck(packet: ClientboundCacheRegisterAckPacket) {
+        TODO("Not yet implemented")
+    }
+
+    override fun handleCacheDelta(packet: ClientboundCacheDeltaPacket) {
+        TODO("Not yet implemented")
+    }
+
+    override fun handleCacheError(packet: ClientboundCacheErrorPacket) {
+        TODO("Not yet implemented")
     }
 
     override fun handlePacket(packet: NettyPacket) {

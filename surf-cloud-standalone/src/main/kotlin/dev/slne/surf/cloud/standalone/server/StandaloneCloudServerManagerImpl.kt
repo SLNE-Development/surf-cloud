@@ -1,6 +1,7 @@
 package dev.slne.surf.cloud.standalone.server
 
 import com.google.auto.service.AutoService
+import dev.slne.surf.cloud.api.common.netty.network.Connection
 import dev.slne.surf.cloud.api.common.netty.network.protocol.awaitOrThrowUrgent
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
 import dev.slne.surf.cloud.api.common.player.CloudPlayer
@@ -69,8 +70,8 @@ class StandaloneCloudServerManagerImpl : CommonCloudServerManagerImpl<ServerComm
             broadcast(ClientboundUnregisterServerPacket(name))
         }
 
-    override fun broadcast(packet: NettyPacket) {
-        server.connection.broadcast(packet)
+    override fun broadcast(packet: NettyPacket, except: (Connection) -> Boolean) {
+        server.connection.broadcast(packet, except = except)
     }
 
     suspend fun requestOfflineDisplayName(uuid: UUID): Component? {

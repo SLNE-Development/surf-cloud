@@ -16,10 +16,7 @@ import dev.slne.surf.cloud.core.common.player.punishment.CloudPlayerPunishmentMa
 import dev.slne.surf.cloud.core.common.player.task.PrePlayerJoinTaskAutoRegistrationHandler
 import dev.slne.surf.cloud.core.common.plugin.task.CloudBeforeStartTaskHandler
 import dev.slne.surf.cloud.core.common.processors.NettyPacketProcessor
-import dev.slne.surf.cloud.core.common.spring.CloudChildSpringApplicationConfiguration
-import dev.slne.surf.cloud.core.common.spring.CloudLifecycleAware
-import dev.slne.surf.cloud.core.common.spring.CloudUncaughtExceptionHandler
-import dev.slne.surf.cloud.core.common.spring.SurfSpringBanner
+import dev.slne.surf.cloud.core.common.spring.*
 import dev.slne.surf.cloud.core.common.spring.event.RootSpringContextInitialized
 import dev.slne.surf.cloud.core.common.util.getCallerClass
 import dev.slne.surf.cloud.core.common.util.tempChangeSystemClassLoader
@@ -154,6 +151,11 @@ class CloudCoreInstance : CloudInstance {
             .profiles(springProfile)
             .initializers(NettyPacketProcessor())
             .web(WebApplicationType.NONE)
+            .apply {
+                for (configuration in CloudSpringApplicationConfiguration.configurations) {
+                    configuration.configureApplication(this)
+                }
+            }
             .run()
     }
 
@@ -166,7 +168,12 @@ class CloudCoreInstance : CloudInstance {
         val joinClassLoader = JoinClassLoader(classLoader, parentClassLoader)
         return tempChangeSystemClassLoader(joinClassLoader) {
             val parentContext = internalContext ?: error("Parent context is not initialized yet.")
-            val resourceLoader = DefaultResourceLoader(JoinClassLoader(joinClassLoader, listOf(javaClass.classLoader)))
+            val resourceLoader = DefaultResourceLoader(
+                JoinClassLoader(
+                    joinClassLoader,
+                    listOf(javaClass.classLoader)
+                )
+            )
             val childConfigurations =
                 parentContext.getBeansOfType(CloudChildSpringApplicationConfiguration::class.java)
 

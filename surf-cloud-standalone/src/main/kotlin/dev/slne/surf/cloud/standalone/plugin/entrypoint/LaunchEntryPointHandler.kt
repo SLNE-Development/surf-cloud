@@ -40,7 +40,7 @@ object LaunchEntryPointHandler : EntrypointHandler {
         return enteredMap.getBoolean(entrypoint)
     }
 
-    private fun <T> get(entrypoint: Entrypoint<T>): ProviderStorage<T>? {
+    fun <T> get(entrypoint: Entrypoint<T>): ProviderStorage<T>? {
         @Suppress("UNCHECKED_CAST")
         return storage[entrypoint] as? ProviderStorage<T>
     }

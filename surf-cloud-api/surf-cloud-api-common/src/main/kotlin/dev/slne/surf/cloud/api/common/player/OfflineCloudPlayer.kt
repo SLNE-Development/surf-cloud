@@ -36,6 +36,7 @@ interface OfflineCloudPlayer {
 
     val punishmentManager: CloudPlayerPunishmentManager
     val whitelistManager: CloudPlayerWhitelistManager
+//    val cache: CloudPlayerCache
 
     /**
      * Suspends until the display name of the player is retrieved.

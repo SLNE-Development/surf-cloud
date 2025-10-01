@@ -53,7 +53,6 @@ private object YamlConfigParser : ConfigParser {
 
 object CloudServerConfigProvider : ServerConfigProvider(
     mapOf(
-        "standalone-config.yml" to YamlConfigParser,
         "config.yml" to YamlConfigParser,
     ),
     listOf(

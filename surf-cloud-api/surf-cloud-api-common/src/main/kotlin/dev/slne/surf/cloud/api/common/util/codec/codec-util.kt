@@ -33,8 +33,6 @@ import java.io.ByteArrayOutputStream
 import java.time.Duration
 import java.util.*
 import java.util.function.Function
-import java.util.function.IntFunction
-import java.util.function.ToIntFunction
 import java.util.stream.Stream
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
@@ -136,18 +134,18 @@ object ExtraCodecs {
     }.xmap({ input -> entries.first { it.name == input } }, { it.name })
 
     fun <E> idResolverCodec(
-        elementToRawId: ToIntFunction<E?>,
-        rawIdToElement: IntFunction<E?>,
+        elementToRawId: (E) -> Int,
+        rawIdToElement: (Int) -> E?,
         errorRawId: Int
     ): Codec<E> = Codec.INT
         .flatXmap(
             { rawId ->
-                Optional.ofNullable(rawIdToElement.apply(rawId))
+                Optional.ofNullable(rawIdToElement(rawId))
                     .map { DataResult.success(it) }
                     .orElseGet { DataResult.error { "Unknown element id: $rawId" } }
             },
             { element ->
-                val rawId = elementToRawId.applyAsInt(element as E)
+                val rawId = elementToRawId(element)
                 if (rawId == errorRawId) DataResult.error { "Element with unknown id: $element" }
                 else DataResult.success(rawId)
             }
@@ -294,21 +292,6 @@ object ExtraCodecs {
         )
     })
 
-    val STREAM_SOUND_CODEC = streamCodec<ByteBuf, Sound>({ buf, sound ->
-        buf.writeEnum(sound.source())
-        buf.writeFloat(sound.volume())
-        buf.writeFloat(sound.pitch())
-        buf.writeOptionalLong(sound.seed())
-        buf.writeKey(sound.name())
-    }, { buf ->
-        Sound.sound()
-            .source(buf.readEnum<Sound.Source>())
-            .volume(buf.readFloat())
-            .pitch(buf.readFloat())
-            .seed(buf.readOptionalLong())
-            .type(buf.readKey())
-            .build()
-    })
 
     val STREAM_EMITTER_SELF_CODEC = streamCodecUnitSimple(Sound.Emitter.self())
 
@@ -372,12 +355,6 @@ object ExtraCodecs {
         Codec.STRING.comapFlatMap(
             { if (Key.parseable(it)) DataResult.success(Key.key(it)) else DataResult.error { "Cannot convert $it to adventure Key" } },
             { it.asString() })
-
-    val STREAM_KEY_CODEC = streamCodec<ByteBuf, Key>({ buf, key ->
-        buf.writeUtf(key.asString())
-    }, { buf ->
-        Key.key(buf.readUtf())
-    })
 
     // endregion
     // region nbt

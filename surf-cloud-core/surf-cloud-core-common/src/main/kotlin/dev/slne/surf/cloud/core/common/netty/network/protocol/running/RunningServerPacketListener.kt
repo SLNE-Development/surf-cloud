@@ -4,6 +4,7 @@ import dev.slne.surf.cloud.api.common.netty.network.ConnectionProtocol
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
 import dev.slne.surf.cloud.core.common.netty.network.TickablePacketListener
 import dev.slne.surf.cloud.core.common.netty.network.protocol.common.ServerCommonPacketListener
+import dev.slne.surf.cloud.core.common.netty.network.protocol.synchronizing.ServerboundCacheRegisterKeysPacket
 
 interface RunningServerPacketListener : ServerCommonPacketListener, TickablePacketListener {
     override val protocol get() = ConnectionProtocol.RUNNING
@@ -119,6 +120,11 @@ interface RunningServerPacketListener : ServerCommonPacketListener, TickablePack
     suspend fun handleUpdateWhitelist(packet: ServerboundUpdateWhitelistPacket)
 
     fun handleRefreshWhitelist(packet: ServerboundRefreshWhitelistPacket)
+
+    fun handleCacheRegisterKeys(packet: ServerboundCacheRegisterKeysPacket)
+    fun handleCacheOp(packet: ServerboundCacheOpPacket)
+    fun handleCacheFetch(packet: ServerboundCacheFetchPacket)
+    fun handleCacheWatchPlayers(packet: ServerboundCacheWatchPlayersPacket)
 
     fun handlePacket(packet: NettyPacket)
 }

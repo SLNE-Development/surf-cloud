@@ -1,5 +1,6 @@
 package dev.slne.surf.cloud.api.server.server
 
+import dev.slne.surf.cloud.api.common.netty.network.Connection
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
 import dev.slne.surf.cloud.api.common.server.CloudServerManager
 import it.unimi.dsi.fastutil.objects.ObjectCollection
@@ -21,7 +22,7 @@ interface ServerCloudServerManager : CloudServerManager {
     override fun retrieveServers(): ObjectCollection<out ServerCloudServer>
     override fun retrieveProxies(): ObjectCollection<out ServerProxyCloudServer>
 
-    fun broadcast(packet: NettyPacket)
+    fun broadcast(packet: NettyPacket, except: (Connection) -> Boolean = { false })
 
     companion object :
         ServerCloudServerManager by CloudServerManager.instance as ServerCloudServerManager

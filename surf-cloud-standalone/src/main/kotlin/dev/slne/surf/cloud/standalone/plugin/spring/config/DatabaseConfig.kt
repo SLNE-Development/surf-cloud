@@ -1,9 +1,11 @@
 package dev.slne.surf.cloud.standalone.plugin.spring.config
 
+import com.github.benmanes.caffeine.cache.Caffeine
 import dev.slne.surf.cloud.api.server.plugin.configuration.PluginMeta
 import dev.slne.surf.cloud.standalone.plugin.PluginInitializerManager
 import dev.slne.surf.surfapi.core.api.config.createSpongeYmlConfig
 import dev.slne.surf.surfapi.core.api.config.surfConfigApi
+import net.kyori.adventure.util.TriState
 import org.spongepowered.configurate.objectmapping.ConfigSerializable
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -21,6 +23,7 @@ data class DatabaseConfig(
 ) {
     @ConfigSerializable
     data class FlywayConfig(
+        val enabled: TriState = TriState.NOT_SET,
         val baselineOnMigrate: Boolean = false,
     )
 
@@ -38,10 +41,21 @@ data class DatabaseConfig(
 @Profile("plugin")
 class DatabaseConfigConfiguration {
 
+    companion object {
+        private val configurations = Caffeine.newBuilder()
+            .build<String, DatabaseConfig>()
+
+
+        fun getOrCreate(meta: PluginMeta) = configurations.get(meta.name) {
+            createDatabaseConfig(PluginInitializerManager.pluginDirectoryPath / meta.name)
+        }
+    }
+
+
     @Suppress("SpringJavaInjectionPointsAutowiringInspection")
     @Bean
     fun pluginDatabaseConfig(meta: PluginMeta): DatabaseConfig {
-        return createDatabaseConfig(PluginInitializerManager.pluginDirectoryPath / meta.name)
+        return getOrCreate(meta)
     }
 }
 

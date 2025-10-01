@@ -1,17 +1,14 @@
 package dev.slne.surf.cloud.standalone.config
 
 import dev.slne.surf.cloud.core.common.config.AbstractSurfCloudConfig
-import dev.slne.surf.cloud.core.common.config.AbstractSurfCloudConfigHolder
-import dev.slne.surf.cloud.core.common.config.ConfigReloadAware
 import dev.slne.surf.cloud.standalone.config.ktor.KtorConfig
 import dev.slne.surf.cloud.standalone.config.logging.ServerLoggingConfig
+import dev.slne.surf.cloud.standalone.config.playercache.PlayerCacheConfig
 import dev.slne.surf.cloud.standalone.config.proxy.ProxyConfig
 import dev.slne.surf.cloud.standalone.config.queue.QueueConfig
 import org.spongepowered.configurate.objectmapping.ConfigSerializable
 import org.spongepowered.configurate.objectmapping.meta.Comment
 import org.spongepowered.configurate.objectmapping.meta.Setting
-import org.springframework.beans.factory.ObjectProvider
-import org.springframework.stereotype.Component
 
 @ConfigSerializable
 class StandaloneConfig(
@@ -32,8 +29,8 @@ class StandaloneConfig(
 
     @Setting("whitelist")
     val whitelist: WhitelistConfig = WhitelistConfig(),
+
+    @Setting("player-cache")
+    val playerCache: PlayerCacheConfig = PlayerCacheConfig()
 ) : AbstractSurfCloudConfig()
 
-@Component
-class StandaloneConfigHolder(reloadAware: ObjectProvider<ConfigReloadAware>) :
-    AbstractSurfCloudConfigHolder<StandaloneConfig>(reloadAware, StandaloneConfig::class.java)

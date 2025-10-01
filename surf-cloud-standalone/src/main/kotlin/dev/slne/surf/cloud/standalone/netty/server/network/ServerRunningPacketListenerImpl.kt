@@ -17,6 +17,7 @@ import dev.slne.surf.cloud.core.common.coroutines.PunishmentHandlerScope
 import dev.slne.surf.cloud.core.common.coroutines.QueueConnectionScope
 import dev.slne.surf.cloud.core.common.netty.network.ConnectionImpl
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.*
+import dev.slne.surf.cloud.core.common.netty.network.protocol.synchronizing.ServerboundCacheRegisterKeysPacket
 import dev.slne.surf.cloud.core.common.netty.registry.listener.NettyListenerRegistry
 import dev.slne.surf.cloud.core.common.player.PunishmentManager
 import dev.slne.surf.cloud.core.common.player.playerManagerImpl
@@ -586,6 +587,22 @@ class ServerRunningPacketListenerImpl(
                 .withCause(e)
                 .log("Failed to handle refresh whitelist request")
         }
+    }
+
+    override fun handleCacheRegisterKeys(packet: ServerboundCacheRegisterKeysPacket) {
+        TODO("Not yet implemented")
+    }
+
+    override fun handleCacheOp(packet: ServerboundCacheOpPacket) {
+        TODO("Not yet implemented")
+    }
+
+    override fun handleCacheFetch(packet: ServerboundCacheFetchPacket) {
+        TODO("Not yet implemented")
+    }
+
+    override fun handleCacheWatchPlayers(packet: ServerboundCacheWatchPlayersPacket) {
+        TODO("Not yet implemented")
     }
 
     override fun handlePacket(packet: NettyPacket) {

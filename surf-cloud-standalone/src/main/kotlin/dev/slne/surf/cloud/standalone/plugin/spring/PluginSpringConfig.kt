@@ -16,7 +16,8 @@ import org.springframework.boot.builder.SpringApplicationBuilder
 import org.springframework.stereotype.Component
 
 @Component
-class PluginSpringConfig : CloudChildSpringApplicationConfiguration {
+class PluginSpringConfig() :
+    CloudChildSpringApplicationConfiguration {
 
     override fun configureChildApplication(
         builder: SpringApplicationBuilder,

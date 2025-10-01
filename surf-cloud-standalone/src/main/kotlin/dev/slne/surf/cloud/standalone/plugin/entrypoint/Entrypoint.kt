@@ -11,4 +11,8 @@ class Entrypoint<T>(
         val SPRING_PLUGIN_BOOTSTRAPPER =
             Entrypoint<StandalonePluginBootstrap>("spring-plugin-bootstrapper")
     }
+
+    override fun toString(): String {
+        return "Entrypoint(debugName='$debugName')"
+    }
 }

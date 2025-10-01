@@ -32,13 +32,14 @@ object ByIdMap {
         values: Array<T>
     ): Array<T> {
         val size = values.size
-        require(size != 0) { "Empty value list" }
+        require(size > 0) { "Empty value list" }
 
-        val objects = values.copyOf(size)
+        val objects =
+            java.lang.reflect.Array.newInstance(values.javaClass.componentType, size) as Array<T?>
 
         for (element in values) {
             val id = keyExtractor(element)
-            require(!(id < 0 || id >= size)) { "Values are not continous, found index $id for value $element" }
+            require(id in 0 until size) { "Values are not continous, found index $id for value $element" }
 
             val previous = objects[id]
             require(previous == null) { "Duplicate entry on id $id: current=$element, previous=$previous" }

@@ -6,7 +6,7 @@ import dev.slne.surf.cloud.api.common.netty.network.protocol.PacketFlow
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
 import dev.slne.surf.cloud.api.common.netty.packet.packetCodec
 import dev.slne.surf.cloud.api.common.netty.protocol.buffer.SurfByteBuf
-import dev.slne.surf.cloud.api.common.util.objectListOf
+import dev.slne.surf.cloud.api.common.util.mutableObjectListOf
 import dev.slne.surf.cloud.core.common.sync.CommonSyncRegistryImpl
 import dev.slne.surf.cloud.core.common.sync.SyncSetImpl
 import dev.slne.surf.surfapi.core.api.util.logger
@@ -30,7 +30,7 @@ class ClientboundBatchSyncSetPacket : NettyPacket {
     }
 
     private constructor(buf: SurfByteBuf) {
-        val unknownSyncValues = objectListOf<String>()
+        val unknownSyncValues = mutableObjectListOf<String>()
 
         syncSets = buf.readList { buf ->
             val syncId = buf.readUtf()

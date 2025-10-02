@@ -11,6 +11,7 @@ surfPaperPluginApi {
     bootstrapper("dev.slne.surf.cloud.bukkit.PaperBootstrap")
     authors.add("twisti")
     generateLibraryLoader(false)
+    foliaSupported(true)
 
     serverDependencies {
         registerRequired("LuckPerms")

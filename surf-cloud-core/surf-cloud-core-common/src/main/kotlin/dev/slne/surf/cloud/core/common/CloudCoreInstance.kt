@@ -193,7 +193,7 @@ class CloudCoreInstance : CloudInstance {
 
             val builder = SpringApplicationBuilder(applicationClass)
                 .resourceLoader(resourceLoader)
-                .bannerMode(Banner.Mode.CONSOLE)
+                .bannerMode(Banner.Mode.OFF)
                 .banner(SurfSpringBanner())
                 .properties(properties)
                 .profiles(springProfile)
@@ -236,7 +236,8 @@ class CloudCoreInstance : CloudInstance {
 
             customizer(builder)
 
-            log.atInfo().log("Starting Spring application...")
+            log.atInfo()
+                .log("Starting Spring application for ${applicationClass.name} with profile(s): $springProfile")
             builder.run()
         }
     }

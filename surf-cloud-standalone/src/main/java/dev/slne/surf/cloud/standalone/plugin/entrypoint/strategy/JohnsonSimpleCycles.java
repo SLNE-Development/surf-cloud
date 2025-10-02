@@ -4,13 +4,16 @@ import com.google.common.base.Preconditions;
 import com.google.common.graph.Graph;
 import com.google.common.graph.GraphBuilder;
 import com.google.common.graph.MutableGraph;
-import com.mojang.datafixers.util.Pair;
+import it.unimi.dsi.fastutil.objects.AbstractObject2IntMap;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import it.unimi.dsi.fastutil.objects.ObjectList;
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
+import it.unimi.dsi.fastutil.objects.ObjectSet;
 import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -32,21 +35,21 @@ public class JohnsonSimpleCycles<V> {
   private final Graph<V> graph;
 
   // The main state of the algorithm.
-  private Consumer<List<V>> cycleConsumer = null;
+  private Consumer<ObjectList<V>> cycleConsumer = null;
   private BiConsumer<V, V> cycleVertexSuccessorConsumer = null; // Paper
   private V[] iToV = null;
-  private Map<V, Integer> vToI = null;
-  private Set<V> blocked = null;
-  private Map<V, Set<V>> bSets = null;
+  private Object2IntMap<V> vToI = null;
+  private ObjectSet<V> blocked = null;
+  private Object2ObjectMap<V, ObjectSet<V>> bSets = null;
   private ArrayDeque<V> stack = null;
 
   // The state of the embedded Tarjan SCC algorithm.
-  private List<Set<V>> foundSCCs = null;
+  private ObjectList<ObjectSet<V>> foundSCCs = null;
   private int index = 0;
-  private Map<V, Integer> vIndex = null;
-  private Map<V, Integer> vLowlink = null;
+  private Object2IntMap<V> vIndex = null;
+  private Object2IntMap<V> vLowlink = null;
   private ArrayDeque<V> path = null;
-  private Set<V> pathSet = null;
+  private ObjectSet<V> pathSet = null;
 
   /**
    * Create a simple cycle finder for the specified graph.
@@ -64,8 +67,8 @@ public class JohnsonSimpleCycles<V> {
    *
    * @return The list of all simple cycles. Possibly empty but never <code>null</code>.
    */
-  public List<List<V>> findAndRemoveSimpleCycles() {
-    List<List<V>> result = new ArrayList<>();
+  public ObjectList<ObjectList<V>> findAndRemoveSimpleCycles() {
+    ObjectList<ObjectList<V>> result = new ObjectArrayList<>();
     findSimpleCycles(result::add, (v, s) -> ((MutableGraph<V>) graph).removeEdge(v, s)); // Paper
     return result;
   }
@@ -75,7 +78,7 @@ public class JohnsonSimpleCycles<V> {
    *
    * @param consumer Consumer that will be called with each cycle found.
    */
-  public void findSimpleCycles(Consumer<List<V>> consumer,
+  public void findSimpleCycles(Consumer<ObjectList<V>> consumer,
       BiConsumer<V, V> vertexSuccessorConsumer) // Paper
   {
     if (graph == null) {
@@ -87,10 +90,10 @@ public class JohnsonSimpleCycles<V> {
     int startIndex = 0;
     int size = graph.nodes().size();
     while (startIndex < size) {
-      Pair<Graph<V>, Integer> minSCCGResult = findMinSCSG(startIndex);
+      Object2IntMap.Entry<Graph<V>> minSCCGResult = findMinSCSG(startIndex);
       if (minSCCGResult != null) {
-        startIndex = minSCCGResult.getSecond();
-        Graph<V> scg = minSCCGResult.getFirst();
+        startIndex = minSCCGResult.getIntValue();
+        Graph<V> scg = minSCCGResult.getKey();
         V startV = toV(startIndex);
         for (V v : scg.successors(startV)) {
           blocked.remove(v);
@@ -106,7 +109,7 @@ public class JohnsonSimpleCycles<V> {
     clearState();
   }
 
-  private Pair<Graph<V>, Integer> findMinSCSG(int startIndex) {
+  private Object2IntMap.Entry<Graph<V>> findMinSCSG(int startIndex) {
     /*
      * Per Johnson : "adjacency structure of strong component $K$ with least vertex in subgraph
      * of $G$ induced by $(s, s + 1, n)$". Or in contemporary terms: the strongly connected
@@ -115,12 +118,12 @@ public class JohnsonSimpleCycles<V> {
      */
     initMinSCGState();
 
-    List<Set<V>> foundSCCs = findSCCS(startIndex);
+    ObjectList<ObjectSet<V>> foundSCCs = findSCCS(startIndex);
 
     // find the SCC with the minimum index
     int minIndexFound = Integer.MAX_VALUE;
-    Set<V> minSCC = null;
-    for (Set<V> scc : foundSCCs) {
+    ObjectSet<V> minSCC = null;
+    for (ObjectSet<V> scc : foundSCCs) {
       for (V v : scc) {
         int t = toI(v);
         if (t < minIndexFound) {
@@ -144,12 +147,13 @@ public class JohnsonSimpleCycles<V> {
       }
     }
 
-    Pair<Graph<V>, Integer> result = Pair.of(dependencyGraph, minIndexFound);
+    Object2IntMap.Entry<Graph<V>> result = new AbstractObject2IntMap.BasicEntry(dependencyGraph,
+        minIndexFound);
     clearMinSCCState();
     return result;
   }
 
-  private List<Set<V>> findSCCS(int startIndex) {
+  private ObjectList<ObjectSet<V>> findSCCS(int startIndex) {
     // Find SCCs in the subgraph induced
     // by vertices startIndex and beyond.
     // A call to StrongConnectivityAlgorithm
@@ -168,7 +172,7 @@ public class JohnsonSimpleCycles<V> {
         getSCCs(startIndex, vI);
       }
     }
-    List<Set<V>> result = foundSCCs;
+    ObjectList<ObjectSet<V>> result = foundSCCs;
     foundSCCs = null;
     return result;
   }
@@ -195,7 +199,7 @@ public class JohnsonSimpleCycles<V> {
       }
     }
     if (vLowlink.get(vertex).equals(vIndex.get(vertex))) {
-      Set<V> result = new HashSet<>();
+      ObjectSet<V> result = new ObjectOpenHashSet<>();
       V temp;
       do {
         temp = path.pop();
@@ -225,7 +229,7 @@ public class JohnsonSimpleCycles<V> {
     for (V successor : scg.successors(vertex)) {
       int successorIndex = toI(successor);
       if (successorIndex == startIndex) {
-        List<V> cycle = new ArrayList<>(stack.size());
+        ObjectList<V> cycle = new ObjectArrayList<>(stack.size());
         stack.descendingIterator().forEachRemaining(cycle::add);
         cycleConsumer.accept(cycle);
         cycleVertexSuccessorConsumer.accept(vertex, successor); // Paper
@@ -239,7 +243,7 @@ public class JohnsonSimpleCycles<V> {
       unblock(vertex);
     } else {
       for (V w : scg.successors(vertex)) {
-        Set<V> bSet = getBSet(w);
+        ObjectSet<V> bSet = getBSet(w);
         bSet.add(vertex);
       }
     }
@@ -249,7 +253,7 @@ public class JohnsonSimpleCycles<V> {
 
   private void unblock(V vertex) {
     blocked.remove(vertex);
-    Set<V> bSet = getBSet(vertex);
+    ObjectSet<V> bSet = getBSet(vertex);
     while (bSet.size() > 0) {
       V w = bSet.iterator().next();
       bSet.remove(w);
@@ -260,12 +264,12 @@ public class JohnsonSimpleCycles<V> {
   }
 
   @SuppressWarnings("unchecked")
-  private void initState(Consumer<List<V>> consumer) {
+  private void initState(Consumer<ObjectList<V>> consumer) {
     cycleConsumer = consumer;
     iToV = (V[]) graph.nodes().toArray();
-    vToI = new HashMap<>();
-    blocked = new HashSet<>();
-    bSets = new HashMap<>();
+    vToI = new Object2IntOpenHashMap<>();
+    blocked = new ObjectOpenHashSet<>();
+    bSets = new Object2ObjectOpenHashMap<>();
     stack = new ArrayDeque<>();
 
     for (int i = 0; i < iToV.length; i++) {
@@ -284,11 +288,11 @@ public class JohnsonSimpleCycles<V> {
 
   private void initMinSCGState() {
     index = 0;
-    foundSCCs = new ArrayList<>();
-    vIndex = new HashMap<>();
-    vLowlink = new HashMap<>();
+    foundSCCs = new ObjectArrayList<>();
+    vIndex = new Object2IntOpenHashMap<>();
+    vLowlink = new Object2IntOpenHashMap<>();
     path = new ArrayDeque<>();
-    pathSet = new HashSet<>();
+    pathSet = new ObjectOpenHashSet<>();
   }
 
   private void clearMinSCCState() {
@@ -300,17 +304,17 @@ public class JohnsonSimpleCycles<V> {
     pathSet = null;
   }
 
-  private Integer toI(V vertex) {
-    return vToI.get(vertex);
+  private int toI(V vertex) {
+    return vToI.getInt(vertex);
   }
 
-  private V toV(Integer i) {
+  private V toV(int i) {
     return iToV[i];
   }
 
-  private Set<V> getBSet(V v) {
+  private ObjectSet<V> getBSet(V v) {
     // B sets typically not all needed,
     // so instantiate lazily.
-    return bSets.computeIfAbsent(v, k -> new HashSet<>());
+    return bSets.computeIfAbsent(v, k -> new ObjectOpenHashSet<>());
   }
 }

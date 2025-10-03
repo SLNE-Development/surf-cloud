@@ -4,8 +4,10 @@ import dev.slne.surf.cloud.api.common.netty.network.Connection
 import dev.slne.surf.cloud.api.common.netty.protocol.buffer.readUuid
 import dev.slne.surf.cloud.api.common.netty.protocol.buffer.writeUuid
 import dev.slne.surf.cloud.api.common.util.annotation.InternalApi
+import dev.slne.surf.surfapi.core.api.util.logger
 import io.netty.buffer.ByteBuf
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.withTimeoutOrNull
 import java.util.*
@@ -75,9 +77,18 @@ abstract class RespondingNettyPacket<P : ResponseNettyPacket> : NettyPacket() {
     suspend fun fireAndAwaitOrThrow(
         connection: Connection,
         timeout: Duration = DEFAULT_TIMEOUT
-    ): P = withTimeout(timeout) {
-        connection.send(this@RespondingNettyPacket)
-        response.await()
+    ): P {
+        try {
+            return withTimeout(timeout) {
+                connection.send(this@RespondingNettyPacket)
+                response.await()
+            }
+        } catch (e: TimeoutCancellationException) {
+            log.atWarning()
+                .withCause(e.createCopy())
+                .log("Timeout while waiting for response to packet ${this::class.simpleName} with session ID $uniqueSessionId")
+            throw e
+        }
     }
 
     /**
@@ -129,4 +140,8 @@ abstract class RespondingNettyPacket<P : ResponseNettyPacket> : NettyPacket() {
     @InternalApi
     fun getUniqueSessionIdOrCreate(): UUID =
         uniqueSessionId ?: UUID.randomUUID().also { uniqueSessionId = it }
+
+    companion object {
+        private val log = logger()
+    }
 }

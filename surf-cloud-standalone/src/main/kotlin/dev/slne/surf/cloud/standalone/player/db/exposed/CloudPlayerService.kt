@@ -17,7 +17,7 @@ import java.util.*
 @Service
 @CoroutineTransactional
 class CloudPlayerService : AbstractExposedDAOService<UUID, CloudPlayerEntity>({
-    maximumSize(1000)
+    maximumSize(10_000)
 }) {
     override suspend fun load(key: UUID): CloudPlayerEntity? =
         CloudPlayerEntity.find { CloudPlayerTable.uuid eq key }.singleOrNull()

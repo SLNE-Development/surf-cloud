@@ -1,5 +1,6 @@
 package dev.slne.surf.cloud.api.common.netty.packet
 
+import dev.slne.surf.cloud.api.common.netty.network.Connection
 import dev.slne.surf.cloud.api.common.netty.network.codec.StreamCodec
 import dev.slne.surf.cloud.api.common.netty.network.codec.StreamDecoder
 import dev.slne.surf.cloud.api.common.netty.network.codec.StreamMemberEncoder
@@ -84,7 +85,7 @@ abstract class NettyPacket {
      * @param connection The connection associated with the packet.
      * @return `true` if the situation was handled, `false` otherwise.
      */
-    open fun packetTooLarge(connection: Any): Boolean = false
+    open fun packetTooLarge(connection: Connection): Boolean = false
 
     /**
      * Determines if the packet is ready for processing.

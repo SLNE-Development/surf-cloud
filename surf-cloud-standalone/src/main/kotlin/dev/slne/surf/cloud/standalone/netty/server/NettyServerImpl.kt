@@ -114,7 +114,6 @@ class NettyServerImpl(private val configHolder: AbstractSurfCloudConfigHolder<*>
 
         val duration = measureTimeMillis {
             CloudTickHook.tick()
-            connection.connections.forEach { it.tick() }
             connection.tick()
             while (true) {
                 val function = schedules.poll() ?: break

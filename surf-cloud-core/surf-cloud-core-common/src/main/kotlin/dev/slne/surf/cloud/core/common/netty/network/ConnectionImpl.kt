@@ -62,6 +62,7 @@ class ConnectionImpl(
     val log = logger()
 
     private val pendingActions = ConcurrentLinkedQueue<WrappedConsumer>()
+    private val drainingActions = AtomicBoolean(false)
 
     private var _channel: Channel? = null
     val channel get() = _channel ?: error("Channel is not initialized")
@@ -437,10 +438,15 @@ class ConnectionImpl(
                         is ServerboundCreateWhitelistPacket -> listener.handleCreateWhitelist(msg)
                         is ServerboundUpdateWhitelistPacket -> listener.handleUpdateWhitelist(msg)
                         is ServerboundRefreshWhitelistPacket -> listener.handleRefreshWhitelist(msg)
-                        is ServerboundCacheRegisterKeysPacket -> listener.handleCacheRegisterKeys(msg)
+                        is ServerboundCacheRegisterKeysPacket -> listener.handleCacheRegisterKeys(
+                            msg
+                        )
+
                         is ServerboundCacheOpPacket -> listener.handleCacheOp(msg)
                         is ServerboundCacheFetchPacket -> listener.handleCacheFetch(msg)
-                        is ServerboundCacheWatchPlayersPacket -> listener.handleCacheWatchPlayers(msg)
+                        is ServerboundCacheWatchPlayersPacket -> listener.handleCacheWatchPlayers(
+                            msg
+                        )
 
                         else -> listener.handlePacket(msg) // handle other packets
                     }
@@ -496,12 +502,15 @@ class ConnectionImpl(
                         is ClientboundSetVelocitySecretPacket -> listener.handleSetVelocitySecret(
                             msg
                         )
+
                         is ClientboundPlayerCacheHydrateStartPacket -> listener.handlePlayerCacheHydrateStart(
                             msg
                         )
+
                         is ClientboundPlayerCacheHydrateChunkPacket -> listener.handlePlayerCacheHydrateChunk(
                             msg
                         )
+
                         is ClientboundPlayerCacheHydrateEndPacket -> listener.handlePlayerCacheHydrateEnd(
                             msg
                         )
@@ -613,6 +622,7 @@ class ConnectionImpl(
                         is ClientboundSetVelocitySecretPacket -> listener.handleSetVelocitySecret(
                             msg
                         )
+
                         is ClientboundCacheRegisterAckPacket -> listener.handleCacheRegisterAck(msg)
                         is ClientboundCacheDeltaPacket -> listener.handleCacheDelta(msg)
                         is ClientboundCacheErrorPacket -> listener.handleCacheError(msg)
@@ -803,9 +813,15 @@ class ConnectionImpl(
             } else {
                 pendingActions.addAll(buildList {
                     // Delay the future listener until the end of the extra packets
-                    add(PacketSendAction(packet, false, deferred))
+                    add(PacketSendAction(packet, false, null))
                     extraPackets.forEachIndexed { index, extraPacket ->
-                        add(PacketSendAction(extraPacket, index == extraPackets.size - 1))
+                        add(
+                            PacketSendAction(
+                                extraPacket,
+                                index == extraPackets.size - 1,
+                                if (index == extraPackets.size - 1) deferred else null
+                            )
+                        )
                     }
                 })
             }
@@ -911,34 +927,66 @@ class ConnectionImpl(
 
     private fun flushQueue(): Boolean {
         if (!connected) return true
-
-        synchronized(this.pendingActions) {
-            return this.processQueue()
+        val channel = _channel ?: return false
+        val eventLoop = channel.eventLoop()
+        if (eventLoop.inEventLoop()) {
+            drainQueueOnEventLoop()
+        } else {
+            eventLoop.execute {
+                drainQueueOnEventLoop()
+            }
         }
 
-        return false
+        return true
     }
 
-    private fun processQueue(): Boolean {
-        if (pendingActions.isEmpty()) return true
+    private fun drainQueueOnEventLoop() {
+        // disable parallel drains
+        if (!drainingActions.compareAndSet(false, true)) return
 
-        val iterator = pendingActions.iterator()
-        while (iterator.hasNext()) {
-            val queued = iterator.next() ?: return true // poll -> peek
-            if (queued.isConsumed()) continue
+        try {
+            while (true) {
+                val head = pendingActions.peek() ?: break
 
+                // Already consumed? Then throw out and next round
+                if (head.isConsumed()) {
+                    pendingActions.poll()
+                    continue
+                }
 
-            if (queued is PacketSendAction) {
-                val packet = queued.packet
-                if (!packet.isReady()) return false
+                // Head blocked? Then do not remove and stop processing
+                if (head is PacketSendAction && !head.packet.isReady()) {
+                    break
+                }
+
+                // Jetzt darf verarbeitet werden
+                val queued = pendingActions.poll() ?: continue
+                if (queued.tryMarkConsumed()) {
+                    queued.consumer(this)
+                }
             }
-
-            iterator.remove()
-            if (queued.tryMarkConsumed()) {
-                queued.consumer(this)
+        } finally {
+            drainingActions.set(false)
+            // If new elements came in during the drain, trigger again
+            if (!pendingActions.isEmpty()) {
+                // We are already in the EventLoop thread - Prevent reentrancy:
+                if (drainingActions.compareAndSet(false, true)) {
+                    try {
+                        // short second pass
+                        while (true) {
+                            val head = pendingActions.peek() ?: break
+                            if (head is PacketSendAction && !head.packet.isReady()) break
+                            val queued = pendingActions.poll() ?: continue
+                            if (queued.tryMarkConsumed()) queued.consumer(this)
+                        }
+                    } finally {
+                        drainingActions.set(false)
+                    }
+                } else {
+                    // Another thread is already draining - it will pick it up
+                }
             }
         }
-        return true
     }
 
     suspend fun tick() {
@@ -1112,8 +1160,9 @@ class ConnectionImpl(
 
         fun buildExtraPackets(packet: NettyPacket): List<NettyPacket>? {
             val extra = packet.extraPackets ?: return null
-            if (extra.isEmpty()) return extra
-            return buildList { buildExtraPackets0(extra) }
+            if (extra.isEmpty()) return null
+
+            return buildList(extra.size + 1) { buildExtraPackets0(extra) }
         }
 
         private fun MutableList<NettyPacket>.buildExtraPackets0(extraPackets: List<NettyPacket>) {

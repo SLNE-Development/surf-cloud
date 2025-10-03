@@ -82,7 +82,10 @@ abstract class AbstractExposedDAOService<K, V : Entity<*>>(
         createIfMissing: Boolean = true,
         block: suspend V.() -> Unit
     ) {
-        val entity = cache.get(key) ?: if (createIfMissing) self.create(key) else null
+        val entity = cache.get(key) {
+            if (createIfMissing) self.getOrCreate(key) else self.load(key)
+        }
+
         if (entity != null) {
             entity.block()
             cache.put(key, entity)

@@ -52,7 +52,8 @@ abstract class AbstractExposedDAOService<K, V : Entity<*>>(
      * @return The loaded entity, or `null` if not found.
      */
     protected abstract suspend fun load(key: K): V?
-    protected abstract suspend fun create(key: K): V?
+    protected abstract suspend fun create(key: K): V
+    protected open suspend fun loadOrCreate(key: K): V = load(key) ?: create(key)
 
     /**
      * Retrieves an entity from the cache or loads it if not present.
@@ -89,6 +90,11 @@ abstract class AbstractExposedDAOService<K, V : Entity<*>>(
             null
         }
     }
+
+    protected suspend fun getOrCreate(key: K): V = cache.get(key) {
+        self.loadOrCreate(key)
+    } ?: error("Failed to load or create entity for key $key")
+
 
     /**
      * Removes an entity from the cache.

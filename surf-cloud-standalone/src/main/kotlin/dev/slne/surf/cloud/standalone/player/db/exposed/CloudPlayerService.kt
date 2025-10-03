@@ -97,9 +97,7 @@ class CloudPlayerService : AbstractExposedDAOService<UUID, CloudPlayerEntity>({
         }
 
     suspend fun createIfNotExists(uuid: UUID) {
-        if (find(uuid) == null) {
-            create(uuid)
-        }
+        getOrCreate(uuid)
     }
 
     suspend fun loadPlaytimeEntries(uuid: UUID) =

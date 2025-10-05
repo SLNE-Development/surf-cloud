@@ -56,6 +56,7 @@ dependencies {
     runtimeOnly(libs.mysql.connector.j)
     api(libs.reactive.streams)
     api(libs.velocity.native)
+    api(libs.spring.boot.starter.data.redis.reactive)
 
     // Ktor
     implementation(libs.ktor.server.status.pages)

@@ -1,10 +1,12 @@
 package dev.slne.surf.cloud.api.server.command
 
+import com.mojang.brigadier.Command
 import com.mojang.brigadier.CommandDispatcher
 import com.mojang.brigadier.arguments.ArgumentType
 import com.mojang.brigadier.builder.ArgumentBuilder
 import com.mojang.brigadier.builder.LiteralArgumentBuilder
 import com.mojang.brigadier.builder.RequiredArgumentBuilder
+import com.mojang.brigadier.context.CommandContext
 import org.springframework.stereotype.Component
 
 @Component
@@ -14,6 +16,13 @@ annotation class ConsoleCommand
 
 abstract class AbstractConsoleCommand {
     abstract fun register(dispatcher: CommandDispatcher<CommandSource>)
+
+    fun <S, T : ArgumentBuilder<S, T>> ArgumentBuilder<S, T>.execute(run: (ctx: CommandContext<S>) -> Unit): T =
+        executes {
+            run(it)
+            Command.SINGLE_SUCCESS
+        }
+
 }
 
 inline fun <S> AbstractConsoleCommand.literal(

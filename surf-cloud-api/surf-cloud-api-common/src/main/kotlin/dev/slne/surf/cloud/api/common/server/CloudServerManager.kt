@@ -42,6 +42,9 @@ interface CloudServerManager {
     fun retrieveServerByName(name: String): CommonCloudServer?
 
     fun retrieveServersInGroup(group: String): ObjectList<out CommonCloudServer>
+    fun retrieveServerList(group: String): ObjectList<CloudServer>
+    fun retrieveProxyList(group: String): ObjectList<ProxyCloudServer>
+
 
     @InternalApi
     fun existsServerGroup(name: String): Boolean

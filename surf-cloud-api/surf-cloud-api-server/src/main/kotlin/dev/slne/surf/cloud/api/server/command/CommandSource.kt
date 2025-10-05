@@ -2,13 +2,16 @@ package dev.slne.surf.cloud.api.server.command
 
 import com.mojang.brigadier.exceptions.CommandExceptionType
 import dev.slne.surf.surfapi.core.api.messages.Colors
+import net.kyori.adventure.audience.Audience
+import net.kyori.adventure.audience.MessageType
+import net.kyori.adventure.identity.Identity
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.serializer.ansi.ANSIComponentSerializer
 
 class CommandSource(
     silent: Boolean = false,
     callback: CommandResultCallback = CommandResultCallback.EMPTY
-) : ExecutionCommandSource<CommandSource> {
+) : ExecutionCommandSource<CommandSource>, Audience {
 
     override var callback = callback
         private set
@@ -33,7 +36,7 @@ class CommandSource(
         }
     }
 
-    fun sendMessage(message: Component) {
+    override fun sendMessage(message: Component) {
         if (!silent) {
             println(ANSIComponentSerializer.ansi().serialize(message))
         }
@@ -56,6 +59,12 @@ class CommandSource(
         if (!success) {
             sendFailure(message)
         }
+    }
+
+    @Deprecated("Deprecated in Java", level = DeprecationLevel.ERROR)
+    @Suppress("DEPRECATION")
+    override fun sendMessage(source: Identity, message: Component, type: MessageType) {
+        sendMessage(message)
     }
 
     private fun copy(

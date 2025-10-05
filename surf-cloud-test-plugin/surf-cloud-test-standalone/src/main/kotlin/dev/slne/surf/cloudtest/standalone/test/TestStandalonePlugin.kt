@@ -3,6 +3,7 @@ package dev.slne.surf.cloudtest.standalone.test
 import dev.slne.surf.cloud.api.server.plugin.KtorPlugin
 import dev.slne.surf.cloud.api.server.plugin.StandalonePlugin
 import dev.slne.surf.cloud.api.server.plugin.utils.bean
+import dev.slne.surf.cloudtest.standalone.test.redis.TestRedisEvent
 import dev.slne.surf.cloudtest.standalone.test.sync.SyncValueTest
 import io.ktor.server.routing.*
 import kotlinx.coroutines.delay
@@ -20,6 +21,8 @@ class TestStandalonePlugin : StandalonePlugin(), KtorPlugin {
         repeat(20) {
             println("# Enabling $it")
         }
+
+        TestRedisEvent.createSample().publish()
 
         val freeSpaceKb = FileSystemUtils.freeSpaceKb("/")
         println("Free space: $freeSpaceKb KB")

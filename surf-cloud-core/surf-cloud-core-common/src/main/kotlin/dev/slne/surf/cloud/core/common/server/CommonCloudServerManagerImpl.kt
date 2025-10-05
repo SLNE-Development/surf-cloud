@@ -36,6 +36,28 @@ abstract class CommonCloudServerManagerImpl<CommonServer : CommonCloudServer> : 
     override fun retrieveServersInGroup(group: String): ObjectList<out CommonServer> =
         serverCache.asMap().values.filterTo(mutableObjectListOf()) { it.isInGroup(group) }
 
+    override fun retrieveServerList(group: String): ObjectList<CloudServer> {
+        val result = mutableObjectListOf<CloudServer>()
+        for (server in serverCache.asMap().values) {
+            if (server.isInGroup(group) && server is CloudServer) {
+                result.add(server)
+            }
+        }
+
+        return result
+    }
+
+    override fun retrieveProxyList(group: String): ObjectList<ProxyCloudServer> {
+        val result = mutableObjectListOf<ProxyCloudServer>()
+        for (server in serverCache.asMap().values) {
+            if (server.isInGroup(group) && server is ProxyCloudServer) {
+                result.add(server)
+            }
+        }
+
+        return result
+    }
+
     @InternalApi
     override fun existsServerGroup(name: String): Boolean =
         serverCache.asMap().values.any { it.group.equals(name, ignoreCase = true) }

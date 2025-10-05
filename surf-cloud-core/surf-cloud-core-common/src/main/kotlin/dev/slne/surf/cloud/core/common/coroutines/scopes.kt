@@ -107,6 +107,11 @@ object ConsoleCommandInputScope : BaseScope(
     name = "Server console handler"
 )
 
+object CommandExecutionScope : BaseScope(
+    dispatcher = Dispatchers.Default,
+    name = "command-execution"
+)
+
 object KtorScope : BaseScope(
     dispatcher = Dispatchers.IO,
     name = "ktor"

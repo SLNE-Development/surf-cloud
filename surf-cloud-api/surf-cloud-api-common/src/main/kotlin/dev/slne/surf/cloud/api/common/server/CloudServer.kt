@@ -36,5 +36,6 @@ interface CloudServer : CommonCloudServer {
             CloudServerManager.retrieveServerByName(name) as? CloudServer
 
         fun all() = CloudServerManager.retrieveServers()
+        fun inGroup(group: String) = CloudServerManager.retrieveServerList(group)
     }
 }

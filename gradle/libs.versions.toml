@@ -69,6 +69,7 @@ spring-web = { module = "org.springframework:spring-web" }
 flyway-core = { module = "org.flywaydb:flyway-core" }
 flyway-mysql = { module = "org.flywaydb:flyway-mysql" }
 spring-instrument = { module = "org.springframework:spring-instrument" }
+spring-boot-starter-data-redis-reactive = { module = "org.springframework.boot:spring-boot-starter-data-redis-reactive" }
 kotlin-byte-buf-serializer = { module = "dev.slne.surf:kotlin-byte-buf-serializer", version.ref = "kotlin-byte-buf-serializer" }
 voicechat-api = { module = "de.maxhenkel.voicechat:voicechat-api", version.ref = "voicechat-api" }
 discord-webhooks = { module = "com.github.BinaryWriter:discord-webhooks", version.ref = "discord-webhooks" }

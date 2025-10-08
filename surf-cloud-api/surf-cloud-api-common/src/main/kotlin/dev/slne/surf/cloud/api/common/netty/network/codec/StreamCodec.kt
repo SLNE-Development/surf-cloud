@@ -1,6 +1,11 @@
 package dev.slne.surf.cloud.api.common.netty.network.codec
 
+import com.mojang.datafixers.util.Function3
+import com.mojang.datafixers.util.Function4
+import com.mojang.datafixers.util.Function5
+import com.mojang.datafixers.util.Function6
 import io.netty.buffer.ByteBuf
+import org.checkerframework.checker.units.qual.C
 import java.util.function.BiFunction
 import java.util.function.Function
 import java.util.function.UnaryOperator
@@ -75,7 +80,6 @@ interface StreamCodec<B, V> : StreamDecoder<B, V>, StreamEncoder<B, V> {
             override fun encode(buf: B, value: C) = codec.encode(buf, from.apply(value))
         }
 
-
         fun <B, C, T1, T2> composite(
             codec1: StreamCodec<in B, T1>,
             from1: Function<C, T1>,
@@ -87,6 +91,122 @@ interface StreamCodec<B, V> : StreamDecoder<B, V>, StreamEncoder<B, V> {
             override fun encode(buf: B, value: C) {
                 codec1.encode(buf, from1.apply(value))
                 codec2.encode(buf, from2.apply(value))
+            }
+        }
+
+        fun <B, C, T1, T2, T3> composite(
+            codec1: StreamCodec<in B, T1>,
+            from1: Function<C, T1>,
+            codec2: StreamCodec<in B, T2>,
+            from2: Function<C, T2>,
+            codec3: StreamCodec<in B, T3>,
+            from3: Function<C, T3>,
+            to: Function3<T1, T2, T3, C>
+        ): StreamCodec<B, C> = object : StreamCodec<B, C> {
+            override fun decode(buf: B): C = to.apply(codec1.decode(buf), codec2.decode(buf), codec3.decode(buf))
+            override fun encode(buf: B, value: C) {
+                codec1.encode(buf, from1.apply(value))
+                codec2.encode(buf, from2.apply(value))
+                codec3.encode(buf, from3.apply(value))
+            }
+        }
+
+        fun <B, C, T1, T2, T3, T4> composite(
+            codec1: StreamCodec<in B, T1>,
+            from1: Function<C, T1>,
+            codec2: StreamCodec<in B, T2>,
+            from2: Function<C, T2>,
+            codec3: StreamCodec<in B, T3>,
+            from3: Function<C, T3>,
+            codec4: StreamCodec<in B, T4>,
+            from4: Function<C, T4>,
+            to: Function4<T1, T2, T3, T4, C>
+        ): StreamCodec<B, C> {
+            return object : StreamCodec<B, C> {
+                override fun decode(buf: B): C {
+                    val `object`: T1 = codec1.decode(buf)
+                    val object2: T2 = codec2.decode(buf)
+                    val object3: T3 = codec3.decode(buf)
+                    val object4: T4 = codec4.decode(buf)
+                    return to.apply(`object`, object2, object3, object4)
+                }
+
+                override fun encode(buf: B, value: C) {
+                    codec1.encode(buf, from1.apply(value))
+                    codec2.encode(buf, from2.apply(value))
+                    codec3.encode(buf, from3.apply(value))
+                    codec4.encode(buf, from4.apply(value))
+                }
+            }
+        }
+
+        fun <B, C, T1, T2, T3, T4, T5> composite(
+            codec1: StreamCodec<in B, T1>,
+            from1: Function<C, T1>,
+            codec2: StreamCodec<in B, T2>,
+            from2: Function<C, T2>,
+            codec3: StreamCodec<in B, T3>,
+            from3: Function<C, T3>,
+            codec4: StreamCodec<in B, T4>,
+            from4: Function<C, T4>,
+            codec5: StreamCodec<in B, T5>,
+            from5: Function<C, T5>,
+            to: Function5<T1, T2, T3, T4, T5, C>
+        ): StreamCodec<B, C> {
+            return object : StreamCodec<B, C> {
+                override fun decode(buf: B): C {
+                    val `object`: T1 = codec1.decode(buf)
+                    val object2: T2 = codec2.decode(buf)
+                    val object3: T3 = codec3.decode(buf)
+                    val object4: T4 = codec4.decode(buf)
+                    val object5: T5 = codec5.decode(buf)
+                    return to.apply(`object`, object2, object3, object4, object5)
+                }
+
+                override fun encode(buf: B, value: C) {
+                    codec1.encode(buf, from1.apply(value))
+                    codec2.encode(buf, from2.apply(value))
+                    codec3.encode(buf, from3.apply(value))
+                    codec4.encode(buf, from4.apply(value))
+                    codec5.encode(buf, from5.apply(value))
+                }
+            }
+        }
+
+        fun <B, C, T1, T2, T3, T4, T5, T6> composite(
+            codec1: StreamCodec<in B, T1>,
+            from1: Function<C, T1>,
+            codec2: StreamCodec<in B, T2>,
+            from2: Function<C, T2>,
+            codec3: StreamCodec<in B, T3>,
+            from3: Function<C, T3>,
+            codec4: StreamCodec<in B, T4>,
+            from4: Function<C, T4>,
+            codec5: StreamCodec<in B, T5>,
+            from5: Function<C, T5>,
+            codec6: StreamCodec<in B, T6>,
+            from6: Function<C, T6>,
+            to: Function6<T1, T2, T3, T4, T5, T6, C>
+        ): StreamCodec<B, C> {
+            return object : StreamCodec<B, C> {
+                override fun decode(buf: B): C {
+                    val `object`: T1 = codec1.decode(buf)
+                    val object2: T2 = codec2.decode(buf)
+                    val object3: T3 = codec3.decode(buf)
+                    val object4: T4 = codec4.decode(buf)
+                    val object5: T5 = codec5.decode(buf)
+                    val object6: T6 = codec6.decode(buf)
+                    return to.apply(`object`, object2, object3, object4, object5, object6)
+                }
+
+                override fun encode(buf: B, value: C) {
+                    codec1.encode(buf, from1.apply(value))
+                    codec2.encode(buf, from2.apply(value))
+                    codec3.encode(buf, from3.apply(value))
+                    codec4.encode(buf, from4.apply(value))
+                    codec5.encode(buf, from5.apply(value))
+                    codec6.encode(buf, from6.apply(value))
+                }
             }
         }
 

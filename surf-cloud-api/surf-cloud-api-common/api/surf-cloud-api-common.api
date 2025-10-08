@@ -278,6 +278,11 @@ public abstract class dev/slne/surf/cloud/api/common/event/player/CloudPlayerEve
 public final class dev/slne/surf/cloud/api/common/event/player/CloudPlayerEvent$Companion {
 }
 
+public final class dev/slne/surf/cloud/api/common/event/player/afk/AfkStateChangeEvent : dev/slne/surf/cloud/api/common/event/player/CloudPlayerEvent {
+	public fun <init> (ZLjava/lang/Object;Ldev/slne/surf/cloud/api/common/player/CloudPlayer;)V
+	public final fun isAfk ()Z
+}
+
 public final class dev/slne/surf/cloud/api/common/event/player/connection/CloudPlayerConnectToNetworkEvent : dev/slne/surf/cloud/api/common/event/player/CloudPlayerEvent {
 	public static final field Companion Ldev/slne/surf/cloud/api/common/event/player/connection/CloudPlayerConnectToNetworkEvent$Companion;
 	public fun <init> (Ljava/lang/Object;Ldev/slne/surf/cloud/api/common/player/CloudPlayer;)V
@@ -455,7 +460,6 @@ public abstract interface class dev/slne/surf/cloud/api/common/netty/NettyClient
 	public abstract fun fireAndForget (Ldev/slne/surf/cloud/api/common/netty/packet/NettyPacket;)V
 	public abstract fun getConnection ()Ldev/slne/surf/cloud/api/common/netty/network/Connection;
 	public abstract fun getServerCategory ()Ljava/lang/String;
-	public abstract fun getServerId ()J
 	public abstract fun getServerName ()Ljava/lang/String;
 	public abstract fun getVelocitySecret ()[B
 }
@@ -565,8 +569,43 @@ public final class dev/slne/surf/cloud/api/common/netty/network/ConnectionProtoc
 	public static fun values ()[Ldev/slne/surf/cloud/api/common/netty/network/ConnectionProtocol;
 }
 
+public final class dev/slne/surf/cloud/api/common/netty/network/codec/ByteBufCodecs {
+	public static final field INSTANCE Ldev/slne/surf/cloud/api/common/netty/network/codec/ByteBufCodecs;
+	public final fun enumStreamCodec (Ljava/lang/Class;)Ldev/slne/surf/cloud/api/common/netty/network/codec/StreamCodec;
+	public final fun getBIG_DECIMAL_CODEC ()Ldev/slne/surf/cloud/api/common/netty/network/codec/StreamCodec;
+	public final fun getBIG_INTEGER_CODEC ()Ldev/slne/surf/cloud/api/common/netty/network/codec/StreamCodec;
+	public final fun getBOOLEAN_CODEC ()Ldev/slne/surf/cloud/api/common/netty/network/codec/StreamCodec;
+	public final fun getBYTE_ARRAY_CODEC ()Ldev/slne/surf/cloud/api/common/netty/network/codec/StreamCodec;
+	public final fun getBYTE_CODEC ()Ldev/slne/surf/cloud/api/common/netty/network/codec/StreamCodec;
+	public final fun getCOMPONENT_CODEC ()Ldev/slne/surf/cloud/api/common/netty/network/codec/StreamCodec;
+	public final fun getCOMPOUND_TAG_CODEC ()Ldev/slne/surf/cloud/api/common/netty/network/codec/StreamCodec;
+	public final fun getDOUBLE_CODEC ()Ldev/slne/surf/cloud/api/common/netty/network/codec/StreamCodec;
+	public final fun getDURATION_CODEC ()Ldev/slne/surf/cloud/api/common/netty/network/codec/StreamCodec;
+	public final fun getFLOAT_CODEC ()Ldev/slne/surf/cloud/api/common/netty/network/codec/StreamCodec;
+	public final fun getINET_4_ADDRESS_CODEC ()Ldev/slne/surf/cloud/api/common/netty/network/codec/StreamCodec;
+	public final fun getINET_SOCKET_ADDRESS_CODEC ()Ldev/slne/surf/cloud/api/common/netty/network/codec/StreamCodec;
+	public final fun getINT_CODEC ()Ldev/slne/surf/cloud/api/common/netty/network/codec/StreamCodec;
+	public final fun getKEY_CODEC ()Ldev/slne/surf/cloud/api/common/netty/network/codec/StreamCodec;
+	public final fun getLONG_CODEC ()Ldev/slne/surf/cloud/api/common/netty/network/codec/StreamCodec;
+	public final fun getOPTIONAL_LONG_CODEC ()Ldev/slne/surf/cloud/api/common/netty/network/codec/StreamCodec;
+	public final fun getSHORT_CODEC ()Ldev/slne/surf/cloud/api/common/netty/network/codec/StreamCodec;
+	public final fun getSOUND_CODEC ()Ldev/slne/surf/cloud/api/common/netty/network/codec/StreamCodec;
+	public final fun getSTRING_CODEC ()Ldev/slne/surf/cloud/api/common/netty/network/codec/StreamCodec;
+	public final fun getURI_CODEC ()Ldev/slne/surf/cloud/api/common/netty/network/codec/StreamCodec;
+	public final fun getUUID_CODEC ()Ldev/slne/surf/cloud/api/common/netty/network/codec/StreamCodec;
+	public final fun getVAR_INT_CODEC ()Ldev/slne/surf/cloud/api/common/netty/network/codec/StreamCodec;
+	public final fun getVAR_LONG_CODEC ()Ldev/slne/surf/cloud/api/common/netty/network/codec/StreamCodec;
+	public final fun getZONED_DATE_TIME_CODEC ()Ldev/slne/surf/cloud/api/common/netty/network/codec/StreamCodec;
+	public final fun idMapper (Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;)Ldev/slne/surf/cloud/api/common/netty/network/codec/StreamCodec;
+}
+
 public abstract interface class dev/slne/surf/cloud/api/common/netty/network/codec/CodecOperation {
 	public abstract fun apply (Ldev/slne/surf/cloud/api/common/netty/network/codec/StreamCodec;)Ldev/slne/surf/cloud/api/common/netty/network/codec/StreamCodec;
+}
+
+public final class dev/slne/surf/cloud/api/common/netty/network/codec/Codec_extensionsKt {
+	public static final fun idResolverCodec (Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;I)Lcom/mojang/serialization/Codec;
+	public static final fun orCompressed (Lcom/mojang/serialization/Codec;Lcom/mojang/serialization/Codec;)Lcom/mojang/serialization/Codec;
 }
 
 public abstract interface class dev/slne/surf/cloud/api/common/netty/network/codec/StreamCodec : dev/slne/surf/cloud/api/common/netty/network/codec/StreamDecoder, dev/slne/surf/cloud/api/common/netty/network/codec/StreamEncoder {
@@ -622,8 +661,25 @@ public abstract interface class dev/slne/surf/cloud/api/common/netty/network/cod
 	public abstract fun decode (Ljava/lang/Object;)Ljava/lang/Object;
 }
 
+public final class dev/slne/surf/cloud/api/common/netty/network/codec/StreamDecoderKt {
+	public static final fun decodeFromByteArray (Ldev/slne/surf/cloud/api/common/netty/network/codec/StreamDecoder;Lkotlin/jvm/functions/Function1;[B)Ljava/lang/Object;
+	public static final fun decodeFromByteArray (Ldev/slne/surf/cloud/api/common/netty/network/codec/StreamDecoder;[B)Ljava/lang/Object;
+	public static final fun decodeFromByteArray (Ldev/slne/surf/cloud/api/common/netty/network/codec/StreamDecoder;[BLkotlin/jvm/functions/Function1;)Ljava/lang/Object;
+}
+
 public abstract interface class dev/slne/surf/cloud/api/common/netty/network/codec/StreamEncoder {
 	public abstract fun encode (Ljava/lang/Object;Ljava/lang/Object;)V
+}
+
+public final class dev/slne/surf/cloud/api/common/netty/network/codec/StreamEncoderKt {
+	public static final fun encodeInto (Ldev/slne/surf/cloud/api/common/netty/network/codec/StreamEncoder;[BLjava/lang/Object;)I
+	public static final fun encodeInto (Ldev/slne/surf/cloud/api/common/netty/network/codec/StreamEncoder;[BLkotlin/jvm/functions/Function1;Ljava/lang/Object;)I
+	public static final fun encodeToByteArray (Ldev/slne/surf/cloud/api/common/netty/network/codec/StreamEncoder;ILjava/lang/Object;)[B
+	public static final fun encodeToByteArray (Ldev/slne/surf/cloud/api/common/netty/network/codec/StreamEncoder;ILkotlin/jvm/functions/Function1;Ljava/lang/Object;)[B
+	public static final fun encodeToByteArray (Ldev/slne/surf/cloud/api/common/netty/network/codec/StreamEncoder;Ljava/lang/Object;Lkotlin/jvm/functions/Function1;)[B
+	public static final fun encodeToByteArrayDynamic (Ldev/slne/surf/cloud/api/common/netty/network/codec/StreamEncoder;Ljava/lang/Object;I)[B
+	public static synthetic fun encodeToByteArrayDynamic$default (Ldev/slne/surf/cloud/api/common/netty/network/codec/StreamEncoder;Ljava/lang/Object;IILjava/lang/Object;)[B
+	public static final fun encodeToByteArrayWithByteArray (Ldev/slne/surf/cloud/api/common/netty/network/codec/StreamEncoder;ILkotlin/jvm/functions/Function1;Ljava/lang/Object;)[B
 }
 
 public abstract interface class dev/slne/surf/cloud/api/common/netty/network/codec/StreamMemberEncoder {
@@ -666,13 +722,13 @@ public final class dev/slne/surf/cloud/api/common/netty/network/codec/kotlinx/ad
 	public synthetic fun serialize0 (Lio/netty/buffer/ByteBuf;Ljava/lang/Object;)V
 }
 
-public final class dev/slne/surf/cloud/api/common/netty/network/codec/kotlinx/adventure/AdventureKeySerializer : dev/slne/surf/cloud/api/common/netty/network/codec/kotlinx/CloudBufSerializer {
+public final class dev/slne/surf/cloud/api/common/netty/network/codec/kotlinx/adventure/AdventureKeySerializer : kotlinx/serialization/KSerializer {
 	public static final field INSTANCE Ldev/slne/surf/cloud/api/common/netty/network/codec/kotlinx/adventure/AdventureKeySerializer;
-	public fun deserialize0 (Ldev/slne/surf/cloud/api/common/netty/protocol/buffer/SurfByteBuf;)Lnet/kyori/adventure/key/Key;
-	public synthetic fun deserialize0 (Lio/netty/buffer/ByteBuf;)Ljava/lang/Object;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lnet/kyori/adventure/key/Key;
 	public fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
-	public fun serialize0 (Ldev/slne/surf/cloud/api/common/netty/protocol/buffer/SurfByteBuf;Lnet/kyori/adventure/key/Key;)V
-	public synthetic fun serialize0 (Lio/netty/buffer/ByteBuf;Ljava/lang/Object;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun serialize (Lkotlinx/serialization/encoding/Encoder;Lnet/kyori/adventure/key/Key;)V
 }
 
 public final class dev/slne/surf/cloud/api/common/netty/network/codec/kotlinx/adventure/AdventureSoundSerializer : dev/slne/surf/cloud/api/common/netty/network/codec/kotlinx/CloudBufSerializer {
@@ -682,6 +738,15 @@ public final class dev/slne/surf/cloud/api/common/netty/network/codec/kotlinx/ad
 	public fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
 	public fun serialize0 (Ldev/slne/surf/cloud/api/common/netty/protocol/buffer/SurfByteBuf;Lnet/kyori/adventure/sound/Sound;)V
 	public synthetic fun serialize0 (Lio/netty/buffer/ByteBuf;Ljava/lang/Object;)V
+}
+
+public final class dev/slne/surf/cloud/api/common/netty/network/codec/kotlinx/adventure/AdventureTextColorSerializer : kotlinx/serialization/KSerializer {
+	public static final field INSTANCE Ldev/slne/surf/cloud/api/common/netty/network/codec/kotlinx/adventure/AdventureTextColorSerializer;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lnet/kyori/adventure/text/format/TextColor;
+	public fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun serialize (Lkotlinx/serialization/encoding/Encoder;Lnet/kyori/adventure/text/format/TextColor;)V
 }
 
 public final class dev/slne/surf/cloud/api/common/netty/network/codec/kotlinx/cloud/CloudPlayerSerializer : dev/slne/surf/cloud/api/common/netty/network/codec/kotlinx/CloudBufSerializer {
@@ -700,6 +765,24 @@ public final class dev/slne/surf/cloud/api/common/netty/network/codec/kotlinx/cl
 	public fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
 	public fun serialize0 (Ldev/slne/surf/cloud/api/common/netty/protocol/buffer/SurfByteBuf;Ldev/slne/surf/cloud/api/common/player/OfflineCloudPlayer;)V
 	public synthetic fun serialize0 (Lio/netty/buffer/ByteBuf;Ljava/lang/Object;)V
+}
+
+public final class dev/slne/surf/cloud/api/common/netty/network/codec/kotlinx/java/BigDecimalSerializer : dev/slne/surf/cloud/api/common/netty/network/codec/kotlinx/CloudBufSerializer {
+	public static final field INSTANCE Ldev/slne/surf/cloud/api/common/netty/network/codec/kotlinx/java/BigDecimalSerializer;
+	public fun deserialize0 (Ldev/slne/surf/cloud/api/common/netty/protocol/buffer/SurfByteBuf;)Ljava/math/BigDecimal;
+	public synthetic fun deserialize0 (Lio/netty/buffer/ByteBuf;)Ljava/lang/Object;
+	public fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public fun serialize0 (Ldev/slne/surf/cloud/api/common/netty/protocol/buffer/SurfByteBuf;Ljava/math/BigDecimal;)V
+	public synthetic fun serialize0 (Lio/netty/buffer/ByteBuf;Ljava/lang/Object;)V
+}
+
+public final class dev/slne/surf/cloud/api/common/netty/network/codec/kotlinx/java/BigIntegerSerializer : kotlinx/serialization/KSerializer {
+	public static final field INSTANCE Ldev/slne/surf/cloud/api/common/netty/network/codec/kotlinx/java/BigIntegerSerializer;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/math/BigInteger;
+	public fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/math/BigInteger;)V
 }
 
 public final class dev/slne/surf/cloud/api/common/netty/network/codec/kotlinx/java/BitSetSerializer : dev/slne/surf/cloud/api/common/netty/network/codec/kotlinx/CloudBufSerializer {
@@ -738,13 +821,13 @@ public final class dev/slne/surf/cloud/api/common/netty/network/codec/kotlinx/ja
 	public synthetic fun serialize0 (Lio/netty/buffer/ByteBuf;Ljava/lang/Object;)V
 }
 
-public final class dev/slne/surf/cloud/api/common/netty/network/codec/kotlinx/java/UUIDSerializer : dev/slne/surf/cloud/api/common/netty/network/codec/kotlinx/CloudBufSerializer {
+public final class dev/slne/surf/cloud/api/common/netty/network/codec/kotlinx/java/UUIDSerializer : kotlinx/serialization/KSerializer {
 	public static final field INSTANCE Ldev/slne/surf/cloud/api/common/netty/network/codec/kotlinx/java/UUIDSerializer;
-	public fun deserialize0 (Ldev/slne/surf/cloud/api/common/netty/protocol/buffer/SurfByteBuf;)Ljava/util/UUID;
-	public synthetic fun deserialize0 (Lio/netty/buffer/ByteBuf;)Ljava/lang/Object;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/util/UUID;
 	public fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
-	public fun serialize0 (Ldev/slne/surf/cloud/api/common/netty/protocol/buffer/SurfByteBuf;Ljava/util/UUID;)V
-	public synthetic fun serialize0 (Lio/netty/buffer/ByteBuf;Ljava/lang/Object;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/util/UUID;)V
 }
 
 public final class dev/slne/surf/cloud/api/common/netty/network/codec/kotlinx/java/UtfStringSerializer : dev/slne/surf/cloud/api/common/netty/network/codec/kotlinx/CloudBufSerializer {
@@ -799,6 +882,42 @@ public final class dev/slne/surf/cloud/api/common/netty/network/codec/kotlinx/nb
 	public fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
 	public fun serialize0 (Ldev/slne/surf/cloud/api/common/netty/protocol/buffer/SurfByteBuf;Lnet/kyori/adventure/nbt/CompoundBinaryTag;)V
 	public synthetic fun serialize0 (Lio/netty/buffer/ByteBuf;Ljava/lang/Object;)V
+}
+
+public final class dev/slne/surf/cloud/api/common/netty/network/codec/kotlinx/sponge/Vector3dSerializer : kotlinx/serialization/KSerializer {
+	public static final field INSTANCE Ldev/slne/surf/cloud/api/common/netty/network/codec/kotlinx/sponge/Vector3dSerializer;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lorg/spongepowered/math/vector/Vector3d;
+	public fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun serialize (Lkotlinx/serialization/encoding/Encoder;Lorg/spongepowered/math/vector/Vector3d;)V
+}
+
+public final class dev/slne/surf/cloud/api/common/netty/network/codec/kotlinx/sponge/Vector3fSerializer : kotlinx/serialization/KSerializer {
+	public static final field INSTANCE Ldev/slne/surf/cloud/api/common/netty/network/codec/kotlinx/sponge/Vector3fSerializer;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lorg/spongepowered/math/vector/Vector3f;
+	public fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun serialize (Lkotlinx/serialization/encoding/Encoder;Lorg/spongepowered/math/vector/Vector3f;)V
+}
+
+public final class dev/slne/surf/cloud/api/common/netty/network/codec/kotlinx/sponge/Vector3iSerializer : kotlinx/serialization/KSerializer {
+	public static final field INSTANCE Ldev/slne/surf/cloud/api/common/netty/network/codec/kotlinx/sponge/Vector3iSerializer;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lorg/spongepowered/math/vector/Vector3i;
+	public fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun serialize (Lkotlinx/serialization/encoding/Encoder;Lorg/spongepowered/math/vector/Vector3i;)V
+}
+
+public final class dev/slne/surf/cloud/api/common/netty/network/codec/kotlinx/sponge/Vector3lSerializer : kotlinx/serialization/KSerializer {
+	public static final field INSTANCE Ldev/slne/surf/cloud/api/common/netty/network/codec/kotlinx/sponge/Vector3lSerializer;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lorg/spongepowered/math/vector/Vector3l;
+	public fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun serialize (Lkotlinx/serialization/encoding/Encoder;Lorg/spongepowered/math/vector/Vector3l;)V
 }
 
 public final class dev/slne/surf/cloud/api/common/netty/network/protocol/PacketFlow : java/lang/Enum {
@@ -1082,6 +1201,21 @@ public final class dev/slne/surf/cloud/api/common/netty/network/protocol/compone
 	public final fun getSTREAM_CODEC ()Ldev/slne/surf/cloud/api/common/netty/network/codec/StreamCodec;
 }
 
+public final class dev/slne/surf/cloud/api/common/netty/network/protocol/double/BigDecimalResponse : dev/slne/surf/cloud/api/common/netty/packet/ResponseNettyPacket, dev/slne/surf/cloud/api/common/netty/network/protocol/CommonResponseType {
+	public static final field Companion Ldev/slne/surf/cloud/api/common/netty/network/protocol/double/BigDecimalResponse$Companion;
+	public synthetic fun <init> (Ldev/slne/surf/cloud/api/common/netty/protocol/buffer/SurfByteBuf;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Ljava/math/BigDecimal;)V
+	public final fun component1 ()Ljava/math/BigDecimal;
+	public synthetic fun getValue ()Ljava/lang/Object;
+	public fun getValue ()Ljava/math/BigDecimal;
+}
+
+public final class dev/slne/surf/cloud/api/common/netty/network/protocol/double/BigDecimalResponse$Companion : dev/slne/surf/cloud/api/common/netty/network/protocol/CommonResponseTypeFactory {
+	public synthetic fun create (Ljava/lang/Object;)Ldev/slne/surf/cloud/api/common/netty/packet/ResponseNettyPacket;
+	public fun create (Ljava/math/BigDecimal;)Ldev/slne/surf/cloud/api/common/netty/network/protocol/double/BigDecimalResponse;
+	public final fun getSTREAM_CODEC ()Ldev/slne/surf/cloud/api/common/netty/network/codec/StreamCodec;
+}
+
 public final class dev/slne/surf/cloud/api/common/netty/network/protocol/double/DoubleArrayResponse : dev/slne/surf/cloud/api/common/netty/packet/ResponseNettyPacket, dev/slne/surf/cloud/api/common/netty/network/protocol/CommonResponseType {
 	public static final field Companion Ldev/slne/surf/cloud/api/common/netty/network/protocol/double/DoubleArrayResponse$Companion;
 	public synthetic fun <init> (Ldev/slne/surf/cloud/api/common/netty/protocol/buffer/SurfByteBuf;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
@@ -1111,6 +1245,21 @@ public final class dev/slne/surf/cloud/api/common/netty/network/protocol/double/
 }
 
 public final class dev/slne/surf/cloud/api/common/netty/network/protocol/double/DoubleResponse$Companion {
+	public final fun getSTREAM_CODEC ()Ldev/slne/surf/cloud/api/common/netty/network/codec/StreamCodec;
+}
+
+public final class dev/slne/surf/cloud/api/common/netty/network/protocol/double/OptionalBigDecimalResponse : dev/slne/surf/cloud/api/common/netty/packet/ResponseNettyPacket, dev/slne/surf/cloud/api/common/netty/network/protocol/CommonResponseType {
+	public static final field Companion Ldev/slne/surf/cloud/api/common/netty/network/protocol/double/OptionalBigDecimalResponse$Companion;
+	public synthetic fun <init> (Ldev/slne/surf/cloud/api/common/netty/protocol/buffer/SurfByteBuf;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Ljava/math/BigDecimal;)V
+	public final fun component1 ()Ljava/math/BigDecimal;
+	public synthetic fun getValue ()Ljava/lang/Object;
+	public fun getValue ()Ljava/math/BigDecimal;
+}
+
+public final class dev/slne/surf/cloud/api/common/netty/network/protocol/double/OptionalBigDecimalResponse$Companion : dev/slne/surf/cloud/api/common/netty/network/protocol/CommonResponseTypeFactory {
+	public synthetic fun create (Ljava/lang/Object;)Ldev/slne/surf/cloud/api/common/netty/packet/ResponseNettyPacket;
+	public fun create (Ljava/math/BigDecimal;)Ldev/slne/surf/cloud/api/common/netty/network/protocol/double/OptionalBigDecimalResponse;
 	public final fun getSTREAM_CODEC ()Ldev/slne/surf/cloud/api/common/netty/network/codec/StreamCodec;
 }
 
@@ -1214,6 +1363,21 @@ public final class dev/slne/surf/cloud/api/common/netty/network/protocol/float/O
 	public final fun getSTREAM_CODEC ()Ldev/slne/surf/cloud/api/common/netty/network/codec/StreamCodec;
 }
 
+public final class dev/slne/surf/cloud/api/common/netty/network/protocol/int/BigIntegerResponse : dev/slne/surf/cloud/api/common/netty/packet/ResponseNettyPacket, dev/slne/surf/cloud/api/common/netty/network/protocol/CommonResponseType {
+	public static final field Companion Ldev/slne/surf/cloud/api/common/netty/network/protocol/int/BigIntegerResponse$Companion;
+	public synthetic fun <init> (Ldev/slne/surf/cloud/api/common/netty/protocol/buffer/SurfByteBuf;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Ljava/math/BigInteger;)V
+	public final fun component1 ()Ljava/math/BigInteger;
+	public synthetic fun getValue ()Ljava/lang/Object;
+	public fun getValue ()Ljava/math/BigInteger;
+}
+
+public final class dev/slne/surf/cloud/api/common/netty/network/protocol/int/BigIntegerResponse$Companion : dev/slne/surf/cloud/api/common/netty/network/protocol/CommonResponseTypeFactory {
+	public synthetic fun create (Ljava/lang/Object;)Ldev/slne/surf/cloud/api/common/netty/packet/ResponseNettyPacket;
+	public fun create (Ljava/math/BigInteger;)Ldev/slne/surf/cloud/api/common/netty/network/protocol/int/BigIntegerResponse;
+	public final fun getSTREAM_CODEC ()Ldev/slne/surf/cloud/api/common/netty/network/codec/StreamCodec;
+}
+
 public final class dev/slne/surf/cloud/api/common/netty/network/protocol/int/IntArrayResponse : dev/slne/surf/cloud/api/common/netty/packet/ResponseNettyPacket, dev/slne/surf/cloud/api/common/netty/network/protocol/CommonResponseType {
 	public static final field Companion Ldev/slne/surf/cloud/api/common/netty/network/protocol/int/IntArrayResponse$Companion;
 	public synthetic fun <init> (Ldev/slne/surf/cloud/api/common/netty/protocol/buffer/SurfByteBuf;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
@@ -1245,6 +1409,21 @@ public final class dev/slne/surf/cloud/api/common/netty/network/protocol/int/Int
 public final class dev/slne/surf/cloud/api/common/netty/network/protocol/int/IntResponse$Companion : dev/slne/surf/cloud/api/common/netty/network/protocol/CommonResponseTypeFactory {
 	public fun create (I)Ldev/slne/surf/cloud/api/common/netty/network/protocol/int/IntResponse;
 	public synthetic fun create (Ljava/lang/Object;)Ldev/slne/surf/cloud/api/common/netty/packet/ResponseNettyPacket;
+	public final fun getSTREAM_CODEC ()Ldev/slne/surf/cloud/api/common/netty/network/codec/StreamCodec;
+}
+
+public final class dev/slne/surf/cloud/api/common/netty/network/protocol/int/OptionalBigIntegerResponse : dev/slne/surf/cloud/api/common/netty/packet/ResponseNettyPacket, dev/slne/surf/cloud/api/common/netty/network/protocol/CommonResponseType {
+	public static final field Companion Ldev/slne/surf/cloud/api/common/netty/network/protocol/int/OptionalBigIntegerResponse$Companion;
+	public synthetic fun <init> (Ldev/slne/surf/cloud/api/common/netty/protocol/buffer/SurfByteBuf;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Ljava/math/BigInteger;)V
+	public final fun component1 ()Ljava/math/BigInteger;
+	public synthetic fun getValue ()Ljava/lang/Object;
+	public fun getValue ()Ljava/math/BigInteger;
+}
+
+public final class dev/slne/surf/cloud/api/common/netty/network/protocol/int/OptionalBigIntegerResponse$Companion : dev/slne/surf/cloud/api/common/netty/network/protocol/CommonResponseTypeFactory {
+	public synthetic fun create (Ljava/lang/Object;)Ldev/slne/surf/cloud/api/common/netty/packet/ResponseNettyPacket;
+	public fun create (Ljava/math/BigInteger;)Ldev/slne/surf/cloud/api/common/netty/network/protocol/int/OptionalBigIntegerResponse;
 	public final fun getSTREAM_CODEC ()Ldev/slne/surf/cloud/api/common/netty/network/codec/StreamCodec;
 }
 
@@ -1567,7 +1746,7 @@ public abstract class dev/slne/surf/cloud/api/common/netty/packet/NettyPacket {
 	public fun getSkippable ()Z
 	public fun hashCode ()I
 	public fun isReady ()Z
-	public fun packetTooLarge (Ljava/lang/Object;)Z
+	public fun packetTooLarge (Ldev/slne/surf/cloud/api/common/netty/network/Connection;)Z
 	public fun toString ()Ljava/lang/String;
 }
 
@@ -1598,6 +1777,7 @@ public final class dev/slne/surf/cloud/api/common/netty/packet/Packet_extensionK
 }
 
 public abstract class dev/slne/surf/cloud/api/common/netty/packet/RespondingNettyPacket : dev/slne/surf/cloud/api/common/netty/packet/NettyPacket {
+	public static final field Companion Ldev/slne/surf/cloud/api/common/netty/packet/RespondingNettyPacket$Companion;
 	public fun <init> ()V
 	public final fun fireAndAwait-8Mi8wO0 (Ldev/slne/surf/cloud/api/common/netty/network/Connection;JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun fireAndAwait-8Mi8wO0$default (Ldev/slne/surf/cloud/api/common/netty/packet/RespondingNettyPacket;Ldev/slne/surf/cloud/api/common/netty/network/Connection;JLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
@@ -1606,6 +1786,9 @@ public abstract class dev/slne/surf/cloud/api/common/netty/packet/RespondingNett
 	public final fun fireAndAwaitOrThrowUrgent (Ldev/slne/surf/cloud/api/common/netty/network/Connection;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun fireAndAwaitUrgent (Ldev/slne/surf/cloud/api/common/netty/network/Connection;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun respond (Ldev/slne/surf/cloud/api/common/netty/packet/ResponseNettyPacket;)V
+}
+
+public final class dev/slne/surf/cloud/api/common/netty/packet/RespondingNettyPacket$Companion {
 }
 
 public final class dev/slne/surf/cloud/api/common/netty/packet/RespondingNettyPacketKt {
@@ -1621,6 +1804,8 @@ public class dev/slne/surf/cloud/api/common/netty/protocol/buffer/SurfByteBuf : 
 	public static final field Companion Ldev/slne/surf/cloud/api/common/netty/protocol/buffer/SurfByteBuf$Companion;
 	public fun <init> (Lio/netty/buffer/ByteBuf;)V
 	public final fun readArray (Lkotlin/jvm/functions/Function1;Ldev/slne/surf/cloud/api/common/netty/protocol/buffer/decoder/DecodeFactory;)[Ljava/lang/Object;
+	public final fun readBigDecimal ()Ljava/math/BigDecimal;
+	public final fun readBigInteger ()Ljava/math/BigInteger;
 	public final fun readBitSet ()Ljava/util/BitSet;
 	public final fun readBooleanArray ()[Z
 	public final fun readByteArray ()[B
@@ -1678,10 +1863,13 @@ public class dev/slne/surf/cloud/api/common/netty/protocol/buffer/SurfByteBuf : 
 	public final fun readUuidArray ()[Ljava/util/UUID;
 	public final fun readVarInt ()I
 	public final fun readVarLong ()J
+	public final fun readWithCodec (Ldev/slne/surf/cloud/api/common/netty/network/codec/StreamCodec;)Ljava/lang/Object;
 	public final fun readWithCount (Ljava/util/function/Consumer;)V
 	public final fun readWithCount (Lkotlin/jvm/functions/Function1;)V
 	public final fun readZonedDateTime ()Ljava/time/ZonedDateTime;
 	public final fun writeArray ([Ljava/lang/Object;Ldev/slne/surf/cloud/api/common/netty/protocol/buffer/ecoder/EncodeFactory;)V
+	public final fun writeBigDecimal (Ljava/math/BigDecimal;)V
+	public final fun writeBigInteger (Ljava/math/BigInteger;)V
 	public final fun writeBitSet (Ljava/util/BitSet;)V
 	public final fun writeBooleanArray ([Z)V
 	public final fun writeByteArray ([B)V
@@ -1740,14 +1928,18 @@ public class dev/slne/surf/cloud/api/common/netty/protocol/buffer/SurfByteBuf : 
 	public final fun writeUuidArray ([Ljava/util/UUID;)V
 	public final fun writeVarInt (I)Lio/netty/buffer/ByteBuf;
 	public final fun writeVarLong (J)Lio/netty/buffer/ByteBuf;
+	public final fun writeWithCodec (Ldev/slne/surf/cloud/api/common/netty/network/codec/StreamCodec;Ljava/lang/Object;)V
 	public final fun writeWithCount (ILjava/util/function/Consumer;)V
 	public final fun writeWithCount (ILkotlin/jvm/functions/Function1;)V
 	public final fun writeZonedDateTime (Ljava/time/ZonedDateTime;)V
 }
 
 public final class dev/slne/surf/cloud/api/common/netty/protocol/buffer/SurfByteBuf$Companion {
-	public final fun getAlloc ()Lio/netty/buffer/ByteBufAllocator;
+	public final fun buffer ()Ldev/slne/surf/cloud/api/common/netty/protocol/buffer/SurfByteBuf;
+	public final fun of ([B)Ldev/slne/surf/cloud/api/common/netty/protocol/buffer/SurfByteBuf;
 	public final fun readArray (Lio/netty/buffer/ByteBuf;Lkotlin/jvm/functions/Function1;Ldev/slne/surf/cloud/api/common/netty/protocol/buffer/decoder/DecodeFactory;)[Ljava/lang/Object;
+	public final fun readBigDecimal (Lio/netty/buffer/ByteBuf;)Ljava/math/BigDecimal;
+	public final fun readBigInteger (Lio/netty/buffer/ByteBuf;)Ljava/math/BigInteger;
 	public final fun readBitSet (Lio/netty/buffer/ByteBuf;)Ljava/util/BitSet;
 	public final fun readBooleanArray (Lio/netty/buffer/ByteBuf;)[Z
 	public final fun readByteArray (Lio/netty/buffer/ByteBuf;)[B
@@ -1800,6 +1992,8 @@ public final class dev/slne/surf/cloud/api/common/netty/protocol/buffer/SurfByte
 	public final fun readZonedDateTime (Lio/netty/buffer/ByteBuf;)Ljava/time/ZonedDateTime;
 	public final fun streamCodecFromKotlin (Lkotlinx/serialization/KSerializer;)Ldev/slne/surf/cloud/api/common/netty/network/codec/StreamCodec;
 	public final fun writeArray (Lio/netty/buffer/ByteBuf;[Ljava/lang/Object;Ldev/slne/surf/cloud/api/common/netty/protocol/buffer/ecoder/EncodeFactory;)V
+	public final fun writeBigDecimal (Lio/netty/buffer/ByteBuf;Ljava/math/BigDecimal;)V
+	public final fun writeBigInteger (Lio/netty/buffer/ByteBuf;Ljava/math/BigInteger;)V
 	public final fun writeBitSet (Lio/netty/buffer/ByteBuf;Ljava/util/BitSet;)V
 	public final fun writeBooleanArray (Lio/netty/buffer/ByteBuf;[Z)V
 	public final fun writeByteArray (Lio/netty/buffer/ByteBuf;[B)V
@@ -1854,6 +2048,8 @@ public final class dev/slne/surf/cloud/api/common/netty/protocol/buffer/SurfByte
 	public static final fun checkDecoded (ZLkotlin/jvm/functions/Function0;)V
 	public static final fun checkEncoded (ZLkotlin/jvm/functions/Function0;)V
 	public static final fun readArray (Lio/netty/buffer/ByteBuf;Lkotlin/jvm/functions/Function1;Ldev/slne/surf/cloud/api/common/netty/protocol/buffer/decoder/DecodeFactory;)[Ljava/lang/Object;
+	public static final fun readBigDecimal (Lio/netty/buffer/ByteBuf;)Ljava/math/BigDecimal;
+	public static final fun readBigInteger (Lio/netty/buffer/ByteBuf;)Ljava/math/BigInteger;
 	public static final fun readBitSet (Lio/netty/buffer/ByteBuf;)Ljava/util/BitSet;
 	public static final fun readBooleanArray (Lio/netty/buffer/ByteBuf;)[Z
 	public static final fun readByteArray (Lio/netty/buffer/ByteBuf;)[B
@@ -1911,6 +2107,8 @@ public final class dev/slne/surf/cloud/api/common/netty/protocol/buffer/SurfByte
 	public static final fun toByteArraySafe (Lio/netty/buffer/ByteBuf;)[B
 	public static final fun wrap (Lio/netty/buffer/ByteBuf;)Ldev/slne/surf/cloud/api/common/netty/protocol/buffer/SurfByteBuf;
 	public static final fun writeArray (Lio/netty/buffer/ByteBuf;[Ljava/lang/Object;Ldev/slne/surf/cloud/api/common/netty/protocol/buffer/ecoder/EncodeFactory;)V
+	public static final fun writeBigDecimal (Lio/netty/buffer/ByteBuf;Ljava/math/BigDecimal;)V
+	public static final fun writeBigInteger (Lio/netty/buffer/ByteBuf;Ljava/math/BigInteger;)V
 	public static final fun writeBitSet (Lio/netty/buffer/ByteBuf;Ljava/util/BitSet;)V
 	public static final fun writeBooleanArray (Lio/netty/buffer/ByteBuf;[Z)V
 	public static final fun writeByteArray (Lio/netty/buffer/ByteBuf;[B)V
@@ -2201,6 +2399,7 @@ public final class dev/slne/surf/cloud/api/common/netty/protocol/buffer/ecoder/E
 
 public final class dev/slne/surf/cloud/api/common/netty/protocol/buffer/types/Utf8String {
 	public static final field INSTANCE Ldev/slne/surf/cloud/api/common/netty/protocol/buffer/types/Utf8String;
+	public final fun getSTREAM_CODEC ()Ldev/slne/surf/cloud/api/common/netty/network/codec/StreamCodec;
 	public final fun read (Lio/netty/buffer/ByteBuf;I)Ljava/lang/String;
 	public final fun write (Lio/netty/buffer/ByteBuf;Ljava/lang/CharSequence;I)V
 }
@@ -2252,14 +2451,17 @@ public abstract interface class dev/slne/surf/cloud/api/common/player/CloudPlaye
 	public abstract fun playSound (Lnet/kyori/adventure/sound/Sound;Lnet/kyori/adventure/sound/Sound$Emitter;Ljava/lang/String;)V
 	public abstract fun sendMessage (Lnet/kyori/adventure/text/ComponentLike;Ljava/lang/String;)V
 	public abstract fun teleport (Ldev/slne/surf/cloud/api/common/player/CloudPlayer;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public abstract fun teleport (Ldev/slne/surf/cloud/api/common/player/teleport/TeleportLocation;Ldev/slne/surf/cloud/api/common/player/teleport/TeleportCause;[Ldev/slne/surf/cloud/api/common/player/teleport/TeleportFlag;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun teleport (Ldev/slne/surf/cloud/api/common/player/teleport/WorldLocation;Ldev/slne/surf/cloud/api/common/player/teleport/TeleportCause;[Ldev/slne/surf/cloud/api/common/player/teleport/TeleportFlag;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun teleport (Ljava/util/UUID;DDDFFLdev/slne/surf/cloud/api/common/player/teleport/TeleportCause;[Ldev/slne/surf/cloud/api/common/player/teleport/TeleportFlag;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static synthetic fun teleport$default (Ldev/slne/surf/cloud/api/common/player/CloudPlayer;Ldev/slne/surf/cloud/api/common/player/teleport/TeleportLocation;Ldev/slne/surf/cloud/api/common/player/teleport/TeleportCause;[Ldev/slne/surf/cloud/api/common/player/teleport/TeleportFlag;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static synthetic fun teleport$default (Ldev/slne/surf/cloud/api/common/player/CloudPlayer;Ldev/slne/surf/cloud/api/common/player/teleport/WorldLocation;Ldev/slne/surf/cloud/api/common/player/teleport/TeleportCause;[Ldev/slne/surf/cloud/api/common/player/teleport/TeleportFlag;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public static synthetic fun teleport$default (Ldev/slne/surf/cloud/api/common/player/CloudPlayer;Ljava/util/UUID;DDDFFLdev/slne/surf/cloud/api/common/player/teleport/TeleportCause;[Ldev/slne/surf/cloud/api/common/player/teleport/TeleportFlag;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public abstract fun withPersistentData (Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class dev/slne/surf/cloud/api/common/player/CloudPlayer$Companion {
+	public final fun all ()Ldev/slne/surf/cloud/api/common/server/UserList;
+	public final fun get (Ljava/lang/String;)Ldev/slne/surf/cloud/api/common/player/CloudPlayer;
+	public final fun get (Ljava/util/UUID;)Ldev/slne/surf/cloud/api/common/player/CloudPlayer;
 	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 }
 
@@ -2270,32 +2472,41 @@ public final class dev/slne/surf/cloud/api/common/player/CloudPlayer$DefaultImpl
 	public static fun getConnected (Ldev/slne/surf/cloud/api/common/player/CloudPlayer;)Z
 	public static fun lastServer (Ldev/slne/surf/cloud/api/common/player/CloudPlayer;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static fun teleport (Ldev/slne/surf/cloud/api/common/player/CloudPlayer;Ljava/util/UUID;DDDFFLdev/slne/surf/cloud/api/common/player/teleport/TeleportCause;[Ldev/slne/surf/cloud/api/common/player/teleport/TeleportFlag;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static synthetic fun teleport$default (Ldev/slne/surf/cloud/api/common/player/CloudPlayer;Ldev/slne/surf/cloud/api/common/player/teleport/TeleportLocation;Ldev/slne/surf/cloud/api/common/player/teleport/TeleportCause;[Ldev/slne/surf/cloud/api/common/player/teleport/TeleportFlag;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static synthetic fun teleport$default (Ldev/slne/surf/cloud/api/common/player/CloudPlayer;Ldev/slne/surf/cloud/api/common/player/teleport/WorldLocation;Ldev/slne/surf/cloud/api/common/player/teleport/TeleportCause;[Ldev/slne/surf/cloud/api/common/player/teleport/TeleportFlag;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public static synthetic fun teleport$default (Ldev/slne/surf/cloud/api/common/player/CloudPlayer;Ljava/util/UUID;DDDFFLdev/slne/surf/cloud/api/common/player/teleport/TeleportCause;[Ldev/slne/surf/cloud/api/common/player/teleport/TeleportFlag;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
 public abstract interface class dev/slne/surf/cloud/api/common/player/CloudPlayerManager {
 	public static final field Companion Ldev/slne/surf/cloud/api/common/player/CloudPlayerManager$Companion;
-	public abstract fun getOfflinePlayer (Ljava/util/UUID;)Ldev/slne/surf/cloud/api/common/player/OfflineCloudPlayer;
+	public abstract fun getOfflinePlayer (Ljava/util/UUID;Z)Ldev/slne/surf/cloud/api/common/player/OfflineCloudPlayer;
+	public static synthetic fun getOfflinePlayer$default (Ldev/slne/surf/cloud/api/common/player/CloudPlayerManager;Ljava/util/UUID;ZILjava/lang/Object;)Ldev/slne/surf/cloud/api/common/player/OfflineCloudPlayer;
 	public abstract fun getOnlinePlayers ()Ldev/slne/surf/cloud/api/common/server/UserList;
 	public abstract fun getPlayer (Ljava/lang/String;)Ldev/slne/surf/cloud/api/common/player/CloudPlayer;
 	public abstract fun getPlayer (Ljava/util/UUID;)Ldev/slne/surf/cloud/api/common/player/CloudPlayer;
 }
 
 public final class dev/slne/surf/cloud/api/common/player/CloudPlayerManager$Companion : dev/slne/surf/cloud/api/common/player/CloudPlayerManager {
-	public fun getOfflinePlayer (Ljava/util/UUID;)Ldev/slne/surf/cloud/api/common/player/OfflineCloudPlayer;
+	public fun getOfflinePlayer (Ljava/util/UUID;Z)Ldev/slne/surf/cloud/api/common/player/OfflineCloudPlayer;
 	public fun getOnlinePlayers ()Ldev/slne/surf/cloud/api/common/server/UserList;
 	public fun getPlayer (Ljava/lang/String;)Ldev/slne/surf/cloud/api/common/player/CloudPlayer;
 	public fun getPlayer (Ljava/util/UUID;)Ldev/slne/surf/cloud/api/common/player/CloudPlayer;
 }
 
+public final class dev/slne/surf/cloud/api/common/player/CloudPlayerManager$DefaultImpls {
+	public static synthetic fun getOfflinePlayer$default (Ldev/slne/surf/cloud/api/common/player/CloudPlayerManager;Ljava/util/UUID;ZILjava/lang/Object;)Ldev/slne/surf/cloud/api/common/player/OfflineCloudPlayer;
+}
+
 public final class dev/slne/surf/cloud/api/common/player/CloudPlayerManagerKt {
 	public static final fun toCloudPlayer (Ljava/util/UUID;)Ldev/slne/surf/cloud/api/common/player/CloudPlayer;
 	public static final fun toCloudPlayer (Lnet/kyori/adventure/audience/Audience;)Ldev/slne/surf/cloud/api/common/player/CloudPlayer;
-	public static final fun toOfflineCloudPlayer (Ljava/util/UUID;)Ldev/slne/surf/cloud/api/common/player/OfflineCloudPlayer;
-	public static final fun toOfflineCloudPlayer (Lnet/kyori/adventure/audience/Audience;)Ldev/slne/surf/cloud/api/common/player/OfflineCloudPlayer;
-	public static final fun toOfflineCloudPlayerNullable (Ljava/util/UUID;)Ldev/slne/surf/cloud/api/common/player/OfflineCloudPlayer;
-	public static final fun toOfflineCloudPlayerNullable (Lnet/kyori/adventure/audience/Audience;)Ldev/slne/surf/cloud/api/common/player/OfflineCloudPlayer;
+	public static final fun toOfflineCloudPlayer (Ljava/util/UUID;Z)Ldev/slne/surf/cloud/api/common/player/OfflineCloudPlayer;
+	public static final fun toOfflineCloudPlayer (Lnet/kyori/adventure/audience/Audience;Z)Ldev/slne/surf/cloud/api/common/player/OfflineCloudPlayer;
+	public static synthetic fun toOfflineCloudPlayer$default (Ljava/util/UUID;ZILjava/lang/Object;)Ldev/slne/surf/cloud/api/common/player/OfflineCloudPlayer;
+	public static synthetic fun toOfflineCloudPlayer$default (Lnet/kyori/adventure/audience/Audience;ZILjava/lang/Object;)Ldev/slne/surf/cloud/api/common/player/OfflineCloudPlayer;
+	public static final fun toOfflineCloudPlayerNullable (Ljava/util/UUID;Z)Ldev/slne/surf/cloud/api/common/player/OfflineCloudPlayer;
+	public static final fun toOfflineCloudPlayerNullable (Lnet/kyori/adventure/audience/Audience;Z)Ldev/slne/surf/cloud/api/common/player/OfflineCloudPlayer;
+	public static synthetic fun toOfflineCloudPlayerNullable$default (Ljava/util/UUID;ZILjava/lang/Object;)Ldev/slne/surf/cloud/api/common/player/OfflineCloudPlayer;
+	public static synthetic fun toOfflineCloudPlayerNullable$default (Lnet/kyori/adventure/audience/Audience;ZILjava/lang/Object;)Ldev/slne/surf/cloud/api/common/player/OfflineCloudPlayer;
 }
 
 public abstract class dev/slne/surf/cloud/api/common/player/ConnectionResultEnum {
@@ -2500,6 +2711,7 @@ public abstract interface class dev/slne/surf/cloud/api/common/player/OfflineClo
 	public abstract fun getPlayer ()Ldev/slne/surf/cloud/api/common/player/CloudPlayer;
 	public abstract fun getPunishmentManager ()Ldev/slne/surf/cloud/api/common/player/punishment/CloudPlayerPunishmentManager;
 	public abstract fun getUuid ()Ljava/util/UUID;
+	public abstract fun getWhitelistManager ()Ldev/slne/surf/cloud/api/common/player/whitelist/CloudPlayerWhitelistManager;
 	public abstract fun lastSeen (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun lastServer (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun lastServerRaw (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -2511,7 +2723,139 @@ public abstract interface class dev/slne/surf/cloud/api/common/player/OfflineClo
 }
 
 public final class dev/slne/surf/cloud/api/common/player/OfflineCloudPlayer$Companion {
+	public final fun get (Ljava/util/UUID;Z)Ldev/slne/surf/cloud/api/common/player/OfflineCloudPlayer;
+	public static synthetic fun get$default (Ldev/slne/surf/cloud/api/common/player/OfflineCloudPlayer$Companion;Ljava/util/UUID;ZILjava/lang/Object;)Ldev/slne/surf/cloud/api/common/player/OfflineCloudPlayer;
 	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public abstract interface class dev/slne/surf/cloud/api/common/player/cache/CacheStructured : dev/slne/surf/cloud/api/common/player/cache/DirtyMarkable {
+	public abstract fun emit (Ljava/lang/Object;)V
+	public abstract fun getType ()Ldev/slne/surf/cloud/api/common/player/cache/StructuredType;
+	public abstract fun getValue ()Ljava/lang/Object;
+	public abstract fun setValue (Ljava/lang/Object;)V
+}
+
+public abstract interface class dev/slne/surf/cloud/api/common/player/cache/CloudPlayerCache {
+	public abstract fun get (Ldev/slne/surf/cloud/api/common/player/cache/key/CacheKey;)Ljava/lang/Object;
+	public fun getOrPut (Ldev/slne/surf/cloud/api/common/player/cache/key/CacheKey$Value;Lkotlin/jvm/functions/Function0;)Ljava/lang/Object;
+	public abstract fun getUuid ()Ljava/util/UUID;
+	public abstract fun remove (Ldev/slne/surf/cloud/api/common/player/cache/key/CacheKey;)V
+	public abstract fun set (Ldev/slne/surf/cloud/api/common/player/cache/key/CacheKey$Value;Ljava/lang/Object;)V
+}
+
+public final class dev/slne/surf/cloud/api/common/player/cache/CloudPlayerCache$DefaultImpls {
+	public static fun getOrPut (Ldev/slne/surf/cloud/api/common/player/cache/CloudPlayerCache;Ldev/slne/surf/cloud/api/common/player/cache/key/CacheKey$Value;Lkotlin/jvm/functions/Function0;)Ljava/lang/Object;
+}
+
+public abstract interface class dev/slne/surf/cloud/api/common/player/cache/DirtyMarkable {
+	public abstract fun consumeDirty ()Z
+	public abstract fun markDirty ()V
+}
+
+public abstract interface class dev/slne/surf/cloud/api/common/player/cache/PlayerCacheLoader {
+	public abstract fun loadCache (Ldev/slne/surf/cloud/api/common/player/OfflineCloudPlayer;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public abstract interface class dev/slne/surf/cloud/api/common/player/cache/StructuredType {
+	public abstract fun applyDelta (Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+	public abstract fun getValueCodec ()Ldev/slne/surf/cloud/api/common/netty/network/codec/StreamCodec;
+}
+
+public abstract interface class dev/slne/surf/cloud/api/common/player/cache/key/CacheKey : net/kyori/adventure/key/Key {
+	public abstract fun getPersistent ()Z
+	public fun toNetworkKey ()Ldev/slne/surf/cloud/api/common/player/cache/key/CacheNetworkKey;
+}
+
+public final class dev/slne/surf/cloud/api/common/player/cache/key/CacheKey$DefaultImpls {
+	public static fun toNetworkKey (Ldev/slne/surf/cloud/api/common/player/cache/key/CacheKey;)Ldev/slne/surf/cloud/api/common/player/cache/key/CacheNetworkKey;
+}
+
+public abstract interface class dev/slne/surf/cloud/api/common/player/cache/key/CacheKey$List : dev/slne/surf/cloud/api/common/player/cache/key/CacheKey {
+	public abstract fun getElementCodec ()Ldev/slne/surf/cloud/api/common/netty/network/codec/StreamCodec;
+}
+
+public final class dev/slne/surf/cloud/api/common/player/cache/key/CacheKey$List$DefaultImpls {
+	public static fun toNetworkKey (Ldev/slne/surf/cloud/api/common/player/cache/key/CacheKey$List;)Ldev/slne/surf/cloud/api/common/player/cache/key/CacheNetworkKey;
+}
+
+public abstract interface class dev/slne/surf/cloud/api/common/player/cache/key/CacheKey$Map : dev/slne/surf/cloud/api/common/player/cache/key/CacheKey {
+	public abstract fun getKeyCodec ()Ldev/slne/surf/cloud/api/common/netty/network/codec/StreamCodec;
+	public abstract fun getValueCodec ()Ldev/slne/surf/cloud/api/common/netty/network/codec/StreamCodec;
+}
+
+public final class dev/slne/surf/cloud/api/common/player/cache/key/CacheKey$Map$DefaultImpls {
+	public static fun toNetworkKey (Ldev/slne/surf/cloud/api/common/player/cache/key/CacheKey$Map;)Ldev/slne/surf/cloud/api/common/player/cache/key/CacheNetworkKey;
+}
+
+public abstract interface class dev/slne/surf/cloud/api/common/player/cache/key/CacheKey$Set : dev/slne/surf/cloud/api/common/player/cache/key/CacheKey {
+	public abstract fun getElementCodec ()Ldev/slne/surf/cloud/api/common/netty/network/codec/StreamCodec;
+}
+
+public final class dev/slne/surf/cloud/api/common/player/cache/key/CacheKey$Set$DefaultImpls {
+	public static fun toNetworkKey (Ldev/slne/surf/cloud/api/common/player/cache/key/CacheKey$Set;)Ldev/slne/surf/cloud/api/common/player/cache/key/CacheNetworkKey;
+}
+
+public abstract interface class dev/slne/surf/cloud/api/common/player/cache/key/CacheKey$Structured : dev/slne/surf/cloud/api/common/player/cache/key/CacheKey {
+	public abstract fun getDeltaCodec ()Ldev/slne/surf/cloud/api/common/netty/network/codec/StreamCodec;
+}
+
+public final class dev/slne/surf/cloud/api/common/player/cache/key/CacheKey$Structured$DefaultImpls {
+	public static fun toNetworkKey (Ldev/slne/surf/cloud/api/common/player/cache/key/CacheKey$Structured;)Ldev/slne/surf/cloud/api/common/player/cache/key/CacheNetworkKey;
+}
+
+public abstract interface class dev/slne/surf/cloud/api/common/player/cache/key/CacheKey$Value : dev/slne/surf/cloud/api/common/player/cache/key/CacheKey {
+	public abstract fun getCodec ()Ldev/slne/surf/cloud/api/common/netty/network/codec/StreamCodec;
+}
+
+public final class dev/slne/surf/cloud/api/common/player/cache/key/CacheKey$Value$DefaultImpls {
+	public static fun toNetworkKey (Ldev/slne/surf/cloud/api/common/player/cache/key/CacheKey$Value;)Ldev/slne/surf/cloud/api/common/player/cache/key/CacheNetworkKey;
+}
+
+public abstract interface class dev/slne/surf/cloud/api/common/player/cache/key/CacheNetworkKey : net/kyori/adventure/key/Key {
+	public static final field Companion Ldev/slne/surf/cloud/api/common/player/cache/key/CacheNetworkKey$Companion;
+}
+
+public final class dev/slne/surf/cloud/api/common/player/cache/key/CacheNetworkKey$Companion {
+	public final fun getSTREAM_CODEC ()Ldev/slne/surf/cloud/api/common/netty/network/codec/StreamCodec;
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+	public final fun wrap (Ldev/slne/surf/cloud/api/common/player/cache/key/CacheKey;)Ldev/slne/surf/cloud/api/common/player/cache/key/CacheNetworkKey;
+}
+
+public abstract interface class dev/slne/surf/cloud/api/common/player/cache/key/PlayerCacheKeyRegistry {
+	public abstract fun allKeys ()Ljava/util/List;
+	public abstract fun booleanKey (Lnet/kyori/adventure/key/Key;)Ldev/slne/surf/cloud/api/common/player/cache/key/CacheKey$Value;
+	public abstract fun byNetworkKey (Ldev/slne/surf/cloud/api/common/player/cache/key/CacheNetworkKey;)Ldev/slne/surf/cloud/api/common/player/cache/key/CacheKey;
+	public abstract fun doubleKey (Lnet/kyori/adventure/key/Key;)Ldev/slne/surf/cloud/api/common/player/cache/key/CacheKey$Value;
+	public abstract fun enumKey (Lnet/kyori/adventure/key/Key;Ljava/lang/Class;)Ldev/slne/surf/cloud/api/common/player/cache/key/CacheKey$Value;
+	public abstract fun floatKey (Lnet/kyori/adventure/key/Key;)Ldev/slne/surf/cloud/api/common/player/cache/key/CacheKey$Value;
+	public abstract fun intKey (Lnet/kyori/adventure/key/Key;)Ldev/slne/surf/cloud/api/common/player/cache/key/CacheKey$Value;
+	public abstract fun listKey (Lnet/kyori/adventure/key/Key;)Ldev/slne/surf/cloud/api/common/player/cache/key/CacheKey$List;
+	public abstract fun longKey (Lnet/kyori/adventure/key/Key;)Ldev/slne/surf/cloud/api/common/player/cache/key/CacheKey$Value;
+	public abstract fun mapKey (Lnet/kyori/adventure/key/Key;)Ldev/slne/surf/cloud/api/common/player/cache/key/CacheKey$Map;
+	public abstract fun register (Ldev/slne/surf/cloud/api/common/player/cache/key/CacheKey;)V
+	public abstract fun setKey (Lnet/kyori/adventure/key/Key;)Ldev/slne/surf/cloud/api/common/player/cache/key/CacheKey$Set;
+	public abstract fun stringKey (Lnet/kyori/adventure/key/Key;)Ldev/slne/surf/cloud/api/common/player/cache/key/CacheKey$Value;
+}
+
+public abstract interface class dev/slne/surf/cloud/api/common/player/cache/listener/CacheValueListener {
+	public abstract fun onCacheValueChanged (Ljava/util/UUID;Ldev/slne/surf/cloud/api/common/player/cache/key/CacheKey;Ljava/lang/Object;Ljava/lang/Object;)V
+}
+
+public abstract interface class dev/slne/surf/cloud/api/common/player/cache/types/CacheList : dev/slne/surf/cloud/api/common/player/cache/types/DeltaBacked, java/util/List, kotlin/jvm/internal/markers/KMutableList {
+	public abstract fun snapshot ()Lit/unimi/dsi/fastutil/objects/ObjectArrayList;
+}
+
+public abstract interface class dev/slne/surf/cloud/api/common/player/cache/types/CacheMap : dev/slne/surf/cloud/api/common/player/cache/types/DeltaBacked, java/util/concurrent/ConcurrentMap {
+	public abstract fun snapshot ()Lorg/gradle/internal/impldep/it/unimi/dsi/fastutil/objects/Object2ObjectMap;
+}
+
+public abstract interface class dev/slne/surf/cloud/api/common/player/cache/types/CacheSet : dev/slne/surf/cloud/api/common/player/cache/types/DeltaBacked, java/util/Set, kotlin/jvm/internal/markers/KMutableSet {
+	public abstract fun snapshot ()Lit/unimi/dsi/fastutil/objects/ObjectOpenHashSet;
+}
+
+public abstract interface class dev/slne/surf/cloud/api/common/player/cache/types/DeltaBacked {
+	public abstract fun getSuppressOutbound ()Z
+	public abstract fun setSuppressOutbound (Z)V
 }
 
 public final class dev/slne/surf/cloud/api/common/player/name/NameEntry {
@@ -2706,19 +3050,21 @@ public abstract interface class dev/slne/surf/cloud/api/common/player/punishment
 }
 
 public abstract interface class dev/slne/surf/cloud/api/common/player/punishment/PunishmentLoginValidation$PunishmentCache {
-	public abstract fun getBans ()Ljava/util/List;
+	public abstract fun getActiveBans ()Ljava/util/List;
+	public abstract fun getActiveMutes ()Ljava/util/List;
 	public abstract fun getKicks ()Ljava/util/List;
-	public abstract fun getMutes ()Ljava/util/List;
 	public abstract fun getWarnings ()Ljava/util/List;
 }
 
 public abstract interface class dev/slne/surf/cloud/api/common/player/punishment/PunishmentLoginValidation$Result {
 	public static final field Companion Ldev/slne/surf/cloud/api/common/player/punishment/PunishmentLoginValidation$Result$Companion;
+	public abstract fun getAllowed ()Z
 }
 
 public final class dev/slne/surf/cloud/api/common/player/punishment/PunishmentLoginValidation$Result$ALLOWED : dev/slne/surf/cloud/api/common/player/punishment/PunishmentLoginValidation$Result {
 	public static final field INSTANCE Ldev/slne/surf/cloud/api/common/player/punishment/PunishmentLoginValidation$Result$ALLOWED;
 	public fun equals (Ljava/lang/Object;)Z
+	public fun getAllowed ()Z
 	public fun hashCode ()I
 	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 	public fun toString ()Ljava/lang/String;
@@ -2735,6 +3081,7 @@ public final class dev/slne/surf/cloud/api/common/player/punishment/PunishmentLo
 	public final fun copy (Lnet/kyori/adventure/text/Component;)Ldev/slne/surf/cloud/api/common/player/punishment/PunishmentLoginValidation$Result$DENIED;
 	public static synthetic fun copy$default (Ldev/slne/surf/cloud/api/common/player/punishment/PunishmentLoginValidation$Result$DENIED;Lnet/kyori/adventure/text/Component;ILjava/lang/Object;)Ldev/slne/surf/cloud/api/common/player/punishment/PunishmentLoginValidation$Result$DENIED;
 	public fun equals (Ljava/lang/Object;)Z
+	public fun getAllowed ()Z
 	public final fun getReason ()Lnet/kyori/adventure/text/Component;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
@@ -2758,6 +3105,16 @@ public final class dev/slne/surf/cloud/api/common/player/punishment/PunishmentLo
 public final class dev/slne/surf/cloud/api/common/player/punishment/PunishmentLoginValidation$Result$ERROR : dev/slne/surf/cloud/api/common/player/punishment/PunishmentLoginValidation$Result {
 	public static final field INSTANCE Ldev/slne/surf/cloud/api/common/player/punishment/PunishmentLoginValidation$Result$ERROR;
 	public fun equals (Ljava/lang/Object;)Z
+	public fun getAllowed ()Z
+	public fun hashCode ()I
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/slne/surf/cloud/api/common/player/punishment/PunishmentLoginValidation$Result$NOT_HANDLED : dev/slne/surf/cloud/api/common/player/punishment/PunishmentLoginValidation$Result {
+	public static final field INSTANCE Ldev/slne/surf/cloud/api/common/player/punishment/PunishmentLoginValidation$Result$NOT_HANDLED;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getAllowed ()Z
 	public fun hashCode ()I
 	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 	public fun toString ()Ljava/lang/String;
@@ -2766,6 +3123,12 @@ public final class dev/slne/surf/cloud/api/common/player/punishment/PunishmentLo
 public final class dev/slne/surf/cloud/api/common/player/punishment/type/BanBuilder : dev/slne/surf/cloud/api/common/player/punishment/type/NoteBuilder {
 	public fun <init> ()V
 	public final fun ipAddress (Ljava/lang/String;)V
+}
+
+public abstract class dev/slne/surf/cloud/api/common/player/punishment/type/CommonBuilder {
+	public final fun getParent ()Ldev/slne/surf/cloud/api/common/player/punishment/type/Punishment;
+	public final fun parent (Ldev/slne/surf/cloud/api/common/player/punishment/type/Punishment;)V
+	public final fun setParent (Ldev/slne/surf/cloud/api/common/player/punishment/type/Punishment;)V
 }
 
 public abstract interface class dev/slne/surf/cloud/api/common/player/punishment/type/ExpirablePunishment : dev/slne/surf/cloud/api/common/player/punishment/type/Punishment, java/lang/Comparable {
@@ -2781,7 +3144,7 @@ public final class dev/slne/surf/cloud/api/common/player/punishment/type/Expirab
 	public static fun getActive (Ldev/slne/surf/cloud/api/common/player/punishment/type/ExpirablePunishment;)Z
 }
 
-public class dev/slne/surf/cloud/api/common/player/punishment/type/NoteBuilder {
+public class dev/slne/surf/cloud/api/common/player/punishment/type/NoteBuilder : dev/slne/surf/cloud/api/common/player/punishment/type/CommonBuilder {
 	public final fun note (Ljava/lang/String;)V
 }
 
@@ -2790,20 +3153,24 @@ public abstract interface annotation class dev/slne/surf/cloud/api/common/player
 
 public abstract interface class dev/slne/surf/cloud/api/common/player/punishment/type/PunishSpec {
 	public abstract fun getNotes ()Ljava/util/List;
+	public abstract fun getParent ()Ldev/slne/surf/cloud/api/common/player/punishment/type/Punishment;
 	public abstract fun getType ()Ldev/slne/surf/cloud/api/common/player/punishment/type/PunishType;
 }
 
 public final class dev/slne/surf/cloud/api/common/player/punishment/type/PunishSpec$BanSpec : dev/slne/surf/cloud/api/common/player/punishment/type/PunishSpec {
-	public fun <init> (Ldev/slne/surf/cloud/api/common/player/punishment/type/PunishType$BAN;Ljava/util/List;Ljava/util/List;)V
-	public synthetic fun <init> (Ldev/slne/surf/cloud/api/common/player/punishment/type/PunishType$BAN;Ljava/util/List;Ljava/util/List;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Ldev/slne/surf/cloud/api/common/player/punishment/type/PunishType$BAN;Ljava/util/List;Ljava/util/List;Ldev/slne/surf/cloud/api/common/player/punishment/type/ban/PunishmentBan;)V
+	public synthetic fun <init> (Ldev/slne/surf/cloud/api/common/player/punishment/type/PunishType$BAN;Ljava/util/List;Ljava/util/List;Ldev/slne/surf/cloud/api/common/player/punishment/type/ban/PunishmentBan;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Ldev/slne/surf/cloud/api/common/player/punishment/type/PunishType$BAN;
 	public final fun component2 ()Ljava/util/List;
 	public final fun component3 ()Ljava/util/List;
-	public final fun copy (Ldev/slne/surf/cloud/api/common/player/punishment/type/PunishType$BAN;Ljava/util/List;Ljava/util/List;)Ldev/slne/surf/cloud/api/common/player/punishment/type/PunishSpec$BanSpec;
-	public static synthetic fun copy$default (Ldev/slne/surf/cloud/api/common/player/punishment/type/PunishSpec$BanSpec;Ldev/slne/surf/cloud/api/common/player/punishment/type/PunishType$BAN;Ljava/util/List;Ljava/util/List;ILjava/lang/Object;)Ldev/slne/surf/cloud/api/common/player/punishment/type/PunishSpec$BanSpec;
+	public final fun component4 ()Ldev/slne/surf/cloud/api/common/player/punishment/type/ban/PunishmentBan;
+	public final fun copy (Ldev/slne/surf/cloud/api/common/player/punishment/type/PunishType$BAN;Ljava/util/List;Ljava/util/List;Ldev/slne/surf/cloud/api/common/player/punishment/type/ban/PunishmentBan;)Ldev/slne/surf/cloud/api/common/player/punishment/type/PunishSpec$BanSpec;
+	public static synthetic fun copy$default (Ldev/slne/surf/cloud/api/common/player/punishment/type/PunishSpec$BanSpec;Ldev/slne/surf/cloud/api/common/player/punishment/type/PunishType$BAN;Ljava/util/List;Ljava/util/List;Ldev/slne/surf/cloud/api/common/player/punishment/type/ban/PunishmentBan;ILjava/lang/Object;)Ldev/slne/surf/cloud/api/common/player/punishment/type/PunishSpec$BanSpec;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getIpAddresses ()Ljava/util/List;
 	public fun getNotes ()Ljava/util/List;
+	public synthetic fun getParent ()Ldev/slne/surf/cloud/api/common/player/punishment/type/Punishment;
+	public fun getParent ()Ldev/slne/surf/cloud/api/common/player/punishment/type/ban/PunishmentBan;
 	public fun getType ()Ldev/slne/surf/cloud/api/common/player/punishment/type/PunishType$BAN;
 	public synthetic fun getType ()Ldev/slne/surf/cloud/api/common/player/punishment/type/PunishType;
 	public fun hashCode ()I
@@ -2814,14 +3181,16 @@ public final class dev/slne/surf/cloud/api/common/player/punishment/type/PunishS
 }
 
 public final class dev/slne/surf/cloud/api/common/player/punishment/type/PunishSpec$BasicSpec : dev/slne/surf/cloud/api/common/player/punishment/type/PunishSpec {
-	public fun <init> (Ldev/slne/surf/cloud/api/common/player/punishment/type/PunishType;Ljava/util/List;)V
-	public synthetic fun <init> (Ldev/slne/surf/cloud/api/common/player/punishment/type/PunishType;Ljava/util/List;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Ldev/slne/surf/cloud/api/common/player/punishment/type/PunishType;Ldev/slne/surf/cloud/api/common/player/punishment/type/Punishment;Ljava/util/List;)V
+	public synthetic fun <init> (Ldev/slne/surf/cloud/api/common/player/punishment/type/PunishType;Ldev/slne/surf/cloud/api/common/player/punishment/type/Punishment;Ljava/util/List;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Ldev/slne/surf/cloud/api/common/player/punishment/type/PunishType;
-	public final fun component2 ()Ljava/util/List;
-	public final fun copy (Ldev/slne/surf/cloud/api/common/player/punishment/type/PunishType;Ljava/util/List;)Ldev/slne/surf/cloud/api/common/player/punishment/type/PunishSpec$BasicSpec;
-	public static synthetic fun copy$default (Ldev/slne/surf/cloud/api/common/player/punishment/type/PunishSpec$BasicSpec;Ldev/slne/surf/cloud/api/common/player/punishment/type/PunishType;Ljava/util/List;ILjava/lang/Object;)Ldev/slne/surf/cloud/api/common/player/punishment/type/PunishSpec$BasicSpec;
+	public final fun component2 ()Ldev/slne/surf/cloud/api/common/player/punishment/type/Punishment;
+	public final fun component3 ()Ljava/util/List;
+	public final fun copy (Ldev/slne/surf/cloud/api/common/player/punishment/type/PunishType;Ldev/slne/surf/cloud/api/common/player/punishment/type/Punishment;Ljava/util/List;)Ldev/slne/surf/cloud/api/common/player/punishment/type/PunishSpec$BasicSpec;
+	public static synthetic fun copy$default (Ldev/slne/surf/cloud/api/common/player/punishment/type/PunishSpec$BasicSpec;Ldev/slne/surf/cloud/api/common/player/punishment/type/PunishType;Ldev/slne/surf/cloud/api/common/player/punishment/type/Punishment;Ljava/util/List;ILjava/lang/Object;)Ldev/slne/surf/cloud/api/common/player/punishment/type/PunishSpec$BasicSpec;
 	public fun equals (Ljava/lang/Object;)Z
 	public fun getNotes ()Ljava/util/List;
+	public fun getParent ()Ldev/slne/surf/cloud/api/common/player/punishment/type/Punishment;
 	public fun getType ()Ldev/slne/surf/cloud/api/common/player/punishment/type/PunishType;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
@@ -2831,6 +3200,7 @@ public final class dev/slne/surf/cloud/api/common/player/punishment/type/PunishS
 public abstract interface class dev/slne/surf/cloud/api/common/player/punishment/type/PunishType {
 	public abstract fun invoke (Lkotlin/jvm/functions/Function1;)Ldev/slne/surf/cloud/api/common/player/punishment/type/PunishSpec;
 	public abstract fun withNote (Ljava/lang/String;)Ldev/slne/surf/cloud/api/common/player/punishment/type/PunishSpec;
+	public abstract fun withParent (Ldev/slne/surf/cloud/api/common/player/punishment/type/Punishment;)Ldev/slne/surf/cloud/api/common/player/punishment/type/PunishSpec;
 }
 
 public abstract interface class dev/slne/surf/cloud/api/common/player/punishment/type/PunishType$BAN : dev/slne/surf/cloud/api/common/player/punishment/type/PunishType {
@@ -2845,6 +3215,8 @@ public abstract interface class dev/slne/surf/cloud/api/common/player/punishment
 	public fun withIpAddress (Ljava/lang/String;)Ldev/slne/surf/cloud/api/common/player/punishment/type/PunishSpec$BanSpec;
 	public fun withNote (Ljava/lang/String;)Ldev/slne/surf/cloud/api/common/player/punishment/type/PunishSpec$BanSpec;
 	public synthetic fun withNote (Ljava/lang/String;)Ldev/slne/surf/cloud/api/common/player/punishment/type/PunishSpec;
+	public synthetic fun withParent (Ldev/slne/surf/cloud/api/common/player/punishment/type/Punishment;)Ldev/slne/surf/cloud/api/common/player/punishment/type/PunishSpec;
+	public fun withParent (Ldev/slne/surf/cloud/api/common/player/punishment/type/ban/PunishmentBan;)Ldev/slne/surf/cloud/api/common/player/punishment/type/PunishSpec$BanSpec;
 }
 
 public final class dev/slne/surf/cloud/api/common/player/punishment/type/PunishType$BAN$DefaultImpls {
@@ -2852,6 +3224,7 @@ public final class dev/slne/surf/cloud/api/common/player/punishment/type/PunishT
 	public static fun invoke (Ldev/slne/surf/cloud/api/common/player/punishment/type/PunishType$BAN;Lkotlin/jvm/functions/Function1;)Ldev/slne/surf/cloud/api/common/player/punishment/type/PunishSpec$BanSpec;
 	public static fun withIpAddress (Ldev/slne/surf/cloud/api/common/player/punishment/type/PunishType$BAN;Ljava/lang/String;)Ldev/slne/surf/cloud/api/common/player/punishment/type/PunishSpec$BanSpec;
 	public static fun withNote (Ldev/slne/surf/cloud/api/common/player/punishment/type/PunishType$BAN;Ljava/lang/String;)Ldev/slne/surf/cloud/api/common/player/punishment/type/PunishSpec$BanSpec;
+	public static fun withParent (Ldev/slne/surf/cloud/api/common/player/punishment/type/PunishType$BAN;Ldev/slne/surf/cloud/api/common/player/punishment/type/ban/PunishmentBan;)Ldev/slne/surf/cloud/api/common/player/punishment/type/PunishSpec$BanSpec;
 }
 
 public final class dev/slne/surf/cloud/api/common/player/punishment/type/PunishType$BAN$Expirable : dev/slne/surf/cloud/api/common/player/punishment/type/PunishType$BAN {
@@ -2874,6 +3247,8 @@ public final class dev/slne/surf/cloud/api/common/player/punishment/type/PunishT
 	public fun withIpAddress (Ljava/lang/String;)Ldev/slne/surf/cloud/api/common/player/punishment/type/PunishSpec$BanSpec;
 	public fun withNote (Ljava/lang/String;)Ldev/slne/surf/cloud/api/common/player/punishment/type/PunishSpec$BanSpec;
 	public synthetic fun withNote (Ljava/lang/String;)Ldev/slne/surf/cloud/api/common/player/punishment/type/PunishSpec;
+	public synthetic fun withParent (Ldev/slne/surf/cloud/api/common/player/punishment/type/Punishment;)Ldev/slne/surf/cloud/api/common/player/punishment/type/PunishSpec;
+	public fun withParent (Ldev/slne/surf/cloud/api/common/player/punishment/type/ban/PunishmentBan;)Ldev/slne/surf/cloud/api/common/player/punishment/type/PunishSpec$BanSpec;
 }
 
 public final class dev/slne/surf/cloud/api/common/player/punishment/type/PunishType$BAN$Permanent : dev/slne/surf/cloud/api/common/player/punishment/type/PunishType$BAN {
@@ -2893,6 +3268,8 @@ public final class dev/slne/surf/cloud/api/common/player/punishment/type/PunishT
 	public fun withIpAddress (Ljava/lang/String;)Ldev/slne/surf/cloud/api/common/player/punishment/type/PunishSpec$BanSpec;
 	public fun withNote (Ljava/lang/String;)Ldev/slne/surf/cloud/api/common/player/punishment/type/PunishSpec$BanSpec;
 	public synthetic fun withNote (Ljava/lang/String;)Ldev/slne/surf/cloud/api/common/player/punishment/type/PunishSpec;
+	public synthetic fun withParent (Ldev/slne/surf/cloud/api/common/player/punishment/type/Punishment;)Ldev/slne/surf/cloud/api/common/player/punishment/type/PunishSpec;
+	public fun withParent (Ldev/slne/surf/cloud/api/common/player/punishment/type/ban/PunishmentBan;)Ldev/slne/surf/cloud/api/common/player/punishment/type/PunishSpec$BanSpec;
 }
 
 public final class dev/slne/surf/cloud/api/common/player/punishment/type/PunishType$BAN$Raw : dev/slne/surf/cloud/api/common/player/punishment/type/PunishType$BAN {
@@ -2912,6 +3289,8 @@ public final class dev/slne/surf/cloud/api/common/player/punishment/type/PunishT
 	public fun withIpAddress (Ljava/lang/String;)Ldev/slne/surf/cloud/api/common/player/punishment/type/PunishSpec$BanSpec;
 	public fun withNote (Ljava/lang/String;)Ldev/slne/surf/cloud/api/common/player/punishment/type/PunishSpec$BanSpec;
 	public synthetic fun withNote (Ljava/lang/String;)Ldev/slne/surf/cloud/api/common/player/punishment/type/PunishSpec;
+	public synthetic fun withParent (Ldev/slne/surf/cloud/api/common/player/punishment/type/Punishment;)Ldev/slne/surf/cloud/api/common/player/punishment/type/PunishSpec;
+	public fun withParent (Ldev/slne/surf/cloud/api/common/player/punishment/type/ban/PunishmentBan;)Ldev/slne/surf/cloud/api/common/player/punishment/type/PunishSpec$BanSpec;
 }
 
 public final class dev/slne/surf/cloud/api/common/player/punishment/type/PunishType$BAN$Security : dev/slne/surf/cloud/api/common/player/punishment/type/PunishType$BAN {
@@ -2931,6 +3310,8 @@ public final class dev/slne/surf/cloud/api/common/player/punishment/type/PunishT
 	public fun withIpAddress (Ljava/lang/String;)Ldev/slne/surf/cloud/api/common/player/punishment/type/PunishSpec$BanSpec;
 	public fun withNote (Ljava/lang/String;)Ldev/slne/surf/cloud/api/common/player/punishment/type/PunishSpec$BanSpec;
 	public synthetic fun withNote (Ljava/lang/String;)Ldev/slne/surf/cloud/api/common/player/punishment/type/PunishSpec;
+	public synthetic fun withParent (Ldev/slne/surf/cloud/api/common/player/punishment/type/Punishment;)Ldev/slne/surf/cloud/api/common/player/punishment/type/PunishSpec;
+	public fun withParent (Ldev/slne/surf/cloud/api/common/player/punishment/type/ban/PunishmentBan;)Ldev/slne/surf/cloud/api/common/player/punishment/type/PunishSpec$BanSpec;
 }
 
 public final class dev/slne/surf/cloud/api/common/player/punishment/type/PunishType$KICK : dev/slne/surf/cloud/api/common/player/punishment/type/PunishType {
@@ -2944,6 +3325,8 @@ public final class dev/slne/surf/cloud/api/common/player/punishment/type/PunishT
 	public fun toString ()Ljava/lang/String;
 	public fun withNote (Ljava/lang/String;)Ldev/slne/surf/cloud/api/common/player/punishment/type/PunishSpec$BasicSpec;
 	public synthetic fun withNote (Ljava/lang/String;)Ldev/slne/surf/cloud/api/common/player/punishment/type/PunishSpec;
+	public synthetic fun withParent (Ldev/slne/surf/cloud/api/common/player/punishment/type/Punishment;)Ldev/slne/surf/cloud/api/common/player/punishment/type/PunishSpec;
+	public fun withParent (Ldev/slne/surf/cloud/api/common/player/punishment/type/kick/PunishmentKick;)Ldev/slne/surf/cloud/api/common/player/punishment/type/PunishSpec$BasicSpec;
 }
 
 public abstract interface class dev/slne/surf/cloud/api/common/player/punishment/type/PunishType$MUTE : dev/slne/surf/cloud/api/common/player/punishment/type/PunishType {
@@ -2955,12 +3338,15 @@ public abstract interface class dev/slne/surf/cloud/api/common/player/punishment
 	public synthetic fun invoke (Lkotlin/jvm/functions/Function1;)Ldev/slne/surf/cloud/api/common/player/punishment/type/PunishSpec;
 	public fun withNote (Ljava/lang/String;)Ldev/slne/surf/cloud/api/common/player/punishment/type/PunishSpec$BasicSpec;
 	public synthetic fun withNote (Ljava/lang/String;)Ldev/slne/surf/cloud/api/common/player/punishment/type/PunishSpec;
+	public synthetic fun withParent (Ldev/slne/surf/cloud/api/common/player/punishment/type/Punishment;)Ldev/slne/surf/cloud/api/common/player/punishment/type/PunishSpec;
+	public fun withParent (Ldev/slne/surf/cloud/api/common/player/punishment/type/mute/PunishmentMute;)Ldev/slne/surf/cloud/api/common/player/punishment/type/PunishSpec$BasicSpec;
 }
 
 public final class dev/slne/surf/cloud/api/common/player/punishment/type/PunishType$MUTE$DefaultImpls {
 	public static fun emptySpec (Ldev/slne/surf/cloud/api/common/player/punishment/type/PunishType$MUTE;)Ldev/slne/surf/cloud/api/common/player/punishment/type/PunishSpec$BasicSpec;
 	public static fun invoke (Ldev/slne/surf/cloud/api/common/player/punishment/type/PunishType$MUTE;Lkotlin/jvm/functions/Function1;)Ldev/slne/surf/cloud/api/common/player/punishment/type/PunishSpec$BasicSpec;
 	public static fun withNote (Ldev/slne/surf/cloud/api/common/player/punishment/type/PunishType$MUTE;Ljava/lang/String;)Ldev/slne/surf/cloud/api/common/player/punishment/type/PunishSpec$BasicSpec;
+	public static fun withParent (Ldev/slne/surf/cloud/api/common/player/punishment/type/PunishType$MUTE;Ldev/slne/surf/cloud/api/common/player/punishment/type/mute/PunishmentMute;)Ldev/slne/surf/cloud/api/common/player/punishment/type/PunishSpec$BasicSpec;
 }
 
 public final class dev/slne/surf/cloud/api/common/player/punishment/type/PunishType$MUTE$Expirable : dev/slne/surf/cloud/api/common/player/punishment/type/PunishType$MUTE {
@@ -2980,6 +3366,8 @@ public final class dev/slne/surf/cloud/api/common/player/punishment/type/PunishT
 	public fun toString ()Ljava/lang/String;
 	public fun withNote (Ljava/lang/String;)Ldev/slne/surf/cloud/api/common/player/punishment/type/PunishSpec$BasicSpec;
 	public synthetic fun withNote (Ljava/lang/String;)Ldev/slne/surf/cloud/api/common/player/punishment/type/PunishSpec;
+	public synthetic fun withParent (Ldev/slne/surf/cloud/api/common/player/punishment/type/Punishment;)Ldev/slne/surf/cloud/api/common/player/punishment/type/PunishSpec;
+	public fun withParent (Ldev/slne/surf/cloud/api/common/player/punishment/type/mute/PunishmentMute;)Ldev/slne/surf/cloud/api/common/player/punishment/type/PunishSpec$BasicSpec;
 }
 
 public final class dev/slne/surf/cloud/api/common/player/punishment/type/PunishType$MUTE$Permanent : dev/slne/surf/cloud/api/common/player/punishment/type/PunishType$MUTE {
@@ -2996,6 +3384,8 @@ public final class dev/slne/surf/cloud/api/common/player/punishment/type/PunishT
 	public fun toString ()Ljava/lang/String;
 	public fun withNote (Ljava/lang/String;)Ldev/slne/surf/cloud/api/common/player/punishment/type/PunishSpec$BasicSpec;
 	public synthetic fun withNote (Ljava/lang/String;)Ldev/slne/surf/cloud/api/common/player/punishment/type/PunishSpec;
+	public synthetic fun withParent (Ldev/slne/surf/cloud/api/common/player/punishment/type/Punishment;)Ldev/slne/surf/cloud/api/common/player/punishment/type/PunishSpec;
+	public fun withParent (Ldev/slne/surf/cloud/api/common/player/punishment/type/mute/PunishmentMute;)Ldev/slne/surf/cloud/api/common/player/punishment/type/PunishSpec$BasicSpec;
 }
 
 public final class dev/slne/surf/cloud/api/common/player/punishment/type/PunishType$WARN : dev/slne/surf/cloud/api/common/player/punishment/type/PunishType {
@@ -3009,6 +3399,8 @@ public final class dev/slne/surf/cloud/api/common/player/punishment/type/PunishT
 	public fun toString ()Ljava/lang/String;
 	public fun withNote (Ljava/lang/String;)Ldev/slne/surf/cloud/api/common/player/punishment/type/PunishSpec$BasicSpec;
 	public synthetic fun withNote (Ljava/lang/String;)Ldev/slne/surf/cloud/api/common/player/punishment/type/PunishSpec;
+	public synthetic fun withParent (Ldev/slne/surf/cloud/api/common/player/punishment/type/Punishment;)Ldev/slne/surf/cloud/api/common/player/punishment/type/PunishSpec;
+	public fun withParent (Ldev/slne/surf/cloud/api/common/player/punishment/type/warn/PunishmentWarn;)Ldev/slne/surf/cloud/api/common/player/punishment/type/PunishSpec$BasicSpec;
 }
 
 public abstract interface class dev/slne/surf/cloud/api/common/player/punishment/type/Punishment : org/springframework/core/ResolvableTypeProvider {
@@ -3016,6 +3408,7 @@ public abstract interface class dev/slne/surf/cloud/api/common/player/punishment
 	public abstract fun fetchNotes (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun getAdminPanelLink ()Ljava/lang/String;
 	public abstract fun getIssuerUuid ()Ljava/util/UUID;
+	public abstract fun getParent ()Ldev/slne/surf/cloud/api/common/player/punishment/type/Punishment;
 	public abstract fun getPunishedUuid ()Ljava/util/UUID;
 	public abstract fun getPunishmentDate ()Ljava/time/ZonedDateTime;
 	public abstract fun getPunishmentId ()Ljava/lang/String;
@@ -3246,21 +3639,28 @@ public final class dev/slne/surf/cloud/api/common/player/teleport/TeleportFlag :
 	public static fun values ()[Ldev/slne/surf/cloud/api/common/player/teleport/TeleportFlag;
 }
 
-public final class dev/slne/surf/cloud/api/common/player/teleport/TeleportLocation {
-	public static final field Companion Ldev/slne/surf/cloud/api/common/player/teleport/TeleportLocation$Companion;
+public final class dev/slne/surf/cloud/api/common/player/teleport/WorldLocation {
+	public static final field Companion Ldev/slne/surf/cloud/api/common/player/teleport/WorldLocation$Companion;
 	public fun <init> (Ljava/util/UUID;DDDFF)V
 	public synthetic fun <init> (Ljava/util/UUID;DDDFFILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun add (DDD)Ldev/slne/surf/cloud/api/common/player/teleport/WorldLocation;
+	public final fun addRotation (FF)Ldev/slne/surf/cloud/api/common/player/teleport/WorldLocation;
 	public final fun component1 ()Ljava/util/UUID;
 	public final fun component2 ()D
 	public final fun component3 ()D
 	public final fun component4 ()D
 	public final fun component5 ()F
 	public final fun component6 ()F
-	public final fun copy (Ljava/util/UUID;DDDFF)Ldev/slne/surf/cloud/api/common/player/teleport/TeleportLocation;
-	public static synthetic fun copy$default (Ldev/slne/surf/cloud/api/common/player/teleport/TeleportLocation;Ljava/util/UUID;DDDFFILjava/lang/Object;)Ldev/slne/surf/cloud/api/common/player/teleport/TeleportLocation;
-	public final fun distance (Ldev/slne/surf/cloud/api/common/player/teleport/TeleportLocation;)D
-	public final fun distanceSquared (Ldev/slne/surf/cloud/api/common/player/teleport/TeleportLocation;)D
+	public final fun copy (Ljava/util/UUID;DDDFF)Ldev/slne/surf/cloud/api/common/player/teleport/WorldLocation;
+	public static synthetic fun copy$default (Ldev/slne/surf/cloud/api/common/player/teleport/WorldLocation;Ljava/util/UUID;DDDFFILjava/lang/Object;)Ldev/slne/surf/cloud/api/common/player/teleport/WorldLocation;
+	public final fun direction ()Lorg/spongepowered/math/vector/Vector3d;
+	public final fun distance (Ldev/slne/surf/cloud/api/common/player/teleport/WorldLocation;)D
+	public final fun distanceSquared (Ldev/slne/surf/cloud/api/common/player/teleport/WorldLocation;)D
+	public final fun div (D)Ldev/slne/surf/cloud/api/common/player/teleport/WorldLocation;
 	public fun equals (Ljava/lang/Object;)Z
+	public final fun getBlockX ()I
+	public final fun getBlockY ()I
+	public final fun getBlockZ ()I
 	public final fun getPitch ()F
 	public final fun getWorld ()Ljava/util/UUID;
 	public final fun getX ()D
@@ -3268,16 +3668,112 @@ public final class dev/slne/surf/cloud/api/common/player/teleport/TeleportLocati
 	public final fun getYaw ()F
 	public final fun getZ ()D
 	public fun hashCode ()I
+	public final fun length ()D
+	public final fun lengthSquared ()D
+	public final fun minus (Ldev/slne/surf/cloud/api/common/player/teleport/WorldLocation;)Ldev/slne/surf/cloud/api/common/player/teleport/WorldLocation;
+	public final fun minus (Lorg/spongepowered/math/vector/Vector3d;)Ldev/slne/surf/cloud/api/common/player/teleport/WorldLocation;
+	public final fun plus (Ldev/slne/surf/cloud/api/common/player/teleport/WorldLocation;)Ldev/slne/surf/cloud/api/common/player/teleport/WorldLocation;
+	public final fun plus (Lorg/spongepowered/math/vector/Vector3d;)Ldev/slne/surf/cloud/api/common/player/teleport/WorldLocation;
+	public final fun subtract (DDD)Ldev/slne/surf/cloud/api/common/player/teleport/WorldLocation;
+	public final fun subtractRotation (FF)Ldev/slne/surf/cloud/api/common/player/teleport/WorldLocation;
+	public final fun times (D)Ldev/slne/surf/cloud/api/common/player/teleport/WorldLocation;
+	public final fun toBlockLocation ()Ldev/slne/surf/cloud/api/common/player/teleport/WorldLocation;
+	public final fun toCenterLocation ()Ldev/slne/surf/cloud/api/common/player/teleport/WorldLocation;
 	public fun toString ()Ljava/lang/String;
+	public final fun toVector3d ()Lorg/spongepowered/math/vector/Vector3d;
 }
 
-public final class dev/slne/surf/cloud/api/common/player/teleport/TeleportLocation$Companion {
+public final synthetic class dev/slne/surf/cloud/api/common/player/teleport/WorldLocation$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Ldev/slne/surf/cloud/api/common/player/teleport/WorldLocation$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ldev/slne/surf/cloud/api/common/player/teleport/WorldLocation;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Ldev/slne/surf/cloud/api/common/player/teleport/WorldLocation;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/slne/surf/cloud/api/common/player/teleport/WorldLocation$Companion {
 	public final fun getSTREAM_CODEC ()Ldev/slne/surf/cloud/api/common/netty/network/codec/StreamCodec;
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 }
 
-public final class dev/slne/surf/cloud/api/common/player/teleport/TeleportLocationKt {
-	public static final fun fineLocation (Ljava/util/UUID;DDDFF)Ldev/slne/surf/cloud/api/common/player/teleport/TeleportLocation;
-	public static synthetic fun fineLocation$default (Ljava/util/UUID;DDDFFILjava/lang/Object;)Ldev/slne/surf/cloud/api/common/player/teleport/TeleportLocation;
+public final class dev/slne/surf/cloud/api/common/player/teleport/WorldLocationKt {
+	public static final fun fineLocation (Ljava/util/UUID;DDDFF)Ldev/slne/surf/cloud/api/common/player/teleport/WorldLocation;
+	public static synthetic fun fineLocation$default (Ljava/util/UUID;DDDFFILjava/lang/Object;)Ldev/slne/surf/cloud/api/common/player/teleport/WorldLocation;
+}
+
+public abstract interface class dev/slne/surf/cloud/api/common/player/whitelist/CloudPlayerWhitelistManager {
+	public abstract fun createWhitelistForGroup (ZLjava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun createWhitelistForServer (ZLdev/slne/surf/cloud/api/common/server/CloudServer;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun createWhitelistForServer (ZLjava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun editWhitelistForGroup (Ljava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun editWhitelistForServer (Ldev/slne/surf/cloud/api/common/server/CloudServer;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun editWhitelistForServer (Ljava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun whitelistForGroup (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun whitelistForServer (Ldev/slne/surf/cloud/api/common/server/CloudServer;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun whitelistForServer (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun whitelistStatusForGroup (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun whitelistStatusForServer (Ldev/slne/surf/cloud/api/common/server/CloudServer;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun whitelistStatusForServer (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public abstract interface class dev/slne/surf/cloud/api/common/player/whitelist/MutableWhitelistEntry : dev/slne/surf/cloud/api/common/player/whitelist/WhitelistEntry {
+	public abstract fun forGroup (Ljava/lang/String;)V
+	public abstract fun forServer (Ldev/slne/surf/cloud/api/common/server/CloudServer;)V
+	public abstract fun forServer (Ljava/lang/String;)V
+	public abstract fun getBlocked ()Z
+	public abstract fun setBlocked (Z)V
+}
+
+public abstract interface class dev/slne/surf/cloud/api/common/player/whitelist/WhitelistEntry {
+	public abstract fun getBlocked ()Z
+	public abstract fun getCreatedAt ()Ljava/time/ZonedDateTime;
+	public abstract fun getGroupOrServerName ()Ldev/slne/surf/cloud/api/common/util/Either;
+	public abstract fun getUpdatedAt ()Ljava/time/ZonedDateTime;
+	public abstract fun getUuid ()Ljava/util/UUID;
+}
+
+public abstract interface class dev/slne/surf/cloud/api/common/player/whitelist/WhitelistSettings {
+	public static final field Companion Ldev/slne/surf/cloud/api/common/player/whitelist/WhitelistSettings$Companion;
+	public abstract fun disableWhitelistForGroup (Ljava/lang/String;)V
+	public abstract fun disableWhitelistForServer (Ldev/slne/surf/cloud/api/common/server/CloudServer;)V
+	public abstract fun disableWhitelistForServer (Ljava/lang/String;)V
+	public abstract fun enforceWhitelistForGroup (Ljava/lang/String;)V
+	public abstract fun enforceWhitelistForServer (Ldev/slne/surf/cloud/api/common/server/CloudServer;)V
+	public abstract fun enforceWhitelistForServer (Ljava/lang/String;)V
+	public abstract fun enforcedGroups ()Lit/unimi/dsi/fastutil/objects/ObjectSet;
+	public abstract fun enforcedServers ()Lit/unimi/dsi/fastutil/objects/ObjectSet;
+	public abstract fun isWhitelistEnforcedFor (Ldev/slne/surf/cloud/api/common/server/CloudServer;)Z
+	public abstract fun isWhitelistEnforcedForGroup (Ljava/lang/String;)Z
+	public abstract fun isWhitelistEnforcedForServer (Ljava/lang/String;)Z
+	public abstract fun refresh ()V
+}
+
+public final class dev/slne/surf/cloud/api/common/player/whitelist/WhitelistSettings$Companion : dev/slne/surf/cloud/api/common/player/whitelist/WhitelistSettings {
+	public fun disableWhitelistForGroup (Ljava/lang/String;)V
+	public fun disableWhitelistForServer (Ldev/slne/surf/cloud/api/common/server/CloudServer;)V
+	public fun disableWhitelistForServer (Ljava/lang/String;)V
+	public fun enforceWhitelistForGroup (Ljava/lang/String;)V
+	public fun enforceWhitelistForServer (Ldev/slne/surf/cloud/api/common/server/CloudServer;)V
+	public fun enforceWhitelistForServer (Ljava/lang/String;)V
+	public fun enforcedGroups ()Lit/unimi/dsi/fastutil/objects/ObjectSet;
+	public fun enforcedServers ()Lit/unimi/dsi/fastutil/objects/ObjectSet;
+	public fun isWhitelistEnforcedFor (Ldev/slne/surf/cloud/api/common/server/CloudServer;)Z
+	public fun isWhitelistEnforcedForGroup (Ljava/lang/String;)Z
+	public fun isWhitelistEnforcedForServer (Ljava/lang/String;)Z
+	public fun refresh ()V
+}
+
+public final class dev/slne/surf/cloud/api/common/player/whitelist/WhitelistStatus : java/lang/Enum {
+	public static final field ACTIVE Ldev/slne/surf/cloud/api/common/player/whitelist/WhitelistStatus;
+	public static final field BLOCKED Ldev/slne/surf/cloud/api/common/player/whitelist/WhitelistStatus;
+	public static final field NONE Ldev/slne/surf/cloud/api/common/player/whitelist/WhitelistStatus;
+	public static final field UNKNOWN Ldev/slne/surf/cloud/api/common/player/whitelist/WhitelistStatus;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Ldev/slne/surf/cloud/api/common/player/whitelist/WhitelistStatus;
+	public static fun values ()[Ldev/slne/surf/cloud/api/common/player/whitelist/WhitelistStatus;
 }
 
 public abstract interface class dev/slne/surf/cloud/api/common/plugin/spring/task/CloudInitialSynchronizeTask {
@@ -3290,9 +3786,17 @@ public final class dev/slne/surf/cloud/api/common/plugin/spring/task/CloudInitia
 }
 
 public abstract interface class dev/slne/surf/cloud/api/common/server/CloudServer : dev/slne/surf/cloud/api/common/server/CommonCloudServer {
+	public static final field Companion Ldev/slne/surf/cloud/api/common/server/CloudServer$Companion;
 	public abstract fun getAllowlist ()Z
 	public abstract fun getLobby ()Z
 	public abstract fun pullPlayers (Ljava/util/Collection;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class dev/slne/surf/cloud/api/common/server/CloudServer$Companion {
+	public final fun all ()Lit/unimi/dsi/fastutil/objects/ObjectCollection;
+	public final fun get (Ljava/lang/String;)Ldev/slne/surf/cloud/api/common/server/CloudServer;
+	public final fun get (Ljava/lang/String;Ljava/lang/String;)Ldev/slne/surf/cloud/api/common/server/CloudServer;
+	public final fun inGroup (Ljava/lang/String;)Lit/unimi/dsi/fastutil/objects/ObjectList;
 }
 
 public final class dev/slne/surf/cloud/api/common/server/CloudServer$DefaultImpls {
@@ -3315,9 +3819,10 @@ public abstract interface class dev/slne/surf/cloud/api/common/server/CloudServe
 	public abstract fun pullPlayersToGroup (Ljava/lang/String;Ljava/util/Collection;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun retrieveAllServers ()Lit/unimi/dsi/fastutil/objects/ObjectCollection;
 	public abstract fun retrieveProxies ()Lit/unimi/dsi/fastutil/objects/ObjectCollection;
+	public abstract fun retrieveProxyList (Ljava/lang/String;)Lit/unimi/dsi/fastutil/objects/ObjectList;
 	public abstract fun retrieveServerByCategoryAndName (Ljava/lang/String;Ljava/lang/String;)Ldev/slne/surf/cloud/api/common/server/CommonCloudServer;
-	public abstract fun retrieveServerById (J)Ldev/slne/surf/cloud/api/common/server/CommonCloudServer;
 	public abstract fun retrieveServerByName (Ljava/lang/String;)Ldev/slne/surf/cloud/api/common/server/CommonCloudServer;
+	public abstract fun retrieveServerList (Ljava/lang/String;)Lit/unimi/dsi/fastutil/objects/ObjectList;
 	public abstract fun retrieveServers ()Lit/unimi/dsi/fastutil/objects/ObjectCollection;
 	public abstract fun retrieveServersByCategory (Ljava/lang/String;)Lit/unimi/dsi/fastutil/objects/ObjectList;
 	public abstract fun retrieveServersInGroup (Ljava/lang/String;)Lit/unimi/dsi/fastutil/objects/ObjectList;
@@ -3329,9 +3834,10 @@ public final class dev/slne/surf/cloud/api/common/server/CloudServerManager$Comp
 	public fun pullPlayersToGroup (Ljava/lang/String;Ljava/util/Collection;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun retrieveAllServers ()Lit/unimi/dsi/fastutil/objects/ObjectCollection;
 	public fun retrieveProxies ()Lit/unimi/dsi/fastutil/objects/ObjectCollection;
+	public fun retrieveProxyList (Ljava/lang/String;)Lit/unimi/dsi/fastutil/objects/ObjectList;
 	public fun retrieveServerByCategoryAndName (Ljava/lang/String;Ljava/lang/String;)Ldev/slne/surf/cloud/api/common/server/CommonCloudServer;
-	public fun retrieveServerById (J)Ldev/slne/surf/cloud/api/common/server/CommonCloudServer;
 	public fun retrieveServerByName (Ljava/lang/String;)Ldev/slne/surf/cloud/api/common/server/CommonCloudServer;
+	public fun retrieveServerList (Ljava/lang/String;)Lit/unimi/dsi/fastutil/objects/ObjectList;
 	public fun retrieveServers ()Lit/unimi/dsi/fastutil/objects/ObjectCollection;
 	public fun retrieveServersByCategory (Ljava/lang/String;)Lit/unimi/dsi/fastutil/objects/ObjectList;
 	public fun retrieveServersInGroup (Ljava/lang/String;)Lit/unimi/dsi/fastutil/objects/ObjectList;
@@ -3343,6 +3849,7 @@ public final class dev/slne/surf/cloud/api/common/server/CloudServerManager$Defa
 }
 
 public abstract interface class dev/slne/surf/cloud/api/common/server/CommonCloudServer : net/kyori/adventure/audience/ForwardingAudience {
+	public static final field Companion Ldev/slne/surf/cloud/api/common/server/CommonCloudServer$Companion;
 	public abstract fun audiences ()Ldev/slne/surf/cloud/api/common/server/UserList;
 	public abstract fun broadcast (Lnet/kyori/adventure/text/Component;Ljava/lang/String;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun broadcast$default (Ldev/slne/surf/cloud/api/common/server/CommonCloudServer;Lnet/kyori/adventure/text/Component;Ljava/lang/String;ZLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
@@ -3354,7 +3861,6 @@ public abstract interface class dev/slne/surf/cloud/api/common/server/CommonClou
 	public abstract fun getName ()Ljava/lang/String;
 	public abstract fun getPlayAddress ()Ljava/net/InetSocketAddress;
 	public abstract fun getState ()Ldev/slne/surf/cloud/api/common/server/state/ServerState;
-	public abstract fun getUid ()J
 	public abstract fun getUsers ()Ldev/slne/surf/cloud/api/common/server/UserList;
 	public fun hasEmptySlots ()Z
 	public abstract fun isInGroup (Ljava/lang/String;)Z
@@ -3362,6 +3868,12 @@ public abstract interface class dev/slne/surf/cloud/api/common/server/CommonClou
 	public abstract fun sendAll (Ldev/slne/surf/cloud/api/common/server/CloudServer;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun sendAll (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun shutdown ()V
+}
+
+public final class dev/slne/surf/cloud/api/common/server/CommonCloudServer$Companion {
+	public final fun all ()Lit/unimi/dsi/fastutil/objects/ObjectCollection;
+	public final fun get (Ljava/lang/String;)Ldev/slne/surf/cloud/api/common/server/CommonCloudServer;
+	public final fun get (Ljava/lang/String;Ljava/lang/String;)Ldev/slne/surf/cloud/api/common/server/CommonCloudServer;
 }
 
 public final class dev/slne/surf/cloud/api/common/server/CommonCloudServer$DefaultImpls {
@@ -3375,6 +3887,13 @@ public abstract interface class dev/slne/surf/cloud/api/common/server/MutableUse
 }
 
 public abstract interface class dev/slne/surf/cloud/api/common/server/ProxyCloudServer : dev/slne/surf/cloud/api/common/server/CommonCloudServer {
+	public static final field Companion Ldev/slne/surf/cloud/api/common/server/ProxyCloudServer$Companion;
+}
+
+public final class dev/slne/surf/cloud/api/common/server/ProxyCloudServer$Companion {
+	public final fun all ()Lit/unimi/dsi/fastutil/objects/ObjectCollection;
+	public final fun get (Ljava/lang/String;)Ldev/slne/surf/cloud/api/common/server/ProxyCloudServer;
+	public final fun get (Ljava/lang/String;Ljava/lang/String;)Ldev/slne/surf/cloud/api/common/server/ProxyCloudServer;
 }
 
 public final class dev/slne/surf/cloud/api/common/server/ProxyCloudServer$DefaultImpls {
@@ -3384,13 +3903,17 @@ public final class dev/slne/surf/cloud/api/common/server/ProxyCloudServer$Defaul
 }
 
 public abstract interface class dev/slne/surf/cloud/api/common/server/UserList : java/util/Collection, kotlin/jvm/internal/markers/KMappedMarker {
-	public abstract fun getReferences ()Lit/unimi/dsi/fastutil/objects/ObjectSet;
 	public abstract fun snapshot ()Ldev/slne/surf/cloud/api/common/server/MutableUserList;
+	public abstract fun uuidSnapshot ()Lit/unimi/dsi/fastutil/objects/ObjectArrayList;
 }
 
 public final class dev/slne/surf/cloud/api/common/server/UserListImpl$Companion {
 	public final fun getSTREAM_CODEC ()Ldev/slne/surf/cloud/api/common/netty/network/codec/StreamCodec;
-	public final fun of (Ljava/lang/Iterable;)Ldev/slne/surf/cloud/api/common/server/UserListImpl;
+	public final fun of (Ljava/util/Set;)Ldev/slne/surf/cloud/api/common/server/UserListImpl;
+}
+
+public final class dev/slne/surf/cloud/api/common/server/UserListKt {
+	public static final fun forEachWeakUuid (Ldev/slne/surf/cloud/api/common/server/UserList;Lkotlin/jvm/functions/Function1;)V
 }
 
 public final class dev/slne/surf/cloud/api/common/server/state/ServerState : java/lang/Enum {
@@ -3463,6 +3986,21 @@ public final class dev/slne/surf/cloud/api/common/util/Ansi_utilKt {
 	public static final fun buildAnsiString ([Ljava/lang/Object;)Ljava/lang/String;
 }
 
+public final class dev/slne/surf/cloud/api/common/util/ByIdMap {
+	public static final field INSTANCE Ldev/slne/surf/cloud/api/common/util/ByIdMap;
+	public final fun continuous (Lkotlin/jvm/functions/Function1;[Ljava/lang/Object;Ldev/slne/surf/cloud/api/common/util/ByIdMap$OutOfBoundsStrategy;)Lkotlin/jvm/functions/Function1;
+	public final fun sparse (Lkotlin/jvm/functions/Function1;[Ljava/lang/Object;Ljava/lang/Object;)Lkotlin/jvm/functions/Function1;
+}
+
+public final class dev/slne/surf/cloud/api/common/util/ByIdMap$OutOfBoundsStrategy : java/lang/Enum {
+	public static final field CLAMP Ldev/slne/surf/cloud/api/common/util/ByIdMap$OutOfBoundsStrategy;
+	public static final field WRAP Ldev/slne/surf/cloud/api/common/util/ByIdMap$OutOfBoundsStrategy;
+	public static final field ZERO Ldev/slne/surf/cloud/api/common/util/ByIdMap$OutOfBoundsStrategy;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Ldev/slne/surf/cloud/api/common/util/ByIdMap$OutOfBoundsStrategy;
+	public static fun values ()[Ldev/slne/surf/cloud/api/common/util/ByIdMap$OutOfBoundsStrategy;
+}
+
 public final class dev/slne/surf/cloud/api/common/util/Collection_utilsKt {
 	public static final fun singleOrNullOrThrow (Ljava/lang/Iterable;)Ljava/lang/Object;
 	public static final fun singleOrNullOrThrow (Ljava/lang/Iterable;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
@@ -3472,6 +4010,96 @@ public final class dev/slne/surf/cloud/api/common/util/Collection_utilsKt {
 public final class dev/slne/surf/cloud/api/common/util/DefaultUncaughtExceptionHandlerWithName : java/lang/Thread$UncaughtExceptionHandler {
 	public fun <init> (Lcom/google/common/flogger/FluentLogger;)V
 	public fun uncaughtException (Ljava/lang/Thread;Ljava/lang/Throwable;)V
+}
+
+public abstract class dev/slne/surf/cloud/api/common/util/Either {
+	public static final field Companion Ldev/slne/surf/cloud/api/common/util/Either$Companion;
+	public synthetic fun <init> (ILkotlinx/serialization/internal/SerializationConstructorMarker;)V
+	public final fun flatMap (Lkotlin/jvm/functions/Function1;)Ldev/slne/surf/cloud/api/common/util/Either;
+	public final fun fold (Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
+	public abstract fun getLeft ()Ljava/lang/Object;
+	public final fun getLeftOrElse (Lkotlin/jvm/functions/Function0;)Ljava/lang/Object;
+	public abstract fun getRight ()Ljava/lang/Object;
+	public final fun getRightOrElse (Lkotlin/jvm/functions/Function0;)Ljava/lang/Object;
+	public final fun ifLeft (Lkotlin/jvm/functions/Function1;)Ldev/slne/surf/cloud/api/common/util/Either;
+	public final fun ifRight (Lkotlin/jvm/functions/Function1;)Ldev/slne/surf/cloud/api/common/util/Either;
+	public final fun isLeft ()Z
+	public final fun isRight ()Z
+	public final fun leftOrNull ()Ljava/lang/Object;
+	public final fun leftOrThrow ()Ljava/lang/Object;
+	public final fun map (Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
+	public final fun mapBoth (Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;)Ldev/slne/surf/cloud/api/common/util/Either;
+	public final fun mapLeft (Lkotlin/jvm/functions/Function1;)Ldev/slne/surf/cloud/api/common/util/Either;
+	public final fun mapRight (Lkotlin/jvm/functions/Function1;)Ldev/slne/surf/cloud/api/common/util/Either;
+	public final fun rightOrNull ()Ljava/lang/Object;
+	public final fun rightOrThrow ()Ljava/lang/Object;
+	public final fun swap ()Ldev/slne/surf/cloud/api/common/util/Either;
+	public static final synthetic fun write$Self (Ldev/slne/surf/cloud/api/common/util/Either;Lkotlinx/serialization/encoding/CompositeEncoder;Lkotlinx/serialization/descriptors/SerialDescriptor;Lkotlinx/serialization/KSerializer;Lkotlinx/serialization/KSerializer;)V
+	public final fun zipSame (Ldev/slne/surf/cloud/api/common/util/Either;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function2;)Ldev/slne/surf/cloud/api/common/util/Either;
+}
+
+public final class dev/slne/surf/cloud/api/common/util/Either$Companion {
+	public final fun left (Ljava/lang/Object;)Ldev/slne/surf/cloud/api/common/util/Either;
+	public final fun of (Ljava/lang/Object;Ljava/lang/Object;)Ldev/slne/surf/cloud/api/common/util/Either;
+	public final fun right (Ljava/lang/Object;)Ldev/slne/surf/cloud/api/common/util/Either;
+	public final fun serializer (Lkotlinx/serialization/KSerializer;Lkotlinx/serialization/KSerializer;)Lkotlinx/serialization/KSerializer;
+	public final fun unwrap (Ldev/slne/surf/cloud/api/common/util/Either;)Ljava/lang/Object;
+}
+
+public final class dev/slne/surf/cloud/api/common/util/Either$Left : dev/slne/surf/cloud/api/common/util/Either {
+	public static final field Companion Ldev/slne/surf/cloud/api/common/util/Either$Left$Companion;
+	public fun <init> (Ljava/lang/Object;)V
+	public final fun component1 ()Ljava/lang/Object;
+	public final fun copy (Ljava/lang/Object;)Ldev/slne/surf/cloud/api/common/util/Either$Left;
+	public static synthetic fun copy$default (Ldev/slne/surf/cloud/api/common/util/Either$Left;Ljava/lang/Object;ILjava/lang/Object;)Ldev/slne/surf/cloud/api/common/util/Either$Left;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getLeft ()Ljava/lang/Object;
+	public fun getRight ()Ljava/lang/Object;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class dev/slne/surf/cloud/api/common/util/Either$Left$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public fun <init> (Lkotlinx/serialization/KSerializer;Lkotlinx/serialization/KSerializer;)V
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ldev/slne/surf/cloud/api/common/util/Either$Left;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Ldev/slne/surf/cloud/api/common/util/Either$Left;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public final fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/slne/surf/cloud/api/common/util/Either$Left$Companion {
+	public final fun serializer (Lkotlinx/serialization/KSerializer;Lkotlinx/serialization/KSerializer;)Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/slne/surf/cloud/api/common/util/Either$Right : dev/slne/surf/cloud/api/common/util/Either {
+	public static final field Companion Ldev/slne/surf/cloud/api/common/util/Either$Right$Companion;
+	public fun <init> (Ljava/lang/Object;)V
+	public final fun component1 ()Ljava/lang/Object;
+	public final fun copy (Ljava/lang/Object;)Ldev/slne/surf/cloud/api/common/util/Either$Right;
+	public static synthetic fun copy$default (Ldev/slne/surf/cloud/api/common/util/Either$Right;Ljava/lang/Object;ILjava/lang/Object;)Ldev/slne/surf/cloud/api/common/util/Either$Right;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getLeft ()Ljava/lang/Object;
+	public fun getRight ()Ljava/lang/Object;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class dev/slne/surf/cloud/api/common/util/Either$Right$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public fun <init> (Lkotlinx/serialization/KSerializer;Lkotlinx/serialization/KSerializer;)V
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ldev/slne/surf/cloud/api/common/util/Either$Right;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Ldev/slne/surf/cloud/api/common/util/Either$Right;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public final fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/slne/surf/cloud/api/common/util/Either$Right$Companion {
+	public final fun serializer (Lkotlinx/serialization/KSerializer;Lkotlinx/serialization/KSerializer;)Lkotlinx/serialization/KSerializer;
 }
 
 public final class dev/slne/surf/cloud/api/common/util/FactoryBuilder {
@@ -3654,6 +4282,8 @@ public final class dev/slne/surf/cloud/api/common/util/Result_utilKt {
 }
 
 public final class dev/slne/surf/cloud/api/common/util/Spring_utilKt {
+	public static final fun forEachAnnotationOrdered (Lorg/springframework/beans/factory/ObjectProvider;Lkotlin/jvm/functions/Function1;)V
+	public static final fun forEachAnnotationOrderedReversed (Lorg/springframework/beans/factory/ObjectProvider;Lkotlin/jvm/functions/Function1;)V
 	public static final fun forEachOrdered (Lorg/springframework/beans/factory/ObjectProvider;Lkotlin/jvm/functions/Function1;)V
 	public static final fun getFieldValue (Lorg/springframework/core/type/AnnotationMetadata;Ljava/lang/String;Lkotlin/reflect/KClass;Ljava/lang/ClassLoader;)Ljava/lang/Object;
 	public static final fun getValue (Lorg/springframework/beans/factory/ObjectFactory;Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
@@ -3667,7 +4297,7 @@ public final class dev/slne/surf/cloud/api/common/util/Spring_utilKt {
 public abstract interface class dev/slne/surf/cloud/api/common/util/StringRepresentable {
 	public static final field Companion Ldev/slne/surf/cloud/api/common/util/StringRepresentable$Companion;
 	public static final field PRE_BUILT_MAP_THRESHOLD I
-	public abstract fun getSerializedName ()Ljava/lang/String;
+	public abstract fun serializedName ()Ljava/lang/String;
 }
 
 public final class dev/slne/surf/cloud/api/common/util/StringRepresentable$Companion {
@@ -3676,8 +4306,8 @@ public final class dev/slne/surf/cloud/api/common/util/StringRepresentable$Compa
 	public final fun fromValues (Lkotlin/jvm/functions/Function0;)Lcom/mojang/serialization/Codec;
 }
 
-public final class dev/slne/surf/cloud/api/common/util/StringRepresentable$StringRepresentableCodec : com/mojang/serialization/Codec {
-	public fun <init> ([Ldev/slne/surf/cloud/api/common/util/StringRepresentable;Lkotlin/jvm/functions/Function1;Ljava/util/function/ToIntFunction;)V
+public class dev/slne/surf/cloud/api/common/util/StringRepresentable$StringRepresentableCodec : com/mojang/serialization/Codec {
+	public fun <init> ([Ldev/slne/surf/cloud/api/common/util/StringRepresentable;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;)V
 	public fun decode (Lcom/mojang/serialization/DynamicOps;Ljava/lang/Object;)Lcom/mojang/serialization/DataResult;
 	public fun encode (Ldev/slne/surf/cloud/api/common/util/StringRepresentable;Lcom/mojang/serialization/DynamicOps;Ljava/lang/Object;)Lcom/mojang/serialization/DataResult;
 	public synthetic fun encode (Ljava/lang/Object;Lcom/mojang/serialization/DynamicOps;Ljava/lang/Object;)Lcom/mojang/serialization/DataResult;
@@ -3709,7 +4339,7 @@ public final class dev/slne/surf/cloud/api/common/util/Time_utilKt {
 public final class dev/slne/surf/cloud/api/common/util/UtilKt {
 	public static final field LINEAR_LOOKUP_THRESHOLD I
 	public static final fun asOptional (Ljava/lang/Object;)Ljava/util/Optional;
-	public static final fun createIndexLookup (Ljava/util/List;)Ljava/util/function/ToIntFunction;
+	public static final fun createIndexLookup (Ljava/util/List;)Lkotlin/jvm/functions/Function1;
 	public static final fun currentValues (Lcom/sksamuel/aedile/core/Cache;)Ljava/util/List;
 	public static final fun getValue (Ljava/util/concurrent/atomic/AtomicBoolean;Ljava/lang/Object;Lkotlin/reflect/KProperty;)Z
 	public static final fun isSuspending (Ljava/lang/reflect/Method;)Z
@@ -3764,10 +4394,8 @@ public final class dev/slne/surf/cloud/api/common/util/codec/ExtraCodecs {
 	public final fun getSTREAM_BOOK_CODEC ()Ldev/slne/surf/cloud/api/common/netty/network/codec/StreamCodec;
 	public final fun getSTREAM_BOSSBAR_CODEC ()Ldev/slne/surf/cloud/api/common/netty/network/codec/StreamCodec;
 	public final fun getSTREAM_EMITTER_SELF_CODEC ()Ldev/slne/surf/cloud/api/common/netty/network/codec/StreamCodec;
-	public final fun getSTREAM_KEY_CODEC ()Ldev/slne/surf/cloud/api/common/netty/network/codec/StreamCodec;
 	public final fun getSTREAM_RESOURCE_PACK_INFO ()Ldev/slne/surf/cloud/api/common/netty/network/codec/StreamCodec;
 	public final fun getSTREAM_RESOURCE_PACK_REQUEST_CODEC ()Ldev/slne/surf/cloud/api/common/netty/network/codec/StreamCodec;
-	public final fun getSTREAM_SOUND_CODEC ()Ldev/slne/surf/cloud/api/common/netty/network/codec/StreamCodec;
 	public final fun getSTREAM_SOUND_STOP_CODEC ()Ldev/slne/surf/cloud/api/common/netty/network/codec/StreamCodec;
 	public final fun getSTREAM_TITLE_CODEC ()Ldev/slne/surf/cloud/api/common/netty/network/codec/StreamCodec;
 	public final fun getSTREAM_TITLE_PART_CODEC ()Ldev/slne/surf/cloud/api/common/netty/network/codec/StreamCodec;
@@ -3775,7 +4403,7 @@ public final class dev/slne/surf/cloud/api/common/util/codec/ExtraCodecs {
 	public final fun getUUID_CODEC ()Lcom/mojang/serialization/Codec;
 	public final fun getUUID_LENIENT_CODEC ()Lcom/mojang/serialization/Codec;
 	public final fun getUUID_STRING_CODEC ()Lcom/mojang/serialization/Codec;
-	public final fun idResolverCodec (Ljava/util/function/ToIntFunction;Ljava/util/function/IntFunction;I)Lcom/mojang/serialization/Codec;
+	public final fun idResolverCodec (Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;I)Lcom/mojang/serialization/Codec;
 	public final fun nonEmptyList (Lcom/mojang/serialization/Codec;)Lcom/mojang/serialization/Codec;
 	public final fun orCompressed (Lcom/mojang/serialization/Codec;Lcom/mojang/serialization/Codec;)Lcom/mojang/serialization/Codec;
 	public final fun orCompressed (Lcom/mojang/serialization/MapCodec;Lcom/mojang/serialization/MapCodec;)Lcom/mojang/serialization/MapCodec;

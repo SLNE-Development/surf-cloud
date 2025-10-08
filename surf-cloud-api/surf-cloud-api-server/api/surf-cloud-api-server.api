@@ -10,6 +10,30 @@ public final class dev/slne/surf/cloud/api/server/CloudServerInstance$Companion 
 	public fun startSpringApplication (Ljava/lang/Class;Ljava/lang/ClassLoader;[Ljava/lang/ClassLoader;Lkotlin/jvm/functions/Function1;)Lorg/springframework/context/ConfigurableApplicationContext;
 }
 
+public abstract class dev/slne/surf/cloud/api/server/command/AbstractConsoleCommand {
+	public fun <init> ()V
+	public final fun execute (Lcom/mojang/brigadier/builder/ArgumentBuilder;Lkotlin/jvm/functions/Function1;)Lcom/mojang/brigadier/builder/ArgumentBuilder;
+	public abstract fun register (Lcom/mojang/brigadier/CommandDispatcher;)V
+}
+
+public final class dev/slne/surf/cloud/api/server/command/AbstractConsoleCommandKt {
+	public static final fun argument (Ldev/slne/surf/cloud/api/server/command/AbstractConsoleCommand;Ljava/lang/String;Lcom/mojang/brigadier/arguments/ArgumentType;Lkotlin/jvm/functions/Function1;)Lcom/mojang/brigadier/builder/RequiredArgumentBuilder;
+	public static synthetic fun argument$default (Ldev/slne/surf/cloud/api/server/command/AbstractConsoleCommand;Ljava/lang/String;Lcom/mojang/brigadier/arguments/ArgumentType;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lcom/mojang/brigadier/builder/RequiredArgumentBuilder;
+	public static final fun literal (Ldev/slne/surf/cloud/api/server/command/AbstractConsoleCommand;Ljava/lang/String;Lkotlin/jvm/functions/Function1;)Lcom/mojang/brigadier/builder/LiteralArgumentBuilder;
+	public static synthetic fun literal$default (Ldev/slne/surf/cloud/api/server/command/AbstractConsoleCommand;Ljava/lang/String;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lcom/mojang/brigadier/builder/LiteralArgumentBuilder;
+	public static final fun then (Lcom/mojang/brigadier/builder/ArgumentBuilder;Ljava/lang/String;Lcom/mojang/brigadier/arguments/ArgumentType;Lkotlin/jvm/functions/Function1;)Lcom/mojang/brigadier/builder/ArgumentBuilder;
+	public static final fun then (Lcom/mojang/brigadier/builder/ArgumentBuilder;Ljava/lang/String;Lkotlin/jvm/functions/Function1;)Lcom/mojang/brigadier/builder/ArgumentBuilder;
+	public static synthetic fun then$default (Lcom/mojang/brigadier/builder/ArgumentBuilder;Ljava/lang/String;Lcom/mojang/brigadier/arguments/ArgumentType;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lcom/mojang/brigadier/builder/ArgumentBuilder;
+	public static synthetic fun then$default (Lcom/mojang/brigadier/builder/ArgumentBuilder;Ljava/lang/String;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lcom/mojang/brigadier/builder/ArgumentBuilder;
+}
+
+public final class dev/slne/surf/cloud/api/server/command/ArgumentSuggestion {
+	public static final field INSTANCE Ldev/slne/surf/cloud/api/server/command/ArgumentSuggestion;
+	public final fun getMATCH_SPLITTER ()Lcom/google/common/base/CharMatcher;
+	public final fun matchesSubstring (Ljava/lang/String;Ljava/lang/String;)Z
+	public final fun suggestStrings (Ljava/lang/Iterable;Lcom/mojang/brigadier/suggestion/SuggestionsBuilder;)Ljava/util/concurrent/CompletableFuture;
+}
+
 public final class dev/slne/surf/cloud/api/server/command/CommandCompletion {
 	public fun <init> (Ljava/lang/String;Lnet/kyori/adventure/text/Component;)V
 	public synthetic fun <init> (Ljava/lang/String;Lnet/kyori/adventure/text/Component;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
@@ -52,7 +76,7 @@ public final class dev/slne/surf/cloud/api/server/command/CommandResultCallback$
 	public static fun plus (Ldev/slne/surf/cloud/api/server/command/CommandResultCallback;Ldev/slne/surf/cloud/api/server/command/CommandResultCallback;)Ldev/slne/surf/cloud/api/server/command/CommandResultCallback;
 }
 
-public final class dev/slne/surf/cloud/api/server/command/CommandSource : dev/slne/surf/cloud/api/server/command/ExecutionCommandSource {
+public final class dev/slne/surf/cloud/api/server/command/CommandSource : dev/slne/surf/cloud/api/server/command/ExecutionCommandSource, net/kyori/adventure/audience/Audience {
 	public fun <init> ()V
 	public fun <init> (ZLdev/slne/surf/cloud/api/server/command/CommandResultCallback;)V
 	public synthetic fun <init> (ZLdev/slne/surf/cloud/api/server/command/CommandResultCallback;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
@@ -62,27 +86,19 @@ public final class dev/slne/surf/cloud/api/server/command/CommandSource : dev/sl
 	public fun getSilent ()Z
 	public fun handleError (Lcom/mojang/brigadier/exceptions/CommandExceptionType;Lnet/kyori/adventure/text/Component;Z)V
 	public fun handleError (Lcom/mojang/brigadier/exceptions/CommandSyntaxException;Z)V
+	public final fun sendFailure (Ljava/lang/String;)V
 	public final fun sendFailure (Lnet/kyori/adventure/text/Component;)V
+	public final fun sendInfo (Ljava/lang/String;)V
 	public final fun sendInfo (Lnet/kyori/adventure/text/Component;)V
-	public final fun sendMessage (Lnet/kyori/adventure/text/Component;)V
+	public fun sendMessage (Lnet/kyori/adventure/identity/Identity;Lnet/kyori/adventure/text/Component;Lnet/kyori/adventure/audience/MessageType;)V
+	public fun sendMessage (Lnet/kyori/adventure/text/Component;)V
 	public final fun sendSuccess (Ljava/lang/String;)V
 	public final fun sendSuccess (Lnet/kyori/adventure/text/Component;)V
 	public fun withCallback (Ldev/slne/surf/cloud/api/server/command/CommandResultCallback;)Ldev/slne/surf/cloud/api/server/command/CommandSource;
 	public synthetic fun withCallback (Ldev/slne/surf/cloud/api/server/command/CommandResultCallback;)Ldev/slne/surf/cloud/api/server/command/ExecutionCommandSource;
 }
 
-public abstract interface class dev/slne/surf/cloud/api/server/command/ConsoleCommand {
-}
-
-public final class dev/slne/surf/cloud/api/server/command/ConsoleCommandKt {
-	public static final fun argument (Ldev/slne/surf/cloud/api/server/command/ConsoleCommand;Ljava/lang/String;Lcom/mojang/brigadier/arguments/ArgumentType;Lkotlin/jvm/functions/Function1;)Lcom/mojang/brigadier/builder/RequiredArgumentBuilder;
-	public static synthetic fun argument$default (Ldev/slne/surf/cloud/api/server/command/ConsoleCommand;Ljava/lang/String;Lcom/mojang/brigadier/arguments/ArgumentType;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lcom/mojang/brigadier/builder/RequiredArgumentBuilder;
-	public static final fun literal (Ldev/slne/surf/cloud/api/server/command/ConsoleCommand;Ljava/lang/String;Lkotlin/jvm/functions/Function1;)Lcom/mojang/brigadier/builder/LiteralArgumentBuilder;
-	public static synthetic fun literal$default (Ldev/slne/surf/cloud/api/server/command/ConsoleCommand;Ljava/lang/String;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lcom/mojang/brigadier/builder/LiteralArgumentBuilder;
-	public static final fun then (Lcom/mojang/brigadier/builder/ArgumentBuilder;Ljava/lang/String;Lcom/mojang/brigadier/arguments/ArgumentType;Lkotlin/jvm/functions/Function1;)Lcom/mojang/brigadier/builder/ArgumentBuilder;
-	public static final fun then (Lcom/mojang/brigadier/builder/ArgumentBuilder;Ljava/lang/String;Lkotlin/jvm/functions/Function1;)Lcom/mojang/brigadier/builder/ArgumentBuilder;
-	public static synthetic fun then$default (Lcom/mojang/brigadier/builder/ArgumentBuilder;Ljava/lang/String;Lcom/mojang/brigadier/arguments/ArgumentType;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lcom/mojang/brigadier/builder/ArgumentBuilder;
-	public static synthetic fun then$default (Lcom/mojang/brigadier/builder/ArgumentBuilder;Ljava/lang/String;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lcom/mojang/brigadier/builder/ArgumentBuilder;
+public abstract interface annotation class dev/slne/surf/cloud/api/server/command/ConsoleCommand : java/lang/annotation/Annotation {
 }
 
 public abstract interface class dev/slne/surf/cloud/api/server/command/ExecutionCommandSource {
@@ -102,6 +118,32 @@ public final class dev/slne/surf/cloud/api/server/command/ExecutionCommandSource
 public final class dev/slne/surf/cloud/api/server/command/ExecutionCommandSource$DefaultImpls {
 	public static fun clearCallbacks (Ldev/slne/surf/cloud/api/server/command/ExecutionCommandSource;)Ldev/slne/surf/cloud/api/server/command/ExecutionCommandSource;
 	public static fun handleError (Ldev/slne/surf/cloud/api/server/command/ExecutionCommandSource;Lcom/mojang/brigadier/exceptions/CommandSyntaxException;Z)V
+}
+
+public final class dev/slne/surf/cloud/api/server/command/argument/CloudGroupArgumentType : com/mojang/brigadier/arguments/ArgumentType {
+	public static final field Companion Ldev/slne/surf/cloud/api/server/command/argument/CloudGroupArgumentType$Companion;
+	public fun listSuggestions (Lcom/mojang/brigadier/context/CommandContext;Lcom/mojang/brigadier/suggestion/SuggestionsBuilder;)Ljava/util/concurrent/CompletableFuture;
+	public synthetic fun parse (Lcom/mojang/brigadier/StringReader;)Ljava/lang/Object;
+	public fun parse (Lcom/mojang/brigadier/StringReader;)Ljava/lang/String;
+}
+
+public final class dev/slne/surf/cloud/api/server/command/argument/CloudGroupArgumentType$Companion {
+	public final fun getGROUP_NOT_FOUND ()Lcom/mojang/brigadier/exceptions/DynamicCommandExceptionType;
+	public final fun getGroup (Lcom/mojang/brigadier/context/CommandContext;Ljava/lang/String;)Ljava/lang/String;
+	public final fun group ()Ldev/slne/surf/cloud/api/server/command/argument/CloudGroupArgumentType;
+}
+
+public final class dev/slne/surf/cloud/api/server/command/argument/CloudServerArgumentType : com/mojang/brigadier/arguments/ArgumentType {
+	public static final field Companion Ldev/slne/surf/cloud/api/server/command/argument/CloudServerArgumentType$Companion;
+	public fun listSuggestions (Lcom/mojang/brigadier/context/CommandContext;Lcom/mojang/brigadier/suggestion/SuggestionsBuilder;)Ljava/util/concurrent/CompletableFuture;
+	public fun parse (Lcom/mojang/brigadier/StringReader;)Ldev/slne/surf/cloud/api/common/server/CloudServer;
+	public synthetic fun parse (Lcom/mojang/brigadier/StringReader;)Ljava/lang/Object;
+}
+
+public final class dev/slne/surf/cloud/api/server/command/argument/CloudServerArgumentType$Companion {
+	public final fun getSERVER_NOT_FOUND ()Lcom/mojang/brigadier/exceptions/DynamicCommandExceptionType;
+	public final fun getServer (Lcom/mojang/brigadier/context/CommandContext;Ljava/lang/String;)Ldev/slne/surf/cloud/api/common/server/CloudServer;
+	public final fun server ()Ldev/slne/surf/cloud/api/server/command/argument/CloudServerArgumentType;
 }
 
 public final class dev/slne/surf/cloud/api/server/command/util/Command_extensionsKt {
@@ -162,6 +204,19 @@ public final class dev/slne/surf/cloud/api/server/exposed/columns/CharUuidColumn
 	public static final fun charUuid (Lorg/jetbrains/exposed/sql/Table;Ljava/lang/String;)Lorg/jetbrains/exposed/sql/Column;
 }
 
+public final class dev/slne/surf/cloud/api/server/exposed/columns/ComponentColumnType : org/jetbrains/exposed/sql/ColumnType {
+	public fun <init> ()V
+	public synthetic fun notNullValueToDB (Ljava/lang/Object;)Ljava/lang/Object;
+	public fun notNullValueToDB (Lnet/kyori/adventure/text/Component;)Ljava/lang/Object;
+	public fun sqlType ()Ljava/lang/String;
+	public synthetic fun valueFromDB (Ljava/lang/Object;)Ljava/lang/Object;
+	public fun valueFromDB (Ljava/lang/Object;)Lnet/kyori/adventure/text/Component;
+}
+
+public final class dev/slne/surf/cloud/api/server/exposed/columns/ComponentColumnTypeKt {
+	public static final fun component (Lorg/jetbrains/exposed/sql/Table;Ljava/lang/String;)Lorg/jetbrains/exposed/sql/Column;
+}
+
 public class dev/slne/surf/cloud/api/server/exposed/columns/CurrentTimestampBase : org/jetbrains/exposed/sql/Function {
 	public fun <init> (Lorg/jetbrains/exposed/sql/IColumnType;)V
 	public fun toQueryBuilder (Lorg/jetbrains/exposed/sql/QueryBuilder;)V
@@ -219,6 +274,17 @@ public final class dev/slne/surf/cloud/api/server/exposed/columns/ZonedDateTimeC
 	public static final fun zonedDateTime (Lorg/jetbrains/exposed/sql/Table;Ljava/lang/String;)Lorg/jetbrains/exposed/sql/Column;
 }
 
+public final class dev/slne/surf/cloud/api/server/exposed/migration/ExposedMigrationGenerator {
+	public fun <init> (Lorg/jetbrains/exposed/sql/Database;)V
+	public final fun getDatabase ()Lorg/jetbrains/exposed/sql/Database;
+}
+
+public final class dev/slne/surf/cloud/api/server/exposed/migration/ExposedMigrationGeneratorKt {
+	public static final fun generateExposedMigration (Lkotlin/jvm/functions/Function1;)V
+	public static final fun generateSimpleExposedMigration ([Lorg/jetbrains/exposed/sql/Table;Ljava/lang/String;Ljava/lang/String;)V
+	public static synthetic fun generateSimpleExposedMigration$default ([Lorg/jetbrains/exposed/sql/Table;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)V
+}
+
 public abstract class dev/slne/surf/cloud/api/server/exposed/service/AbstractExposedDAOService {
 	public field applicationContext Lorg/springframework/context/ApplicationContext;
 	public fun <init> ()V
@@ -230,8 +296,10 @@ public abstract class dev/slne/surf/cloud/api/server/exposed/service/AbstractExp
 	protected final fun find (Ljava/lang/Object;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun getApplicationContext ()Lorg/springframework/context/ApplicationContext;
 	protected final fun getCache ()Lcom/sksamuel/aedile/core/LoadingCache;
+	protected final fun getOrCreate (Ljava/lang/Object;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	protected final fun getSelf ()Ldev/slne/surf/cloud/api/server/exposed/service/AbstractExposedDAOService;
 	protected abstract fun load (Ljava/lang/Object;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	protected fun loadOrCreate (Ljava/lang/Object;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun setApplicationContext (Lorg/springframework/context/ApplicationContext;)V
 	protected final fun update (Ljava/lang/Object;ZLkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun update$default (Ldev/slne/surf/cloud/api/server/exposed/service/AbstractExposedDAOService;Ljava/lang/Object;ZLkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
@@ -284,16 +352,45 @@ public abstract interface annotation class dev/slne/surf/cloud/api/server/meta/S
 }
 
 public final class dev/slne/surf/cloud/api/server/netty/packet/NettyPacketServerExtensionsKt {
-	public static final fun broadcast (Ldev/slne/surf/cloud/api/common/netty/packet/NettyPacket;)V
+	public static final fun broadcast (Ldev/slne/surf/cloud/api/common/netty/packet/NettyPacket;Lkotlin/jvm/functions/Function1;)V
+	public static synthetic fun broadcast$default (Ldev/slne/surf/cloud/api/common/netty/packet/NettyPacket;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+}
+
+public abstract interface class dev/slne/surf/cloud/api/server/player/cache/PlayerCacheStorageAdapter {
+	public abstract fun load (Ljava/util/UUID;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun save (Ljava/util/UUID;Ljava/lang/Object;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public abstract interface annotation class dev/slne/surf/cloud/api/server/plugin/AdditionalStandaloneConfiguration : java/lang/annotation/Annotation {
 }
 
 public abstract interface annotation class dev/slne/surf/cloud/api/server/plugin/CoroutineTransactional : java/lang/annotation/Annotation {
+	public abstract fun contextProvider ()Ljava/lang/Class;
+	public abstract fun dispatcher ()Ldev/slne/surf/cloud/api/server/plugin/CoroutineTransactional$Dispatcher;
+	public abstract fun dispatcherBean ()Ljava/lang/String;
+	public abstract fun dispatcherType ()Ljava/lang/Class;
 	public abstract fun readOnly ()Ldev/slne/surf/cloud/api/server/plugin/CoroutineTransactional$ReadOnly;
 	public abstract fun transactionIsolation ()I
 	public abstract fun transactionManager ()Ljava/lang/String;
+}
+
+public abstract interface class dev/slne/surf/cloud/api/server/plugin/CoroutineTransactional$CoroutineTxContextProvider {
+	public abstract fun provide (Lkotlin/coroutines/CoroutineContext;Ldev/slne/surf/cloud/api/server/plugin/CoroutineTransactional;Lorg/springframework/context/ApplicationContext;)Lkotlin/coroutines/CoroutineContext;
+}
+
+public final class dev/slne/surf/cloud/api/server/plugin/CoroutineTransactional$CoroutineTxContextProvider$Default : dev/slne/surf/cloud/api/server/plugin/CoroutineTransactional$CoroutineTxContextProvider {
+	public fun <init> ()V
+	public fun provide (Lkotlin/coroutines/CoroutineContext;Ldev/slne/surf/cloud/api/server/plugin/CoroutineTransactional;Lorg/springframework/context/ApplicationContext;)Lkotlin/coroutines/CoroutineContext;
+}
+
+public final class dev/slne/surf/cloud/api/server/plugin/CoroutineTransactional$Dispatcher : java/lang/Enum {
+	public static final field CALLER Ldev/slne/surf/cloud/api/server/plugin/CoroutineTransactional$Dispatcher;
+	public static final field DEFAULT Ldev/slne/surf/cloud/api/server/plugin/CoroutineTransactional$Dispatcher;
+	public static final field IO Ldev/slne/surf/cloud/api/server/plugin/CoroutineTransactional$Dispatcher;
+	public static final field UNCONFINED Ldev/slne/surf/cloud/api/server/plugin/CoroutineTransactional$Dispatcher;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Ldev/slne/surf/cloud/api/server/plugin/CoroutineTransactional$Dispatcher;
+	public static fun values ()[Ldev/slne/surf/cloud/api/server/plugin/CoroutineTransactional$Dispatcher;
 }
 
 public final class dev/slne/surf/cloud/api/server/plugin/CoroutineTransactional$ReadOnly : java/lang/Enum {
@@ -306,13 +403,12 @@ public final class dev/slne/surf/cloud/api/server/plugin/CoroutineTransactional$
 	public static fun values ()[Ldev/slne/surf/cloud/api/server/plugin/CoroutineTransactional$ReadOnly;
 }
 
-public abstract interface class dev/slne/surf/cloud/api/server/plugin/CoroutineTransactional$ScopeProvider {
-	public abstract fun getCurrentScope ()Lkotlinx/coroutines/CoroutineScope;
-}
-
 public class dev/slne/surf/cloud/api/server/plugin/CoroutineTransactionalAspect : org/aopalliance/aop/Advice, org/springframework/core/PriorityOrdered {
 	public fun <init> (Lorg/springframework/context/ApplicationContext;)V
+	public fun getAnnotationCache ()Lcom/github/benmanes/caffeine/cache/Cache;
 	public fun getOrder ()I
+	public fun getProviderCache ()Lcom/github/benmanes/caffeine/cache/Cache;
+	public fun onContextRefreshed ()V
 	public fun wrapSuspendTx (Lorg/aspectj/lang/ProceedingJoinPoint;)Ljava/lang/Object;
 }
 
@@ -346,6 +442,13 @@ public final class dev/slne/surf/cloud/api/server/plugin/LoadTimeWeavingConfigur
 public final class dev/slne/surf/cloud/api/server/plugin/LoadTimeWeavingConfiguration$LoadTimeWeaverImpl$FilteringClassFileTransformer : java/lang/instrument/ClassFileTransformer {
 	public fun <init> (Ljava/lang/instrument/ClassFileTransformer;Ljava/lang/ClassLoader;Ljava/util/List;)V
 	public fun transform (Ljava/lang/ClassLoader;Ljava/lang/String;Ljava/lang/Class;Ljava/security/ProtectionDomain;[B)[B
+}
+
+public abstract interface annotation class dev/slne/surf/cloud/api/server/plugin/NotTransactional : java/lang/annotation/Annotation {
+}
+
+public class dev/slne/surf/cloud/api/server/plugin/PluginConfig {
+	public fun <init> ()V
 }
 
 public abstract interface class dev/slne/surf/cloud/api/server/plugin/PluginManager {
@@ -520,7 +623,7 @@ public abstract interface class dev/slne/surf/cloud/api/server/queue/QueueEntry 
 	public abstract fun getBypassFull ()Z
 	public abstract fun getBypassQueue ()Z
 	public abstract fun getConnectionAttempts ()I
-	public abstract fun getPreferredServerUid ()Ljava/lang/Long;
+	public abstract fun getPreferredServerName ()Ljava/lang/String;
 	public abstract fun getPriority ()I
 	public abstract fun getUuid ()Ljava/util/UUID;
 	public abstract fun hasConnectionAttemptsLeft ()Z
@@ -555,12 +658,41 @@ public final class dev/slne/surf/cloud/api/server/queue/QueueMetrics$Companion :
 }
 
 public abstract interface class dev/slne/surf/cloud/api/server/queue/ServerQueue : dev/slne/surf/cloud/api/server/queue/BaseQueue {
-	public abstract fun getServerUid ()J
+	public abstract fun getServerName ()Ljava/lang/String;
 	public fun server (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class dev/slne/surf/cloud/api/server/queue/ServerQueue$DefaultImpls {
 	public static fun server (Ldev/slne/surf/cloud/api/server/queue/ServerQueue;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class dev/slne/surf/cloud/api/server/redis/KotlinJsonSerializationCodec : com/mojang/serialization/Codec {
+	public fun <init> (Lkotlinx/serialization/KSerializer;Lkotlinx/serialization/json/Json;)V
+	public fun decode (Lcom/mojang/serialization/DynamicOps;Ljava/lang/Object;)Lcom/mojang/serialization/DataResult;
+	public fun encode (Ljava/lang/Object;Lcom/mojang/serialization/DynamicOps;Ljava/lang/Object;)Lcom/mojang/serialization/DataResult;
+}
+
+public abstract interface annotation class dev/slne/surf/cloud/api/server/redis/RedisCodec : java/lang/annotation/Annotation {
+}
+
+public abstract class dev/slne/surf/cloud/api/server/redis/RedisEvent {
+	public fun <init> ()V
+	public final fun getMeta ()Ldev/slne/surf/cloud/api/server/redis/RedisEventMeta;
+	public final fun publish ()V
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class dev/slne/surf/cloud/api/server/redis/RedisEventBus {
+	public static final field Companion Ldev/slne/surf/cloud/api/server/redis/RedisEventBus$Companion;
+	public abstract fun publish (Ldev/slne/surf/cloud/api/server/redis/RedisEvent;)V
+}
+
+public final class dev/slne/surf/cloud/api/server/redis/RedisEventBus$Companion : dev/slne/surf/cloud/api/server/redis/RedisEventBus {
+	public fun publish (Ldev/slne/surf/cloud/api/server/redis/RedisEvent;)V
+}
+
+public abstract interface annotation class dev/slne/surf/cloud/api/server/redis/RedisEventMeta : java/lang/annotation/Annotation {
+	public abstract fun id ()Ljava/lang/String;
 }
 
 public abstract interface class dev/slne/surf/cloud/api/server/server/ServerCloudServer : dev/slne/surf/cloud/api/common/server/CloudServer, dev/slne/surf/cloud/api/server/server/ServerCommonCloudServer {
@@ -575,11 +707,11 @@ public final class dev/slne/surf/cloud/api/server/server/ServerCloudServer$Defau
 
 public abstract interface class dev/slne/surf/cloud/api/server/server/ServerCloudServerManager : dev/slne/surf/cloud/api/common/server/CloudServerManager {
 	public static final field Companion Ldev/slne/surf/cloud/api/server/server/ServerCloudServerManager$Companion;
-	public abstract fun broadcast (Ldev/slne/surf/cloud/api/common/netty/packet/NettyPacket;)V
+	public abstract fun broadcast (Ldev/slne/surf/cloud/api/common/netty/packet/NettyPacket;Lkotlin/jvm/functions/Function1;)V
+	public static synthetic fun broadcast$default (Ldev/slne/surf/cloud/api/server/server/ServerCloudServerManager;Ldev/slne/surf/cloud/api/common/netty/packet/NettyPacket;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
 	public abstract fun retrieveAllServers ()Lit/unimi/dsi/fastutil/objects/ObjectCollection;
 	public abstract fun retrieveProxies ()Lit/unimi/dsi/fastutil/objects/ObjectCollection;
 	public abstract fun retrieveServerByCategoryAndName (Ljava/lang/String;Ljava/lang/String;)Ldev/slne/surf/cloud/api/server/server/ServerCommonCloudServer;
-	public abstract fun retrieveServerById (J)Ldev/slne/surf/cloud/api/common/server/CommonCloudServer;
 	public abstract fun retrieveServerByName (Ljava/lang/String;)Ldev/slne/surf/cloud/api/server/server/ServerCommonCloudServer;
 	public abstract fun retrieveServers ()Lit/unimi/dsi/fastutil/objects/ObjectCollection;
 	public abstract fun retrieveServersByCategory (Ljava/lang/String;)Lit/unimi/dsi/fastutil/objects/ObjectList;
@@ -587,20 +719,25 @@ public abstract interface class dev/slne/surf/cloud/api/server/server/ServerClou
 }
 
 public final class dev/slne/surf/cloud/api/server/server/ServerCloudServerManager$Companion : dev/slne/surf/cloud/api/server/server/ServerCloudServerManager {
-	public fun broadcast (Ldev/slne/surf/cloud/api/common/netty/packet/NettyPacket;)V
+	public fun broadcast (Ldev/slne/surf/cloud/api/common/netty/packet/NettyPacket;Lkotlin/jvm/functions/Function1;)V
 	public fun broadcast (Lnet/kyori/adventure/text/Component;Ljava/lang/String;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun broadcastToGroup (Ljava/lang/String;Lnet/kyori/adventure/text/Component;Ljava/lang/String;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun pullPlayersToGroup (Ljava/lang/String;Ljava/util/Collection;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun retrieveAllServers ()Lit/unimi/dsi/fastutil/objects/ObjectCollection;
 	public fun retrieveProxies ()Lit/unimi/dsi/fastutil/objects/ObjectCollection;
+	public fun retrieveProxyList (Ljava/lang/String;)Lit/unimi/dsi/fastutil/objects/ObjectList;
 	public synthetic fun retrieveServerByCategoryAndName (Ljava/lang/String;Ljava/lang/String;)Ldev/slne/surf/cloud/api/common/server/CommonCloudServer;
 	public fun retrieveServerByCategoryAndName (Ljava/lang/String;Ljava/lang/String;)Ldev/slne/surf/cloud/api/server/server/ServerCommonCloudServer;
-	public fun retrieveServerById (J)Ldev/slne/surf/cloud/api/common/server/CommonCloudServer;
 	public synthetic fun retrieveServerByName (Ljava/lang/String;)Ldev/slne/surf/cloud/api/common/server/CommonCloudServer;
 	public fun retrieveServerByName (Ljava/lang/String;)Ldev/slne/surf/cloud/api/server/server/ServerCommonCloudServer;
+	public fun retrieveServerList (Ljava/lang/String;)Lit/unimi/dsi/fastutil/objects/ObjectList;
 	public fun retrieveServers ()Lit/unimi/dsi/fastutil/objects/ObjectCollection;
 	public fun retrieveServersByCategory (Ljava/lang/String;)Lit/unimi/dsi/fastutil/objects/ObjectList;
 	public fun retrieveServersInGroup (Ljava/lang/String;)Lit/unimi/dsi/fastutil/objects/ObjectList;
+}
+
+public final class dev/slne/surf/cloud/api/server/server/ServerCloudServerManager$DefaultImpls {
+	public static synthetic fun broadcast$default (Ldev/slne/surf/cloud/api/server/server/ServerCloudServerManager;Ldev/slne/surf/cloud/api/common/netty/packet/NettyPacket;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
 }
 
 public abstract interface class dev/slne/surf/cloud/api/server/server/ServerCommonCloudServer : dev/slne/surf/cloud/api/common/server/CommonCloudServer {

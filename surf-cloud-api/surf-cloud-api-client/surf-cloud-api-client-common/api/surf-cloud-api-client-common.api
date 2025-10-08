@@ -21,21 +21,32 @@ public final class dev/slne/surf/cloud/api/client/netty/packet/NettyPacketClient
 
 public abstract interface class dev/slne/surf/cloud/api/client/server/CloudClientServerManager : dev/slne/surf/cloud/api/common/server/CloudServerManager {
 	public static final field Companion Ldev/slne/surf/cloud/api/client/server/CloudClientServerManager$Companion;
+	public abstract fun current ()Ldev/slne/surf/cloud/api/common/server/CommonCloudServer;
+	public abstract fun currentProxy ()Ldev/slne/surf/cloud/api/common/server/ProxyCloudServer;
 	public abstract fun currentServer ()Ldev/slne/surf/cloud/api/common/server/CloudServer;
 }
 
 public final class dev/slne/surf/cloud/api/client/server/CloudClientServerManager$Companion : dev/slne/surf/cloud/api/client/server/CloudClientServerManager {
 	public fun broadcast (Lnet/kyori/adventure/text/Component;Ljava/lang/String;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun broadcastToGroup (Ljava/lang/String;Lnet/kyori/adventure/text/Component;Ljava/lang/String;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun current ()Ldev/slne/surf/cloud/api/common/server/CommonCloudServer;
+	public fun currentProxy ()Ldev/slne/surf/cloud/api/common/server/ProxyCloudServer;
 	public fun currentServer ()Ldev/slne/surf/cloud/api/common/server/CloudServer;
 	public fun pullPlayersToGroup (Ljava/lang/String;Ljava/util/Collection;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun retrieveAllServers ()Lit/unimi/dsi/fastutil/objects/ObjectCollection;
 	public fun retrieveProxies ()Lit/unimi/dsi/fastutil/objects/ObjectCollection;
+	public fun retrieveProxyList (Ljava/lang/String;)Lit/unimi/dsi/fastutil/objects/ObjectList;
 	public fun retrieveServerByCategoryAndName (Ljava/lang/String;Ljava/lang/String;)Ldev/slne/surf/cloud/api/common/server/CommonCloudServer;
-	public fun retrieveServerById (J)Ldev/slne/surf/cloud/api/common/server/CommonCloudServer;
 	public fun retrieveServerByName (Ljava/lang/String;)Ldev/slne/surf/cloud/api/common/server/CommonCloudServer;
+	public fun retrieveServerList (Ljava/lang/String;)Lit/unimi/dsi/fastutil/objects/ObjectList;
 	public fun retrieveServers ()Lit/unimi/dsi/fastutil/objects/ObjectCollection;
 	public fun retrieveServersByCategory (Ljava/lang/String;)Lit/unimi/dsi/fastutil/objects/ObjectList;
 	public fun retrieveServersInGroup (Ljava/lang/String;)Lit/unimi/dsi/fastutil/objects/ObjectList;
+}
+
+public final class dev/slne/surf/cloud/api/client/server/CloudClientServerManagerKt {
+	public static final fun current (Ldev/slne/surf/cloud/api/common/server/CloudServer$Companion;)Ldev/slne/surf/cloud/api/common/server/CloudServer;
+	public static final fun current (Ldev/slne/surf/cloud/api/common/server/CommonCloudServer$Companion;)Ldev/slne/surf/cloud/api/common/server/CommonCloudServer;
+	public static final fun current (Ldev/slne/surf/cloud/api/common/server/ProxyCloudServer$Companion;)Ldev/slne/surf/cloud/api/common/server/ProxyCloudServer;
 }
 

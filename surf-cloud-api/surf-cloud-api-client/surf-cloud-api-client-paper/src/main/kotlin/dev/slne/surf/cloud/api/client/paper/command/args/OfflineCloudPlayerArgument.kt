@@ -1,30 +1,30 @@
 package dev.slne.surf.cloud.api.client.paper.command.args
 
+import com.destroystokyo.paper.profile.PlayerProfile
 import dev.jorel.commandapi.CommandAPICommand
 import dev.jorel.commandapi.CommandTree
 import dev.jorel.commandapi.arguments.Argument
 import dev.jorel.commandapi.arguments.ArgumentSuggestions
-import dev.jorel.commandapi.arguments.AsyncOfflinePlayerArgument
+import dev.jorel.commandapi.arguments.AsyncPlayerProfileArgument
 import dev.jorel.commandapi.arguments.CustomArgument
-import dev.slne.surf.cloud.api.client.paper.player.toCloudOfflinePlayer
 import dev.slne.surf.cloud.api.common.player.CloudPlayerManager
 import dev.slne.surf.cloud.api.common.player.OfflineCloudPlayer
+import dev.slne.surf.cloud.api.common.player.toOfflineCloudPlayer
 import dev.slne.surf.surfapi.core.api.messages.adventure.sendText
 import dev.slne.surf.surfapi.core.api.util.logger
 import kotlinx.coroutines.*
 import kotlinx.coroutines.future.await
 import kotlinx.coroutines.future.future
-import org.bukkit.OfflinePlayer
 import java.util.concurrent.CompletableFuture
 
 class OfflineCloudPlayerArgument(nodeName: String) :
-    CustomArgument<Deferred<OfflineCloudPlayer?>, CompletableFuture<OfflinePlayer>>(
-        AsyncOfflinePlayerArgument(nodeName),
+    CustomArgument<Deferred<OfflineCloudPlayer?>, CompletableFuture<List<PlayerProfile>>>(
+        AsyncPlayerProfileArgument(nodeName),
         { info ->
             scope.async {
                 try {
-                    val player = info.currentInput.await()
-                    player.toCloudOfflinePlayer()
+                    val profile = info.currentInput.await().firstOrNull()
+                    profile?.id?.toOfflineCloudPlayer()
                 } catch (e: RuntimeException) {
                     val cause = e.cause
                     val rootCause = if (cause is RuntimeException) cause.cause else cause

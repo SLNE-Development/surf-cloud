@@ -2,7 +2,7 @@ package dev.slne.surf.cloud.bukkit
 
 import com.github.shynixn.mccoroutine.folia.SuspendingJavaPlugin
 import com.github.shynixn.mccoroutine.folia.launch
-import dev.jorel.commandapi.CommandAPIBukkit
+import dev.jorel.commandapi.CommandAPIPaper
 import dev.jorel.commandapi.kotlindsl.*
 import dev.slne.surf.cloud.api.client.netty.packet.fireAndForget
 import dev.slne.surf.cloud.api.common.TestPacket
@@ -117,7 +117,7 @@ class PaperMain : SuspendingJavaPlugin() {
     }
 
     private fun failCommand(message: () -> Component): Nothing { // TODO: 20.01.2025 20:51 - move to surf-api
-        throw CommandAPIBukkit.failWithAdventureComponent(message)
+        throw CommandAPIPaper.failWithAdventureComponent(message)
     }
 
     override suspend fun onDisableAsync() {

@@ -69,6 +69,19 @@ object MessageManager { // TODO: Add more messages
         )
     }
 
+    val couldNotFetchPlayerData = buildText {
+        CommonComponents.renderDisconnectMessage(
+            this,
+            "FEHLER BEIM LADEN DEINER SPIELERDATEN",
+            {
+                error("Beim Laden deiner Spielerdaten ist ein Fehler aufgetreten.")
+                appendNewline()
+                error("Bitte versuche es erneut.")
+            },
+            true
+        )
+    }
+
     fun formatZonedDateTime(time: ZonedDateTime?) = buildText {
         if (time == null) {
             variableValue("N/A")

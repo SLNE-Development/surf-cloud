@@ -3,15 +3,20 @@ package dev.slne.surf.cloud.core.common.player.ppdc
 import dev.slne.surf.cloud.api.common.netty.protocol.buffer.SurfByteBuf
 import dev.slne.surf.cloud.api.common.player.ppdc.PersistentPlayerDataContainer
 import dev.slne.surf.cloud.api.common.player.ppdc.PersistentPlayerDataType
+import dev.slne.surf.cloud.core.common.player.ppdc.network.PdcOp
+import dev.slne.surf.cloud.core.common.player.ppdc.network.PdcPatch
 import dev.slne.surf.surfapi.core.api.nbt.FastCompoundBinaryTag
 import dev.slne.surf.surfapi.core.api.nbt.fast
 import net.kyori.adventure.key.Key
 import net.kyori.adventure.nbt.*
 
-class PersistentPlayerDataContainerImpl(
-    @Volatile
-    private var tag: FastCompoundBinaryTag = CompoundBinaryTag.empty().fast(synchronize = true)
+open class PersistentPlayerDataContainerImpl(
+    tag: FastCompoundBinaryTag = CompoundBinaryTag.empty().fast()
 ) : PersistentPlayerDataContainerViewImpl(), PersistentPlayerDataContainer {
+    @Volatile
+    var tag: FastCompoundBinaryTag = tag
+        private set
+
     override fun getTag(key: String) = tag.get(key)
 
     private inline fun <reified T : BinaryTag> getTag(key: Key): T? {
@@ -146,6 +151,53 @@ class PersistentPlayerDataContainerImpl(
         this.tag = tag.fast(synchronize = true)
     }
 
+    fun applyOps(root: FastCompoundBinaryTag, patch: PdcPatch) {
+        for (op in patch.ops) {
+            when (op) {
+                is PdcOp.Remove -> removeAtPath(root, op.path)
+                is PdcOp.Put -> putAtPath(root, op.path, op.value)
+            }
+        }
+    }
+
+    private fun ensureCompoundAtPath(
+        root: FastCompoundBinaryTag,
+        path: List<String>
+    ): FastCompoundBinaryTag {
+        var cur: FastCompoundBinaryTag = root
+        for (p in path) {
+            val next = (cur.get(p) as? CompoundBinaryTag)?.fast()
+            if (next == null) {
+                val created = CompoundBinaryTag.empty().fast()
+                cur.put(p, created.fast())
+                cur = created
+            } else {
+                cur = next
+            }
+        }
+        return cur
+    }
+
+    private fun putAtPath(root: FastCompoundBinaryTag, path: List<String>, value: BinaryTag) {
+        if (path.isEmpty()) {
+            root.clear()
+            root.put((value as CompoundBinaryTag))
+            return
+        }
+        val parent = ensureCompoundAtPath(root, path.dropLast(1))
+        parent.put(path.last(), value)
+    }
+
+    private fun removeAtPath(root: FastCompoundBinaryTag, path: List<String>) {
+        if (path.isEmpty()) {
+            root.clear()
+            return
+        }
+        val parent = ensureCompoundAtPath(root, path.dropLast(1))
+        parent.remove(path.last())
+    }
+
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is PersistentPlayerDataContainerImpl) return false
@@ -159,4 +211,7 @@ class PersistentPlayerDataContainerImpl(
         return tag.hashCode()
     }
 
+    override fun toString(): String {
+        return "PersistentPlayerDataContainerImpl(tag=$tag)"
+    }
 }

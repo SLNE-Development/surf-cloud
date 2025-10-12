@@ -13,16 +13,18 @@ import dev.slne.surf.cloud.api.common.player.teleport.TeleportCause
 import dev.slne.surf.cloud.api.common.player.teleport.TeleportFlag
 import dev.slne.surf.cloud.api.common.player.teleport.WorldLocation
 import dev.slne.surf.cloud.api.common.server.CloudServer
+import dev.slne.surf.cloud.api.server.netty.packet.broadcast
 import dev.slne.surf.cloud.api.server.server.ServerCommonCloudServer
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.*
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ServerboundTransferPlayerPacketResponse.Status
 import dev.slne.surf.cloud.core.common.player.CommonCloudPlayerImpl
 import dev.slne.surf.cloud.core.common.player.playtime.PlaytimeEntry
 import dev.slne.surf.cloud.core.common.player.playtime.PlaytimeImpl
-import dev.slne.surf.cloud.core.common.player.ppdc.PersistentPlayerDataContainerImpl
+import dev.slne.surf.cloud.core.common.player.ppdc.PersistentPlayerDataContainerViewImpl
 import dev.slne.surf.cloud.core.common.util.bean
 import dev.slne.surf.cloud.standalone.netty.server.NettyServerImpl
 import dev.slne.surf.cloud.standalone.player.db.exposed.CloudPlayerService
+import dev.slne.surf.cloud.standalone.player.pdc.TrackingPlayerPersistentDataContainerImpl
 import dev.slne.surf.cloud.standalone.server.StandaloneCloudServerImpl
 import dev.slne.surf.cloud.standalone.server.StandaloneProxyCloudServerImpl
 import dev.slne.surf.cloud.standalone.server.queue.QueueManagerImpl
@@ -37,6 +39,7 @@ import net.kyori.adventure.audience.MessageType
 import net.kyori.adventure.bossbar.BossBar
 import net.kyori.adventure.identity.Identity
 import net.kyori.adventure.inventory.Book
+import net.kyori.adventure.nbt.BinaryTag
 import net.kyori.adventure.nbt.CompoundBinaryTag
 import net.kyori.adventure.resource.ResourcePackCallback
 import net.kyori.adventure.resource.ResourcePackRequest
@@ -85,7 +88,11 @@ class StandaloneCloudPlayerImpl(uuid: UUID, name: String, val ip: Inet4Address) 
     @Volatile
     var connectingToServer: StandaloneCloudServerImpl? = null
 
-    private val ppdc = PersistentPlayerDataContainerImpl()
+    private val ppdc = TrackingPlayerPersistentDataContainerImpl()
+    override val persistentData = object : PersistentPlayerDataContainerViewImpl() {
+        override fun toTagCompound() = ppdc.tag
+        override fun getTag(key: String): BinaryTag? = ppdc.getTag(key)
+    }
 
     private val ppdcMutex = Mutex()
     private var firstSeenCache: ZonedDateTime? = null
@@ -131,10 +138,25 @@ class StandaloneCloudPlayerImpl(uuid: UUID, name: String, val ip: Inet4Address) 
         }
     }
 
-    override suspend fun <R> withPersistentData(block: PersistentPlayerDataContainer.() -> R): R =
-        ppdcMutex.withLock {
-            ppdc.block()
+    override suspend fun <R> withPersistentData(block: PersistentPlayerDataContainer.() -> R): R {
+        val (result, patch) = ppdcMutex.withLock {
+            ppdc.startTracking()
+            val result = ppdc.block()
+            val patch = ppdc.getPatchOps()
+            ppdc.clearTracking()
+
+            result to patch
         }
+
+        if (patch.empty) {
+            return result
+        }
+
+        val packet = ClientboundUpdatePlayerPersistentDataContainerPacket(uuid, patch)
+        packet.broadcast()
+
+        return result
+    }
 
     override fun disconnect(reason: Component) {
         val connection = proxyServer?.connection ?: server?.connection
@@ -145,7 +167,7 @@ class StandaloneCloudPlayerImpl(uuid: UUID, name: String, val ip: Inet4Address) 
         server?.connection?.send(SilentDisconnectPlayerPacket(uuid))
     }
 
-    suspend fun getPersistentData() = ppdcMutex.withLock { ppdc.toTagCompound() }
+    suspend fun awaitPersistentData() = ppdcMutex.withLock { ppdc.toTagCompound() }
     suspend fun updatePersistentData(tag: CompoundBinaryTag) =
         ppdcMutex.withLock { ppdc.fromTagCompound(tag) }
 

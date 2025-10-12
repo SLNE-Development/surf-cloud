@@ -23,14 +23,17 @@ import dev.slne.surf.cloud.core.common.netty.network.protocol.running.Serverboun
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ServerboundRequestPlayerDataResponse.*
 import dev.slne.surf.cloud.core.common.player.CommonCloudPlayerImpl
 import dev.slne.surf.cloud.core.common.player.ppdc.PersistentPlayerDataContainerImpl
+import dev.slne.surf.cloud.core.common.player.ppdc.PersistentPlayerDataContainerViewImpl
 import dev.slne.surf.cloud.core.common.util.hasPermissionPlattform
 import dev.slne.surf.surfapi.core.api.messages.adventure.getPointer
+import dev.slne.surf.surfapi.core.api.nbt.FastCompoundBinaryTag
 import dev.slne.surf.surfapi.core.api.nbt.fast
 import net.kyori.adventure.audience.Audience
 import net.kyori.adventure.audience.MessageType
 import net.kyori.adventure.bossbar.BossBar
 import net.kyori.adventure.identity.Identity
 import net.kyori.adventure.inventory.Book
+import net.kyori.adventure.nbt.CompoundBinaryTag
 import net.kyori.adventure.resource.ResourcePackRequest
 import net.kyori.adventure.sound.Sound
 import net.kyori.adventure.sound.Sound.Emitter
@@ -63,6 +66,12 @@ abstract class ClientCloudPlayerImpl<PlatformPlayer : Audience>(
 
     override val connectedToProxy get() = proxyServerName != null
     override val connectedToServer get() = serverName != null
+
+    var ppdcData: FastCompoundBinaryTag = CompoundBinaryTag.empty().fast()
+    override val persistentData = object : PersistentPlayerDataContainerViewImpl() {
+        override fun toTagCompound() = ppdcData
+        override fun getTag(key: String) = ppdcData.get(key)
+    }
 
     /**
      * The audience for this player. If the player is on this server, this will point to

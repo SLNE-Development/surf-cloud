@@ -62,4 +62,5 @@ abstract class PersistentPlayerDataContainerViewImpl : PersistentPlayerDataConta
         val root = toTagCompound()
         buf.writeCompoundTag(root)
     }
+
 }

@@ -237,7 +237,7 @@ class ServerRunningPacketListenerImpl(
     private val pendingVerificationIds = mutableIntSetOf()
     override suspend fun handleRequestPlayerPersistentDataContainer(packet: ServerboundRequestPlayerPersistentDataContainer) {
         withPlayer(packet.uuid) {
-            val data = getPersistentData()
+            val data = awaitPersistentData()
             val id = random.nextInt()
             pendingVerificationIds.add(id)
 

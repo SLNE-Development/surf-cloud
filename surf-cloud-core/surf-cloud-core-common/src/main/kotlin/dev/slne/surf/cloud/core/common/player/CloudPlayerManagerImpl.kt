@@ -300,7 +300,7 @@ abstract class CloudPlayerManagerImpl<P : CommonCloudPlayerImpl> : CloudPlayerMa
     open fun terminate() {}
 
 
-    private class PreJoinDenied(val result: PrePlayerJoinTask.Result) : RuntimeException() {
+    class PreJoinDenied(val result: PrePlayerJoinTask.Result) : RuntimeException() {
         companion object {
             @Serial
             private const val serialVersionUID: Long = -5043277924406776272L

@@ -4,6 +4,7 @@ import dev.slne.surf.bytebufserializer.Buf
 import dev.slne.surf.cloud.api.common.netty.network.codec.kotlinx.cloud.CloudPlayerSerializer
 import dev.slne.surf.cloud.api.common.netty.network.codec.streamCodec
 import dev.slne.surf.cloud.api.common.player.ppdc.PersistentPlayerDataContainer
+import dev.slne.surf.cloud.api.common.player.ppdc.PersistentPlayerDataContainerView
 import dev.slne.surf.cloud.api.common.player.teleport.TeleportCause
 import dev.slne.surf.cloud.api.common.player.teleport.TeleportFlag
 import dev.slne.surf.cloud.api.common.player.teleport.WorldLocation
@@ -28,7 +29,7 @@ import kotlin.time.Duration
  * it enables sending messages or components to the player.
  */
 @Serializable(with = CloudPlayerSerializer::class)
-interface CloudPlayer : Audience, OfflineCloudPlayer { // TODO: conversation but done correctly?
+interface CloudPlayer : Audience, OfflineCloudPlayer {
     val name: String
 
     override suspend fun latestIpAddress(): Inet4Address
@@ -53,6 +54,8 @@ interface CloudPlayer : Audience, OfflineCloudPlayer { // TODO: conversation but
 
     fun isAfk(): Boolean
     suspend fun currentSessionDuration(): Duration
+
+    val persistentData: PersistentPlayerDataContainerView
 
     /**
      * Performs modifications on the player's persistent data container.

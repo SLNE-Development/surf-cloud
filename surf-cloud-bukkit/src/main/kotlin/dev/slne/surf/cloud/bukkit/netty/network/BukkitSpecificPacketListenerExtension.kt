@@ -7,8 +7,10 @@ import dev.slne.surf.cloud.api.common.player.teleport.TeleportCause
 import dev.slne.surf.cloud.api.common.player.teleport.TeleportFlag
 import dev.slne.surf.cloud.api.common.player.teleport.WorldLocation
 import dev.slne.surf.cloud.api.common.player.toCloudPlayer
+import dev.slne.surf.cloud.api.common.player.toast.NetworkToast
 import dev.slne.surf.cloud.api.common.util.observer.observingFlow
 import dev.slne.surf.cloud.bukkit.listener.player.SilentDisconnectListener
+import dev.slne.surf.cloud.bukkit.player.BukkitClientCloudPlayerImpl
 import dev.slne.surf.cloud.bukkit.plugin
 import dev.slne.surf.cloud.core.client.netty.network.PlatformSpecificPacketListenerExtension
 import dev.slne.surf.cloud.core.client.server.ClientCloudServerImpl
@@ -85,6 +87,11 @@ class BukkitSpecificPacketListenerExtension : PlatformSpecificPacketListenerExte
         return player.teleportAsync(targetPlayer.location).await()
     }
 
+    override fun sendToast(uuid: UUID, toast: NetworkToast) {
+        val player = uuid.toCloudPlayer() as? BukkitClientCloudPlayerImpl ?: return
+        player.sendToast0(toast)
+    }
+
     override fun triggerShutdown() {
         plugin.launch(plugin.globalRegionDispatcher) {
             Bukkit.shutdown()
@@ -92,7 +99,8 @@ class BukkitSpecificPacketListenerExtension : PlatformSpecificPacketListenerExte
     }
 
     override fun restart() {
-        server.restart()
+//        server.restart() TODO: figure out a way to restart a server without relying on Pterodactyl
+        shutdown()
     }
 
     override fun shutdown() {

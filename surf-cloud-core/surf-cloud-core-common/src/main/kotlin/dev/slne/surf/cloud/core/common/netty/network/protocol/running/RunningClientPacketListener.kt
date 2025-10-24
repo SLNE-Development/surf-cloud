@@ -95,5 +95,7 @@ interface RunningClientPacketListener : ClientCommonPacketListener {
     fun handleCacheDelta(packet: ClientboundCacheDeltaPacket)
     fun handleCacheError(packet: ClientboundCacheErrorPacket)
 
+    fun handleSendToast(packet: SendToastPacket)
+
     fun handlePacket(packet: NettyPacket)
 }

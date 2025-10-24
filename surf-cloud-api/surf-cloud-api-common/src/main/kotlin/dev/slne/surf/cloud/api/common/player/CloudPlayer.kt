@@ -7,6 +7,7 @@ import dev.slne.surf.cloud.api.common.player.ppdc.PersistentPlayerDataContainer
 import dev.slne.surf.cloud.api.common.player.teleport.TeleportCause
 import dev.slne.surf.cloud.api.common.player.teleport.TeleportFlag
 import dev.slne.surf.cloud.api.common.player.teleport.WorldLocation
+import dev.slne.surf.cloud.api.common.player.toast.NetworkToast
 import dev.slne.surf.cloud.api.common.server.CloudServer
 import dev.slne.surf.surfapi.core.api.messages.adventure.buildText
 import io.netty.buffer.ByteBuf
@@ -189,6 +190,10 @@ interface CloudPlayer : Audience, OfflineCloudPlayer { // TODO: conversation but
     fun playSound(sound: Sound, emitter: Sound.Emitter, permission: String)
 
     suspend fun hasPermission(permission: String): Boolean
+
+    fun sendToast(toast: NetworkToast)
+    fun sendToast(builder: NetworkToast.Builder.() -> Unit) =
+        sendToast(NetworkToast.create(builder))
 
     companion object {
         operator fun get(uuid: UUID) = CloudPlayerManager.getPlayer(uuid)

@@ -448,6 +448,8 @@ class ConnectionImpl(
                             msg
                         )
 
+                        is SendToastPacket -> listener.handleSendToast(msg)
+
                         else -> listener.handlePacket(msg) // handle other packets
                     }
                 }
@@ -626,6 +628,7 @@ class ConnectionImpl(
                         is ClientboundCacheRegisterAckPacket -> listener.handleCacheRegisterAck(msg)
                         is ClientboundCacheDeltaPacket -> listener.handleCacheDelta(msg)
                         is ClientboundCacheErrorPacket -> listener.handleCacheError(msg)
+                        is SendToastPacket -> listener.handleSendToast(msg)
 
                         else -> listener.handlePacket(msg)
                     }

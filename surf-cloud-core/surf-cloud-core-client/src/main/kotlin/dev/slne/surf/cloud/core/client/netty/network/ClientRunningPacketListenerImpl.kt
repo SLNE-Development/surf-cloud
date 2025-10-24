@@ -367,6 +367,10 @@ class ClientRunningPacketListenerImpl(
         TODO("Not yet implemented")
     }
 
+    override fun handleSendToast(packet: SendToastPacket) {
+        platformExtension.sendToast(packet.uuid, packet.toast)
+    }
+
     override fun handlePacket(packet: NettyPacket) {
         val listeners = NettyListenerRegistry.getListeners(packet.javaClass) ?: return
         if (listeners.isEmpty()) return

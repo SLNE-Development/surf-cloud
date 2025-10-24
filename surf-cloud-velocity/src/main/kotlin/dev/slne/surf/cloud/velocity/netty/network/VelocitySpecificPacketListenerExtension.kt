@@ -1,10 +1,12 @@
 package dev.slne.surf.cloud.velocity.netty.network
 
+import com.google.common.flogger.StackSize
 import com.velocitypowered.api.proxy.ConnectionRequestBuilder
 import com.velocitypowered.api.proxy.server.ServerInfo
 import dev.slne.surf.cloud.api.common.player.teleport.TeleportCause
 import dev.slne.surf.cloud.api.common.player.teleport.TeleportFlag
 import dev.slne.surf.cloud.api.common.player.teleport.WorldLocation
+import dev.slne.surf.cloud.api.common.player.toast.NetworkToast
 import dev.slne.surf.cloud.api.common.util.observer.observingFlow
 import dev.slne.surf.cloud.core.client.netty.network.PlatformSpecificPacketListenerExtension
 import dev.slne.surf.cloud.core.client.server.ClientCloudServerImpl
@@ -21,6 +23,7 @@ import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger
 import java.net.InetSocketAddress
 import java.util.*
+import java.util.concurrent.TimeUnit
 import kotlin.jvm.optionals.getOrNull
 import org.springframework.stereotype.Component as SpringComponent
 
@@ -94,6 +97,13 @@ class VelocitySpecificPacketListenerExtension : PlatformSpecificPacketListenerEx
         target: UUID
     ): Boolean {
         error("Teleporting players is not supported on Velocity")
+    }
+
+    override fun sendToast(uuid: UUID, toast: NetworkToast) {
+        log.atWarning()
+            .withStackTrace(StackSize.MEDIUM)
+            .atMostEvery(10, TimeUnit.SECONDS)
+            .log("Sending toasts is not supported on Velocity")
     }
 
     override fun triggerShutdown() {

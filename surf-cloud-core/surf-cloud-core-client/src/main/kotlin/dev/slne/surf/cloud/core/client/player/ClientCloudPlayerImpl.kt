@@ -13,6 +13,7 @@ import dev.slne.surf.cloud.api.common.player.ppdc.PersistentPlayerDataContainer
 import dev.slne.surf.cloud.api.common.player.teleport.TeleportCause
 import dev.slne.surf.cloud.api.common.player.teleport.TeleportFlag
 import dev.slne.surf.cloud.api.common.player.teleport.WorldLocation
+import dev.slne.surf.cloud.api.common.player.toast.NetworkToast
 import dev.slne.surf.cloud.api.common.server.CloudServer
 import dev.slne.surf.cloud.api.common.util.getValue
 import dev.slne.surf.cloud.api.common.util.setValue
@@ -426,6 +427,10 @@ abstract class ClientCloudPlayerImpl<PlatformPlayer : Audience>(
 
     override suspend fun teleport(target: CloudPlayer): Boolean {
         return TeleportPlayerToPlayerPacket(uuid, target.uuid).awaitOrThrow()
+    }
+
+    override fun sendToast(toast: NetworkToast) {
+        SendToastPacket(uuid, toast).fireAndForget()
     }
 
     protected fun <R> withLuckpermsOrThrow(block: (User) -> R): R {

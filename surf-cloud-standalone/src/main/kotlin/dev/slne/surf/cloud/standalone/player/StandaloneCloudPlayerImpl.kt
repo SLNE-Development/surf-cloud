@@ -12,6 +12,7 @@ import dev.slne.surf.cloud.api.common.player.ppdc.PersistentPlayerDataContainer
 import dev.slne.surf.cloud.api.common.player.teleport.TeleportCause
 import dev.slne.surf.cloud.api.common.player.teleport.TeleportFlag
 import dev.slne.surf.cloud.api.common.player.teleport.WorldLocation
+import dev.slne.surf.cloud.api.common.player.toast.NetworkToast
 import dev.slne.surf.cloud.api.common.server.CloudServer
 import dev.slne.surf.cloud.api.server.server.ServerCommonCloudServer
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.*
@@ -480,6 +481,11 @@ class StandaloneCloudPlayerImpl(uuid: UUID, name: String, val ip: Inet4Address) 
             target.uuid
         ).await(targetServer.connection) == true
         return result
+    }
+
+    override fun sendToast(toast: NetworkToast) {
+        val packet = SendToastPacket(uuid, toast)
+        server?.connection?.send(packet)
     }
 
     private fun send(packet: NettyPacket) {

@@ -1,35 +1,34 @@
-package dev.slne.surf.cloud.standalone.player.pdc
+package dev.slne.surf.cloud.core.common.player.ppdc
 
 import dev.slne.surf.cloud.api.common.util.mutableObjectListOf
-import dev.slne.surf.cloud.core.common.player.ppdc.PersistentPlayerDataContainerImpl
 import dev.slne.surf.cloud.core.common.player.ppdc.network.PdcOp
 import dev.slne.surf.cloud.core.common.player.ppdc.network.PdcPatch
 import dev.slne.surf.surfapi.core.api.nbt.FastCompoundBinaryTag
 import dev.slne.surf.surfapi.core.api.nbt.fast
 import net.kyori.adventure.nbt.CompoundBinaryTag
 
-class TrackingPlayerPersistentDataContainerImpl(
+open class TrackingPlayerPersistentDataContainerImpl(
     tag: FastCompoundBinaryTag = CompoundBinaryTag.empty().fast()
-) : PersistentPlayerDataContainerImpl() {
+) : PersistentPlayerDataContainerImpl(tag) {
     @Volatile
-    private var baseSnapshot: CompoundBinaryTag? = null
+    private var baseSnapshotReference: CompoundBinaryTag? = null
 
     fun startTracking() {
-        require(baseSnapshot == null) { "Tracking already started" }
+        check(baseSnapshotReference == null) { "Tracking already started" }
 
-        baseSnapshot = toTagCompound()
+        baseSnapshotReference = toTagCompound()
+    }
+
+    fun clearTracking() {
+        baseSnapshotReference = null
     }
 
     fun getPatchOps(): PdcPatch {
-        val base = baseSnapshot
+        val base = baseSnapshotReference
         val curr = toTagCompound()
         val ops = diffToOps(base, curr)
 
         return PdcPatch(ops)
-    }
-
-    fun clearTracking() {
-        baseSnapshot = null
     }
 
     private fun diffToOps(
@@ -75,5 +74,9 @@ class TrackingPlayerPersistentDataContainerImpl(
             }
         }
         return ops
+    }
+
+    override fun snapshot(): TrackingPlayerPersistentDataContainerImpl {
+        return TrackingPlayerPersistentDataContainerImpl(tag.fast())
     }
 }

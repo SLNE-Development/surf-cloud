@@ -128,5 +128,7 @@ interface RunningServerPacketListener : ServerCommonPacketListener, TickablePack
 
     fun handleSendToast(packet: SendToastPacket)
 
+    fun handleUpdatePlayerPersistentDataContainer(packet: UpdatePlayerPersistentDataContainerPacket)
+
     fun handlePacket(packet: NettyPacket)
 }

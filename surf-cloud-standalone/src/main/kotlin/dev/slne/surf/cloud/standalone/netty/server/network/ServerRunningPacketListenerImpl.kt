@@ -609,6 +609,12 @@ class ServerRunningPacketListenerImpl(
         withPlayer(packet.uuid) { sendToast(packet.toast) }
     }
 
+    override fun handleUpdatePlayerPersistentDataContainer(packet: UpdatePlayerPersistentDataContainerPacket) {
+        withPlayer(packet.uuid) {
+            applyPpdcPatch(packet.patch)
+        }
+    }
+
     override fun handlePacket(packet: NettyPacket) {
         val listeners = NettyListenerRegistry.getListeners(packet.javaClass) ?: return
         if (listeners.isEmpty()) return

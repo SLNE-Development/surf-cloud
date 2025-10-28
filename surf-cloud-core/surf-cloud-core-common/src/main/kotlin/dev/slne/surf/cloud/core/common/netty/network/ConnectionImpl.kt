@@ -449,6 +449,9 @@ class ConnectionImpl(
                         )
 
                         is SendToastPacket -> listener.handleSendToast(msg)
+                        is UpdatePlayerPersistentDataContainerPacket -> listener.handleUpdatePlayerPersistentDataContainer(
+                            msg
+                        )
 
                         else -> listener.handlePacket(msg) // handle other packets
                     }
@@ -629,6 +632,9 @@ class ConnectionImpl(
                         is ClientboundCacheDeltaPacket -> listener.handleCacheDelta(msg)
                         is ClientboundCacheErrorPacket -> listener.handleCacheError(msg)
                         is SendToastPacket -> listener.handleSendToast(msg)
+                        is UpdatePlayerPersistentDataContainerPacket -> listener.handleUpdatePlayerPersistentDataContainer(
+                            msg
+                        )
 
                         else -> listener.handlePacket(msg)
                     }

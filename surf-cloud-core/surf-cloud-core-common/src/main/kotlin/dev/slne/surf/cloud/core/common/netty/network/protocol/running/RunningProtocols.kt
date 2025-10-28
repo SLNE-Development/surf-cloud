@@ -72,6 +72,7 @@ object RunningProtocols {
                 .addPacket(WhitelistStatusResponsePacket::class.createCodec())
                 .addPacket(WhitelistResponsePacket::class.createCodec())
                 .addPacket(SendToastPacket.STREAM_CODEC)
+                .addPacket(UpdatePlayerPersistentDataContainerPacket.STREAM_CODEC)
         }
 
     val CLIENTBOUND by lazy { CLIENTBOUND_TEMPLATE.freeze().bind(::SurfByteBuf) }
@@ -150,6 +151,7 @@ object RunningProtocols {
                 .addPacket(ServerboundUpdateWhitelistPacket::class.createCodec())
                 .addPacket(ServerboundRefreshWhitelistPacket.STREAM_CODEC)
                 .addPacket(SendToastPacket.STREAM_CODEC)
+                .addPacket(UpdatePlayerPersistentDataContainerPacket.STREAM_CODEC)
         }
 
     val SERVERBOUND by lazy { SERVERBOUND_TEMPLATE.freeze().bind(::SurfByteBuf) }

@@ -9,6 +9,7 @@ import dev.slne.surf.surfapi.core.api.nbt.FastCompoundBinaryTag
 import dev.slne.surf.surfapi.core.api.nbt.fast
 import net.kyori.adventure.key.Key
 import net.kyori.adventure.nbt.*
+import java.util.*
 
 open class PersistentPlayerDataContainerImpl(
     tag: FastCompoundBinaryTag = CompoundBinaryTag.empty().fast()
@@ -144,11 +145,15 @@ open class PersistentPlayerDataContainerImpl(
     override fun toTagCompound(): CompoundBinaryTag = tag.fast()
 
     override fun readFromBuf(buf: SurfByteBuf) {
-        tag = buf.readCompoundTag().fast(synchronize = true)
+        tag = buf.readCompoundTag().fast()
+    }
+
+    override fun snapshot(): PersistentPlayerDataContainerImpl {
+        return PersistentPlayerDataContainerImpl(tag.fast())
     }
 
     fun fromTagCompound(tag: CompoundBinaryTag) {
-        this.tag = tag.fast(synchronize = true)
+        this.tag = tag.fast()
     }
 
     fun applyOps(root: FastCompoundBinaryTag, patch: PdcPatch) {
@@ -160,43 +165,83 @@ open class PersistentPlayerDataContainerImpl(
         }
     }
 
-    private fun ensureCompoundAtPath(
-        root: FastCompoundBinaryTag,
-        path: List<String>
-    ): FastCompoundBinaryTag {
-        var cur: FastCompoundBinaryTag = root
-        for (p in path) {
-            val next = (cur.get(p) as? CompoundBinaryTag)?.fast()
-            if (next == null) {
-                val created = CompoundBinaryTag.empty().fast()
-                cur.put(p, created.fast())
-                cur = created
-            } else {
-                cur = next
-            }
-        }
-        return cur
-    }
-
     private fun putAtPath(root: FastCompoundBinaryTag, path: List<String>, value: BinaryTag) {
         if (path.isEmpty()) {
+            require(value is CompoundBinaryTag) { "root replace expects CompoundBinaryTag, but was ${value::class.simpleName}" }
             root.clear()
-            root.put((value as CompoundBinaryTag))
-            return
+            root.put(value)
+        } else {
+            val parent = traverseCompoundPath(root, path.dropLast(1), createIfMissing = true)!!
+            val key = path.last()
+
+            if (value is CompoundBinaryTag && value.isEmpty) {
+                parent.remove(key)
+                pruneEmptyAncestors(root, path.dropLast(1))
+            } else {
+                parent.put(key, value)
+            }
         }
-        val parent = ensureCompoundAtPath(root, path.dropLast(1))
-        parent.put(path.last(), value)
     }
 
     private fun removeAtPath(root: FastCompoundBinaryTag, path: List<String>) {
         if (path.isEmpty()) {
             root.clear()
-            return
+        } else {
+            val parent =
+                traverseCompoundPath(root, path.dropLast(1), createIfMissing = false) ?: return
+            parent.remove(path.last())
+            pruneEmptyAncestors(root, path.dropLast(1))
         }
-        val parent = ensureCompoundAtPath(root, path.dropLast(1))
-        parent.remove(path.last())
     }
 
+    private fun traverseCompoundPath(
+        root: FastCompoundBinaryTag,
+        path: List<String>,
+        createIfMissing: Boolean = true
+    ): FastCompoundBinaryTag? {
+        var current = root
+        for (segment in path) {
+            val existing = current.getCompound(segment, null)
+            val child = when {
+                existing != null -> existing as? FastCompoundBinaryTag ?: existing.fast()
+                createIfMissing -> CompoundBinaryTag.empty().fast()
+                else -> return null
+            }
+
+            current.put(segment, child)
+            current = child
+        }
+        return current
+    }
+
+    private fun pruneEmptyAncestors(
+        root: FastCompoundBinaryTag,
+        pathToDeepestParent: List<String>
+    ) {
+        if (pathToDeepestParent.isEmpty()) return
+
+        val stack = Stack<Pair<FastCompoundBinaryTag, String>>()
+        var current: FastCompoundBinaryTag = root
+
+        for (segment in pathToDeepestParent) {
+            val childTag = current.getCompound(segment, null) ?: return
+            val childFast = childTag as? FastCompoundBinaryTag ?: childTag.fast()
+
+            current.put(segment, childFast)
+            stack.push(current to segment)
+            current = childFast
+        }
+
+        while (stack.isNotEmpty()) {
+            val (parent, key) = stack.pop()
+            val child = parent.getCompound(key, null) ?: continue
+            if (child.size() == 0) {
+                parent.remove(key)
+            } else {
+                break
+            }
+        }
+    }
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

@@ -70,4 +70,6 @@ interface PersistentPlayerDataContainerView {
      * @param buf The buffer to write to.
      */
     fun writeToBuf(buf: SurfByteBuf)
+
+    fun snapshot(): PersistentPlayerDataContainerView
 }

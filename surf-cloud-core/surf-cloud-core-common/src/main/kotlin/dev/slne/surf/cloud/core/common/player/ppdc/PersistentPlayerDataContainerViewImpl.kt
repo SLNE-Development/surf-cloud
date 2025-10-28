@@ -63,4 +63,15 @@ abstract class PersistentPlayerDataContainerViewImpl : PersistentPlayerDataConta
         buf.writeCompoundTag(root)
     }
 
+    override fun snapshot(): PersistentPlayerDataContainerViewImpl {
+        val tagCopy = CompoundBinaryTag.builder()
+            .put(toTagCompound())
+            .build()
+
+        return object : PersistentPlayerDataContainerViewImpl() {
+            override fun toTagCompound() = tagCopy
+            override fun getTag(key: String) = tagCopy.get(key)
+        }
+    }
+
 }

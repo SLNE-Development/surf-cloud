@@ -61,10 +61,14 @@ interface CloudPlayer : Audience, OfflineCloudPlayer {
     /**
      * Performs modifications on the player's persistent data container.
      *
-     * @param block A suspending block to modify the persistent data container.
+     * @param block A block to modify the persistent data container.
      * @return The result of the block execution.
      */
-    suspend fun <R> withPersistentData(block: PersistentPlayerDataContainer.() -> R): R
+    fun <R> editPdc(block: PersistentPlayerDataContainer.() -> R): R
+
+    @Deprecated("Use renamed non-suspendable method", ReplaceWith("editPdc(block)"))
+    suspend fun <R> withPersistentData(block: PersistentPlayerDataContainer.() -> R): R =
+        editPdc(block)
 
     /**
      * Connects the player to a specified server.

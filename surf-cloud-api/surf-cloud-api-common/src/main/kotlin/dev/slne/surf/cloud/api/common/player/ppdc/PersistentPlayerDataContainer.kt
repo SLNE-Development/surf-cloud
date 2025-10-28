@@ -65,4 +65,6 @@ interface PersistentPlayerDataContainer: PersistentPlayerDataContainerView {
      * @param buf The buffer to read from.
      */
     fun readFromBuf(buf: SurfByteBuf)
+
+    override fun snapshot(): PersistentPlayerDataContainer
 }

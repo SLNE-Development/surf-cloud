@@ -21,11 +21,10 @@ import dev.slne.surf.cloud.core.common.netty.network.protocol.running.Serverboun
 import dev.slne.surf.cloud.core.common.player.CommonCloudPlayerImpl
 import dev.slne.surf.cloud.core.common.player.playtime.PlaytimeEntry
 import dev.slne.surf.cloud.core.common.player.playtime.PlaytimeImpl
-import dev.slne.surf.cloud.core.common.player.ppdc.PersistentPlayerDataContainerViewImpl
+import dev.slne.surf.cloud.core.common.player.ppdc.network.PdcPatch
 import dev.slne.surf.cloud.core.common.util.bean
 import dev.slne.surf.cloud.standalone.netty.server.NettyServerImpl
 import dev.slne.surf.cloud.standalone.player.db.exposed.CloudPlayerService
-import dev.slne.surf.cloud.standalone.player.pdc.TrackingPlayerPersistentDataContainerImpl
 import dev.slne.surf.cloud.standalone.server.StandaloneCloudServerImpl
 import dev.slne.surf.cloud.standalone.server.StandaloneProxyCloudServerImpl
 import dev.slne.surf.cloud.standalone.server.queue.QueueManagerImpl
@@ -40,7 +39,6 @@ import net.kyori.adventure.audience.MessageType
 import net.kyori.adventure.bossbar.BossBar
 import net.kyori.adventure.identity.Identity
 import net.kyori.adventure.inventory.Book
-import net.kyori.adventure.nbt.BinaryTag
 import net.kyori.adventure.nbt.CompoundBinaryTag
 import net.kyori.adventure.resource.ResourcePackCallback
 import net.kyori.adventure.resource.ResourcePackRequest
@@ -57,6 +55,8 @@ import java.time.temporal.ChronoUnit
 import java.util.*
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
+import kotlin.concurrent.read
+import kotlin.concurrent.write
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
@@ -89,11 +89,6 @@ class StandaloneCloudPlayerImpl(uuid: UUID, name: String, val ip: Inet4Address) 
     @Volatile
     var connectingToServer: StandaloneCloudServerImpl? = null
 
-    private val ppdc = TrackingPlayerPersistentDataContainerImpl()
-    override val persistentData = object : PersistentPlayerDataContainerViewImpl() {
-        override fun toTagCompound() = ppdc.tag
-        override fun getTag(key: String): BinaryTag? = ppdc.getTag(key)
-    }
 
     private val ppdcMutex = Mutex()
     private var firstSeenCache: ZonedDateTime? = null
@@ -103,14 +98,18 @@ class StandaloneCloudPlayerImpl(uuid: UUID, name: String, val ip: Inet4Address) 
     var sessionStartTime: ZonedDateTime = ZonedDateTime.now()
 
     fun savePlayerData(tag: CompoundBinaryTag.Builder) {
-        if (!ppdc.empty) {
-            tag.put("ppdc", ppdc.toTagCompound())
+        ppdcReentrantLock.read {
+            if (!ppdc.empty) {
+                tag.put("ppdc", ppdc.toTagCompound())
+            }
         }
     }
 
     fun readPlayerData(tag: CompoundBinaryTag) {
-        val ppdcTag = tag.get("ppdc") as? CompoundBinaryTag ?: return
-        ppdc.fromTagCompound(ppdcTag)
+        ppdcReentrantLock.write {
+            val ppdcTag = tag.getCompound("ppdc")
+            ppdc.fromTagCompound(ppdcTag)
+        }
     }
 
     override fun isAfk(): Boolean {
@@ -139,24 +138,27 @@ class StandaloneCloudPlayerImpl(uuid: UUID, name: String, val ip: Inet4Address) 
         }
     }
 
-    override suspend fun <R> withPersistentData(block: PersistentPlayerDataContainer.() -> R): R {
-        val (result, patch) = ppdcMutex.withLock {
-            ppdc.startTracking()
-            val result = ppdc.block()
-            val patch = ppdc.getPatchOps()
-            ppdc.clearTracking()
-
-            result to patch
-        }
+    override fun <R> editPdc(block: PersistentPlayerDataContainer.() -> R): R {
+        val (result, patch) = editPdc0(false, block)
 
         if (patch.empty) {
             return result
         }
 
-        val packet = ClientboundUpdatePlayerPersistentDataContainerPacket(uuid, patch)
+        val packet = UpdatePlayerPersistentDataContainerPacket(uuid, patch)
         packet.broadcast()
 
         return result
+    }
+
+    fun applyPpdcPatch(patch: PdcPatch) {
+        if (patch.empty) return
+
+        ppdcReentrantLock.write {
+            ppdc.applyOps(ppdc.tag, patch)
+        }
+
+        UpdatePlayerPersistentDataContainerPacket(uuid, patch).broadcast()
     }
 
     override fun disconnect(reason: Component) {

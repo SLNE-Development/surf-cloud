@@ -126,5 +126,7 @@ interface RunningServerPacketListener : ServerCommonPacketListener, TickablePack
     fun handleCacheFetch(packet: ServerboundCacheFetchPacket)
     fun handleCacheWatchPlayers(packet: ServerboundCacheWatchPlayersPacket)
 
+    fun handleSendToast(packet: SendToastPacket)
+
     fun handlePacket(packet: NettyPacket)
 }

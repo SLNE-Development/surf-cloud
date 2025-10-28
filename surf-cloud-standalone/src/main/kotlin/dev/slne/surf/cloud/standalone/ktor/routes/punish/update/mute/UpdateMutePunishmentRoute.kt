@@ -2,7 +2,7 @@ package dev.slne.surf.cloud.standalone.ktor.routes.punish.update.mute
 
 import dev.slne.surf.cloud.core.common.player.punishment.type.PunishmentMuteImpl
 import dev.slne.surf.cloud.standalone.ktor.types.ZonedDateTimeAsString
-import dev.slne.surf.surfapi.core.api.service.UUIDAsString
+import dev.slne.surf.surfapi.core.api.serializer.java.uuid.SerializableStringUUID
 import io.ktor.resources.*
 import java.time.ZonedDateTime
 
@@ -10,8 +10,8 @@ import java.time.ZonedDateTime
 class UpdateMutePunishmentRoute(
     val id: Long,
     val punishmentId: String,
-    val punishedUuid: UUIDAsString,
-    val issuerUuid: UUIDAsString?,
+    val punishedUuid: SerializableStringUUID,
+    val issuerUuid: SerializableStringUUID?,
     val reason: String?,
     val permanent: Boolean = false,
 
@@ -19,7 +19,7 @@ class UpdateMutePunishmentRoute(
     val punishmentDate: ZonedDateTimeAsString = ZonedDateTime.now(),
     val unpunished: Boolean = false,
     val unpunishedDate: ZonedDateTimeAsString? = null,
-    val unpunisherUuid: UUIDAsString? = null,
+    val unpunisherUuid: SerializableStringUUID? = null,
     val parent: UpdateMutePunishmentRoute? = null
 ) {
     fun toApiObject(): PunishmentMuteImpl = PunishmentMuteImpl(

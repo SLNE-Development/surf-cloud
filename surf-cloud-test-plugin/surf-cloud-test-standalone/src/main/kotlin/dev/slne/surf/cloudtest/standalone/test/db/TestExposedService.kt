@@ -20,10 +20,7 @@ class TestExposedService { // currentDatabase
 
     @Transactional
     fun createTestEntitySync() {
-        val current = TransactionManager.current()
-        println("Current transaction: $current")
-        println("Current database connection: ${current.connection}")
-        println("current database url: ${current.db.url}")
+        TransactionManager.current()
         val transactionInfo =
             TransactionAspectSupport::class.java.getDeclaredMethod("currentTransactionInfo").apply {
                 isAccessible = true
@@ -43,10 +40,7 @@ class TestExposedService { // currentDatabase
     @CoroutineTransactional
     suspend fun createTestEntityAsync() = withContext(Dispatchers.IO) {
         println("Inside withContext(Dispatchers.IO)!")
-        val current = TransactionManager.current()
-        println("Current transaction: $current")
-        println("Current database connection: ${current.connection}")
-        println("current database url: ${current.db.url}")
+        TransactionManager.current()
 
         TestExposedEntity.new {
             name = "Test async"
@@ -57,10 +51,7 @@ class TestExposedService { // currentDatabase
     suspend fun createTestEntityAsyncWithCurrentDbParam() =
         newSuspendedTransaction(db = currentDb) {
             println("Inside newSuspendedTransaction with currentDb!")
-            val current = TransactionManager.current()
-            println("Current transaction: $current")
-            println("Current database connection: ${current.connection}")
-            println("current database url: ${current.db.url}")
+            TransactionManager.current()
 
             TestExposedEntity.new {
                 name = "Test async with currentDb"

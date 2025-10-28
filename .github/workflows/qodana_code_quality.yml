@@ -9,7 +9,7 @@ on:
 jobs:
   qodana:
     runs-on: ubuntu-latest
-    uses: production
+    environment: production
     permissions:
       contents: write
       pull-requests: write

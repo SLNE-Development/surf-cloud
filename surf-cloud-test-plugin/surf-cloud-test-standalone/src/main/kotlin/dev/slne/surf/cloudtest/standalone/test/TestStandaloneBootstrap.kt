@@ -7,10 +7,6 @@ import dev.slne.surf.cloud.api.server.plugin.bootstrap.StandalonePluginBootstrap
 
 class TestStandaloneBootstrap : StandalonePluginBootstrap {
     override suspend fun bootstrap(context: BootstrapContext) {
-        repeat(20) {
-            println("# Bootstrapping $it")
-        }
-
         CloudInstance.startSpringApplication(TestStandaloneSpringApplication::class)
     }
 }

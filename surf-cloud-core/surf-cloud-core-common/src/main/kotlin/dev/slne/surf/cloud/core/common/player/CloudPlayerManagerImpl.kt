@@ -77,7 +77,8 @@ abstract class CloudPlayerManagerImpl<P : CommonCloudPlayerImpl> : CloudPlayerMa
         proxy: Boolean,
         ip: Inet4Address,
         serverName: String,
-        runPreJoinTasks: Boolean
+        runPreJoinTasks: Boolean,
+        extraInit: P.() -> Unit = {}
     ): PrePlayerJoinTask.Result {
         val existing = playerCache.getOrNull(uuid)
         if (existing != null) {
@@ -93,6 +94,7 @@ abstract class CloudPlayerManagerImpl<P : CommonCloudPlayerImpl> : CloudPlayerMa
         return try {
             playerCache.get(uuid) {
                 val newPlayer = createPlayer(uuid, name, proxy, ip, serverName)
+                newPlayer.extraInit()
 
                 if (runPreJoinTasks) {
                     val pre = preJoin(newPlayer)

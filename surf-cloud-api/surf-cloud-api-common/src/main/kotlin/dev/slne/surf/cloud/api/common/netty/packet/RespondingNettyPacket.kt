@@ -10,7 +10,9 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.withTimeoutOrNull
+import java.lang.ref.WeakReference
 import java.util.*
+import kotlin.properties.Delegates
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
@@ -42,8 +44,12 @@ abstract class RespondingNettyPacket<P : ResponseNettyPacket> : NettyPacket() {
      * The connection through which the response will be sent.
      */
     @InternalApi
-    lateinit var responseConnection: Connection
+    private var responseConnection by Delegates.notNull<WeakReference<Connection>>()
 
+    @InternalApi
+    fun initResponseConnection(connection: Connection) {
+        responseConnection = WeakReference(connection)
+    }
 
     /**
      * Fires the packet and awaits its response within the specified timeout.
@@ -109,6 +115,14 @@ abstract class RespondingNettyPacket<P : ResponseNettyPacket> : NettyPacket() {
     fun respond(packet: P) {
         packet.responseTo = uniqueSessionId
             ?: error("Responding packet has no session id. Are you sure it was sent?")
+
+        val responseConnection = responseConnection.get()
+        if (responseConnection == null) {
+            log.atWarning()
+                .log("Cannot respond to packet ${this::class.simpleName} with session ID $uniqueSessionId: original connection has been garbage collected")
+            return
+        }
+
         responseConnection.send(packet)
     }
 

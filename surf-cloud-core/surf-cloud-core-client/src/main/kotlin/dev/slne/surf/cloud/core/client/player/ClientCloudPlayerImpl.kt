@@ -31,6 +31,7 @@ import net.kyori.adventure.audience.MessageType
 import net.kyori.adventure.bossbar.BossBar
 import net.kyori.adventure.identity.Identity
 import net.kyori.adventure.inventory.Book
+import net.kyori.adventure.nbt.CompoundBinaryTag
 import net.kyori.adventure.resource.ResourcePackRequest
 import net.kyori.adventure.sound.Sound
 import net.kyori.adventure.sound.Sound.Emitter
@@ -77,6 +78,12 @@ abstract class ClientCloudPlayerImpl<PlatformPlayer : Audience>(
     fun applyPpdcPatch(patch: PdcPatch) {
         ppdcReentrantLock.write {
             ppdc.applyOps(ppdc.tag, patch)
+        }
+    }
+
+    fun overwritePpdc(tag: CompoundBinaryTag) {
+        ppdcReentrantLock.write {
+            ppdc.fromTagCompound(tag)
         }
     }
 

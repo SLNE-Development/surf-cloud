@@ -32,7 +32,7 @@ class RespondingPacketSendHandler : UnifiedReadOnlyChannelHandler<NettyPacket>()
         }
 
         if (msg is RespondingNettyPacket<*>) {
-            msg.responseConnection = ctx.channel().attr(ConnectionImpl.CHANNEL_ATTRIBUTE_KEY).get()
+            msg.initResponseConnection(ctx.channel().attr(ConnectionImpl.CHANNEL_ATTRIBUTE_KEY).get())
         }
 
         if (msg is ResponseNettyPacket) {

@@ -46,14 +46,16 @@ class ClientRunningPacketListenerImpl(
     private val log = logger()
 
     override suspend fun handlePlayerConnectedToServer(packet: PlayerConnectedToServerPacket) {
-        playerManagerImpl.updateOrCreatePlayer(
+        commonPlayerManagerImpl.updateOrCreatePlayer(
             packet.uuid,
             packet.name,
             packet.proxy,
             packet.playerIp,
             packet.serverName,
             false
-        )
+        ) {
+            overwritePpdc(packet.pdc)
+        }
     }
 
     override suspend fun handlePlayerDisconnectFromServer(packet: PlayerDisconnectFromServerPacket) {

@@ -9,6 +9,8 @@ import io.netty.buffer.ByteBufInputStream
 import io.netty.buffer.ByteBufOutputStream
 import io.netty.handler.codec.DecoderException
 import io.netty.handler.codec.EncoderException
+import it.unimi.dsi.fastutil.io.FastBufferedInputStream
+import it.unimi.dsi.fastutil.io.FastBufferedOutputStream
 import it.unimi.dsi.fastutil.objects.ObjectArrayList
 import net.kyori.adventure.key.Key
 import net.kyori.adventure.nbt.BinaryTag
@@ -19,6 +21,8 @@ import net.kyori.adventure.sound.Sound
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
+import java.io.DataInputStream
+import java.io.DataOutputStream
 import java.math.BigDecimal
 import java.math.BigInteger
 import java.math.MathContext
@@ -29,6 +33,8 @@ import java.time.Instant
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.util.*
+import java.util.zip.GZIPInputStream
+import java.util.zip.GZIPOutputStream
 import kotlin.math.min
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
@@ -172,13 +178,13 @@ object ByteBufCodecs {
     val BINARY_TAG_CODEC: StreamCodec<ByteBuf, BinaryTag> = streamCodec({ buf, tag ->
         val type = tag.type() as BinaryTagType<BinaryTag>
         buf.writeByte(type.id().toInt())
-        ByteBufOutputStream(buf).use {
+        DataOutputStream(FastBufferedOutputStream(ByteBufOutputStream(buf))).use {
             type.write(tag, it)
         }
     }, { bytes ->
         val typeId = bytes.readByte().toInt()
         val type = getTagType(typeId)
-        ByteBufInputStream(bytes).use {
+        DataInputStream(FastBufferedInputStream(ByteBufInputStream(bytes))).use {
             type.read(it)
         }
     })
@@ -186,13 +192,14 @@ object ByteBufCodecs {
     val BINARY_TAG_CODEC_COMPRESSED: StreamCodec<ByteBuf, BinaryTag> = streamCodec({ buf, tag ->
         val type = tag.type() as BinaryTagType<BinaryTag>
         buf.writeByte(type.id().toInt())
-        ByteBufOutputStream(buf).use {
+        DataOutputStream(FastBufferedOutputStream(GZIPOutputStream(ByteBufOutputStream(buf)))).use {
             type.write(tag, it)
         }
     }, { bytes ->
         val typeId = bytes.readByte().toInt()
         val type = getTagType(typeId)
-        ByteBufInputStream(bytes).use {
+
+        DataInputStream(FastBufferedInputStream(GZIPInputStream(ByteBufInputStream(bytes)))).use {
             type.read(it)
         }
     })

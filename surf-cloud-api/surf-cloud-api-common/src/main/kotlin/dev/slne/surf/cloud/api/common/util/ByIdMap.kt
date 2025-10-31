@@ -1,5 +1,7 @@
 package dev.slne.surf.cloud.api.common.util
 
+import dev.slne.surf.cloud.api.common.util.ByIdMap.OutOfBoundsStrategy.*
+import io.netty.handler.codec.DecoderException
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap
 import org.spongepowered.math.GenericMath
 
@@ -58,36 +60,47 @@ object ByIdMap {
         keyExtractor: (T) -> Int,
         values: Array<T>,
         outOfBoundsStrategy: OutOfBoundsStrategy
-    ): (Int) -> T {
+    ): (id: Int) -> T {
         val objects = createSortedArray(keyExtractor, values)
         val size = objects.size
 
         return when (outOfBoundsStrategy) {
-            OutOfBoundsStrategy.ZERO -> {
+            ZERO -> {
                 val first = objects[0]
                 { key -> if (key >= 0 && key < size) objects[key] else first }
             }
 
-            OutOfBoundsStrategy.WRAP -> { key ->
+            WRAP -> { key ->
                 objects[Math.floorMod(
                     key,
                     size
                 )]
             }
 
-            OutOfBoundsStrategy.CLAMP -> { key ->
+            CLAMP -> { key ->
                 objects[GenericMath.clamp(
                     key,
                     0,
                     size - 1
                 )]
             }
+
+            DECODE_ERROR -> { key ->
+                if (key >= 0 && key < size) objects[key] else throw DecoderException("Invalid key index: $key")
+            }
+
+            is ERROR -> { key ->
+                if (key in 0..<size) objects[key] else throw outOfBoundsStrategy.errorFactory(key)
+            }
         }
     }
 
-    enum class OutOfBoundsStrategy {
-        ZERO,
-        WRAP,
-        CLAMP
+    @Suppress("ClassName")
+    sealed class OutOfBoundsStrategy {
+        data object ZERO : OutOfBoundsStrategy()
+        data object WRAP : OutOfBoundsStrategy()
+        data object CLAMP : OutOfBoundsStrategy()
+        data object DECODE_ERROR : OutOfBoundsStrategy()
+        data class ERROR(val errorFactory: (Int) -> Throwable) : OutOfBoundsStrategy()
     }
 }

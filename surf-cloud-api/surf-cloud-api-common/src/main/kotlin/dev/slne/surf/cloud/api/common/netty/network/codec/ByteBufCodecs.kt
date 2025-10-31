@@ -1,8 +1,10 @@
 package dev.slne.surf.cloud.api.common.netty.network.codec
 
+import dev.slne.surf.cloud.api.common.internal.BinaryTagTypeProxy
 import dev.slne.surf.cloud.api.common.netty.protocol.buffer.*
 import dev.slne.surf.cloud.api.common.netty.protocol.buffer.types.Utf8String
 import dev.slne.surf.cloud.api.common.util.ByIdMap
+import dev.slne.surf.cloud.api.common.util.ByIdMap.OutOfBoundsStrategy
 import dev.slne.surf.cloud.api.common.util.createUnresolvedInetSocketAddress
 import io.netty.buffer.ByteBuf
 import io.netty.buffer.ByteBufInputStream
@@ -16,7 +18,6 @@ import net.kyori.adventure.key.Key
 import net.kyori.adventure.nbt.BinaryTag
 import net.kyori.adventure.nbt.BinaryTagIO
 import net.kyori.adventure.nbt.BinaryTagType
-import net.kyori.adventure.nbt.BinaryTagTypes
 import net.kyori.adventure.sound.Sound
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer
 import java.io.ByteArrayInputStream
@@ -76,7 +77,7 @@ object ByteBufCodecs {
     private val SOUND_SOURCE_BY_ID = ByIdMap.continuous(
         { it.ordinal },
         Sound.Source.entries.toTypedArray(),
-        ByIdMap.OutOfBoundsStrategy.ZERO
+        OutOfBoundsStrategy.ZERO
     )
     val SOUND_CODEC = streamCodecComposite(
         KEY_CODEC,
@@ -155,25 +156,12 @@ object ByteBufCodecs {
         BigDecimal(unscaledValue, scale, MathContext(precision))
     }
 
-    private val TAG_TYPES = arrayOf(
-        BinaryTagTypes.END,
-        BinaryTagTypes.BYTE,
-        BinaryTagTypes.SHORT,
-        BinaryTagTypes.INT,
-        BinaryTagTypes.LONG,
-        BinaryTagTypes.FLOAT,
-        BinaryTagTypes.DOUBLE,
-        BinaryTagTypes.BYTE_ARRAY,
-        BinaryTagTypes.STRING,
-        BinaryTagTypes.LIST,
-        BinaryTagTypes.COMPOUND,
-        BinaryTagTypes.INT_ARRAY,
-        BinaryTagTypes.LONG_ARRAY,
-    )
 
-    fun getTagType(id: Int): BinaryTagType<*> {
-        return if (id >= 0 && id < TAG_TYPES.size) TAG_TYPES[id] else error("Unknown tag type id: $id")
-    }
+    private val BINARY_TAG_BY_ID = ByIdMap.continuous(
+        { it.id().toInt() },
+        BinaryTagTypeProxy.instance.getTypes().toTypedArray(),
+        OutOfBoundsStrategy.DECODE_ERROR
+    )
 
     val BINARY_TAG_CODEC: StreamCodec<ByteBuf, BinaryTag> = streamCodec({ buf, tag ->
         val type = tag.type() as BinaryTagType<BinaryTag>
@@ -181,10 +169,9 @@ object ByteBufCodecs {
         DataOutputStream(FastBufferedOutputStream(ByteBufOutputStream(buf))).use {
             type.write(tag, it)
         }
-    }, { bytes ->
-        val typeId = bytes.readByte().toInt()
-        val type = getTagType(typeId)
-        DataInputStream(FastBufferedInputStream(ByteBufInputStream(bytes))).use {
+    }, { buf ->
+        val type = BINARY_TAG_BY_ID(buf.readByte().toInt())
+        DataInputStream(FastBufferedInputStream(ByteBufInputStream(buf))).use {
             type.read(it)
         }
     })
@@ -195,11 +182,9 @@ object ByteBufCodecs {
         DataOutputStream(FastBufferedOutputStream(GZIPOutputStream(ByteBufOutputStream(buf)))).use {
             type.write(tag, it)
         }
-    }, { bytes ->
-        val typeId = bytes.readByte().toInt()
-        val type = getTagType(typeId)
-
-        DataInputStream(FastBufferedInputStream(GZIPInputStream(ByteBufInputStream(bytes)))).use {
+    }, { buf ->
+        val type = BINARY_TAG_BY_ID(buf.readByte().toInt())
+        DataInputStream(FastBufferedInputStream(GZIPInputStream(ByteBufInputStream(buf)))).use {
             type.read(it)
         }
     })
@@ -275,4 +260,12 @@ object ByteBufCodecs {
     fun <B : ByteBuf, V> list(maxSize: Int): CodecOperation<B, V, MutableList<V>> {
         return CodecOperation { size -> collection(::ObjectArrayList, size, maxSize) }
     }
+
+    @Suppress("NOTHING_TO_INLINE")
+    private inline fun decodeError(message: Any): Nothing =
+        throw DecoderException(message.toString())
+
+    @Suppress("NOTHING_TO_INLINE")
+    private inline fun encodeError(message: Any): Nothing =
+        throw EncoderException(message.toString())
 }

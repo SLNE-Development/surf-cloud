@@ -22,6 +22,7 @@ abstract class CommonCloudPlayerImpl(uuid: UUID, override val name: String) :
     protected val persistentDataView = object : PersistentPlayerDataContainerViewImpl() {
         override fun toTagCompound() = ppdcReentrantLock.read { ppdc.tag }
         override fun getTag(key: String) = ppdcReentrantLock.read { ppdc.getTag(key) }
+        override fun snapshotTag() = ppdcReentrantLock.read { super.snapshotTag() }
     }
 
     override val persistentData get() = persistentDataView

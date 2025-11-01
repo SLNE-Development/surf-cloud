@@ -17,6 +17,16 @@ abstract class PersistentPlayerDataContainerViewImpl : PersistentPlayerDataConta
     abstract fun toTagCompound(): CompoundBinaryTag
     abstract fun getTag(key: String): BinaryTag?
 
+    companion object {
+        /**
+         * Maximum nesting depth for compound tags during deep copy operations.
+         * This limit prevents memory exhaustion from extremely large nested structures.
+         * Set to a reasonable limit that should handle most legitimate use cases while
+         * protecting against pathological inputs.
+         */
+        private const val MAX_NESTING_DEPTH = 512
+    }
+
     override fun <P : Any, C> has(
         key: Key,
         type: PersistentPlayerDataType<P, C>
@@ -134,8 +144,14 @@ abstract class PersistentPlayerDataContainerViewImpl : PersistentPlayerDataConta
      * to build a complete copy. It avoids stack overflow issues that can occur with deeply nested structures
      * when using a recursive approach.
      *
+     * Uses `ArrayDeque` instead of `Stack` for better performance characteristics:
+     * - `ArrayDeque` is not synchronized, making it faster for single-threaded use
+     * - `Stack` extends `Vector`, which has legacy synchronization overhead
+     * - `ArrayDeque` is the recommended implementation for stack operations in modern Java/Kotlin
+     *
      * @param root The root `CompoundBinaryTag` to be deep copied.
      * @return A deep copy of the specified `CompoundBinaryTag`.
+     * @throws IllegalStateException if the structure is too deeply nested (exceeds [MAX_NESTING_DEPTH])
      */
     private fun deepCopy(root: CompoundBinaryTag): CompoundBinaryTag {
         data class Frame(
@@ -152,6 +168,7 @@ abstract class PersistentPlayerDataContainerViewImpl : PersistentPlayerDataConta
             return list
         }
 
+        // Use ArrayDeque for optimal performance in stack-like operations
         val stack = ArrayDeque<Frame>()
         stack.addLast(
             Frame(
@@ -172,6 +189,14 @@ abstract class PersistentPlayerDataContainerViewImpl : PersistentPlayerDataConta
                 val (key, value) = top.entries[top.idx++]
 
                 if (value is CompoundBinaryTag) {
+                    // Check nesting depth to prevent memory exhaustion
+                    if (stack.size >= MAX_NESTING_DEPTH) {
+                        throw IllegalStateException(
+                            "CompoundBinaryTag nesting depth exceeds maximum limit of $MAX_NESTING_DEPTH. " +
+                            "This likely indicates a corrupted or maliciously crafted data structure."
+                        )
+                    }
+                    
                     stack.addLast(top)
                     stack.addLast(
                         Frame(

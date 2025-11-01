@@ -5,7 +5,6 @@ import dev.slne.surf.cloud.api.common.player.ppdc.PersistentPlayerDataAdapterCon
 import dev.slne.surf.cloud.api.common.player.ppdc.PersistentPlayerDataContainerView
 import dev.slne.surf.cloud.api.common.player.ppdc.PersistentPlayerDataType
 import dev.slne.surf.cloud.api.common.util.toObjectSet
-import it.unimi.dsi.fastutil.objects.ObjectArrayList
 import it.unimi.dsi.fastutil.objects.ObjectSet
 import net.kyori.adventure.key.Key
 import net.kyori.adventure.nbt.*
@@ -148,30 +147,25 @@ abstract class PersistentPlayerDataContainerViewImpl : PersistentPlayerDataConta
      * - `Stack` extends `Vector`, which has legacy synchronization overhead
      * - `ArrayDeque` is the recommended implementation for stack operations in modern Java/Kotlin
      *
+     * The implementation uses an iterator-based approach to avoid materializing all entries into a list
+     * for each nested compound tag, which significantly reduces memory allocations for deeply nested structures.
+     *
      * @param root The root `CompoundBinaryTag` to be deep copied.
      * @return A deep copy of the specified `CompoundBinaryTag`.
      * @throws IllegalStateException if the structure is too deeply nested (exceeds [MAX_NESTING_DEPTH])
      */
     private fun deepCopy(root: CompoundBinaryTag): CompoundBinaryTag {
         data class Frame(
-            val entries: List<Pair<String, BinaryTag>>,
-            var idx: Int,
+            val iterator: Iterator<Map.Entry<String, out BinaryTag>>,
             val builder: CompoundBinaryTag.Builder,
             val parent: Frame?,
             val parentKey: String?
         )
 
-        fun entriesOf(tag: CompoundBinaryTag): List<Pair<String, BinaryTag>> {
-            val list = ObjectArrayList<Pair<String, BinaryTag>>(tag.size())
-            tag.forEach { (k, v) -> list.add(k to v) }
-            return list
-        }
-
         val stack = ArrayDeque<Frame>()
         stack.addLast(
             Frame(
-                entries = entriesOf(root),
-                idx = 0,
+                iterator = root.iterator(),
                 builder = CompoundBinaryTag.builder(),
                 parent = null,
                 parentKey = null
@@ -183,8 +177,10 @@ abstract class PersistentPlayerDataContainerViewImpl : PersistentPlayerDataConta
         while (stack.isNotEmpty()) {
             val top = stack.removeLast()
 
-            while (top.idx < top.entries.size) {
-                val (key, value) = top.entries[top.idx++]
+            while (top.iterator.hasNext()) {
+                val entry = top.iterator.next()
+                val key = entry.key
+                val value = entry.value
 
                 if (value is CompoundBinaryTag) {
                     PersistentPlayerDataContainerView.ensureValidNestingDepth(stack.size)
@@ -192,8 +188,7 @@ abstract class PersistentPlayerDataContainerViewImpl : PersistentPlayerDataConta
                     stack.addLast(top)
                     stack.addLast(
                         Frame(
-                            entries = entriesOf(value),
-                            idx = 0,
+                            iterator = value.iterator(),
                             builder = CompoundBinaryTag.builder(),
                             parent = top,
                             parentKey = key
@@ -206,8 +201,7 @@ abstract class PersistentPlayerDataContainerViewImpl : PersistentPlayerDataConta
                 }
             }
 
-
-            if (top.idx >= top.entries.size) {
+            if (!top.iterator.hasNext()) {
                 val built = top.builder.build()
                 if (top.parent == null) {
                     result = built

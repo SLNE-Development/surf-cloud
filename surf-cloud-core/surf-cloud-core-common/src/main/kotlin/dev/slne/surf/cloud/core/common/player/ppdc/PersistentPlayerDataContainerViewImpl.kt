@@ -5,10 +5,12 @@ import dev.slne.surf.cloud.api.common.player.ppdc.PersistentPlayerDataAdapterCon
 import dev.slne.surf.cloud.api.common.player.ppdc.PersistentPlayerDataContainerView
 import dev.slne.surf.cloud.api.common.player.ppdc.PersistentPlayerDataType
 import dev.slne.surf.cloud.api.common.util.toObjectSet
+import it.unimi.dsi.fastutil.objects.ObjectArrayList
 import it.unimi.dsi.fastutil.objects.ObjectSet
 import net.kyori.adventure.key.Key
 import net.kyori.adventure.nbt.*
 import org.jetbrains.annotations.Unmodifiable
+import java.util.*
 
 abstract class PersistentPlayerDataContainerViewImpl : PersistentPlayerDataContainerView {
 
@@ -112,8 +114,11 @@ abstract class PersistentPlayerDataContainerViewImpl : PersistentPlayerDataConta
     }
 
     override fun snapshot(): PersistentPlayerDataContainerViewImpl {
+        val tag = deepCopy(toTagCompound())
+
+
         val tagCopy = CompoundBinaryTag.builder() // TODO: deep copy
-            .put(toTagCompound())
+            .put(tag)
             .build()
 
         return object : PersistentPlayerDataContainerViewImpl() {
@@ -122,4 +127,81 @@ abstract class PersistentPlayerDataContainerViewImpl : PersistentPlayerDataConta
         }
     }
 
+
+    /**
+     * Creates a deep copy of the provided `CompoundBinaryTag` without using recursion.
+     *
+     * This function iterates through the tree structure of the `CompoundBinaryTag` in a non-recursive manner
+     * to build a complete copy. It avoids stack overflow issues that can occur with deeply nested structures
+     * when using a recursive approach.
+     *
+     * @param root The root `CompoundBinaryTag` to be deep copied.
+     * @return A deep copy of the specified `CompoundBinaryTag`.
+     */
+    private fun deepCopy(root: CompoundBinaryTag): CompoundBinaryTag {
+        data class Frame(
+            val entries: List<Pair<String, BinaryTag>>,
+            var idx: Int,
+            val builder: CompoundBinaryTag.Builder,
+            val parent: Frame?,
+            val parentKey: String?
+        )
+
+        fun entriesOf(tag: CompoundBinaryTag): List<Pair<String, BinaryTag>> {
+            val list = ObjectArrayList<Pair<String, BinaryTag>>(tag.size())
+            tag.forEach { (k, v) -> list.add(k to v) }
+            return list
+        }
+
+        val stack = ArrayDeque<Frame>()
+        stack.addLast(
+            Frame(
+                entries = entriesOf(root),
+                idx = 0,
+                builder = CompoundBinaryTag.builder(),
+                parent = null,
+                parentKey = null
+            )
+        )
+
+        var result: CompoundBinaryTag? = null
+
+        while (stack.isNotEmpty()) {
+            val top = stack.removeLast()
+
+            while (top.idx < top.entries.size) {
+                val (key, value) = top.entries[top.idx++]
+
+                if (value is CompoundBinaryTag) {
+                    stack.addLast(top)
+                    stack.addLast(
+                        Frame(
+                            entries = entriesOf(value),
+                            idx = 0,
+                            builder = CompoundBinaryTag.builder(),
+                            parent = top,
+                            parentKey = key
+                        )
+                    )
+
+                    break
+                } else {
+                    top.builder.put(key, value)
+                }
+            }
+
+
+            if (top.idx >= top.entries.size) {
+                val built = top.builder.build()
+                if (top.parent == null) {
+                    result = built
+                } else {
+                    val parent = top.parent
+                    parent.builder.put(requireNotNull(top.parentKey), built)
+                }
+            }
+        }
+
+        return requireNotNull(result)
+    }
 }

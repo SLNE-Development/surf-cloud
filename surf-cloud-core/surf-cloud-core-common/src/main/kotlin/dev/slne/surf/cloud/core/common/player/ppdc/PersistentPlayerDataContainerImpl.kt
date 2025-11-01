@@ -215,7 +215,7 @@ open class PersistentPlayerDataContainerImpl(
     ) {
         if (pathToDeepestParent.isEmpty()) return
 
-        val stack = Stack<Pair<FastCompoundBinaryTag, String>>()
+        val stack = ArrayDeque<Pair<FastCompoundBinaryTag, String>>()
         var current: FastCompoundBinaryTag = root
 
         for (segment in pathToDeepestParent) {
@@ -223,12 +223,12 @@ open class PersistentPlayerDataContainerImpl(
             val childFast = childTag as? FastCompoundBinaryTag ?: childTag.fast()
 
             current.put(segment, childFast)
-            stack.push(current to segment)
+            stack.addLast(current to segment)
             current = childFast
         }
 
         while (stack.isNotEmpty()) {
-            val (parent, key) = stack.pop()
+            val (parent, key) = stack.removeLast()
             val child = parent.getCompound(key, null) ?: continue
             if (child.size() == 0) {
                 parent.remove(key)

@@ -8,13 +8,13 @@ import dev.slne.surf.cloud.core.common.player.ppdc.network.PdcPatch
 import dev.slne.surf.surfapi.core.api.nbt.FastCompoundBinaryTag
 import dev.slne.surf.surfapi.core.api.nbt.fast
 import net.kyori.adventure.key.Key
-import net.kyori.adventure.nbt.*
+import net.kyori.adventure.nbt.BinaryTag
+import net.kyori.adventure.nbt.CompoundBinaryTag
 import java.util.*
 
 open class PersistentPlayerDataContainerImpl(
     tag: FastCompoundBinaryTag = CompoundBinaryTag.empty().fast()
 ) : PersistentPlayerDataContainerViewImpl(), PersistentPlayerDataContainer {
-    @Volatile
     var tag: FastCompoundBinaryTag = tag
         private set
 
@@ -42,97 +42,92 @@ open class PersistentPlayerDataContainerImpl(
         tag.put(key, value)
     }
 
-    override fun setBoolean(key: Key, value: Boolean) {
-        tag.putBoolean(key.asString(), value)
+    override fun setBoolean(key: Key, value: Boolean?) {
+        if (value == null) {
+            tag.remove(key.asString())
+        } else {
+            tag.putBoolean(key.asString(), value)
+        }
     }
 
-    override fun setByte(key: Key, value: Byte) {
-        tag.putByte(key.asString(), value)
+    override fun setByte(key: Key, value: Byte?) {
+        if (value == null) {
+            tag.remove(key.asString())
+        } else {
+            tag.putByte(key.asString(), value)
+        }
     }
 
-    override fun setShort(key: Key, value: Short) {
-        tag.putShort(key.asString(), value)
+    override fun setShort(key: Key, value: Short?) {
+        if (value == null) {
+            tag.remove(key.asString())
+        } else {
+            tag.putShort(key.asString(), value)
+        }
     }
 
-    override fun setInt(key: Key, value: Int) {
-        tag.putInt(key.asString(), value)
+    override fun setInt(key: Key, value: Int?) {
+        if (value == null) {
+            tag.remove(key.asString())
+        } else {
+            tag.putInt(key.asString(), value)
+        }
     }
 
-    override fun setLong(key: Key, value: Long) {
-        tag.putLong(key.asString(), value)
+    override fun setLong(key: Key, value: Long?) {
+        if (value == null) {
+            tag.remove(key.asString())
+        } else {
+            tag.putLong(key.asString(), value)
+        }
     }
 
-    override fun setFloat(key: Key, value: Float) {
-        tag.putFloat(key.asString(), value)
+    override fun setFloat(key: Key, value: Float?) {
+        if (value == null) {
+            tag.remove(key.asString())
+        } else {
+            tag.putFloat(key.asString(), value)
+        }
     }
 
-    override fun setDouble(key: Key, value: Double) {
-        tag.putDouble(key.asString(), value)
+    override fun setDouble(key: Key, value: Double?) {
+        if (value == null) {
+            tag.remove(key.asString())
+        } else {
+            tag.putDouble(key.asString(), value)
+        }
     }
 
-    override fun setString(key: Key, value: String) {
-        tag.putString(key.asString(), value)
+    override fun setString(key: Key, value: String?) {
+        if (value == null) {
+            tag.remove(key.asString())
+        } else {
+            tag.putString(key.asString(), value)
+        }
     }
 
-    override fun setByteArray(key: Key, value: ByteArray) {
-        tag.putByteArray(key.asString(), value)
+    override fun setByteArray(key: Key, value: ByteArray?) {
+        if (value == null) {
+            tag.remove(key.asString())
+        } else {
+            tag.putByteArray(key.asString(), value)
+        }
     }
 
-    override fun setIntArray(key: Key, value: IntArray) {
-        tag.putIntArray(key.asString(), value)
+    override fun setIntArray(key: Key, value: IntArray?) {
+        if (value == null) {
+            tag.remove(key.asString())
+        } else {
+            tag.putIntArray(key.asString(), value)
+        }
     }
 
-    override fun setLongArray(key: Key, value: LongArray) {
-        tag.putLongArray(key.asString(), value)
-    }
-
-    override fun getBoolean(key: Key): Boolean? {
-        val tag = getTag<ByteBinaryTag>(key) ?: return null
-        return tag.value() != 0.toByte()
-    }
-
-    override fun getNumber(key: Key): Number? {
-        return getTag<NumberBinaryTag>(key)?.numberValue()
-    }
-
-    override fun getByte(key: Key): Byte? {
-        return getTag<ByteBinaryTag>(key)?.value()
-    }
-
-    override fun getShort(key: Key): Short? {
-        return getTag<ShortBinaryTag>(key)?.value()
-    }
-
-    override fun getInt(key: Key): Int? {
-        return getTag<IntBinaryTag>(key)?.value()
-    }
-
-    override fun getLong(key: Key): Long? {
-        return getTag<LongBinaryTag>(key)?.value()
-    }
-
-    override fun getFloat(key: Key): Float? {
-        return getTag<FloatBinaryTag>(key)?.value()
-    }
-
-    override fun getDouble(key: Key): Double? {
-        return getTag<DoubleBinaryTag>(key)?.value()
-    }
-
-    override fun getString(key: Key): String? {
-        return getTag<StringBinaryTag>(key)?.value()
-    }
-
-    override fun getByteArray(key: Key): ByteArray? {
-        return getTag<ByteArrayBinaryTag>(key)?.value()
-    }
-
-    override fun getIntArray(key: Key): IntArray? {
-        return getTag<IntArrayBinaryTag>(key)?.value()
-    }
-
-    override fun getLongArray(key: Key): LongArray? {
-        return getTag<LongArrayBinaryTag>(key)?.value()
+    override fun setLongArray(key: Key, value: LongArray?) {
+        if (value == null) {
+            tag.remove(key.asString())
+        } else {
+            tag.putLongArray(key.asString(), value)
+        }
     }
 
     override fun remove(key: Key) {

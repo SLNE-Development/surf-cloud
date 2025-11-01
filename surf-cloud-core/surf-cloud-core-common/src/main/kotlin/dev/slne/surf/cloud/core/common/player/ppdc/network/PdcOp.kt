@@ -64,10 +64,10 @@ sealed interface PdcOp {
             val BY_ID = ByIdMap.continuous(
                 Type::id,
                 entries.toTypedArray(),
-                ByIdMap.OutOfBoundsStrategy.CLAMP
+                ByIdMap.OutOfBoundsStrategy.DECODE_ERROR
             )
 
-            val STREAM_CODEC = ByteBufCodecs.idMapper(BY_ID::invoke, Type::id)
+            val STREAM_CODEC = ByteBufCodecs.idMapper(BY_ID, Type::id)
         }
     }
 }

@@ -82,6 +82,17 @@ object MessageManager { // TODO: Add more messages
         )
     }
 
+    val networkShutdown = buildText {
+        CommonComponents.renderDisconnectMessage(
+            this,
+            "DAS NETZWERK WURDE ABGESCHALTET",
+            {
+                error("Das Netzwerk wurde abgeschaltet.")
+            },
+            false
+        )
+    }
+
     fun formatZonedDateTime(time: ZonedDateTime?) = buildText {
         if (time == null) {
             variableValue("N/A")

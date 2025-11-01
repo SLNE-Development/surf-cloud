@@ -43,6 +43,21 @@ interface PersistentPlayerDataContainerView {
      */
     fun <P : Any, C> get(key: Key, type: PersistentPlayerDataType<P, C>): C?
 
+    // region Primitive-specific get methods.
+    fun getBoolean(key: Key): Boolean?
+    fun getNumber(key: Key): Number?
+    fun getByte(key: Key): Byte?
+    fun getShort(key: Key): Short?
+    fun getInt(key: Key): Int?
+    fun getLong(key: Key): Long?
+    fun getFloat(key: Key): Float?
+    fun getDouble(key: Key): Double?
+    fun getString(key: Key): String?
+    fun getByteArray(key: Key): ByteArray?
+    fun getIntArray(key: Key): IntArray?
+    fun getLongArray(key: Key): LongArray?
+    // endregion
+
     /**
      * Retrieves all keys present in this container.
      *

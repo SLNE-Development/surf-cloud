@@ -7,8 +7,7 @@ import dev.slne.surf.cloud.api.common.player.ppdc.PersistentPlayerDataType
 import dev.slne.surf.cloud.api.common.util.toObjectSet
 import it.unimi.dsi.fastutil.objects.ObjectSet
 import net.kyori.adventure.key.Key
-import net.kyori.adventure.nbt.BinaryTag
-import net.kyori.adventure.nbt.CompoundBinaryTag
+import net.kyori.adventure.nbt.*
 import org.jetbrains.annotations.Unmodifiable
 
 abstract class PersistentPlayerDataContainerViewImpl : PersistentPlayerDataContainerView {
@@ -34,14 +33,63 @@ abstract class PersistentPlayerDataContainerViewImpl : PersistentPlayerDataConta
     ): C? {
         val value = getTag(key.asString()) ?: return null
 
-        if (!type.primitiveType.isInstance(value)) {
-            error("Value under key ${key.asString()} is not of type ${type.primitiveType.simpleName}")
-        }
-
         return type.fromPrimitive(
             PersistentPlayerDataTypeRegistry.extract<P, BinaryTag>(type, value),
             PersistentPlayerDataAdapterContextImpl
         )
+    }
+
+    private inline fun <reified T : BinaryTag> getTag(key: Key): T? {
+        return getTag(key.asString()) as? T
+    }
+
+    override fun getBoolean(key: Key): Boolean? {
+        val tag = getTag<ByteBinaryTag>(key) ?: return null
+        return tag.value() != 0.toByte()
+    }
+
+    override fun getNumber(key: Key): Number? {
+        return getTag<NumberBinaryTag>(key)?.numberValue()
+    }
+
+    override fun getByte(key: Key): Byte? {
+        return getTag<ByteBinaryTag>(key)?.value()
+    }
+
+    override fun getShort(key: Key): Short? {
+        return getTag<ShortBinaryTag>(key)?.value()
+    }
+
+    override fun getInt(key: Key): Int? {
+        return getTag<IntBinaryTag>(key)?.value()
+    }
+
+    override fun getLong(key: Key): Long? {
+        return getTag<LongBinaryTag>(key)?.value()
+    }
+
+    override fun getFloat(key: Key): Float? {
+        return getTag<FloatBinaryTag>(key)?.value()
+    }
+
+    override fun getDouble(key: Key): Double? {
+        return getTag<DoubleBinaryTag>(key)?.value()
+    }
+
+    override fun getString(key: Key): String? {
+        return getTag<StringBinaryTag>(key)?.value()
+    }
+
+    override fun getByteArray(key: Key): ByteArray? {
+        return getTag<ByteArrayBinaryTag>(key)?.value()
+    }
+
+    override fun getIntArray(key: Key): IntArray? {
+        return getTag<IntArrayBinaryTag>(key)?.value()
+    }
+
+    override fun getLongArray(key: Key): LongArray? {
+        return getTag<LongArrayBinaryTag>(key)?.value()
     }
 
     override val keys: @Unmodifiable ObjectSet<Key>
@@ -64,7 +112,7 @@ abstract class PersistentPlayerDataContainerViewImpl : PersistentPlayerDataConta
     }
 
     override fun snapshot(): PersistentPlayerDataContainerViewImpl {
-        val tagCopy = CompoundBinaryTag.builder()
+        val tagCopy = CompoundBinaryTag.builder() // TODO: deep copy
             .put(toTagCompound())
             .build()
 

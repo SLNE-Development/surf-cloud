@@ -66,7 +66,7 @@ abstract class CommonClientCloudPlayerManagerImpl<Platform : Audience, P : Clien
                 .fireAndAwaitOrThrow()
                 .nbt
 
-            player.ppdcData = ppdcData.fast()
+            player.overwritePpdc(ppdcData.fast())
         } catch (e: Exception) {
             log.atWarning()
                 .withCause(e)

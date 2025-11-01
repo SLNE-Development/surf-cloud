@@ -79,7 +79,7 @@ abstract class CloudPlayerManagerImpl<P : CommonCloudPlayerImpl> : CloudPlayerMa
         serverName: String,
         runPreJoinTasks: Boolean,
         extraInit: P.() -> Unit = {}
-    ): PrePlayerJoinTask.Result {
+    ): PlayerUpdateOrCreateResult {
         val existing = playerCache.getOrNull(uuid)
         if (existing != null) {
             if (proxy) {
@@ -88,11 +88,16 @@ abstract class CloudPlayerManagerImpl<P : CommonCloudPlayerImpl> : CloudPlayerMa
                 updateServer(existing, serverName)
             }
             onServerConnect(uuid, existing, serverName)
-            return PrePlayerJoinTask.Result.ALLOWED
+            return PlayerUpdateOrCreateResult(
+                player = existing,
+                preJoinResult = PrePlayerJoinTask.Result.ALLOWED,
+                created = false,
+                preJoinAllowed = true
+            )
         }
 
         return try {
-            playerCache.get(uuid) {
+            val player = playerCache.get(uuid) {
                 val newPlayer = createPlayer(uuid, name, proxy, ip, serverName)
                 newPlayer.extraInit()
 
@@ -104,9 +109,19 @@ abstract class CloudPlayerManagerImpl<P : CommonCloudPlayerImpl> : CloudPlayerMa
                 onServerConnect(uuid, newPlayer, serverName)
                 newPlayer
             }
-            PrePlayerJoinTask.Result.ALLOWED
+            PlayerUpdateOrCreateResult(
+                player = player,
+                preJoinResult = PrePlayerJoinTask.Result.ALLOWED,
+                created = true,
+                preJoinAllowed = true
+            )
         } catch (e: PreJoinDenied) {
-            e.result
+            PlayerUpdateOrCreateResult(
+                player = null,
+                preJoinResult = e.result,
+                created = true,
+                preJoinAllowed = false
+            )
         }
 
 
@@ -194,6 +209,13 @@ abstract class CloudPlayerManagerImpl<P : CommonCloudPlayerImpl> : CloudPlayerMa
 //        return PrePlayerJoinTask.Result.ALLOWED
     }
 
+    inner class PlayerUpdateOrCreateResult(
+        val player: P?,
+        val preJoinResult: PrePlayerJoinTask.Result,
+        val created: Boolean,
+        val preJoinAllowed: Boolean = preJoinResult is PrePlayerJoinTask.Result.ALLOWED
+    )
+
 //    private suspend fun getOrCreatePlayerAtomically(
 //        uuid: UUID,
 //        name: String,
@@ -278,7 +300,12 @@ abstract class CloudPlayerManagerImpl<P : CommonCloudPlayerImpl> : CloudPlayerMa
     }
 
     @MustBeInvokedByOverriders
-    open suspend fun onNetworkDisconnect(uuid: UUID, player: P, oldProxy: String?, oldServer: String?) {
+    open suspend fun onNetworkDisconnect(
+        uuid: UUID,
+        player: P,
+        oldProxy: String?,
+        oldServer: String?
+    ) {
         try {
             CloudPlayerDisconnectFromNetworkEvent(this, player).post()
         } catch (e: Throwable) {
@@ -299,7 +326,8 @@ abstract class CloudPlayerManagerImpl<P : CommonCloudPlayerImpl> : CloudPlayerMa
         }
     }
 
-    open fun terminate() {}
+    open suspend fun terminate() {
+    }
 
 
     class PreJoinDenied(val result: PrePlayerJoinTask.Result) : RuntimeException() {

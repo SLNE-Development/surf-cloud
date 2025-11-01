@@ -364,10 +364,6 @@ class ConnectionImpl(
                             msg
                         )
 
-                        is ServerboundPlayerPersistentDataContainerUpdatePacket -> listener.handlePlayerPersistentDataContainerUpdate(
-                            msg
-                        )
-
                         is ServerboundConnectPlayerToServerPacket -> listener.handleConnectPlayerToServer(
                             msg
                         )

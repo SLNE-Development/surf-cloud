@@ -22,11 +22,13 @@ import dev.slne.surf.cloud.standalone.server.StandaloneCloudServerImpl
 import dev.slne.surf.cloud.standalone.server.StandaloneProxyCloudServerImpl
 import dev.slne.surf.cloud.standalone.server.serverManagerImpl
 import dev.slne.surf.surfapi.core.api.util.logger
+import dev.slne.surf.surfapi.core.api.util.mutableObject2LongMapOf
 import kotlinx.coroutines.*
 import java.net.Inet4Address
 import java.time.ZonedDateTime
 import java.util.*
 import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration.Companion.seconds
 
 @AutoService(CloudPlayerManager::class)
 class StandaloneCloudPlayerManagerImpl : CloudPlayerManagerImpl<StandaloneCloudPlayerImpl>() {
@@ -158,7 +160,9 @@ class StandaloneCloudPlayerManagerImpl : CloudPlayerManagerImpl<StandaloneCloudP
         }
     }
 
-    override fun getProxyServerName(player: StandaloneCloudPlayerImpl): String? = player.proxyServer?.name
+    override fun getProxyServerName(player: StandaloneCloudPlayerImpl): String? =
+        player.proxyServer?.name
+
     override fun getServerName(player: StandaloneCloudPlayerImpl): String? = player.server?.name
 
     override fun getOfflinePlayer(uuid: UUID, createIfNotExists: Boolean): OfflineCloudPlayer {
@@ -226,7 +230,7 @@ class StandaloneCloudPlayerManagerImpl : CloudPlayerManagerImpl<StandaloneCloudP
         }
     }
 
-    private suspend fun String.toServer() = serverManagerImpl.retrieveServerByName(this)
+    private fun String.toServer() = serverManagerImpl.retrieveServerByName(this)
 
     suspend fun exportPlayerData(uuid: UUID): PlayerDataExport {
         return PlayerDataExportEmpty
@@ -234,6 +238,24 @@ class StandaloneCloudPlayerManagerImpl : CloudPlayerManagerImpl<StandaloneCloudP
 
     suspend fun deleteNotInterestingPlayerData(uuid: UUID) {
 
+    }
+
+    override suspend fun terminate() {
+        super.terminate()
+        val sentDisconnect = mutableObject2LongMapOf<UUID>()
+
+        while (!playerCache.underlying().asMap().isEmpty()) { // TODO: enhance
+            forEachPlayer {
+                val lastSent =
+                    sentDisconnect.computeIfAbsent(it.uuid) { System.currentTimeMillis() }
+
+                if (System.currentTimeMillis() - lastSent > 15.seconds.inWholeMilliseconds) {
+                    it.disconnect(MessageManager.networkShutdown)
+                    sentDisconnect.put(it.uuid, System.currentTimeMillis())
+                }
+            }
+            delay(5.seconds)
+        }
     }
 
     private fun logServerNotFound(name: String, player: StandaloneCloudPlayerImpl) {

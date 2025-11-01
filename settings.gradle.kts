@@ -27,16 +27,21 @@ include("surf-cloud-core:surf-cloud-core-client")
 findProject(":surf-cloud-core:surf-cloud-core-client")?.name = "surf-cloud-core-client"
 
 include("surf-cloud-api:surf-cloud-api-client:surf-cloud-api-client-common")
-findProject(":surf-cloud-api:surf-cloud-api-client:surf-cloud-api-client-common")?.name = "surf-cloud-api-client-common"
+findProject(":surf-cloud-api:surf-cloud-api-client:surf-cloud-api-client-common")?.name =
+    "surf-cloud-api-client-common"
 
 include("surf-cloud-api:surf-cloud-api-client:surf-cloud-api-client-paper")
-findProject(":surf-cloud-api:surf-cloud-api-client:surf-cloud-api-client-paper")?.name = "surf-cloud-api-client-paper"
+findProject(":surf-cloud-api:surf-cloud-api-client:surf-cloud-api-client-paper")?.name =
+    "surf-cloud-api-client-paper"
 
 include("surf-cloud-api:surf-cloud-api-client:surf-cloud-api-client-velocity")
-findProject(":surf-cloud-api:surf-cloud-api-client:surf-cloud-api-client-velocity")?.name = "surf-cloud-api-client-velocity"
+findProject(":surf-cloud-api:surf-cloud-api-client:surf-cloud-api-client-velocity")?.name =
+    "surf-cloud-api-client-velocity"
 
 include("surf-cloud-bom")
 
 if (!ci) {
     include(":surf-cloud-test-plugin:surf-cloud-test-standalone")
+    include(":surf-cloud-test-plugin:surf-cloud-test-core")
+    include("surf-cloud-test-plugin:surf-cloud-test-paper")
 }

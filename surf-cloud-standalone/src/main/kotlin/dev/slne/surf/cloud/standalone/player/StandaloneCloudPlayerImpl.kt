@@ -33,8 +33,6 @@ import dev.slne.surf.surfapi.core.api.util.logger
 import dev.slne.surf.surfapi.core.api.util.mutableObjectListOf
 import dev.slne.surf.surfapi.core.api.util.toObjectList
 import it.unimi.dsi.fastutil.objects.ObjectList
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import net.kyori.adventure.audience.MessageType
 import net.kyori.adventure.bossbar.BossBar
 import net.kyori.adventure.identity.Identity
@@ -90,7 +88,6 @@ class StandaloneCloudPlayerImpl(uuid: UUID, name: String, val ip: Inet4Address) 
     var connectingToServer: StandaloneCloudServerImpl? = null
 
 
-    private val ppdcMutex = Mutex()
     private var firstSeenCache: ZonedDateTime? = null
 
     private val afk = AtomicBoolean(false)
@@ -161,6 +158,10 @@ class StandaloneCloudPlayerImpl(uuid: UUID, name: String, val ip: Inet4Address) 
         UpdatePlayerPersistentDataContainerPacket(uuid, patch).broadcast()
     }
 
+    fun ppdcTagSnapshot(): CompoundBinaryTag {
+        return ppdcReentrantLock.read { ppdc.snapshot() }.toTagCompound()
+    }
+
     override fun disconnect(reason: Component) {
         val connection = proxyServer?.connection ?: server?.connection
         connection?.send(DisconnectPlayerPacket(uuid, reason))
@@ -169,10 +170,6 @@ class StandaloneCloudPlayerImpl(uuid: UUID, name: String, val ip: Inet4Address) 
     override fun disconnectSilent() {
         server?.connection?.send(SilentDisconnectPlayerPacket(uuid))
     }
-
-    suspend fun awaitPersistentData() = ppdcMutex.withLock { ppdc.toTagCompound() }
-    suspend fun updatePersistentData(tag: CompoundBinaryTag) =
-        ppdcMutex.withLock { ppdc.fromTagCompound(tag) }
 
     override suspend fun latestIpAddress(): Inet4Address {
         return ip

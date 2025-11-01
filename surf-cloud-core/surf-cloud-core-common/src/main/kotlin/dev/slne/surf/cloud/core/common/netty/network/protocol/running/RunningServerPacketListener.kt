@@ -53,8 +53,6 @@ interface RunningServerPacketListener : ServerCommonPacketListener, TickablePack
 
     suspend fun handleRequestPlayerPersistentDataContainer(packet: ServerboundRequestPlayerPersistentDataContainer)
 
-    suspend fun handlePlayerPersistentDataContainerUpdate(packet: ServerboundPlayerPersistentDataContainerUpdatePacket)
-
     suspend fun handleConnectPlayerToServer(packet: ServerboundConnectPlayerToServerPacket)
 
     suspend fun handleQueuePlayerToGroup(packet: ServerboundQueuePlayerToGroupPacket)

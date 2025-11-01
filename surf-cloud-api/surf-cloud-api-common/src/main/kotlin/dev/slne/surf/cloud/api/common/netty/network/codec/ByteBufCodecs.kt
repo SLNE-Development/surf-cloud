@@ -1,6 +1,5 @@
 package dev.slne.surf.cloud.api.common.netty.network.codec
 
-import dev.slne.surf.cloud.api.common.internal.BinaryTagTypeProxy
 import dev.slne.surf.cloud.api.common.netty.protocol.buffer.*
 import dev.slne.surf.cloud.api.common.netty.protocol.buffer.types.Utf8String
 import dev.slne.surf.cloud.api.common.util.ByIdMap
@@ -18,6 +17,7 @@ import net.kyori.adventure.key.Key
 import net.kyori.adventure.nbt.BinaryTag
 import net.kyori.adventure.nbt.BinaryTagIO
 import net.kyori.adventure.nbt.BinaryTagType
+import net.kyori.adventure.nbt.BinaryTagTypes
 import net.kyori.adventure.sound.Sound
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer
 import java.io.ByteArrayInputStream
@@ -156,36 +156,83 @@ object ByteBufCodecs {
         BigDecimal(unscaledValue, scale, MathContext(precision))
     }
 
+    private val TAG_TYPES = arrayOf(
+        BinaryTagTypes.END,
+        BinaryTagTypes.BYTE,
+        BinaryTagTypes.SHORT,
+        BinaryTagTypes.INT,
+        BinaryTagTypes.LONG,
+        BinaryTagTypes.FLOAT,
+        BinaryTagTypes.DOUBLE,
+        BinaryTagTypes.BYTE_ARRAY,
+        BinaryTagTypes.STRING,
+        BinaryTagTypes.LIST,
+        BinaryTagTypes.COMPOUND,
+        BinaryTagTypes.INT_ARRAY,
+        BinaryTagTypes.LONG_ARRAY,
+    )
 
     private val BINARY_TAG_BY_ID = ByIdMap.continuous(
         { it.id().toInt() },
-        BinaryTagTypeProxy.instance.getTypes().toTypedArray(),
+        TAG_TYPES,
         OutOfBoundsStrategy.DECODE_ERROR
     )
 
     val BINARY_TAG_CODEC: StreamCodec<ByteBuf, BinaryTag> = streamCodec({ buf, tag ->
         val type = tag.type() as BinaryTagType<BinaryTag>
         buf.writeByte(type.id().toInt())
-        DataOutputStream(FastBufferedOutputStream(ByteBufOutputStream(buf))).use {
-            type.write(tag, it)
+
+        val tmp = buf.alloc().buffer()
+        try {
+            DataOutputStream(FastBufferedOutputStream(ByteBufOutputStream(tmp))).use { out ->
+                type.write(tag, out)
+            }
+            val length = tmp.readableBytes()
+            buf.writeVarInt(length)
+            buf.writeBytes(tmp, tmp.readerIndex(), length)
+        } finally {
+            tmp.release()
         }
+
     }, { buf ->
         val type = BINARY_TAG_BY_ID(buf.readByte().toInt())
-        DataInputStream(FastBufferedInputStream(ByteBufInputStream(buf))).use {
-            type.read(it)
+        val len = buf.readVarInt()
+        val slice = buf.readRetainedSlice(len)
+
+        try {
+            DataInputStream(FastBufferedInputStream(ByteBufInputStream(slice))).use { input ->
+                type.read(input)
+            }
+        } finally {
+            slice.release()
         }
     })
 
     val BINARY_TAG_CODEC_COMPRESSED: StreamCodec<ByteBuf, BinaryTag> = streamCodec({ buf, tag ->
         val type = tag.type() as BinaryTagType<BinaryTag>
         buf.writeByte(type.id().toInt())
-        DataOutputStream(FastBufferedOutputStream(GZIPOutputStream(ByteBufOutputStream(buf)))).use {
-            type.write(tag, it)
+        val temp = buf.alloc().buffer()
+
+        try {
+            DataOutputStream(FastBufferedOutputStream(GZIPOutputStream(ByteBufOutputStream(temp)))).use {
+                type.write(tag, it)
+            }
+            buf.writeVarInt(temp.readableBytes())
+            buf.writeBytes(temp, temp.readerIndex(), temp.readableBytes())
+        } finally {
+            temp.release()
         }
     }, { buf ->
         val type = BINARY_TAG_BY_ID(buf.readByte().toInt())
-        DataInputStream(FastBufferedInputStream(GZIPInputStream(ByteBufInputStream(buf)))).use {
-            type.read(it)
+        val length = buf.readVarInt()
+        val slice = buf.readRetainedSlice(length)
+
+        try {
+            DataInputStream(FastBufferedInputStream(GZIPInputStream(ByteBufInputStream(slice)))).use {
+                type.read(it)
+            }
+        } finally {
+            slice.release()
         }
     })
 

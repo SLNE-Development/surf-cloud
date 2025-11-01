@@ -207,7 +207,11 @@ class ServerConnectionListener(
         }
     }
 
-    fun broadcast(packet: NettyPacket, flush: Boolean = true, except: (ConnectionImpl) -> Boolean = { false }) {
+    fun broadcast(
+        packet: NettyPacket,
+        flush: Boolean = true,
+        except: (ConnectionImpl) -> Boolean = { false }
+    ) {
         require(packet !is RespondingNettyPacket<*>) { "Cannot broadcast responding packets" }
 
         val activeProtocols = packet.protocols

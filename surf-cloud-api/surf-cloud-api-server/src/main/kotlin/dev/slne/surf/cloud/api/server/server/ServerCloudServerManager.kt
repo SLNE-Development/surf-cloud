@@ -9,7 +9,7 @@ import org.jetbrains.annotations.ApiStatus
 
 @ApiStatus.NonExtendable
 interface ServerCloudServerManager : CloudServerManager {
-    
+
     override fun retrieveServerByCategoryAndName(
         category: String,
         name: String

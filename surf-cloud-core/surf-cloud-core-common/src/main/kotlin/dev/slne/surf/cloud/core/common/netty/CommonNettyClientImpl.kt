@@ -4,8 +4,8 @@ import dev.slne.surf.cloud.api.common.netty.NettyClient
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
 import dev.slne.surf.cloud.api.common.netty.packet.RespondingNettyPacket
 import dev.slne.surf.cloud.api.common.netty.packet.ResponseNettyPacket
-import dev.slne.surf.cloud.api.common.util.mutableObject2ObjectMapOf
-import dev.slne.surf.cloud.api.common.util.synchronize
+import dev.slne.surf.surfapi.core.api.util.mutableObject2ObjectMapOf
+import dev.slne.surf.surfapi.core.api.util.synchronize
 import dev.slne.surf.cloud.core.common.netty.network.ConnectionImpl
 import kotlinx.coroutines.CompletableDeferred
 import java.net.InetSocketAddress

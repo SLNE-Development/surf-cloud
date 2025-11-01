@@ -70,6 +70,11 @@ object ByIdMap {
                 { key -> if (key >= 0 && key < size) objects[key] else first }
             }
 
+            LAST -> {
+                val last = objects[size - 1]
+                { key -> if (key >= 0 && key < size) objects[key] else last }
+            }
+
             WRAP -> { key ->
                 objects[Math.floorMod(
                     key,
@@ -98,6 +103,7 @@ object ByIdMap {
     @Suppress("ClassName")
     sealed class OutOfBoundsStrategy {
         data object ZERO : OutOfBoundsStrategy()
+        data object LAST : OutOfBoundsStrategy()
         data object WRAP : OutOfBoundsStrategy()
         data object CLAMP : OutOfBoundsStrategy()
         data object DECODE_ERROR : OutOfBoundsStrategy()

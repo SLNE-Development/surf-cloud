@@ -9,7 +9,8 @@ import org.springframework.stereotype.Component
 
 @Component
 @Role(BeanDefinition.ROLE_INFRASTRUCTURE)
-class ConsoleCommandProcessor(private val managerProvider: ObjectProvider<CommandManagerImpl>) : BeanPostProcessor {
+class ConsoleCommandProcessor(private val managerProvider: ObjectProvider<CommandManagerImpl>) :
+    BeanPostProcessor {
 
     override fun postProcessAfterInitialization(bean: Any, beanName: String): Any? {
         if (bean is AbstractConsoleCommand) {

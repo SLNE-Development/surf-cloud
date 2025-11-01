@@ -41,3 +41,11 @@ exclude:
 
 include:
   - name: IncorrectFormatting
+  - name: ReplaceSubstringWithTake
+  - name: ConstantConditionIf
+  - name: PrivatePropertyName
+  - name: RedundantSuspendModifier
+  - name: RedundantNullableReturnType
+  - name: KotlinUnusedImport
+  - name: UnusedSymbol
+

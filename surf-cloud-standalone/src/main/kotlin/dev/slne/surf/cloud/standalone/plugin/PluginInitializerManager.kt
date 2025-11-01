@@ -18,7 +18,7 @@ import kotlin.io.path.Path
 
 @Component
 @Order(CloudLifecycleAware.PLUGIN_MANAGER_PRIORITY)
-class PluginInitializerManager: CloudLifecycleAware {
+class PluginInitializerManager : CloudLifecycleAware {
     val pluginsEnabledDeferred = CompletableDeferred<Unit>()
 
     companion object {

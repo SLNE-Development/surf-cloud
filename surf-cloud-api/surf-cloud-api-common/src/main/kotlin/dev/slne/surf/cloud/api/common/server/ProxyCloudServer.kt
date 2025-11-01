@@ -18,7 +18,8 @@ interface ProxyCloudServer : CommonCloudServer {
         operator fun get(category: String, name: String) =
             CloudServerManager.retrieveServerByCategoryAndName(category, name) as? ProxyCloudServer
 
-        operator fun get(name: String) = CloudServerManager.retrieveServerByName(name) as? ProxyCloudServer
+        operator fun get(name: String) =
+            CloudServerManager.retrieveServerByName(name) as? ProxyCloudServer
 
         fun all() = CloudServerManager.retrieveProxies()
     }

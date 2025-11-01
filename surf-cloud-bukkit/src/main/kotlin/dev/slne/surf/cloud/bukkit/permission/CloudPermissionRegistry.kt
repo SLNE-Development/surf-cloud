@@ -3,7 +3,7 @@ package dev.slne.surf.cloud.bukkit.permission
 import dev.slne.surf.cloud.core.common.permission.CommonCloudPermissions
 import dev.slne.surf.surfapi.bukkit.api.permission.PermissionRegistry
 
-object CloudPermissionRegistry: PermissionRegistry() {
+object CloudPermissionRegistry : PermissionRegistry() {
     private const val COMMAND_PREFIX = "${CommonCloudPermissions.PREFIX}.command"
 
     val FIND_COMMAND = create("$COMMAND_PREFIX.find")

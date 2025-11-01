@@ -15,7 +15,6 @@ import kotlinx.coroutines.launch
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.TextComponent
 import org.bukkit.command.CommandSender
-import java.util.function.BiFunction
 
 @Suppress("DuplicatedCode")
 fun broadcastCommand() = commandTree("broadcast") {
@@ -135,7 +134,7 @@ private fun executeBroadcast(
     prefix: Component? = null,
     server: CloudServer? = null,
     group: String? = null
-) = plugin.launch{
+) = plugin.launch {
     val prefix = prefix ?: Colors.PREFIX
     val message = if (message is TextComponent && !message.content().contains("\n")) {
         prefix.append(message)

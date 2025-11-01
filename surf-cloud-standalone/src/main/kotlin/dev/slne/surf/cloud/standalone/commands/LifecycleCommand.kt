@@ -1,4 +1,4 @@
-//package dev.slne.surf.cloud.standalone.commands
+package dev.slne.surf.cloud.standalone.commands
 //
 //import dev.slne.surf.cloud.api.exceptions.ExitCodes
 //import org.springframework.shell.command.CommandContext

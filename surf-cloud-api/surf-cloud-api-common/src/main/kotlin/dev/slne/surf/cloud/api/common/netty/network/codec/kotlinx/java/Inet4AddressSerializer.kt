@@ -9,7 +9,7 @@ import java.net.Inet4Address
 
 typealias SerializableInet4Address = @Serializable(with = Inet4AddressSerializer::class) Inet4Address
 
-object Inet4AddressSerializer: CloudBufSerializer<Inet4Address>() {
+object Inet4AddressSerializer : CloudBufSerializer<Inet4Address>() {
     override val descriptor = SerialDescriptor("Inet4Address", ByteArraySerializer().descriptor)
 
     override fun serialize0(

@@ -8,13 +8,14 @@ import dev.slne.surf.cloud.api.common.netty.packet.packetCodec
 import dev.slne.surf.cloud.api.common.netty.protocol.buffer.SurfByteBuf
 import dev.slne.surf.cloud.api.common.util.codec.ExtraCodecs
 import net.kyori.adventure.inventory.Book
-import java.util.UUID
+import java.util.*
 
 @SurfNettyPacket(DefaultIds.CLIENTBOUND_OPEN_BOOK_PACKET, PacketFlow.CLIENTBOUND)
-class ClientboundOpenBookPacket: NettyPacket {
+class ClientboundOpenBookPacket : NettyPacket {
 
     companion object {
-        val STREAM_CODEC = packetCodec(ClientboundOpenBookPacket::write, ::ClientboundOpenBookPacket)
+        val STREAM_CODEC =
+            packetCodec(ClientboundOpenBookPacket::write, ::ClientboundOpenBookPacket)
     }
 
     val uuid: UUID

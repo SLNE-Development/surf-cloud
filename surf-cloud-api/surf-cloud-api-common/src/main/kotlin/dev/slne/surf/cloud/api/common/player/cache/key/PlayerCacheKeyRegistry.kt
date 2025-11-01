@@ -15,7 +15,7 @@ interface PlayerCacheKeyRegistry {
     fun stringKey(key: Key): CacheKey.Value<String>
     fun <T : Enum<T>> enumKey(key: Key, enumClass: Class<T>): CacheKey.Value<T>
 
-    fun <E: Any> listKey(key: Key): CacheKey.List<E>
-    fun <E: Any> setKey(key: Key): CacheKey.Set<E>
-    fun <K: Any, V: Any> mapKey(key: Key): CacheKey.Map<K, V>
+    fun <E : Any> listKey(key: Key): CacheKey.List<E>
+    fun <E : Any> setKey(key: Key): CacheKey.Set<E>
+    fun <K : Any, V : Any> mapKey(key: Key): CacheKey.Map<K, V>
 }

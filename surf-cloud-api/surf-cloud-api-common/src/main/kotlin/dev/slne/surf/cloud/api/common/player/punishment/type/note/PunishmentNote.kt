@@ -3,7 +3,7 @@ package dev.slne.surf.cloud.api.common.player.punishment.type.note
 import dev.slne.surf.cloud.api.common.util.annotation.InternalApi
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
-import java.util.UUID
+import java.util.*
 
 @Serializable
 sealed interface PunishmentNote {

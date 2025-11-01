@@ -2,7 +2,7 @@ package dev.slne.surf.cloud.api.common.player.punishment.type
 
 import java.time.ZonedDateTime
 
-interface ExpirablePunishment: Punishment, Comparable<ExpirablePunishment> {
+interface ExpirablePunishment : Punishment, Comparable<ExpirablePunishment> {
     val permanent: Boolean
     val expirationDate: ZonedDateTime?
 

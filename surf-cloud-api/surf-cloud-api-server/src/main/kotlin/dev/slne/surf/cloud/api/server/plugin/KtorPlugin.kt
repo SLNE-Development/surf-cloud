@@ -5,5 +5,5 @@ import io.ktor.server.routing.*
 
 interface KtorPlugin {
     fun Routing.installRoutes()
-    fun Application.configure() = {}
+    fun Application.configure() = Unit
 }

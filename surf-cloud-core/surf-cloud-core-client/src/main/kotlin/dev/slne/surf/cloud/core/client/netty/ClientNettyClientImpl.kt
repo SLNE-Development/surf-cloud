@@ -114,7 +114,7 @@ class ClientNettyClientImpl(
                 ),
                 false
             )
-            CloudProperties
+            CloudProperties.javaClass
             connection.send(
                 ServerboundLoginStartPacket(
                     serverCategory,

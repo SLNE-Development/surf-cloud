@@ -7,4 +7,4 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 @SurfNettyPacket("cloud:serverbound:generate_punishment_id", PacketFlow.SERVERBOUND)
-class ServerboundGeneratePunishmentIdPacket: StringResponsePacket()
+class ServerboundGeneratePunishmentIdPacket : StringResponsePacket()

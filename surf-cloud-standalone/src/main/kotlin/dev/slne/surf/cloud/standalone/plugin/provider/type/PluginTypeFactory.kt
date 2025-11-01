@@ -5,7 +5,7 @@ import java.nio.file.Path
 import java.util.jar.JarEntry
 import java.util.jar.JarFile
 
-interface PluginTypeFactory<T, C: PluginMeta> {
+interface PluginTypeFactory<T, C : PluginMeta> {
     fun build(file: JarFile, meta: C, source: Path): T
     fun create(file: JarFile, config: JarEntry): C
 }

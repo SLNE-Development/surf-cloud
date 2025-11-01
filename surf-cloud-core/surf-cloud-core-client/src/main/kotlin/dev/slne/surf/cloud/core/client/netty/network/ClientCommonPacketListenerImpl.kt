@@ -1,9 +1,7 @@
 package dev.slne.surf.cloud.core.client.netty.network
 
-import dev.slne.surf.cloud.api.common.exceptions.ExitCodes
 import dev.slne.surf.cloud.api.common.netty.network.protocol.respond
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
-import dev.slne.surf.cloud.core.client.netty.NettyCommonClientManager
 import dev.slne.surf.cloud.core.common.coroutines.ConnectionManagementScope
 import dev.slne.surf.cloud.core.common.netty.NettyManager
 import dev.slne.surf.cloud.core.common.netty.network.CommonTickablePacketListener
@@ -20,7 +18,6 @@ import dev.slne.surf.cloud.core.common.netty.network.protocol.running.Serverboun
 import dev.slne.surf.cloud.core.common.util.bean
 import dev.slne.surf.surfapi.core.api.util.logger
 import kotlinx.coroutines.launch
-import kotlin.system.exitProcess
 
 abstract class ClientCommonPacketListenerImpl(
     val connection: ConnectionImpl,

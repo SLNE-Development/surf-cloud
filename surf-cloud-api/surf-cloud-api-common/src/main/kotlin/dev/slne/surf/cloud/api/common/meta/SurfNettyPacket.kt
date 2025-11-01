@@ -43,7 +43,8 @@ object DefaultIds {
     // Login
     const val SERVERBOUND_LOGIN_START_PACKET = "cloud:serverbound:login_start"
     const val CLIENTBOUND_LOGIN_FINISHED_PACKET = "cloud:clientbound:login_finished"
-    const val  SERVERBOUND_WAIT_FOR_SERVER_TO_START_PACKET = "cloud:serverbound:wait_for_server_to_start"
+    const val SERVERBOUND_WAIT_FOR_SERVER_TO_START_PACKET =
+        "cloud:serverbound:wait_for_server_to_start"
     const val SERVERBOUND_LOGIN_ACKNOWLEDGED_PACKET = "cloud:serverbound:login_acknowledged"
     const val CLIENTBOUND_LOGIN_DISCONNECT_PACKET = "cloud:clientbound:login_disconnect"
     const val SERVERBOUND_KEY_PACKET =

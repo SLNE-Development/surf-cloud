@@ -3,9 +3,10 @@
 package dev.slne.surf.cloud.standalone.plugin.entrypoint.strategy
 
 import com.google.common.graph.Graph
-import dev.slne.surf.cloud.api.common.util.mutableObject2IntMapOf
-import dev.slne.surf.cloud.api.common.util.mutableObjectListOf
+import dev.slne.surf.surfapi.core.api.util.mutableObject2IntMapOf
+import dev.slne.surf.surfapi.core.api.util.mutableObjectListOf
 import it.unimi.dsi.fastutil.objects.ObjectList
+import java.io.Serial
 
 fun <N : Any> Graph<N>.topologicalSort(): ObjectList<N> {
     val sorted = mutableObjectListOf<N>()
@@ -47,4 +48,9 @@ fun <N : Any> Graph<N>.topologicalSort(): ObjectList<N> {
     return sorted
 }
 
-class GraphCycleException(): RuntimeException()
+class GraphCycleException() : RuntimeException() {
+    companion object {
+        @Serial
+        val serialVersionUID: Long = 1L
+    }
+}

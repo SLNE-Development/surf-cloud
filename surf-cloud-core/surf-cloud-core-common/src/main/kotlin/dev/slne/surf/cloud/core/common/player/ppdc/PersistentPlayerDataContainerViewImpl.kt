@@ -4,7 +4,7 @@ import dev.slne.surf.cloud.api.common.netty.protocol.buffer.SurfByteBuf
 import dev.slne.surf.cloud.api.common.player.ppdc.PersistentPlayerDataAdapterContext
 import dev.slne.surf.cloud.api.common.player.ppdc.PersistentPlayerDataContainerView
 import dev.slne.surf.cloud.api.common.player.ppdc.PersistentPlayerDataType
-import dev.slne.surf.cloud.api.common.util.toObjectSet
+import dev.slne.surf.surfapi.core.api.util.toObjectSet
 import it.unimi.dsi.fastutil.objects.ObjectArrayList
 import it.unimi.dsi.fastutil.objects.ObjectSet
 import net.kyori.adventure.key.Key
@@ -150,7 +150,7 @@ abstract class PersistentPlayerDataContainerViewImpl : PersistentPlayerDataConta
      *
      * @param root The root `CompoundBinaryTag` to be deep copied.
      * @return A deep copy of the specified `CompoundBinaryTag`.
-     * @throws IllegalStateException if the structure is too deeply nested (exceeds [MAX_NESTING_DEPTH])
+     * @throws IllegalStateException if the structure is too deeply nested (exceeds [PersistentPlayerDataContainerView.MAX_NESTING_DEPTH])
      */
     private fun deepCopy(root: CompoundBinaryTag): CompoundBinaryTag {
         data class Frame(

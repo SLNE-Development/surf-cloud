@@ -137,7 +137,7 @@ class KtorServer(private val configHolder: StandaloneConfigHolder) : CloudLifecy
             )
         }
 
-        exception<PayloadTooLargeException> { call, cause ->
+        exception<PayloadTooLargeException> { call, _ ->
             call.respondErrorPage(
                 HttpStatusCode.PayloadTooLarge,
                 "Payload Too Large: Request exceeds the size limit."

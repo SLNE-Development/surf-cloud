@@ -18,4 +18,5 @@ import net.kyori.adventure.key.Key
     ConnectionProtocol.SYNCHRONIZING
 )
 @Serializable
-class ServerboundCacheRegisterKeysPacket(val keys: List<Pair<@Contextual Key, Boolean>>) : NettyPacket()
+class ServerboundCacheRegisterKeysPacket(val keys: List<Pair<@Contextual Key, Boolean>>) :
+    NettyPacket()

@@ -2,7 +2,7 @@ package dev.slne.surf.cloud.standalone.console
 
 import com.mojang.brigadier.StringReader
 import com.mojang.brigadier.context.CommandContextBuilder
-import dev.slne.surf.cloud.api.common.util.mutableObjectListOf
+import dev.slne.surf.surfapi.core.api.util.mutableObjectListOf
 import dev.slne.surf.cloud.api.server.command.CommandSource
 import dev.slne.surf.cloud.api.server.command.util.contains
 import dev.slne.surf.cloud.standalone.commands.CommandManagerImpl
@@ -15,7 +15,7 @@ class BrigadierConsoleParser(private val commandManager: CommandManagerImpl) : P
         line: String?,
         cursor: Int,
         context: Parser.ParseContext?
-    ): ParsedLine? {
+    ): ParsedLine {
         val results = commandManager.dispatcher.parse(
             StringReader(line),
             commandManager.createCommandSource()

@@ -1,8 +1,6 @@
 package dev.slne.surf.cloud.core.common.netty.network
 
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
-import dev.slne.surf.cloud.core.common.netty.network.UnconfiguredPipelineHandler.InboundConfigurationTask
-import dev.slne.surf.cloud.core.common.netty.network.UnconfiguredPipelineHandler.OutboundConfigurationTask
 import io.netty.buffer.ByteBuf
 import io.netty.channel.*
 import io.netty.handler.codec.DecoderException
@@ -26,8 +24,12 @@ object UnconfiguredPipelineHandler {
 
 
     private fun setupOutboundHandler(newEncoder: ChannelOutboundHandler) =
-        OutboundConfigurationTask { it.pipeline().replace(it.name(),
-            HandlerNames.ENCODER, newEncoder) }
+        OutboundConfigurationTask {
+            it.pipeline().replace(
+                it.name(),
+                HandlerNames.ENCODER, newEncoder
+            )
+        }
 
     class Inbound : ChannelDuplexHandler() {
         override fun channelRead(ctx: ChannelHandlerContext, msg: Any) {
@@ -69,7 +71,8 @@ object UnconfiguredPipelineHandler {
                 inboundConfigurationTask.run(context)
             }
 
-        operator fun plus(inboundConfigurationTask: InboundConfigurationTask) = andThen(inboundConfigurationTask)
+        operator fun plus(inboundConfigurationTask: InboundConfigurationTask) =
+            andThen(inboundConfigurationTask)
     }
 
     class Outbound : ChannelOutboundHandlerAdapter() {
@@ -107,6 +110,7 @@ object UnconfiguredPipelineHandler {
                 outboundConfigurationTask.run(context)
             }
 
-        operator fun plus(outboundConfigurationTask: OutboundConfigurationTask) = andThen(outboundConfigurationTask)
+        operator fun plus(outboundConfigurationTask: OutboundConfigurationTask) =
+            andThen(outboundConfigurationTask)
     }
 }

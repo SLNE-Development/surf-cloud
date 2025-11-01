@@ -6,13 +6,14 @@ import dev.slne.surf.cloud.api.common.netty.network.protocol.PacketFlow
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
 import dev.slne.surf.cloud.api.common.netty.packet.packetCodec
 import dev.slne.surf.cloud.api.common.netty.protocol.buffer.SurfByteBuf
-import java.util.UUID
+import java.util.*
 
 @SurfNettyPacket(DefaultIds.SERVERBOUND_RESET_TITLE_PACKET, PacketFlow.SERVERBOUND)
-class ServerboundResetTitlePacket: NettyPacket {
+class ServerboundResetTitlePacket : NettyPacket {
 
     companion object {
-        val STREAM_CODEC = packetCodec(ServerboundResetTitlePacket::write, ::ServerboundResetTitlePacket)
+        val STREAM_CODEC =
+            packetCodec(ServerboundResetTitlePacket::write, ::ServerboundResetTitlePacket)
     }
 
     val uuid: UUID

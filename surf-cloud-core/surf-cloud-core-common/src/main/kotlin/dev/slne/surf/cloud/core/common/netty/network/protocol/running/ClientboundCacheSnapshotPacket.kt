@@ -10,4 +10,5 @@ import java.util.*
     "cloud:clientbound:player_cache/snapshot",
     PacketFlow.CLIENTBOUND
 )
-class ClientboundCacheSnapshotPacket(val uuid: UUID, val entries: List<Entry>) : ResponseNettyPacket()
+class ClientboundCacheSnapshotPacket(val uuid: UUID, val entries: List<Entry>) :
+    ResponseNettyPacket()

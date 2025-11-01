@@ -14,7 +14,8 @@ import it.unimi.dsi.fastutil.ints.IntCollection
 typealias OptionalIntArrayResponsePacket = RespondingNettyPacket<OptionalIntArrayResponse>
 
 @SurfNettyPacket("optional_int_array_response", PacketFlow.BIDIRECTIONAL)
-class OptionalIntArrayResponse(override val value: IntArray?) : ResponseNettyPacket(), CommonResponseType<IntArray?> {
+class OptionalIntArrayResponse(override val value: IntArray?) : ResponseNettyPacket(),
+    CommonResponseType<IntArray?> {
     companion object : CommonResponseTypeFactory<OptionalIntArrayResponse, IntArray?> {
         val STREAM_CODEC = packetCodec(OptionalIntArrayResponse::write, ::OptionalIntArrayResponse)
         override fun create(value: IntArray?): OptionalIntArrayResponse {

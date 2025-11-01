@@ -4,6 +4,7 @@ import dev.slne.surf.cloud.api.common.util.Either.Companion.left
 import dev.slne.surf.cloud.api.common.util.Either.Companion.right
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 
 /**
  * Represents a value of one of two possible types.
@@ -19,6 +20,7 @@ import kotlinx.serialization.Serializable
  * @property right the right value if present, otherwise `null`.
  */
 @Serializable
+@Suppress("unused")
 sealed class Either<L, R> {
 
     /** The left value if present, otherwise `null`. */

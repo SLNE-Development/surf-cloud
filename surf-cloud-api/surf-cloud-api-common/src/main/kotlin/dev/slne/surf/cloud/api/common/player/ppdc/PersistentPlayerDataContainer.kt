@@ -11,7 +11,7 @@ import org.jetbrains.annotations.ApiStatus
  * metadata entries and managing the stored data.
  */
 @ApiStatus.NonExtendable
-interface PersistentPlayerDataContainer: PersistentPlayerDataContainerView {
+interface PersistentPlayerDataContainer : PersistentPlayerDataContainerView {
 
     /**
      * Stores a metadata value in the container.

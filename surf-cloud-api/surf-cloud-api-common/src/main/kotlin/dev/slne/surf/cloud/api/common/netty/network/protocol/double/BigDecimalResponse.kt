@@ -13,8 +13,9 @@ import java.math.BigDecimal
 typealias BigDecimalResponsePacket = RespondingNettyPacket<BigDecimalResponse>
 
 @SurfNettyPacket("big_decimal_response", PacketFlow.BIDIRECTIONAL)
-class BigDecimalResponse(override val value: BigDecimal) : ResponseNettyPacket(), CommonResponseType<BigDecimal> {
-    companion object: CommonResponseTypeFactory<BigDecimalResponse, BigDecimal> {
+class BigDecimalResponse(override val value: BigDecimal) : ResponseNettyPacket(),
+    CommonResponseType<BigDecimal> {
+    companion object : CommonResponseTypeFactory<BigDecimalResponse, BigDecimal> {
         val STREAM_CODEC = packetCodec(BigDecimalResponse::write, ::BigDecimalResponse)
 
         override fun create(value: BigDecimal): BigDecimalResponse {

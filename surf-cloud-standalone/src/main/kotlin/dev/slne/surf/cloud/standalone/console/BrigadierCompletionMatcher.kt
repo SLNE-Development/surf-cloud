@@ -1,7 +1,7 @@
 package dev.slne.surf.cloud.standalone.console
 
-import dev.slne.surf.cloud.api.common.util.mutableObject2ObjectMapOf
-import dev.slne.surf.cloud.api.common.util.toObjectList
+import dev.slne.surf.surfapi.core.api.util.mutableObject2ObjectMapOf
+import dev.slne.surf.surfapi.core.api.util.toObjectList
 import it.unimi.dsi.fastutil.objects.ObjectList
 import org.jline.reader.Candidate
 import org.jline.reader.CompletingParsedLine

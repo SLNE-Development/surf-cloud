@@ -165,7 +165,8 @@ class GroupQueueImpl(
 
         if (suspended) return
 
-        var entry = peek()?.takeUnless { !it.bypassFull && isFull(it.preferredServerName) } ?: return
+        var entry =
+            peek()?.takeUnless { !it.bypassFull && isFull(it.preferredServerName) } ?: return
         val preferredServerUid = entry.preferredServerName
 
         if (preferredServerUid != null) {

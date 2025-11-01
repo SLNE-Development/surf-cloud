@@ -31,8 +31,10 @@ fun <T> bean(clazz: Class<T>, classloader: SpringPluginClassloader): T {
 }
 
 fun <T> bean(clazz: Class<T>): T {
-    return bean(clazz, getCallerClass()?.classLoader as? SpringPluginClassloader
-        ?: error("Not in plugin classloader!"))
+    return bean(
+        clazz, getCallerClass()?.classLoader as? SpringPluginClassloader
+            ?: error("Not in plugin classloader!")
+    )
 }
 
 inline fun <reified T> bean(): T {

@@ -1,6 +1,7 @@
 package dev.slne.surf.cloud.api.common.player.ppdc
 
 import dev.slne.surf.cloud.api.common.netty.protocol.buffer.SurfByteBuf
+import dev.slne.surf.cloud.api.common.player.ppdc.PersistentPlayerDataContainerView.Companion.MAX_NESTING_DEPTH
 import it.unimi.dsi.fastutil.objects.ObjectSet
 import net.kyori.adventure.key.Key
 import org.jetbrains.annotations.ApiStatus

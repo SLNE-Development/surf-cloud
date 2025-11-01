@@ -6,7 +6,6 @@ import dev.slne.surf.cloud.api.server.plugin.provider.classloader.SpringPluginCl
 import dev.slne.surf.cloud.api.server.plugin.provider.classloader.SpringPluginClassloaderGroup
 import dev.slne.surf.cloud.api.server.plugin.provider.classloader.SpringPluginClassloaderStorage
 import java.util.concurrent.CopyOnWriteArrayList
-import kotlin.collections.filter
 
 /**
  * This is used for connecting multiple classloaders.
@@ -26,8 +25,12 @@ class SpringPluginClassLoaderStorageImpl : SpringPluginClassloaderStorage {
         classloader: SpringPluginClassloader,
         access: ClassloaderAccess
     ): SpringPluginClassloaderGroup {
-        val allowedLoaders = globalGroup.classloaders.filter { access.canAccess(it) }.toMutableList()
-        return registerGroup(classloader, StaticPluginClassLoaderGroup(allowedLoaders, access, classloader))
+        val allowedLoaders =
+            globalGroup.classloaders.filter { access.canAccess(it) }.toMutableList()
+        return registerGroup(
+            classloader,
+            StaticPluginClassLoaderGroup(allowedLoaders, access, classloader)
+        )
     }
 
     private fun registerGroup(

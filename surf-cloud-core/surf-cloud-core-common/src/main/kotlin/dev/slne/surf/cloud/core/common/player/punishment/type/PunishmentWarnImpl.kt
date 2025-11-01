@@ -2,7 +2,7 @@ package dev.slne.surf.cloud.core.common.player.punishment.type
 
 import dev.slne.surf.cloud.api.common.player.punishment.type.note.PunishmentNote
 import dev.slne.surf.cloud.api.common.player.punishment.type.warn.PunishmentWarn
-import dev.slne.surf.cloud.api.common.util.toObjectList
+import dev.slne.surf.surfapi.core.api.util.toObjectList
 import dev.slne.surf.cloud.core.common.messages.MessageManager
 import dev.slne.surf.cloud.core.common.player.PunishmentManager
 import dev.slne.surf.cloud.core.common.util.bean
@@ -38,7 +38,7 @@ data class PunishmentWarnImpl(
         return bean<PunishmentManager>().fetchNotesForWarn(id).toObjectList()
     }
 
-    override fun getResolvableType(): ResolvableType? {
+    override fun getResolvableType(): ResolvableType {
         return apiType
     }
 

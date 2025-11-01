@@ -7,7 +7,7 @@ import dev.slne.surf.surfapi.core.api.util.requiredService
 @InternalApi
 interface CoroutineManager {
     companion object {
-       internal val instance = requiredService<CoroutineManager>()
+        internal val instance = requiredService<CoroutineManager>()
     }
 
     fun getCoroutineSession(plugin: StandalonePlugin): CoroutineSession

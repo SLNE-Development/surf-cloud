@@ -11,7 +11,7 @@ data class ListenerWrapper(
     val priority: Int,
     val ignoreCancelled: Boolean,
     val condition: Expression?
-): Comparable<ListenerWrapper> {
+) : Comparable<ListenerWrapper> {
     override fun compareTo(other: ListenerWrapper): Int {
         return priority.compareTo(other.priority)
     }

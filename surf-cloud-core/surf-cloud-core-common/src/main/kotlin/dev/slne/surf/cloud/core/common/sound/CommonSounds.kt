@@ -1,6 +1,6 @@
 package dev.slne.surf.cloud.core.common.sound
 
-import dev.slne.surf.cloud.api.common.util.objectListOf
+import dev.slne.surf.surfapi.core.api.util.objectListOf
 import dev.slne.surf.surfapi.core.api.generated.SoundKeys
 import dev.slne.surf.surfapi.core.api.messages.adventure.Sound
 import net.kyori.adventure.sound.Sound.Source

@@ -9,9 +9,9 @@ import com.mojang.serialization.codecs.RecordCodecBuilder
 import dev.slne.surf.cloud.api.common.netty.network.codec.streamCodec
 import dev.slne.surf.cloud.api.common.netty.network.codec.streamCodecUnitSimple
 import dev.slne.surf.cloud.api.common.netty.protocol.buffer.*
-import dev.slne.surf.cloud.api.common.util.objectListOf
 import dev.slne.surf.cloud.api.common.util.toIntArray
 import dev.slne.surf.cloud.api.common.util.toUuid
+import dev.slne.surf.surfapi.core.api.util.objectListOf
 import io.netty.buffer.ByteBuf
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet
 import net.kyori.adventure.bossbar.BossBar
@@ -78,7 +78,7 @@ fun <T> RecordCodecBuilder.Instance<T>.string(fieldName: String, getter: T.() ->
 fun <T> RecordCodecBuilder.Instance<T>.stringOptionalLenient(
     fieldName: String,
     getter: T.() -> String?
-) =
+): RecordCodecBuilder<T, Optional<String>> =
     Codec.STRING.lenientOptionalFieldOf(fieldName).forGetter<T> { Optional.ofNullable(getter(it)) }
 
 @Suppress("UnusedReceiverParameter")
@@ -121,17 +121,18 @@ object ExtraCodecs {
                 { DataResult.error { "Invalid UUID: $it" } })
         },
         { it.toString() })
-    val UUID_LENIENT_CODEC = Codec.withAlternative(UUID_CODEC, UUID_STRING_CODEC)
+    val UUID_LENIENT_CODEC: Codec<UUID> = Codec.withAlternative(UUID_CODEC, UUID_STRING_CODEC)
 
     fun <T> converter(ops: DynamicOps<T>): Codec<T> =
         Codec.PASSTHROUGH.xmap({ it.convert(ops).value }, { Dynamic(ops, it as T) })
 
 
-    fun <T : Enum<T>> enumCodec(entries: EnumEntries<T>) = Codec.STRING.validate { input ->
-        if (entries.any { it.name == input })
-            DataResult.success(input)
-        else DataResult.error { "Invalid enum value: $input" }
-    }.xmap({ input -> entries.first { it.name == input } }, { it.name })
+    fun <T : Enum<T>> enumCodec(entries: EnumEntries<T>): Codec<T> =
+        Codec.STRING.validate { input ->
+            if (entries.any { it.name == input })
+                DataResult.success(input)
+            else DataResult.error { "Invalid enum value: $input" }
+        }.xmap({ input -> entries.first { it.name == input } }, { it.name })
 
     fun <E> idResolverCodec(
         elementToRawId: (E) -> Int,
@@ -224,7 +225,7 @@ object ExtraCodecs {
     })
 
     // region adventure
-    val COMPONENT = Codec.STRING.comapFlatMap(
+    val COMPONENT: Codec<Component> = Codec.STRING.comapFlatMap(
         {
             runCatching { GsonComponentSerializer.gson().deserialize(it) }.fold(
                 { DataResult.success(it) },
@@ -359,7 +360,7 @@ object ExtraCodecs {
     // endregion
     // region nbt
     val COMPOUND_TAG_CODEC = streamCodec<ByteBuf, CompoundBinaryTag>({ buf, tag ->
-        ByteArrayOutputStream().use {out ->
+        ByteArrayOutputStream().use { out ->
             BinaryTagIO.writer().write(tag, out, BinaryTagIO.Compression.GZIP)
             buf.writeByteArray(out.toByteArray())
         }

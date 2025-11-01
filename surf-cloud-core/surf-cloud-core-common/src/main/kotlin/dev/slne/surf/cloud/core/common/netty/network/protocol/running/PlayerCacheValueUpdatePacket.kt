@@ -15,7 +15,7 @@ data class PlayerCacheValueUpdatePacket(
     val key: CacheKey<*>,
     val payload: ByteArray,
     val changeId: Long
-): NettyPacket() {
+) : NettyPacket() {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is PlayerCacheValueUpdatePacket) return false

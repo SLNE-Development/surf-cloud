@@ -5,7 +5,7 @@ import dev.slne.surf.cloud.api.common.netty.network.codec.StreamCodec
 import dev.slne.surf.cloud.api.common.netty.network.codec.streamCodecUnitSimple
 import dev.slne.surf.cloud.api.common.player.OfflineCloudPlayer
 import dev.slne.surf.cloud.api.common.util.annotation.InternalApi
-import dev.slne.surf.cloud.api.common.util.int2ObjectMapOf
+import dev.slne.surf.surfapi.core.api.util.int2ObjectMapOf
 import io.netty.handler.codec.DecoderException
 import kotlinx.serialization.Contextual
 import net.kyori.adventure.text.Component

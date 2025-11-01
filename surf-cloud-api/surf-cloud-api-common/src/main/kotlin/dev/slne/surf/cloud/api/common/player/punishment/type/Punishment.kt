@@ -9,7 +9,7 @@ import org.springframework.core.ResolvableTypeProvider
 import java.time.ZonedDateTime
 import java.util.*
 
-interface Punishment: ResolvableTypeProvider {
+interface Punishment : ResolvableTypeProvider {
     val type: PunishmentType
     val parent: Punishment?
 

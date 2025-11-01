@@ -23,6 +23,7 @@ import org.springframework.data.redis.serializer.RedisSerializer
 class RedisConfig {
 
     @Bean
+    @Suppress("SpringJavaInjectionPointsAutowiringInspection")
     fun lettuceConnectionFactory(configHolder: StandaloneConfigHolder): LettuceConnectionFactory {
         val clientConfig = LettuceClientConfiguration.builder()
             .clientName("surf-cloud-redis-client")

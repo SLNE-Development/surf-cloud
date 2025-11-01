@@ -6,7 +6,7 @@ import dev.slne.surf.cloud.api.common.netty.network.protocol.PacketFlow
 import dev.slne.surf.cloud.api.common.netty.packet.RespondingNettyPacket
 import dev.slne.surf.cloud.api.common.netty.packet.packetCodec
 import dev.slne.surf.cloud.api.common.netty.protocol.buffer.SurfByteBuf
-import java.util.UUID
+import java.util.*
 
 @SurfNettyPacket(
     DefaultIds.SERVERBOUND_REQUEST_PLAYER_PERSISTENT_DATA_CONTAINER,

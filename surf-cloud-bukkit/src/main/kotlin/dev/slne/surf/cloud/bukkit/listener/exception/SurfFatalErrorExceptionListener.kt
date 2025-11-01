@@ -1,10 +1,5 @@
 package dev.slne.surf.cloud.bukkit.listener.exception
 
-import com.destroystokyo.paper.event.server.ServerExceptionEvent
-import dev.slne.surf.cloud.api.common.exceptions.FatalSurfError
-import dev.slne.surf.cloud.core.common.handleEventuallyFatalError
-import org.bukkit.Bukkit
-import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 
 object SurfFatalErrorExceptionListener : Listener {

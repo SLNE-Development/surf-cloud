@@ -8,9 +8,9 @@ import dev.slne.surf.cloud.api.common.player.CloudPlayer
 import dev.slne.surf.cloud.api.common.player.ConnectionResultEnum
 import dev.slne.surf.cloud.api.common.server.CloudServer
 import dev.slne.surf.cloud.api.common.server.CloudServerManager
-import dev.slne.surf.cloud.api.common.util.emptyObjectList
-import dev.slne.surf.cloud.api.common.util.freeze
-import dev.slne.surf.cloud.api.common.util.mutableObjectListOf
+import dev.slne.surf.surfapi.core.api.util.emptyObjectList
+import dev.slne.surf.surfapi.core.api.util.freeze
+import dev.slne.surf.surfapi.core.api.util.mutableObjectListOf
 import dev.slne.surf.cloud.api.server.server.ServerCloudServerManager
 import dev.slne.surf.cloud.api.server.server.ServerCommonCloudServer
 import dev.slne.surf.cloud.api.server.server.ServerProxyCloudServer

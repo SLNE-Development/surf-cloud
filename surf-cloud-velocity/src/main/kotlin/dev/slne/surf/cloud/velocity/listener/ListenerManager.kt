@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component
 
 @Component
 @Order(CloudLifecycleAware.MISC_PRIORITY)
-class ListenerManager: CloudLifecycleAware {
+class ListenerManager : CloudLifecycleAware {
 
     override suspend fun onEnable(timeLogger: TimeLogger) {
         timeLogger.measureStep("Register Velocity listeners") {

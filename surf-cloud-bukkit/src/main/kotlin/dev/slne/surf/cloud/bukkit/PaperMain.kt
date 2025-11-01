@@ -18,6 +18,7 @@ import net.kyori.adventure.text.format.NamedTextColor
 import org.bukkit.Location
 import org.bukkit.entity.Player
 import org.bukkit.event.server.ServerLoadEvent
+import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
 
@@ -37,10 +38,9 @@ class PaperMain : SuspendingJavaPlugin() {
             t.handleEventuallyFatalError { server.restart() }
         }
 
-        var serverLoaded = false
+        val serverLoaded = AtomicBoolean(false)
         listen<ServerLoadEvent> {
-            if (serverLoaded) return@listen
-            serverLoaded = true
+            if (!serverLoaded.compareAndSet(false, true)) return@listen
 
             launch {
                 try {

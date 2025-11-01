@@ -15,7 +15,8 @@ import java.util.*
 class ServerboundPlaySoundPacket : NettyPacket {
 
     companion object {
-        val STREAM_CODEC = packetCodec(ServerboundPlaySoundPacket::write, ::ServerboundPlaySoundPacket)
+        val STREAM_CODEC =
+            packetCodec(ServerboundPlaySoundPacket::write, ::ServerboundPlaySoundPacket)
     }
 
     val uuid: UUID
@@ -48,7 +49,14 @@ class ServerboundPlaySoundPacket : NettyPacket {
         this.permission = permission
     }
 
-    constructor(uuid: UUID, sound: Sound, x: Double, y: Double, z: Double, permission: String? = null) {
+    constructor(
+        uuid: UUID,
+        sound: Sound,
+        x: Double,
+        y: Double,
+        z: Double,
+        permission: String? = null
+    ) {
         this.uuid = uuid
         this.sound = sound
         this.emitter = null

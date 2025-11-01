@@ -18,10 +18,10 @@ class ServerQueueDisplay(private val queue: GroupQueueImpl, private val queues: 
         animationIndex = (animationIndex + 1) % ANIMATION_CHARS.size
 
         val snapshot = queue.entriesSnapshot()
-        if (snapshot.isEmpty()) return
+        if (snapshot.isEmpty) return
 
         var unspecifiedCount = 0                                           // preferred == null
-                val preferredCounts = mutableObject2IntMapOf<String>() // serverName -> count
+        val preferredCounts = mutableObject2IntMapOf<String>() // serverName -> count
 
         snapshot.forEach { e ->
             val key = e.preferredServerName

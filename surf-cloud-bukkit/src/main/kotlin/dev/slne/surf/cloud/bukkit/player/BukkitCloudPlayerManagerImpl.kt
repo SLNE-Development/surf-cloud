@@ -11,7 +11,8 @@ import java.net.Inet4Address
 import java.util.*
 
 @AutoService(CloudPlayerManager::class)
-class BukkitCloudPlayerManagerImpl : CommonClientCloudPlayerManagerImpl<Player, BukkitClientCloudPlayerImpl>() {
+class BukkitCloudPlayerManagerImpl :
+    CommonClientCloudPlayerManagerImpl<Player, BukkitClientCloudPlayerImpl>() {
     init {
         checkInstantiationByServiceLoader()
     }

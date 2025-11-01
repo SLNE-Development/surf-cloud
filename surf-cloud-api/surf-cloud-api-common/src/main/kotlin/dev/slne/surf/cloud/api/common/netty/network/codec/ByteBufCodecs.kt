@@ -253,6 +253,38 @@ object ByteBufCodecs {
         }
     }
 
+    fun <B : ByteBuf, V : Any> optional(codec: StreamCodec<in B, V>) =
+        object : StreamCodec<B, Optional<V>> {
+            override fun decode(buf: B): Optional<V> {
+                return if (buf.readBoolean()) Optional.of(codec.decode(buf)) else Optional.empty()
+            }
+
+            override fun encode(buf: B, value: Optional<V>) {
+                if (value.isPresent) {
+                    buf.writeBoolean(true)
+                    codec.encode(buf, value.get())
+                } else {
+                    buf.writeBoolean(false)
+                }
+            }
+        }
+
+    fun <B : ByteBuf, V : Any> nullable(codec: StreamCodec<in B, V>) =
+        object : StreamCodec<B, V?> {
+            override fun decode(buf: B): V? {
+                return if (buf.readBoolean()) codec.decode(buf) else null
+            }
+
+            override fun encode(buf: B, value: V?) {
+                if (value != null) {
+                    buf.writeBoolean(true)
+                    codec.encode(buf, value)
+                } else {
+                    buf.writeBoolean(false)
+                }
+            }
+        }
+
     fun readCount(buffer: ByteBuf, maxSize: Int): Int {
         val count = buffer.readVarInt()
         if (count > maxSize) {

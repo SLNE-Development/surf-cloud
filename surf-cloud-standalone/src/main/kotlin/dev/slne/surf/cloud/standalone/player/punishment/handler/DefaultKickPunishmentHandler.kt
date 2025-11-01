@@ -6,7 +6,6 @@ import dev.slne.surf.cloud.api.common.player.punishment.type.kick.PunishmentKick
 import dev.slne.surf.cloud.core.common.coroutines.PunishmentHandlerScope
 import dev.slne.surf.cloud.core.common.messages.MessageManager
 import kotlinx.coroutines.launch
-import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Component
 
 @Component

@@ -12,7 +12,8 @@ import dev.slne.surf.cloud.api.common.netty.protocol.buffer.SurfByteBuf
 typealias OptionalFloatResponsePacket = RespondingNettyPacket<OptionalFloatResponse>
 
 @SurfNettyPacket("optional_float_response", PacketFlow.BIDIRECTIONAL)
-class OptionalFloatResponse(override val value: Float?) : ResponseNettyPacket(), CommonResponseType<Float?> {
+class OptionalFloatResponse(override val value: Float?) : ResponseNettyPacket(),
+    CommonResponseType<Float?> {
     companion object : CommonResponseTypeFactory<OptionalFloatResponse, Float?> {
         val STREAM_CODEC = packetCodec(OptionalFloatResponse::write, ::OptionalFloatResponse)
         override fun create(value: Float?): OptionalFloatResponse {

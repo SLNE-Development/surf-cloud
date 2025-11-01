@@ -2,11 +2,7 @@ package dev.slne.surf.cloud.api.common.util
 
 import io.netty.channel.unix.DomainSocketAddress
 import io.netty.util.NetUtil
-import java.net.Inet4Address
-import java.net.Inet6Address
-import java.net.InetAddress
-import java.net.InetSocketAddress
-import java.net.SocketAddress
+import java.net.*
 
 /**
  * Creates InetSocketAddress instance. Numeric IP addresses will be detected and
@@ -59,15 +55,19 @@ fun createUnresolvedInetSocketAddress(hostname: String, port: Int): InetSocketAd
  * having been parsed but not the port (replaced by {@code defaultPort})
  * @return {@link InetSocketAddress} for given parameters, only numeric IP addresses will be resolved
  */
-fun parseInetSocketAddress(address: String, defaultPort: Int, strict: Boolean = false): InetSocketAddress {
+fun parseInetSocketAddress(
+    address: String,
+    defaultPort: Int,
+    strict: Boolean = false
+): InetSocketAddress {
     var host = address
     var port = defaultPort
-    val separatorIdx  = address.lastIndexOf(':')
+    val separatorIdx = address.lastIndexOf(':')
     val ipV6HostSeparatorIdx = address.lastIndexOf(']')
 
     if (separatorIdx > ipV6HostSeparatorIdx) {
         if (separatorIdx == address.indexOf(':') || ipV6HostSeparatorIdx > -1) {
-            host = address.substring(0, separatorIdx)
+            host = address.take(separatorIdx)
             val portStr = address.substring(separatorIdx + 1)
             if (portStr.isNotEmpty()) {
                 if (portStr.chars().allMatch(Character::isDigit)) {
@@ -154,7 +154,9 @@ fun updateInetSocketAddressPort(address: (() -> SocketAddress)?, port: Int): Ine
         return createResolvedInetSocketAddress(NetUtil.LOCALHOST.hostAddress, port)
     }
 
-    return createUnresolvedInetSocketAddress(socketAddress.address?.hostAddress ?: socketAddress.hostName, port)
+    return createUnresolvedInetSocketAddress(
+        socketAddress.address?.hostAddress ?: socketAddress.hostName, port
+    )
 }
 
 fun attemptParsingIpString(address: String): InetAddress? =

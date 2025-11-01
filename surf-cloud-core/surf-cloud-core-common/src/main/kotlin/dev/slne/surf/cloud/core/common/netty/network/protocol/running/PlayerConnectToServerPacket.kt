@@ -18,11 +18,7 @@ import java.util.*
  * Sent by the client to connect to the standalone when the player is logging in on a proxy or bukkit server.
  *
  * The standalone will then add the player to their player list and broadcast the packet to all
- * other servers which than also add the player to their player list.
- *
- * @param uuid The uuid of the player
- * @param serverUid The uid of the server the player is connecting to
- * @param proxy If the server is a proxy
+ * other servers which then also add the player to their player list.
  */
 @SurfNettyPacket(DefaultIds.PLAYER_CONNECT_TO_SERVER_PACKET, PacketFlow.SERVERBOUND)
 data class PlayerConnectToServerPacket(

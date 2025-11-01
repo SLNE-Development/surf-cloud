@@ -9,8 +9,8 @@ import dev.slne.surf.cloud.api.common.player.punishment.type.ban.PunishmentBan
 import dev.slne.surf.cloud.api.common.player.punishment.type.kick.PunishmentKick
 import dev.slne.surf.cloud.api.common.player.punishment.type.mute.PunishmentMute
 import dev.slne.surf.cloud.api.common.player.punishment.type.warn.PunishmentWarn
-import dev.slne.surf.cloud.api.common.util.emptyObjectList
-import dev.slne.surf.cloud.api.common.util.toObjectList
+import dev.slne.surf.surfapi.core.api.util.emptyObjectList
+import dev.slne.surf.surfapi.core.api.util.toObjectList
 import dev.slne.surf.cloud.core.common.player.PunishmentManager
 import dev.slne.surf.cloud.core.common.player.punishment.type.PunishmentBanImpl
 import dev.slne.surf.cloud.core.common.player.punishment.type.PunishmentKickImpl

@@ -7,7 +7,7 @@ import net.kyori.adventure.key.Key
 import org.springframework.stereotype.Component
 
 @Component
-class PlayerCacheKeyRegistryImpl: PlayerCacheKeyRegistry {
+class PlayerCacheKeyRegistryImpl : PlayerCacheKeyRegistry {
     override fun allKeys(): List<CacheKey<*>> {
         TODO("Not yet implemented")
     }

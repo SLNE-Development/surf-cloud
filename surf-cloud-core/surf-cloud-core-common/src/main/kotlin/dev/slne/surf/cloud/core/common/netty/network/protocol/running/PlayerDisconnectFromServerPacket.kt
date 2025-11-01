@@ -9,10 +9,11 @@ import dev.slne.surf.cloud.api.common.netty.protocol.buffer.SurfByteBuf
 import java.util.*
 
 @SurfNettyPacket(DefaultIds.PLAYER_DISCONNECT_FROM_SERVER_PACKET, PacketFlow.BIDIRECTIONAL)
-class PlayerDisconnectFromServerPacket: NettyPacket {
+class PlayerDisconnectFromServerPacket : NettyPacket {
 
     companion object {
-        val STREAM_CODEC = packetCodec(PlayerDisconnectFromServerPacket::write, ::PlayerDisconnectFromServerPacket)
+        val STREAM_CODEC =
+            packetCodec(PlayerDisconnectFromServerPacket::write, ::PlayerDisconnectFromServerPacket)
     }
 
     val uuid: UUID

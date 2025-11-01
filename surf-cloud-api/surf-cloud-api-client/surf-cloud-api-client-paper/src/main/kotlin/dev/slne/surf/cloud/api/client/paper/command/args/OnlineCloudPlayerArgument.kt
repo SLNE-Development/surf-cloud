@@ -2,7 +2,10 @@ package dev.slne.surf.cloud.api.client.paper.command.args
 
 import dev.jorel.commandapi.CommandAPICommand
 import dev.jorel.commandapi.CommandTree
-import dev.jorel.commandapi.arguments.*
+import dev.jorel.commandapi.arguments.Argument
+import dev.jorel.commandapi.arguments.ArgumentSuggestions
+import dev.jorel.commandapi.arguments.CustomArgument
+import dev.jorel.commandapi.arguments.StringArgument
 import dev.slne.surf.cloud.api.common.player.CloudPlayer
 import dev.slne.surf.cloud.api.common.player.CloudPlayerManager
 import dev.slne.surf.surfapi.core.api.util.logger
@@ -59,4 +62,5 @@ inline fun CommandAPICommand.onlineCloudPlayerArgument(
     nodeName: String,
     optional: Boolean = false,
     block: Argument<*>.() -> Unit = {}
-): CommandAPICommand = withArguments(OnlineCloudPlayerArgument(nodeName).setOptional(optional).apply(block))
+): CommandAPICommand =
+    withArguments(OnlineCloudPlayerArgument(nodeName).setOptional(optional).apply(block))

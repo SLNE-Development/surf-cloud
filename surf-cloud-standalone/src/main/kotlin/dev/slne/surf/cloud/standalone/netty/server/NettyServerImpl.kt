@@ -1,7 +1,7 @@
 package dev.slne.surf.cloud.standalone.netty.server
 
 import com.github.benmanes.caffeine.cache.Caffeine
-import dev.slne.surf.cloud.api.common.util.toObjectList
+import dev.slne.surf.surfapi.core.api.util.toObjectList
 import dev.slne.surf.cloud.core.common.config.AbstractSurfCloudConfigHolder
 import dev.slne.surf.cloud.core.common.netty.network.DisconnectReason
 import dev.slne.surf.cloud.core.common.netty.network.DisconnectionDetails

@@ -8,7 +8,7 @@ import dev.slne.surf.cloud.core.common.netty.network.protocol.BundlerInfo
 import io.netty.buffer.ByteBuf
 import java.util.function.Function
 
-interface ProtocolInfo<T: PacketListener> {
+interface ProtocolInfo<T : PacketListener> {
     val id: ConnectionProtocol
     val flow: PacketFlow
     val codec: StreamCodec<ByteBuf, NettyPacket>
@@ -21,7 +21,7 @@ interface ProtocolInfo<T: PacketListener> {
 
         fun bind(registryBinder: Function<ByteBuf, B>): ProtocolInfo<T>
 
-        interface Mutable<T: PacketListener, B : ByteBuf>: Unbound<T, B> {
+        interface Mutable<T : PacketListener, B : ByteBuf> : Unbound<T, B> {
             fun <P : NettyPacket> addPacket(
                 id: Class<P>,
                 codec: StreamCodec<in B, out P>
@@ -32,5 +32,7 @@ interface ProtocolInfo<T: PacketListener> {
     }
 }
 
-inline fun <T : PacketListener, B : ByteBuf, reified P : NettyPacket> ProtocolInfo.Unbound.Mutable<T, B>.addPacket(codec: StreamCodec<in B, P>) =
+inline fun <T : PacketListener, B : ByteBuf, reified P : NettyPacket> ProtocolInfo.Unbound.Mutable<T, B>.addPacket(
+    codec: StreamCodec<in B, P>
+) =
     addPacket(P::class.java, codec)

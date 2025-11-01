@@ -4,7 +4,7 @@ import kotlinx.coroutines.future.await
 import net.luckperms.api.LuckPermsProvider
 import net.luckperms.api.model.user.User
 import net.luckperms.api.model.user.UserManager
-import java.util.UUID
+import java.util.*
 
 val luckperms get() = LuckPermsProvider.get()
 

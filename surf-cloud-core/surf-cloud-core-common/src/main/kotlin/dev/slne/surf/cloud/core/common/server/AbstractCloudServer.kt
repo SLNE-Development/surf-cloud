@@ -4,9 +4,9 @@ import dev.slne.surf.cloud.api.common.player.CloudPlayer
 import dev.slne.surf.cloud.api.common.player.ConnectionResultEnum
 import dev.slne.surf.cloud.api.common.server.CloudServer
 import dev.slne.surf.cloud.api.common.server.UserListImpl
-import dev.slne.surf.cloud.api.common.util.emptyObjectList
+import dev.slne.surf.surfapi.core.api.util.emptyObjectList
 import dev.slne.surf.cloud.api.common.util.mapAsync
-import dev.slne.surf.cloud.api.common.util.objectListOf
+import dev.slne.surf.surfapi.core.api.util.objectListOf
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ClientInformation
 import it.unimi.dsi.fastutil.objects.ObjectList
 import kotlinx.coroutines.awaitAll

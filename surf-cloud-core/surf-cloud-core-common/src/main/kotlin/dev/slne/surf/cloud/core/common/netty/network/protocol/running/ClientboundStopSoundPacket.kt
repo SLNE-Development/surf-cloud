@@ -8,13 +8,14 @@ import dev.slne.surf.cloud.api.common.netty.packet.packetCodec
 import dev.slne.surf.cloud.api.common.netty.protocol.buffer.SurfByteBuf
 import dev.slne.surf.cloud.api.common.util.codec.ExtraCodecs
 import net.kyori.adventure.sound.SoundStop
-import java.util.UUID
+import java.util.*
 
 @SurfNettyPacket(DefaultIds.CLIENTBOUND_STOP_SOUND_PACKET, PacketFlow.CLIENTBOUND)
-class ClientboundStopSoundPacket: NettyPacket {
+class ClientboundStopSoundPacket : NettyPacket {
 
     companion object {
-        val STREAM_CODEC = packetCodec(ClientboundStopSoundPacket::write, ::ClientboundStopSoundPacket)
+        val STREAM_CODEC =
+            packetCodec(ClientboundStopSoundPacket::write, ::ClientboundStopSoundPacket)
     }
 
     val uuid: UUID

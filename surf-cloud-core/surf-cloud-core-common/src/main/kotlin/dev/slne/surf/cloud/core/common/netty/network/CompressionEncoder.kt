@@ -6,7 +6,7 @@ import io.netty.channel.ChannelHandlerContext
 import io.netty.handler.codec.MessageToByteEncoder
 import java.util.zip.Deflater
 
-class CompressionEncoder(private var threshold: Int): MessageToByteEncoder<ByteBuf>() {
+class CompressionEncoder(private var threshold: Int) : MessageToByteEncoder<ByteBuf>() {
     private val encodeBuffer = ByteArray(0x2000)
     private val deflater = Deflater()
 

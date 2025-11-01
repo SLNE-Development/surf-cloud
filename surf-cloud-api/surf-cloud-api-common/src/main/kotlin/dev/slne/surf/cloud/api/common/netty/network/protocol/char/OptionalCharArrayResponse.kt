@@ -22,7 +22,9 @@ typealias OptionalCharArrayResponsePacket = RespondingNettyPacket<OptionalCharAr
 class OptionalCharArrayResponse(override val value: CharArray?) : ResponseNettyPacket(),
     CommonResponseType<CharArray?> {
     companion object : CommonResponseTypeFactory<OptionalCharArrayResponse, CharArray?> {
-        val STREAM_CODEC = packetCodec(OptionalCharArrayResponse::write, ::OptionalCharArrayResponse)
+        val STREAM_CODEC =
+            packetCodec(OptionalCharArrayResponse::write, ::OptionalCharArrayResponse)
+
         override fun create(value: CharArray?): OptionalCharArrayResponse {
             return OptionalCharArrayResponse(value)
         }

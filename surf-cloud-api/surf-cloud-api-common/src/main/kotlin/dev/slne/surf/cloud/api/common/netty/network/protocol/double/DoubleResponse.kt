@@ -11,7 +11,8 @@ import dev.slne.surf.cloud.api.common.netty.protocol.buffer.SurfByteBuf
 typealias DoubleResponsePacket = RespondingNettyPacket<DoubleResponse>
 
 @SurfNettyPacket("double_response", PacketFlow.BIDIRECTIONAL)
-class DoubleResponse(override val value: Double) : ResponseNettyPacket(), CommonResponseType<Double> {
+class DoubleResponse(override val value: Double) : ResponseNettyPacket(),
+    CommonResponseType<Double> {
     companion object {
         val STREAM_CODEC = packetCodec(DoubleResponse::write, ::DoubleResponse)
     }

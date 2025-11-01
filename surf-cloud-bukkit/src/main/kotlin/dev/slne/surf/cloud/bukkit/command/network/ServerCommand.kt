@@ -89,7 +89,7 @@ fun serverCommand() = commandTree("server") {
                             error(" wurde getrennt.")
                         }
 
-                        SERVER_NOT_FOUND -> throw AssertionError("Server not found")
+                        is SERVER_NOT_FOUND -> throw AssertionError("Server not found")
                         ALREADY_CONNECTED -> throw AssertionError("Already connected")
                         OTHER_SERVER_CANNOT_ACCEPT_TRANSFER_PACKET -> throw AssertionError()
                         CANNOT_CONNECT_TO_PROXY -> throw AssertionError("Cannot connect to proxy")

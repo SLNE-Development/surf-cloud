@@ -14,7 +14,8 @@ import java.util.*
 class ClientboundShowTitlePacket : NettyPacket {
 
     companion object {
-        val STREAM_CODEC = packetCodec(ClientboundShowTitlePacket::write, ::ClientboundShowTitlePacket)
+        val STREAM_CODEC =
+            packetCodec(ClientboundShowTitlePacket::write, ::ClientboundShowTitlePacket)
     }
 
     val uuid: UUID

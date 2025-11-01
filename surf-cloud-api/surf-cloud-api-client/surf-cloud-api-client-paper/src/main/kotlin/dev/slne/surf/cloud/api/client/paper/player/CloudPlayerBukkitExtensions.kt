@@ -10,6 +10,7 @@ import dev.slne.surf.surfapi.bukkit.api.extensions.server
 import io.papermc.paper.entity.TeleportFlag
 import org.bukkit.Location
 import org.bukkit.OfflinePlayer
+import org.bukkit.entity.Player
 import org.bukkit.event.player.PlayerTeleportEvent
 
 /**
@@ -57,7 +58,7 @@ fun CloudPlayer.toBukkitPlayer() = server.getPlayer(uuid)
 /**
  * Converts an instance of [OfflineCloudPlayer] to the corresponding Bukkit offline player.
  *
- * This function utilizes the player's unique identifier (UUID) to fetch the associated
+ * This function uses the player's unique identifier (UUID) to fetch the associated
  * [org.bukkit.OfflinePlayer] from the server.
  *
  * @receiver The [OfflineCloudPlayer] instance to convert.

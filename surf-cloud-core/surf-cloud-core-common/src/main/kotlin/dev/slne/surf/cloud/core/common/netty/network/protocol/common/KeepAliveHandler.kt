@@ -28,7 +28,10 @@ class KeepAliveHandler(
         val elapsedTime = currentTime - keepAliveTime
 
         if (KEEP_ALIVE_TIME.isExpired(elapsedTime)) {
-            if (keepAlivePending && !isDisconnectProcessed() && KEEP_ALIVE_LIMIT.isExpired(elapsedTime)) {
+            if (keepAlivePending && !isDisconnectProcessed() && KEEP_ALIVE_LIMIT.isExpired(
+                    elapsedTime
+                )
+            ) {
                 disconnect(DisconnectReason.TIMEOUT)
             } else if (checkIfClosed(currentTime)) {
                 keepAlivePending = true

@@ -8,7 +8,8 @@ import dev.slne.surf.cloud.velocity.proxy
 import net.kyori.adventure.text.Component
 import java.util.*
 
-class VelocityClientCloudPlayerImpl(uuid: UUID, name: String) : ClientCloudPlayerImpl<Player>(uuid,
+class VelocityClientCloudPlayerImpl(uuid: UUID, name: String) : ClientCloudPlayerImpl<Player>(
+    uuid,
     name
 ) {
     override val platformClass = Player::class.java

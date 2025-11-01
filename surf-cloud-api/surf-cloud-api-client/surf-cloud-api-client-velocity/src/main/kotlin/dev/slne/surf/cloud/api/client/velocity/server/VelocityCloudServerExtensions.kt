@@ -9,4 +9,5 @@ import kotlin.jvm.optionals.getOrNull
 fun CloudServer.toRegisteredServer(proxy: ProxyServer) =
     proxy.getServer(name).getOrNull() ?: error("Server $name is not registered in Velocity proxy")
 
-fun RegisteredServer.toCloudServer() = CloudServerManager.retrieveServerByName(serverInfo.name) as? CloudServer
+fun RegisteredServer.toCloudServer() =
+    CloudServerManager.retrieveServerByName(serverInfo.name) as? CloudServer

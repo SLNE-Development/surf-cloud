@@ -8,14 +8,13 @@ import kotlinx.serialization.Serializable
 
 /**
  * Teil-Paket einer Player-Cache-Hydration. Enthält eine oder mehrere Cache-Entries.
- * Einträge sind kodiert als: [keyId][version][size][valueBytes] je Eintrag.
  */
 @SurfNettyPacket(
     "cloud:clientbound:player_cache/hydrate_chunk",
     PacketFlow.CLIENTBOUND
 )
 @Serializable
-class ClientboundPlayerCacheHydrateChunkPacket(val entries: List<Entry>): NettyPacket() {
+class ClientboundPlayerCacheHydrateChunkPacket(val entries: List<Entry>) : NettyPacket() {
     @Serializable
     data class Entry(val key: CacheNetworkKey, val version: Long, val valueBytes: ByteArray) {
         override fun equals(other: Any?): Boolean {

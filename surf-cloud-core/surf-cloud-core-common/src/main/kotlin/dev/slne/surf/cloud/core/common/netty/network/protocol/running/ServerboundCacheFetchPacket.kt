@@ -12,5 +12,5 @@ import java.util.*
     PacketFlow.SERVERBOUND
 )
 @Serializable
-class ServerboundCacheFetchPacket(val uuid: @Contextual UUID):
+class ServerboundCacheFetchPacket(val uuid: @Contextual UUID) :
     RespondingNettyPacket<ClientboundCacheSnapshotPacket>()

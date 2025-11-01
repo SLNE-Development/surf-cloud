@@ -27,10 +27,17 @@ abstract class AbstractStatusUpdater(initialState: State, val updateStatus: Stat
         PRE_PRE_RUNNING("Running initial setup...", setOf(PREPARE_CONNECTION)),
         PRE_RUNNING("Waiting till client started...", setOf(PRE_PRE_RUNNING)),
         SYNCHRONIZING("Synchronizing...", setOf(PRE_RUNNING)),
-        SYNCHRONIZE_WAIT_FOR_SERVER("Waiting for server to finish synchronization...", setOf(SYNCHRONIZING)),
-        SYNCHRONIZED("Finished synchronization!", setOf(SYNCHRONIZING, SYNCHRONIZE_WAIT_FOR_SERVER)),
+        SYNCHRONIZE_WAIT_FOR_SERVER(
+            "Waiting for server to finish synchronization...",
+            setOf(SYNCHRONIZING)
+        ),
+        SYNCHRONIZED(
+            "Finished synchronization!",
+            setOf(SYNCHRONIZING, SYNCHRONIZE_WAIT_FOR_SERVER)
+        ),
         CONNECTED("Connected!", setOf(SYNCHRONIZED))
     }
 }
 
-class StatusUpdaterImpl(initialState: State, updateStatus: StatusUpdate) : AbstractStatusUpdater(initialState, updateStatus)
+class StatusUpdaterImpl(initialState: State, updateStatus: StatusUpdate) :
+    AbstractStatusUpdater(initialState, updateStatus)

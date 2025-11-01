@@ -83,7 +83,7 @@ interface CloudPlayer : Audience, OfflineCloudPlayer {
      *
      * @param group The server group name.
      * @param server The target server name.
-     * @return A [ConnectionResult] indicating the result of the connection attempt.
+     * @return A [ConnectionResultEnum] indicating the result of the connection attempt.
      */
     suspend fun connectToServer(group: String, server: String): ConnectionResultEnum
 
@@ -91,7 +91,7 @@ interface CloudPlayer : Audience, OfflineCloudPlayer {
      * Connects the player to the server with the lowest player count in the specified group.
      *
      * @param group The server group name.
-     * @return A [ConnectionResult] indicating the result of the connection attempt.
+     * @return A [ConnectionResultEnum] indicating the result of the connection attempt.
      */
     suspend fun connectToServer(group: String): ConnectionResultEnum
 
@@ -99,7 +99,7 @@ interface CloudPlayer : Audience, OfflineCloudPlayer {
      * Connects the player to the specified server or places them in a queue if unavailable.
      *
      * @param server The target server to connect to.
-     * @return A [ConnectionResult] indicating the result of the connection attempt.
+     * @return A [ConnectionResultEnum] indicating the result of the connection attempt.
      */
     suspend fun connectToServerOrQueue(
         server: CloudServer,
@@ -111,7 +111,7 @@ interface CloudPlayer : Audience, OfflineCloudPlayer {
      *
      * @param group The server group name.
      * @param server The target server name.
-     * @return A [ConnectionResult] indicating the result of the connection attempt.
+     * @return A [ConnectionResultEnum] indicating the result of the connection attempt.
      */
     suspend fun connectToServerOrQueue(
         group: String,
@@ -123,7 +123,7 @@ interface CloudPlayer : Audience, OfflineCloudPlayer {
      * Connects the player to the server with the lowest player count in a group or queues them if unavailable.
      *
      * @param group The server group name.
-     * @return A [ConnectionResult] indicating the result of the connection attempt.
+     * @return A [ConnectionResultEnum] indicating the result of the connection attempt.
      */
     suspend fun connectToServerOrQueue(
         group: String,

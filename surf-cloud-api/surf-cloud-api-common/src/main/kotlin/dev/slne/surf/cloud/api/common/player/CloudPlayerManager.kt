@@ -59,7 +59,8 @@ fun Audience?.toCloudPlayer(): CloudPlayer? {
  * or `null` if the [Audience] is not a player or cannot be resolved.
  */
 @JvmName("toOfflineCloudPlayerNullable")
-fun Audience?.toOfflineCloudPlayer(createIfNotExists: Boolean = true): OfflineCloudPlayer? = this?.toOfflineCloudPlayer(createIfNotExists)
+fun Audience?.toOfflineCloudPlayer(createIfNotExists: Boolean = true): OfflineCloudPlayer? =
+    this?.toOfflineCloudPlayer(createIfNotExists)
 
 fun Audience.toOfflineCloudPlayer(createIfNotExists: Boolean = true): OfflineCloudPlayer? {
     return this.pointers().get(Identity.UUID).getOrNull()

@@ -10,6 +10,6 @@ import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
     PacketFlow.BIDIRECTIONAL,
     ConnectionProtocol.SYNCHRONIZING
 )
-object FinishSynchronizingPacket: NettyPacket() {
+object FinishSynchronizingPacket : NettyPacket() {
     val STREAM_CODEC = streamCodecUnitSimple(FinishSynchronizingPacket)
 }

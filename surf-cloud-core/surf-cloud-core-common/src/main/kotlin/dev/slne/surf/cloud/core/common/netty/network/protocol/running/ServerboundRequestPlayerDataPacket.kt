@@ -85,13 +85,13 @@ class ServerboundRequestPlayerDataPacket(val uuid: UUID, val type: DataRequestTy
         },
         IS_AFK(::IsAFK) {
             override suspend fun readData(player: OfflineCloudPlayer): DataResponse {
-                val player= player.player ?: error("Player is not online")
+                val player = player.player ?: error("Player is not online")
                 return IsAFK(player.isAfk())
             }
         },
         PLAYTIME_SESSION(::PlaytimeSession) {
             override suspend fun readData(player: OfflineCloudPlayer): DataResponse {
-                val player= player.player ?: error("Player is not online")
+                val player = player.player ?: error("Player is not online")
                 return PlaytimeSession(player.currentSessionDuration())
             }
         };

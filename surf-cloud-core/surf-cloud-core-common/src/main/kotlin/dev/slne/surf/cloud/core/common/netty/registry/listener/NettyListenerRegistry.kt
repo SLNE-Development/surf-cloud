@@ -4,7 +4,7 @@ import dev.slne.surf.cloud.api.common.netty.exception.SurfNettyListenerRegistrat
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacketInfo
 import dev.slne.surf.cloud.api.common.util.isSuspending
-import dev.slne.surf.cloud.api.common.util.mutableObject2ObjectMapOf
+import dev.slne.surf.surfapi.core.api.util.mutableObject2ObjectMapOf
 import it.unimi.dsi.fastutil.objects.Object2ObjectFunction
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet
 import it.unimi.dsi.fastutil.objects.ObjectSet

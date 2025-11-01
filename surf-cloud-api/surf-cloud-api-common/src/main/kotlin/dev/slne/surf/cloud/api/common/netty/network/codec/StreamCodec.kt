@@ -88,6 +88,7 @@ interface StreamCodec<B, V> : StreamDecoder<B, V>, StreamEncoder<B, V> {
                 codec2.encode(buf, from2.apply(value))
             }
         }
+
         fun <B, T> recursive(codecGetter: UnaryOperator<StreamCodec<B, T>>) =
             object : StreamCodec<B, T> {
                 private val inner by lazy { codecGetter.apply(this) }

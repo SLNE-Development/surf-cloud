@@ -70,4 +70,5 @@ inline fun CommandAPICommand.cloudServerGroupArgument(
     nodeName: String,
     optional: Boolean = false,
     block: Argument<*>.() -> Unit = {}
-): CommandAPICommand = withArguments(CloudServerGroupArgument(nodeName).setOptional(optional).apply(block))
+): CommandAPICommand =
+    withArguments(CloudServerGroupArgument(nodeName).setOptional(optional).apply(block))

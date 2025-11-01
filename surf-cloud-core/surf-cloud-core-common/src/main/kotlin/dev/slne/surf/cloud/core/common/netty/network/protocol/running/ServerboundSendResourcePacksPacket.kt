@@ -8,13 +8,16 @@ import dev.slne.surf.cloud.api.common.netty.packet.packetCodec
 import dev.slne.surf.cloud.api.common.netty.protocol.buffer.SurfByteBuf
 import dev.slne.surf.cloud.api.common.util.codec.ExtraCodecs
 import net.kyori.adventure.resource.ResourcePackRequest
-import java.util.UUID
+import java.util.*
 
 @SurfNettyPacket(DefaultIds.SERVERBOUND_SEND_RESOURCE_PACKS_PACKET, PacketFlow.SERVERBOUND)
-class ServerboundSendResourcePacksPacket: NettyPacket {
+class ServerboundSendResourcePacksPacket : NettyPacket {
 
     companion object {
-        val STREAM_CODEC = packetCodec(ServerboundSendResourcePacksPacket::write, ::ServerboundSendResourcePacksPacket)
+        val STREAM_CODEC = packetCodec(
+            ServerboundSendResourcePacksPacket::write,
+            ::ServerboundSendResourcePacksPacket
+        )
     }
 
     val uuid: UUID

@@ -1,6 +1,5 @@
 package dev.slne.surf.cloud.core.common.spring.config
 
-import com.fasterxml.jackson.core.JsonParser
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.MapperFeature
 import com.fasterxml.jackson.databind.Module

@@ -16,7 +16,7 @@ import org.springframework.stereotype.Component
 @OptIn(NmsUseWithCaution::class)
 @Component
 @Order(CloudLifecycleAware.MISC_PRIORITY)
-class ListenerManager: CloudLifecycleAware {
+class ListenerManager : CloudLifecycleAware {
 
     override suspend fun onEnable(timeLogger: TimeLogger) {
         timeLogger.measureStep("Registering listeners") {

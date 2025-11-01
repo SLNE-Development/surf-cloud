@@ -9,7 +9,7 @@ import org.bukkit.event.player.PlayerEditBookEvent
 import org.springframework.stereotype.Component
 
 @Component
-class PaperMuteListener: AbstractMuteListener(), Listener {
+class PaperMuteListener : AbstractMuteListener(), Listener {
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     fun onAsyncChat(event: AsyncChatEvent) {
         processEvent(event)

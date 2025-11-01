@@ -17,7 +17,7 @@ class ClientboundCacheErrorPacket(
     val uuid: @Contextual UUID,
     val key: CacheNetworkKey,
     val errorCode: ErrorCode,
-): NettyPacket() {
+) : NettyPacket() {
     enum class ErrorCode {
         VERSION_CONFLICT,
         UNKNOWN_KEY

@@ -7,7 +7,7 @@ import dev.slne.surf.cloud.api.common.netty.network.codec.StreamCodec
 import dev.slne.surf.cloud.api.common.netty.network.codec.streamCodecUnitSimple
 import dev.slne.surf.cloud.api.common.netty.network.protocol.PacketFlow
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
-import dev.slne.surf.cloud.api.common.util.mutableObjectSetOf
+import dev.slne.surf.surfapi.core.api.util.mutableObjectSetOf
 import dev.slne.surf.cloud.core.common.netty.network.ClientboundPacketListener
 import dev.slne.surf.cloud.core.common.netty.network.PacketListener
 import dev.slne.surf.cloud.core.common.netty.network.ProtocolInfo

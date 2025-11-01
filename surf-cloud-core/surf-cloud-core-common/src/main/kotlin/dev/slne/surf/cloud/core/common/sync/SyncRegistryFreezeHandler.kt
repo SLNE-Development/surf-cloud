@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component
 
 @Component
 @Order(CloudLifecycleAware.BEFORE_START_TASK_PRIORITY)
-class SyncRegistryFreezeHandler: CloudLifecycleAware {
+class SyncRegistryFreezeHandler : CloudLifecycleAware {
     override suspend fun onEnable(timeLogger: TimeLogger) {
         timeLogger.measureStep("Freezing SyncRegistry") {
             CommonSyncRegistryImpl.instance.freeze()

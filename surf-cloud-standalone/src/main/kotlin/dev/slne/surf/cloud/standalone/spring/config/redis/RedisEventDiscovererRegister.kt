@@ -5,7 +5,7 @@ import org.springframework.boot.builder.SpringApplicationBuilder
 import org.springframework.stereotype.Component
 
 @Component
-class RedisEventDiscovererRegister: CloudChildSpringApplicationConfiguration {
+class RedisEventDiscovererRegister : CloudChildSpringApplicationConfiguration {
     override fun configureChildApplication(
         builder: SpringApplicationBuilder,
         classLoader: ClassLoader,

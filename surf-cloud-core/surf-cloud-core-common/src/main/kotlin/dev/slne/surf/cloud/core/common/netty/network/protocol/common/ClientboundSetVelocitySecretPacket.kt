@@ -7,7 +7,7 @@ import kotlinx.serialization.Serializable
 
 @SurfNettyPacket("cloud:clientbound:set_velocity_secret", PacketFlow.CLIENTBOUND)
 @Serializable
-class ClientboundSetVelocitySecretPacket(val secret: ByteArray): NettyPacket() {
+class ClientboundSetVelocitySecretPacket(val secret: ByteArray) : NettyPacket() {
     override fun toString(): String {
         return "ClientboundSetVelocitySecretPacket(secret=***)"
     }

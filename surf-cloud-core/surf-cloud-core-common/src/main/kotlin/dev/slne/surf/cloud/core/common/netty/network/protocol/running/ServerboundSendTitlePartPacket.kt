@@ -10,13 +10,14 @@ import dev.slne.surf.cloud.api.common.util.codec.ExtraCodecs
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.title.Title
 import net.kyori.adventure.title.TitlePart
-import java.util.UUID
+import java.util.*
 
 @SurfNettyPacket(DefaultIds.SERVERBOUND_SEND_TITLE_PART_PACKET, PacketFlow.SERVERBOUND)
-class ServerboundSendTitlePartPacket: NettyPacket {
+class ServerboundSendTitlePartPacket : NettyPacket {
 
     companion object {
-        val STREAM_CODEC = packetCodec(ServerboundSendTitlePartPacket::write, ::ServerboundSendTitlePartPacket)
+        val STREAM_CODEC =
+            packetCodec(ServerboundSendTitlePartPacket::write, ::ServerboundSendTitlePartPacket)
     }
 
     val uuid: UUID
@@ -44,7 +45,11 @@ class ServerboundSendTitlePartPacket: NettyPacket {
         ExtraCodecs.STREAM_TITLE_PART_CODEC.encode(buf, titlePart)
         when (titlePart) {
             TitlePart.TITLE, TitlePart.SUBTITLE -> buf.writeComponent(value as Component)
-            TitlePart.TIMES -> ExtraCodecs.TITLE_TIMES_STREAM_CODEC.encode(buf, value as Title.Times)
+            TitlePart.TIMES -> ExtraCodecs.TITLE_TIMES_STREAM_CODEC.encode(
+                buf,
+                value as Title.Times
+            )
+
             else -> error("Unknown title part: $titlePart")
         }
     }

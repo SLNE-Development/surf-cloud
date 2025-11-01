@@ -12,6 +12,6 @@ import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
     PacketFlow.SERVERBOUND,
     ConnectionProtocol.PRE_RUNNING
 )
-object ServerboundRequestContinuation: NettyPacket() {
+object ServerboundRequestContinuation : NettyPacket() {
     val STREAM_CODEC = streamCodecUnitSimple(this)
 }

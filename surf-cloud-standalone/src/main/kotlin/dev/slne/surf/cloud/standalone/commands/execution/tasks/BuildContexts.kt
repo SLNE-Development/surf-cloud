@@ -4,8 +4,8 @@ import com.mojang.brigadier.LiteralMessage
 import com.mojang.brigadier.context.ContextChain
 import com.mojang.brigadier.exceptions.CommandSyntaxException
 import com.mojang.brigadier.exceptions.DynamicCommandExceptionType
-import dev.slne.surf.cloud.api.common.util.mutableObjectListOf
-import dev.slne.surf.cloud.api.common.util.objectListOf
+import dev.slne.surf.surfapi.core.api.util.mutableObjectListOf
+import dev.slne.surf.surfapi.core.api.util.objectListOf
 import dev.slne.surf.cloud.api.server.command.CommandResultCallback
 import dev.slne.surf.cloud.api.server.command.ExecutionCommandSource
 import dev.slne.surf.cloud.standalone.commands.execution.*

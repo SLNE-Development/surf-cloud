@@ -7,7 +7,10 @@ import dev.slne.surf.cloud.api.common.netty.packet.ResponseNettyPacket
 import dev.slne.surf.cloud.api.common.netty.packet.packetCodec
 import dev.slne.surf.cloud.api.common.netty.protocol.buffer.SurfByteBuf
 
-@SurfNettyPacket(DefaultIds.CLIENTBOUND_IS_SERVER_MANAGED_BY_THIS_PROXY_RESPONSE, PacketFlow.SERVERBOUND)
+@SurfNettyPacket(
+    DefaultIds.CLIENTBOUND_IS_SERVER_MANAGED_BY_THIS_PROXY_RESPONSE,
+    PacketFlow.SERVERBOUND
+)
 class ServerboundIsServerManagedByThisProxyResponse : ResponseNettyPacket {
 
     companion object {

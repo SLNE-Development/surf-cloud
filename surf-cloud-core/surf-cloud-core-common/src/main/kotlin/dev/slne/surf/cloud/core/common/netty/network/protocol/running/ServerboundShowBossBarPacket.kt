@@ -8,13 +8,14 @@ import dev.slne.surf.cloud.api.common.netty.packet.packetCodec
 import dev.slne.surf.cloud.api.common.netty.protocol.buffer.SurfByteBuf
 import dev.slne.surf.cloud.api.common.util.codec.ExtraCodecs
 import net.kyori.adventure.bossbar.BossBar
-import java.util.UUID
+import java.util.*
 
 @SurfNettyPacket(DefaultIds.SERVERBOUND_SHOW_BOSS_BAR_PACKET, PacketFlow.SERVERBOUND)
-class ServerboundShowBossBarPacket : NettyPacket{
+class ServerboundShowBossBarPacket : NettyPacket {
 
     companion object {
-        val STREAM_CODEC = packetCodec(ServerboundShowBossBarPacket::write, ::ServerboundShowBossBarPacket)
+        val STREAM_CODEC =
+            packetCodec(ServerboundShowBossBarPacket::write, ::ServerboundShowBossBarPacket)
     }
 
     val uuid: UUID

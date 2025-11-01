@@ -1,8 +1,8 @@
 package dev.slne.surf.cloud.standalone.plugin.provider.impl
 
-import dev.slne.surf.cloud.standalone.plugin.provider.configuration.type.DependencyConfiguration
 import dev.slne.surf.cloud.standalone.plugin.provider.configuration.LoadOrderConfiguration
 import dev.slne.surf.cloud.standalone.plugin.provider.configuration.StandalonePluginMeta
+import dev.slne.surf.cloud.standalone.plugin.provider.configuration.type.DependencyConfiguration
 
 class StandaloneBootstrapLoadOrderConfiguration(override val meta: StandalonePluginMeta) :
     LoadOrderConfiguration {

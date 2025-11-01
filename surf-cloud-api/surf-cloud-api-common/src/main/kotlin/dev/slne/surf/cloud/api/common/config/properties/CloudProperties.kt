@@ -1,5 +1,8 @@
 package dev.slne.surf.cloud.api.common.config.properties
 
+import dev.slne.surf.cloud.api.common.config.properties.CloudProperties.SERVER_CATEGORY_NOT_SET
+
+
 /**
  * Contains predefined cloud properties for Surf Cloud applications.
  */

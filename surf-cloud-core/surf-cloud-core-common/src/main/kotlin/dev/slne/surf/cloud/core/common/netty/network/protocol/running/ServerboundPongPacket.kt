@@ -9,7 +9,7 @@ import dev.slne.surf.cloud.api.common.netty.protocol.buffer.SurfByteBuf
 
 /**
  * Response to the clientbound packet
- * ([dev.slne.surf.cloud.core.netty.protocol.packets.cloud.phase.running.clientbound.ClientboundPingPacket])
+ * ([ClientboundPingPacket])
  * with the same id.
  */
 @SurfNettyPacket(DefaultIds.SERVERBOUND_PONG_PACKET, PacketFlow.SERVERBOUND)

@@ -10,6 +10,6 @@ import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
     DefaultIds.CLIENTBOUND_SHUTDOWN_PACKET,
     PacketFlow.CLIENTBOUND
 )
-object ClientboundTriggerShutdownPacket: NettyPacket() {
+object ClientboundTriggerShutdownPacket : NettyPacket() {
     val STREAM_CODEC = streamCodecUnitSimple(this)
 }

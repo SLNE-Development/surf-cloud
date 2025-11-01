@@ -21,7 +21,7 @@ class CloudPlayerPunishmentUpdatedEvent<P : Punishment>(
         private const val serialVersionUID: Long = 131882253452738926L
     }
 
-    override fun getResolvableType(): ResolvableType? {
+    override fun getResolvableType(): ResolvableType {
         return ResolvableType.forClassWithGenerics(javaClass, punishmentType)
     }
 
@@ -32,8 +32,9 @@ class CloudPlayerPunishmentUpdatedEvent<P : Punishment>(
         object ADMIN_PANEL : Operation
 
         @Serializable
-        class NOTE_ADDED(val note: PunishmentNote): Operation
+        class NOTE_ADDED(val note: PunishmentNote) : Operation
+
         @Serializable
-        class ATTACH_IP(val ip: PunishmentAttachedIpAddress): Operation
+        class ATTACH_IP(val ip: PunishmentAttachedIpAddress) : Operation
     }
 }

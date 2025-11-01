@@ -2,7 +2,7 @@ package dev.slne.surf.cloud.standalone.spark.provider
 
 import me.lucko.spark.common.tick.AbstractTickHook
 
-object CloudTickHook: AbstractTickHook() {
+object CloudTickHook : AbstractTickHook() {
     private var started = false
 
     fun tick() {

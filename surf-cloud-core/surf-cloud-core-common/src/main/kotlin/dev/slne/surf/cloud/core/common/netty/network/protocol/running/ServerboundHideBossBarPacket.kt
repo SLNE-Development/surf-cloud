@@ -8,29 +8,30 @@ import dev.slne.surf.cloud.api.common.netty.packet.packetCodec
 import dev.slne.surf.cloud.api.common.netty.protocol.buffer.SurfByteBuf
 import dev.slne.surf.cloud.api.common.util.codec.ExtraCodecs
 import net.kyori.adventure.bossbar.BossBar
-import java.util.UUID
+import java.util.*
 
 @SurfNettyPacket(DefaultIds.SERVERBOUND_HIDE_BOSS_BAR_PACKET, PacketFlow.SERVERBOUND)
-class ServerboundHideBossBarPacket : NettyPacket{
+class ServerboundHideBossBarPacket : NettyPacket {
 
-    companion object{
-        val STREAM_CODEC = packetCodec(ServerboundHideBossBarPacket::write, ::ServerboundHideBossBarPacket)
+    companion object {
+        val STREAM_CODEC =
+            packetCodec(ServerboundHideBossBarPacket::write, ::ServerboundHideBossBarPacket)
     }
 
     val uuid: UUID
     val bossBar: BossBar
 
-    constructor(uuid: UUID, bossBar: BossBar){
+    constructor(uuid: UUID, bossBar: BossBar) {
         this.uuid = uuid
         this.bossBar = bossBar
     }
 
-    private constructor(buf: SurfByteBuf){
+    private constructor(buf: SurfByteBuf) {
         this.uuid = buf.readUuid()
         this.bossBar = ExtraCodecs.STREAM_BOSSBAR_CODEC.decode(buf)
     }
 
-    private fun write(buf: SurfByteBuf){
+    private fun write(buf: SurfByteBuf) {
         buf.writeUuid(uuid)
         ExtraCodecs.STREAM_BOSSBAR_CODEC.encode(buf, bossBar)
     }

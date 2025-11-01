@@ -17,7 +17,9 @@ typealias OptionalFloatArrayResponsePacket = RespondingNettyPacket<OptionalFloat
 class OptionalFloatArrayResponse(override val value: FloatArray?) : ResponseNettyPacket(),
     CommonResponseType<FloatArray?> {
     companion object : CommonResponseTypeFactory<OptionalFloatArrayResponse, FloatArray?> {
-        val STREAM_CODEC = packetCodec(OptionalFloatArrayResponse::write, ::OptionalFloatArrayResponse)
+        val STREAM_CODEC =
+            packetCodec(OptionalFloatArrayResponse::write, ::OptionalFloatArrayResponse)
+
         override fun create(value: FloatArray?): OptionalFloatArrayResponse {
             return OptionalFloatArrayResponse(value)
         }
@@ -32,4 +34,5 @@ class OptionalFloatArrayResponse(override val value: FloatArray?) : ResponseNett
     operator fun component1() = value
 }
 
-fun OptionalFloatArrayResponsePacket.respond(value: FloatCollection?) = respond(value?.toFloatArray())
+fun OptionalFloatArrayResponsePacket.respond(value: FloatCollection?) =
+    respond(value?.toFloatArray())

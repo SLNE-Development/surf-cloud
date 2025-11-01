@@ -1,26 +1,18 @@
 package dev.slne.surf.cloud.core.common.netty.network
 
-import com.mojang.serialization.Codec
-import dev.slne.surf.cloud.api.common.util.asOptional
-import dev.slne.surf.cloud.api.common.util.codec.createRecordCodec
-import dev.slne.surf.cloud.api.common.util.codec.getter
-import kotlin.jvm.optionals.getOrNull
+import dev.slne.surf.cloud.api.common.netty.network.codec.ByteBufCodecs
+import dev.slne.surf.cloud.api.common.netty.network.codec.StreamCodec
+import dev.slne.surf.cloud.api.common.util.ByIdMap
 
 data class DisconnectionDetails(val reason: DisconnectReason, val additionalInfo: String? = null) {
     companion object {
-        val CODEC = createRecordCodec<DisconnectionDetails> {
-            group(
-                Codec.STRING.fieldOf("reason").getter { reason.name },
-                Codec.STRING.optionalFieldOf("additionalInfo")
-                    .getter { additionalInfo.asOptional() }
-            ).apply(this) { reason, additionalInfo ->
-                DisconnectionDetails(
-                    DisconnectReason.valueOf(
-                        reason
-                    ), additionalInfo.getOrNull()
-                )
-            }
-        }
+        val STREAM_CODEC = StreamCodec.composite(
+            DisconnectReason.STREAM_CODEC,
+            DisconnectionDetails::reason,
+            ByteBufCodecs.STRING_CODEC.apply(ByteBufCodecs::nullable),
+            DisconnectionDetails::additionalInfo,
+            ::DisconnectionDetails
+        )
     }
 
     fun buildMessage(): String {
@@ -32,17 +24,31 @@ data class DisconnectionDetails(val reason: DisconnectReason, val additionalInfo
     }
 }
 
-enum class DisconnectReason(val message: String, val shouldRestart: Boolean = true) {
-    UNKNOWN("Disconnected", true),
-    TIMEOUT("Timed out", true),
-    INTERNAL_EXCEPTION("Internal exception", true),
-    END_OF_STREAM("End of stream", true),
-    SERVER_ID_FETCHED("Server ID fetched", false),
-    CLIENT_SHUTDOWN("Client shutdown", false),
-    CLIENT_NAME_ALREADY_EXISTS("Client name already exists", false),
-    SERVER_SHUTDOWN("Server is shutting down", true),
-    OUTDATED_SERVER("Outdated server", false),
-    OUTDATED_CLIENT("Outdated client", false),
-    PROXY_ALREADY_CONNECTED("Proxy already connected", false),
-    TOOK_TOO_LONG("Took too long to log in", false),
+enum class DisconnectReason(
+    val id: Int,
+    val message: String,
+    val shouldRestart: Boolean = true
+) {
+    UNKNOWN(1, "Disconnected", true),
+    TIMEOUT(2, "Timed out", true),
+    INTERNAL_EXCEPTION(3, "Internal exception", true),
+    END_OF_STREAM(4, "End of stream", true),
+    SERVER_ID_FETCHED(5, "Server ID fetched", false),
+    CLIENT_SHUTDOWN(6, "Client shutdown", false),
+    CLIENT_NAME_ALREADY_EXISTS(7, "Client name already exists", false),
+    SERVER_SHUTDOWN(8, "Server is shutting down", true),
+    OUTDATED_SERVER(9, "Outdated server", false),
+    OUTDATED_CLIENT(10, "Outdated client", false),
+    PROXY_ALREADY_CONNECTED(11, "Proxy already connected", false),
+    TOOK_TOO_LONG(12, "Took too long to log in", false);
+
+    companion object {
+        val BY_ID = ByIdMap.continuous(
+            DisconnectReason::id,
+            entries.toTypedArray(),
+            ByIdMap.OutOfBoundsStrategy.ZERO
+        )
+
+        val STREAM_CODEC = ByteBufCodecs.idMapper(BY_ID, DisconnectReason::id)
+    }
 }

@@ -7,13 +7,16 @@ import dev.slne.surf.cloud.api.common.netty.packet.ResponseNettyPacket
 import dev.slne.surf.cloud.api.common.netty.packet.packetCodec
 import dev.slne.surf.cloud.api.common.netty.protocol.buffer.SurfByteBuf
 import net.kyori.adventure.text.Component
-import java.util.UUID
+import java.util.*
 
 @SurfNettyPacket(DefaultIds.RESPONSE_DISPLAY_NAME_PACKET_REQUEST_PACKET, PacketFlow.BIDIRECTIONAL)
-class ResponseDisplayNamePacketRequestPacket: ResponseNettyPacket {
+class ResponseDisplayNamePacketRequestPacket : ResponseNettyPacket {
 
     companion object {
-        val STREAM_CODEC = packetCodec(ResponseDisplayNamePacketRequestPacket::write, ::ResponseDisplayNamePacketRequestPacket)
+        val STREAM_CODEC = packetCodec(
+            ResponseDisplayNamePacketRequestPacket::write,
+            ::ResponseDisplayNamePacketRequestPacket
+        )
     }
 
     val uuid: UUID

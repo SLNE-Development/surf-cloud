@@ -7,7 +7,6 @@ import dev.slne.surf.cloud.api.common.player.punishment.type.mute.PunishmentMute
 import dev.slne.surf.cloud.core.common.coroutines.PunishmentHandlerScope
 import dev.slne.surf.cloud.core.common.messages.MessageManager
 import kotlinx.coroutines.launch
-import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Component
 
 @Component

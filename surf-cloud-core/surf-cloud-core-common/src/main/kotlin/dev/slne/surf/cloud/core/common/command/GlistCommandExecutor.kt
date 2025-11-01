@@ -4,7 +4,7 @@ import dev.slne.surf.cloud.api.common.player.CloudPlayerManager
 import dev.slne.surf.cloud.api.common.server.CloudServer
 import dev.slne.surf.cloud.api.common.server.UserList
 import dev.slne.surf.cloud.api.common.util.mapAsync
-import dev.slne.surf.cloud.api.common.util.mutableObject2ObjectMapOf
+import dev.slne.surf.surfapi.core.api.util.mutableObject2ObjectMapOf
 import dev.slne.surf.cloud.core.common.coroutines.CommandExecutionScope
 import dev.slne.surf.surfapi.core.api.messages.Colors
 import dev.slne.surf.surfapi.core.api.messages.adventure.sendText

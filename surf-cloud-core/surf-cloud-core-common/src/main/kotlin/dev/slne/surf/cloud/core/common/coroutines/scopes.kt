@@ -1,9 +1,9 @@
 package dev.slne.surf.cloud.core.common.coroutines
 
-import dev.slne.surf.cloud.api.common.util.mutableObjectListOf
 import dev.slne.surf.cloud.api.common.util.threadFactory
 import dev.slne.surf.cloud.core.common.coroutines.BeforeStartTaskScope.unnamedTask
 import dev.slne.surf.surfapi.core.api.util.logger
+import dev.slne.surf.surfapi.core.api.util.mutableObjectListOf
 import kotlinx.coroutines.*
 import java.util.concurrent.Executors
 import kotlin.coroutines.CoroutineContext
@@ -171,7 +171,7 @@ object BeforeStartTaskScope : BaseScope(
     dispatcher = Dispatchers.IO,
     name = "before-start-task",
     coroutineExceptionHandler = CoroutineExceptionHandler { context, throwable ->
-        val task= context[TaskName] ?: unnamedTask
+        val task = context[TaskName] ?: unnamedTask
         log.atWarning()
             .withCause(throwable)
             .log("Unhandled exception in before start task: $task")
@@ -185,6 +185,7 @@ object BeforeStartTaskScope : BaseScope(
         val order: Int
     ) : CoroutineContext.Element {
         companion object Key : CoroutineContext.Key<TaskName>
+
         override val key: CoroutineContext.Key<*> = Key
 
         override fun toString(): String {

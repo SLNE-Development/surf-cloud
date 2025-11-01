@@ -89,8 +89,6 @@ abstract class AbstractExposedDAOService<K, V : Entity<*>>(
         if (entity != null) {
             entity.block()
             cache.put(key, entity)
-        } else {
-            null
         }
     }
 

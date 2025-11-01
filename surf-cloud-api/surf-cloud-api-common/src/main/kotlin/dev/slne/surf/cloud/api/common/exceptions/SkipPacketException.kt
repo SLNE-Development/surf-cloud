@@ -8,7 +8,7 @@ import java.io.Serial
  *
  * @param cause The root cause of the exception.
  */
-class SkipPacketException(cause: Throwable): EncoderException(cause) {
+class SkipPacketException(cause: Throwable) : EncoderException(cause) {
     companion object {
         @Serial
         @JvmStatic

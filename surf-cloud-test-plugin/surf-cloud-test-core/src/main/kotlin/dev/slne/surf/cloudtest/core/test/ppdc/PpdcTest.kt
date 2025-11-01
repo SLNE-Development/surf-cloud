@@ -35,7 +35,7 @@ class PpdcTest {
         val testInt: Int? = null,
         val testBoolean: Boolean? = null,
         val testList: List<String>? = null,
-    ): ComponentLike {
+    ) : ComponentLike {
 
         fun saveToPdc(ppdc: PersistentPlayerDataContainer) {
             ppdc.setString(TEST_KEY, test)

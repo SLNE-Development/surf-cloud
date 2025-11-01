@@ -9,13 +9,13 @@ import dev.slne.surf.cloud.api.common.netty.protocol.buffer.SurfByteBuf
 
 /**
  * When sent to the client, client responds with a
- * [dev.slne.surf.cloud.core.netty.protocol.packets.cloud.phase.running.serverbound.ServerboundPongPacket]
+ * [ServerboundPongPacket]
  * packet with the same id.
  */
 @SurfNettyPacket(DefaultIds.CLIENTBOUND_PING_PACKET, PacketFlow.CLIENTBOUND)
-class ClientboundPingPacket: NettyPacket {
+class ClientboundPingPacket : NettyPacket {
 
-    companion object{
+    companion object {
         @JvmStatic
         val STREAM_CODEC = packetCodec(ClientboundPingPacket::write, ::ClientboundPingPacket)
     }

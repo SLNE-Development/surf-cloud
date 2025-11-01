@@ -11,7 +11,7 @@ import dev.slne.surf.cloud.api.common.server.CloudServerManager
 import dev.slne.surf.cloud.api.server.command.ArgumentSuggestion
 import java.util.concurrent.CompletableFuture
 
-class CloudGroupArgumentType private constructor(): ArgumentType<String> {
+class CloudGroupArgumentType private constructor() : ArgumentType<String> {
     companion object {
         val GROUP_NOT_FOUND =
             DynamicCommandExceptionType { group -> LiteralMessage("Server group '$group' not found or no servers in this group are online!") }

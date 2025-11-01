@@ -54,7 +54,8 @@ object VarLong {
         var currentByte: Byte
         do {
             currentByte = buf.readByte()
-            result = result or ((currentByte.toLong() and DATA_BITS_MASK.toLong()) shl (shift++ * DATA_BITS_PER_BYTE))
+            result =
+                result or ((currentByte.toLong() and DATA_BITS_MASK.toLong()) shl (shift++ * DATA_BITS_PER_BYTE))
             shift += DATA_BITS_PER_BYTE
 
             checkDecoded(shift <= MAX_VARLONG_SIZE) { "VarLong too big" }

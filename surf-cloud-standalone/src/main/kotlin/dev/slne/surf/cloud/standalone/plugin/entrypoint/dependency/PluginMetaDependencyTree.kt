@@ -5,7 +5,7 @@ package dev.slne.surf.cloud.standalone.plugin.entrypoint.dependency
 import com.google.common.graph.GraphBuilder
 import com.google.common.graph.Graphs
 import com.google.common.graph.MutableGraph
-import dev.slne.surf.cloud.api.common.util.mutableObjectSetOf
+import dev.slne.surf.surfapi.core.api.util.mutableObjectSetOf
 import dev.slne.surf.cloud.api.server.plugin.configuration.PluginMeta
 import dev.slne.surf.cloud.api.server.plugin.dependency.DependencyContext
 import dev.slne.surf.cloud.standalone.plugin.provider.PluginProvider

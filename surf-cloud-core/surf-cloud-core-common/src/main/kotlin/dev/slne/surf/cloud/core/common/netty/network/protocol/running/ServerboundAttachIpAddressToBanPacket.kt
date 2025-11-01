@@ -7,4 +7,5 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 @SurfNettyPacket("cloud:serverbound:attach_ip_address_to_ban", PacketFlow.SERVERBOUND)
-data class ServerboundAttachIpAddressToBanPacket(val banId: Long, val rawIp: String): BooleanResponsePacket()
+data class ServerboundAttachIpAddressToBanPacket(val banId: Long, val rawIp: String) :
+    BooleanResponsePacket()

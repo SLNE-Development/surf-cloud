@@ -8,10 +8,13 @@ import dev.slne.surf.cloud.api.common.netty.packet.packetCodec
 import dev.slne.surf.cloud.api.common.netty.protocol.buffer.SurfByteBuf
 
 @SurfNettyPacket(DefaultIds.CLIENTBOUND_UNREGISTER_SERVER_PACKET, PacketFlow.CLIENTBOUND)
-class ClientboundUnregisterServerPacket: NettyPacket {
+class ClientboundUnregisterServerPacket : NettyPacket {
 
     companion object {
-        val STREAM_CODEC = packetCodec(ClientboundUnregisterServerPacket::write, ::ClientboundUnregisterServerPacket)
+        val STREAM_CODEC = packetCodec(
+            ClientboundUnregisterServerPacket::write,
+            ::ClientboundUnregisterServerPacket
+        )
     }
 
     val serverName: String

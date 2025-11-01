@@ -12,4 +12,4 @@ import java.util.*
     PacketFlow.SERVERBOUND
 )
 @Serializable
-class ServerboundCacheWatchPlayersPacket(val uuids: Set<@Contextual UUID>): NettyPacket()
+class ServerboundCacheWatchPlayersPacket(val uuids: Set<@Contextual UUID>) : NettyPacket()

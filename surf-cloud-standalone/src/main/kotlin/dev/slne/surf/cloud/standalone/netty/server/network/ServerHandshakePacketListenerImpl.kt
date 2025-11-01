@@ -13,7 +13,10 @@ import dev.slne.surf.cloud.core.common.netty.network.protocol.login.LoginProtoco
 import dev.slne.surf.cloud.standalone.netty.server.NettyServerImpl
 import java.net.InetSocketAddress
 
-class ServerHandshakePacketListenerImpl(val server: NettyServerImpl, val connection: ConnectionImpl) :
+class ServerHandshakePacketListenerImpl(
+    val server: NettyServerImpl,
+    val connection: ConnectionImpl
+) :
     ServerHandshakePacketListener {
     override suspend fun handleHandshake(packet: ServerboundHandshakePacket) {
         connection.hostname = "${packet.hostName}:${packet.port}"

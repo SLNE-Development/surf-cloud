@@ -6,7 +6,7 @@ import dev.slne.surf.cloud.api.common.netty.network.protocol.PacketFlow
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
 import dev.slne.surf.cloud.api.common.netty.packet.packetCodec
 import dev.slne.surf.cloud.api.common.netty.protocol.buffer.SurfByteBuf
-import dev.slne.surf.cloud.api.common.util.mutableObjectListOf
+import dev.slne.surf.surfapi.core.api.util.mutableObjectListOf
 import dev.slne.surf.cloud.core.common.sync.CommonSyncRegistryImpl
 import dev.slne.surf.cloud.core.common.sync.SyncSetImpl
 import dev.slne.surf.surfapi.core.api.util.logger
@@ -36,7 +36,7 @@ class ClientboundBatchSyncSetPacket : NettyPacket {
             val syncId = buf.readUtf()
             val syncSize = buf.readInt()
 
-            val syncSet = CommonSyncRegistryImpl.Companion.instance.getSet<Any?>(syncId)
+            val syncSet = CommonSyncRegistryImpl.instance.getSet<Any?>(syncId)
             if (syncSet == null) {
                 buf.skipBytes(syncSize)
                 unknownSyncValues.add(syncId)
@@ -61,7 +61,7 @@ class ClientboundBatchSyncSetPacket : NettyPacket {
             buf.writeInt(0)
 
             val startIndex = buf.writerIndex()
-            val syncSet = CommonSyncRegistryImpl.Companion.instance.getSet<Any?>(syncId)
+            val syncSet = CommonSyncRegistryImpl.instance.getSet<Any?>(syncId)
                 ?: error("SyncSet '$syncId' is not registered in SyncRegistry")
             syncSet.codec.encode(buf, set)
             val endIndex = buf.writerIndex()

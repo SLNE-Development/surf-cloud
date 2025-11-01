@@ -1,6 +1,6 @@
 package dev.slne.surf.cloud.standalone.plugin.loader
 
-import dev.slne.surf.cloud.api.common.util.mutableObjectListOf
+import dev.slne.surf.surfapi.core.api.util.mutableObjectListOf
 import dev.slne.surf.cloud.api.server.plugin.bootstrap.StandalonePluginProviderContext
 import dev.slne.surf.cloud.api.server.plugin.loader.PluginClasspathBuilder
 import dev.slne.surf.cloud.api.server.plugin.loader.library.ClassPathLibrary

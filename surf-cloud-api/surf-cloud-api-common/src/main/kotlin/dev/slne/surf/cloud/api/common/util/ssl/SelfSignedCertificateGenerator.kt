@@ -1,4 +1,4 @@
-//package dev.slne.surf.cloud.api.common.util.ssl
+package dev.slne.surf.cloud.api.common.util.ssl
 //
 //import io.netty.buffer.Unpooled
 //import io.netty.handler.codec.base64.Base64

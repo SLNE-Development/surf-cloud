@@ -12,4 +12,4 @@ import kotlinx.serialization.Serializable
 data class ClientboundTriggerPunishmentUpdateEventPacket(
     val updatedPunishment: AbstractPunishment,
     val operation: CloudPlayerPunishmentUpdatedEvent.Operation
-): NettyPacket()
+) : NettyPacket()

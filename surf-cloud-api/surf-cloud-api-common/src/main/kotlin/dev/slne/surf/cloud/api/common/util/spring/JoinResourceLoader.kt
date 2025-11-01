@@ -1,13 +1,13 @@
 package dev.slne.surf.cloud.api.common.util.spring
 
-import dev.slne.surf.cloud.api.common.util.emptyObjectList
+import dev.slne.surf.surfapi.core.api.util.emptyObjectList
 import org.springframework.core.io.Resource
 import org.springframework.core.io.ResourceLoader
 
 open class JoinResourceLoader(
     private val mainLoader: ResourceLoader,
     private val joinLoader: List<ResourceLoader> = emptyObjectList()
-): ResourceLoader {
+) : ResourceLoader {
     override fun getResource(location: String): Resource {
         val resource = mainLoader.getResource(location)
         if (resource.exists()) return resource

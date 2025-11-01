@@ -42,7 +42,9 @@ interface SyncValue<T> {
             codec: StreamCodec<SurfByteBuf, T>
         ): SyncValue<T> = of(id, defaultValue, codec)
 
-        inline operator fun <reified T> invoke(id: String, defaultValue: T): SyncValue<T> = serializable(id, defaultValue)
+        inline operator fun <reified T> invoke(id: String, defaultValue: T): SyncValue<T> =
+            serializable(id, defaultValue)
+
         operator fun <T> invoke(
             id: String,
             defaultValue: T,

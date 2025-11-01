@@ -8,4 +8,4 @@ import kotlinx.serialization.Serializable
 
 @SurfNettyPacket("cloud:bidirectional:whitelist_response", PacketFlow.BIDIRECTIONAL)
 @Serializable
-class WhitelistResponsePacket(val whitelist: WhitelistEntryImpl?): ResponseNettyPacket()
+class WhitelistResponsePacket(val whitelist: WhitelistEntryImpl?) : ResponseNettyPacket()

@@ -16,10 +16,11 @@ class TestCommand : AbstractConsoleCommand() {
 //            }
 //        })
 
-        dispatcher.register(LiteralArgumentBuilder.literal<CommandSource>("test")
-            .executes { context ->
-                context.source.sendSuccess("This is a test command")
-                1
-            })
+        dispatcher.register(
+            LiteralArgumentBuilder.literal<CommandSource>("test")
+                .executes { context ->
+                    context.source.sendSuccess("This is a test command")
+                    1
+                })
     }
 }

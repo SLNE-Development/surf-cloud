@@ -15,7 +15,8 @@ import java.util.*
 class ClientboundPlaySoundPacket : NettyPacket {
 
     companion object {
-        val STREAM_CODEC = packetCodec(ClientboundPlaySoundPacket::write, ::ClientboundPlaySoundPacket)
+        val STREAM_CODEC =
+            packetCodec(ClientboundPlaySoundPacket::write, ::ClientboundPlaySoundPacket)
     }
 
     val uuid: UUID

@@ -29,7 +29,8 @@ class RequiredSystemPropertyImpl<T>(
     override fun value(): T {
         if (!initialized) {
             val property = System.getProperty(key)
-            this.value = if (property != null) parser(property) else error("Required system property $key not set")
+            this.value =
+                if (property != null) parser(property) else error("Required system property $key not set")
             this.initialized = true
         }
 

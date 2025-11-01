@@ -10,7 +10,9 @@ class PluginMetaConstraints {
     @Retention(AnnotationRetention.RUNTIME)
     annotation class PluginName {
         class Factory : Constraint.Factory<PluginName, String> {
-            private val VALID_NAME = Regex("^[A-Za-z\\d _.-]+\$")
+            companion object {
+                private val VALID_NAME = Regex("^[A-Za-z\\d _.-]+$")
+            }
 
             override fun make(
                 data: PluginName,

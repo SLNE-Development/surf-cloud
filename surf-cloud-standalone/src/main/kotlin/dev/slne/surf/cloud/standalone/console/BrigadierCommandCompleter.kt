@@ -14,7 +14,7 @@ import org.jline.reader.Completer
 import org.jline.reader.LineReader
 import org.jline.reader.ParsedLine
 
-class BrigadierCommandCompleter(private val commandManager: CommandManagerImpl): Completer {
+class BrigadierCommandCompleter(private val commandManager: CommandManagerImpl) : Completer {
     private val commandSource by lazy { commandManager.createCommandSource() }
 
     override fun complete(

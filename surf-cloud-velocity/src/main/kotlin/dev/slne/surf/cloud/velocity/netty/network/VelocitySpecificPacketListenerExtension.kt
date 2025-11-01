@@ -131,7 +131,10 @@ class VelocitySpecificPacketListenerExtension : PlatformSpecificPacketListenerEx
             observingFlow({ VelocityConfigurationProxy.instance.getForwardingSecret(proxy.configuration) })
                 .onEach { remote ->
                     if (!remote.contentEquals(currentVelocitySecret)) {
-                        VelocityConfigurationProxy.instance.setForwardingSecret(proxy.configuration, currentVelocitySecret)
+                        VelocityConfigurationProxy.instance.setForwardingSecret(
+                            proxy.configuration,
+                            currentVelocitySecret
+                        )
                     }
                 }
                 .launchIn(CommonObservableScope)

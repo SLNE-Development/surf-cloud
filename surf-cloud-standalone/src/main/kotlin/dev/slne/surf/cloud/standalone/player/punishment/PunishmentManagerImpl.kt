@@ -8,7 +8,6 @@ import dev.slne.surf.cloud.api.common.player.OfflineCloudPlayer
 import dev.slne.surf.cloud.api.common.player.punishment.type.PunishmentAttachedIpAddress.PunishmentAttachedIpAddressImpl
 import dev.slne.surf.cloud.api.common.player.punishment.type.note.PunishmentNote.PunishmentNoteImpl
 import dev.slne.surf.cloud.api.common.player.task.PrePlayerJoinTask
-import dev.slne.surf.cloud.api.common.util.toObjectList
 import dev.slne.surf.cloud.api.server.exposed.table.AuditableLongEntityClass
 import dev.slne.surf.cloud.api.server.netty.packet.broadcast
 import dev.slne.surf.cloud.core.common.coroutines.PunishmentHandlerScope
@@ -21,6 +20,7 @@ import dev.slne.surf.cloud.standalone.player.db.exposed.punishment.entity.*
 import dev.slne.surf.cloud.standalone.player.db.exposed.punishment.table.*
 import dev.slne.surf.surfapi.core.api.util.logger
 import dev.slne.surf.surfapi.core.api.util.random
+import dev.slne.surf.surfapi.core.api.util.toObjectList
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
@@ -273,7 +273,7 @@ class PunishmentManagerImpl(private val service: PunishmentService) : Punishment
     override suspend fun fetchIpAddressesForBan(id: Long): List<PunishmentAttachedIpAddressImpl> =
         service.fetchIpAddressesForBan(id)
 
-    private suspend fun <P : AbstractPunishmentEntity<P, PC>, PC: LongEntityClass<P>, E : AbstractPunishmentNoteEntity<P, PC>> fetchNotesForPunishment(
+    private suspend fun <P : AbstractPunishmentEntity<P, PC>, PC : LongEntityClass<P>, E : AbstractPunishmentNoteEntity<P, PC>> fetchNotesForPunishment(
         id: Long,
         noteEntityClass: LongEntityClass<E>
     ) = service.fetchNotesForPunishment(id, noteEntityClass)
@@ -317,7 +317,7 @@ class PunishmentManagerImpl(private val service: PunishmentService) : Punishment
             punishedUuid
         ) { it.toApiObject() }
 
-    private suspend fun <E : AbstractUnpunishableExpirablePunishmentEntity<E, EC>, EC: AuditableLongEntityClass<E>, T> fetchPunishments(
+    private suspend fun <E : AbstractUnpunishableExpirablePunishmentEntity<E, EC>, EC : AuditableLongEntityClass<E>, T> fetchPunishments(
         entityClass: EC,
         table: AbstractUnpunishableExpirablePunishmentTable,
         punishedUuid: UUID,
@@ -325,7 +325,7 @@ class PunishmentManagerImpl(private val service: PunishmentService) : Punishment
         toApiObject: (E) -> T
     ): List<T> = service.fetchPunishments(entityClass, table, punishedUuid, onlyActive, toApiObject)
 
-    private suspend fun <E : AbstractPunishmentEntity<E, EC>, EC: AuditableLongEntityClass<E>, T> fetchPunishments(
+    private suspend fun <E : AbstractPunishmentEntity<E, EC>, EC : AuditableLongEntityClass<E>, T> fetchPunishments(
         entityClass: EC,
         table: AbstractPunishmentTable,
         punishedUuid: UUID,

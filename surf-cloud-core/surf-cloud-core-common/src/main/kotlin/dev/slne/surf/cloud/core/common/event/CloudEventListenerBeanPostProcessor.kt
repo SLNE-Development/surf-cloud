@@ -2,6 +2,7 @@ package dev.slne.surf.cloud.core.common.event
 
 import dev.slne.surf.cloud.api.common.event.CloudEventHandler
 import dev.slne.surf.cloud.api.common.util.*
+import dev.slne.surf.surfapi.core.api.util.mutableObject2ObjectMapOf
 import org.springframework.beans.factory.config.BeanDefinition
 import org.springframework.beans.factory.config.BeanPostProcessor
 import org.springframework.context.SmartLifecycle

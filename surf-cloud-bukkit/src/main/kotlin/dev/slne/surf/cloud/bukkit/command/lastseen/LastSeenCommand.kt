@@ -37,17 +37,18 @@ fun lastSeenCommand() = commandTree("lastseen") {
     }
 }
 
-private fun sendLastSeen(sender: CommandSender, player: Deferred<OfflineCloudPlayer?>) = plugin.launch {
-    val player = player.await() ?: return@launch
-    val lastSeen = player.lastSeen()
-    val onlinePlayer = player.player
+private fun sendLastSeen(sender: CommandSender, player: Deferred<OfflineCloudPlayer?>) =
+    plugin.launch {
+        val player = player.await() ?: return@launch
+        val lastSeen = player.lastSeen()
+        val onlinePlayer = player.player
 
-    when {
-        lastSeen == null -> sender.sendNeverSeenMessage(player)
-        onlinePlayer?.connected == true -> sender.sendOnlineMessage(player, onlinePlayer)
-        else -> sender.sendLastSeenMessage(player, lastSeen)
+        when {
+            lastSeen == null -> sender.sendNeverSeenMessage(player)
+            onlinePlayer?.connected == true -> sender.sendOnlineMessage(player, onlinePlayer)
+            else -> sender.sendLastSeenMessage(player, lastSeen)
+        }
     }
-}
 
 private suspend fun CommandSender.sendNeverSeenMessage(player: OfflineCloudPlayer) = sendText {
     appendPrefix()

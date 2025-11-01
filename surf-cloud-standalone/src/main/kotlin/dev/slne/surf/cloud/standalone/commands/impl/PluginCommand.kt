@@ -2,7 +2,6 @@ package dev.slne.surf.cloud.standalone.commands.impl
 
 import com.mojang.brigadier.Command
 import com.mojang.brigadier.CommandDispatcher
-import dev.slne.surf.cloud.api.common.util.mutableObjectListOf
 import dev.slne.surf.cloud.api.server.command.AbstractConsoleCommand
 import dev.slne.surf.cloud.api.server.command.CommandSource
 import dev.slne.surf.cloud.api.server.command.ConsoleCommand
@@ -17,6 +16,7 @@ import dev.slne.surf.cloud.standalone.plugin.provider.ProviderStatusHolder
 import dev.slne.surf.cloud.standalone.plugin.provider.impl.StandalonePluginParent
 import dev.slne.surf.surfapi.core.api.messages.adventure.buildText
 import dev.slne.surf.surfapi.core.api.messages.adventure.text
+import dev.slne.surf.surfapi.core.api.util.mutableObjectListOf
 import io.leangen.geantyref.GenericTypeReflector
 import io.leangen.geantyref.TypeToken
 import net.kyori.adventure.text.Component
@@ -40,7 +40,7 @@ class PluginCommand : AbstractConsoleCommand() {
 
                 for (provider in providers) {
                     val meta = provider.meta
-                    plugins.put(meta.displayName, provider)
+                    plugins[meta.displayName] = provider
                 }
 
                 val infoMessage = buildText {
@@ -101,6 +101,10 @@ class PluginCommand : AbstractConsoleCommand() {
 
     private fun fromStatus(provider: PluginProvider<*>): TextColor {
         when (provider) {
+            is StandalonePluginParent.StandalonePluginProvider if provider.shouldSkipCreation() -> {
+                return NamedTextColor.RED
+            }
+
             is ProviderStatusHolder -> {
                 val status = provider.status
 
@@ -110,9 +114,7 @@ class PluginCommand : AbstractConsoleCommand() {
                     )
                 ) {
                     val plugin = PluginManager.instance.getPlugin(provider.meta.name)
-                    if (plugin == null) {
-                        return NamedTextColor.RED
-                    }
+                        ?: return NamedTextColor.RED
 
                     return if (plugin.enabled) NamedTextColor.GREEN else NamedTextColor.RED
                 }
@@ -122,10 +124,6 @@ class PluginCommand : AbstractConsoleCommand() {
                     ProviderStatus.ERRORED -> NamedTextColor.RED
                     ProviderStatus.UNINITIALIZED -> NamedTextColor.YELLOW
                 }
-            }
-
-            is StandalonePluginParent.StandalonePluginProvider if provider.shouldSkipCreation() -> {
-                return NamedTextColor.RED
             }
 
             else -> {

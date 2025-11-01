@@ -7,6 +7,10 @@ import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
 import java.util.*
 
-@SurfNettyPacket("cloud:clientbound:create_offline_cloud_player_if_not_exists", PacketFlow.SERVERBOUND)
+@SurfNettyPacket(
+    "cloud:clientbound:create_offline_cloud_player_if_not_exists",
+    PacketFlow.SERVERBOUND
+)
 @Serializable
-class ServerboundCreateOfflineCloudPlayerIfNotExistsPacket(val uuid: @Contextual UUID): NettyPacket()
+class ServerboundCreateOfflineCloudPlayerIfNotExistsPacket(val uuid: @Contextual UUID) :
+    NettyPacket()

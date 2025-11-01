@@ -2,9 +2,10 @@ package dev.slne.surf.cloud.api.server.command
 
 import com.mojang.brigadier.exceptions.CommandExceptionType
 import dev.slne.surf.surfapi.core.api.messages.Colors
+import dev.slne.surf.surfapi.core.api.messages.adventure.text
 import net.kyori.adventure.audience.Audience
-import net.kyori.adventure.audience.MessageType
-import net.kyori.adventure.identity.Identity
+import net.kyori.adventure.chat.ChatType
+import net.kyori.adventure.chat.SignedMessage
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.serializer.ansi.ANSIComponentSerializer
 
@@ -42,6 +43,15 @@ class CommandSource(
         }
     }
 
+    override fun sendMessage(message: Component, boundChatType: ChatType.Bound) {
+        sendMessage(message)
+    }
+
+    override fun sendMessage(signedMessage: SignedMessage, boundChatType: ChatType.Bound) {
+        val message = signedMessage.unsignedContent() ?: text(signedMessage.message())
+        sendMessage(message)
+    }
+
     fun sendSuccess(message: String) = sendSuccess(Component.text(message))
     fun sendFailure(message: String) = sendFailure(Component.text(message))
     fun sendInfo(message: String) = sendInfo(Component.text(message))
@@ -59,12 +69,6 @@ class CommandSource(
         if (!success) {
             sendFailure(message)
         }
-    }
-
-    @Deprecated("Deprecated in Java", level = DeprecationLevel.ERROR)
-    @Suppress("DEPRECATION")
-    override fun sendMessage(source: Identity, message: Component, type: MessageType) {
-        sendMessage(message)
     }
 
     private fun copy(

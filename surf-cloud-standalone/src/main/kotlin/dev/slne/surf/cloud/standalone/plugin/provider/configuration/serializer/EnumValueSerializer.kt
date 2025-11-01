@@ -21,15 +21,17 @@ class EnumValueSerializer : ScalarSerializer<Enum<*>>(object : TypeToken<Enum<*>
             val longer = typeClass.enumConstants.size > 10
             val optionSample = typeClass.enumConstants.take(10).map { it.name }
             log.atSevere()
-                .log("Failed to deserialize enum value '$enumConstant' for type $typeClass. " +
-                    "Available options: ${optionSample.joinToString()}" +
-                    if (longer) "..." else "")
+                .log(
+                    "Failed to deserialize enum value '$enumConstant' for type $typeClass. " +
+                            "Available options: ${optionSample.joinToString()}" +
+                            if (longer) "..." else ""
+                )
         }
 
         return ret
     }
 
-    override fun serialize(item: Enum<*>, typeSupported: Predicate<Class<*>?>?): Any? {
+    override fun serialize(item: Enum<*>, typeSupported: Predicate<Class<*>?>?): Any {
         return item.name
     }
 }

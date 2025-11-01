@@ -8,7 +8,8 @@ import org.jetbrains.exposed.dao.id.EntityID
 
 class BanPunishmentIpAddressEntity(id: EntityID<Long>) :
     AuditableLongEntity(id, BanPunishmentIpAddressTable) {
-    companion object : AuditableLongEntityClass<BanPunishmentIpAddressEntity>(BanPunishmentIpAddressTable)
+    companion object :
+        AuditableLongEntityClass<BanPunishmentIpAddressEntity>(BanPunishmentIpAddressTable)
 
     var ipAddress by BanPunishmentIpAddressTable.ipAddress
     var punishment by BanPunishmentEntity referencedOn BanPunishmentIpAddressTable.punishment

@@ -1,6 +1,5 @@
 package dev.slne.surf.cloud.api.server.command
 
-import com.mojang.brigadier.CommandDispatcher
 import com.mojang.brigadier.ResultConsumer
 import com.mojang.brigadier.exceptions.CommandExceptionType
 import com.mojang.brigadier.exceptions.CommandSyntaxException

@@ -11,7 +11,7 @@ import dev.slne.surf.cloud.standalone.Bootstrap
 import kotlinx.coroutines.launch
 
 @ConsoleCommand
-class ShutdownCommand: AbstractConsoleCommand() {
+class ShutdownCommand : AbstractConsoleCommand() {
 
     override fun register(dispatcher: CommandDispatcher<CommandSource>) {
         dispatcher.register(literal("stop") {

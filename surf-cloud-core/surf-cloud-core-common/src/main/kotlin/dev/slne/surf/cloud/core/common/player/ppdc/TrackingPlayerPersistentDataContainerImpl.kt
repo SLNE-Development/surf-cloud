@@ -1,6 +1,6 @@
 package dev.slne.surf.cloud.core.common.player.ppdc
 
-import dev.slne.surf.cloud.api.common.util.mutableObjectListOf
+import dev.slne.surf.surfapi.core.api.util.mutableObjectListOf
 import dev.slne.surf.cloud.core.common.player.ppdc.network.PdcOp
 import dev.slne.surf.cloud.core.common.player.ppdc.network.PdcPatch
 import dev.slne.surf.surfapi.core.api.nbt.FastCompoundBinaryTag

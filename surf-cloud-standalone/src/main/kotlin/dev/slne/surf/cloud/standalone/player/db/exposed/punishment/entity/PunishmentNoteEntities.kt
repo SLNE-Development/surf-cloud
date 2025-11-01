@@ -7,7 +7,7 @@ import dev.slne.surf.cloud.standalone.player.db.exposed.punishment.table.*
 import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 
-abstract class AbstractPunishmentNoteEntity<E : AbstractPunishmentEntity<E, C>, C: LongEntityClass<E>>(
+abstract class AbstractPunishmentNoteEntity<E : AbstractPunishmentEntity<E, C>, C : LongEntityClass<E>>(
     id: EntityID<Long>,
     table: AbstractPunishmentNoteTable,
     punishmentEntityClass: C

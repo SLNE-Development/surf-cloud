@@ -75,19 +75,19 @@ class SparkHook : CloudLifecycleAware {
         val platform = SparkPlatform(this)
         private val sender = mutableObjectSetOf<CommandSender>()
 
-        override fun getVersion(): String? {
+        override fun getVersion(): String {
             return "1.10.138"
         }
 
-        override fun getPluginDirectory(): Path? {
+        override fun getPluginDirectory(): Path {
             return Path("spark")
         }
 
-        override fun getCommandName(): String? {
+        override fun getCommandName(): String {
             return "spark"
         }
 
-        override fun getCommandSenders(): Stream<out CommandSender?>? {
+        override fun getCommandSenders(): Stream<out CommandSender?> {
             return sender.stream()
         }
 
@@ -97,7 +97,7 @@ class SparkHook : CloudLifecycleAware {
             }
         }
 
-        override fun getPlatformInfo(): PlatformInfo? {
+        override fun getPlatformInfo(): PlatformInfo {
             return CloudPlatformInfoImpl
         }
 
@@ -131,7 +131,12 @@ class SparkHook : CloudLifecycleAware {
         }
 
         override fun createClassFinder(): ClassFinder? {
-            return ClassFinder.combining(*arrayOf(InstrumentationClassFinder(instrumentation), FallbackClassFinder.INSTANCE))
+            return ClassFinder.combining(
+                *arrayOf(
+                    InstrumentationClassFinder(instrumentation),
+                    FallbackClassFinder.INSTANCE
+                )
+            )
         }
 
         fun createResponseHandler(sender: StandaloneCommandSender) =
@@ -156,23 +161,23 @@ class SparkHook : CloudLifecycleAware {
             this.platform.disable()
         }
 
-        override fun createPlayerPingProvider(): PlayerPingProvider? {
+        override fun createPlayerPingProvider(): PlayerPingProvider {
             return CloudServerPingProvider
         }
 
-        override fun createServerConfigProvider(): ServerConfigProvider? {
+        override fun createServerConfigProvider(): ServerConfigProvider {
             return CloudServerConfigProvider
         }
 
-        override fun createTickHook(): TickHook? {
+        override fun createTickHook(): TickHook {
             return CloudTickHook
         }
 
-        override fun createTickReporter(): TickReporter? {
+        override fun createTickReporter(): TickReporter {
             return CloudTickReporter
         }
 
-        override fun createClassSourceLookup(): ClassSourceLookup? {
+        override fun createClassSourceLookup(): ClassSourceLookup {
             return CloudClassSourceLookup
         }
 
@@ -188,7 +193,7 @@ class SparkHook : CloudLifecycleAware {
             }
         }
 
-        override fun createExtraMetadataProvider(): MetadataProvider? {
+        override fun createExtraMetadataProvider(): MetadataProvider {
             return CloudMetadataProvider
         }
     }

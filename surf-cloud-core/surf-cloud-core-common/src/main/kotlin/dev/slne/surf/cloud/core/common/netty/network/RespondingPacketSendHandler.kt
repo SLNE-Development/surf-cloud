@@ -3,10 +3,10 @@ package dev.slne.surf.cloud.core.common.netty.network
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
 import dev.slne.surf.cloud.api.common.netty.packet.RespondingNettyPacket
 import dev.slne.surf.cloud.api.common.netty.packet.ResponseNettyPacket
-import dev.slne.surf.cloud.api.common.util.mutableObject2ObjectMapOf
 import dev.slne.surf.cloud.api.common.util.netty.UnifiedReadOnlyChannelHandler
-import dev.slne.surf.cloud.api.common.util.synchronize
 import dev.slne.surf.surfapi.core.api.util.logger
+import dev.slne.surf.surfapi.core.api.util.mutableObject2ObjectMapOf
+import dev.slne.surf.surfapi.core.api.util.synchronize
 import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.ChannelPromise
 import kotlinx.coroutines.CompletableDeferred
@@ -26,13 +26,14 @@ class RespondingPacketSendHandler : UnifiedReadOnlyChannelHandler<NettyPacket>()
         if (msg is RespondingNettyPacket<*> || msg is ResponseNettyPacket) {
             if (msg.handled) {
                 error("Packet $msg was already handled")
-                return
             }
             msg.handled()
         }
 
         if (msg is RespondingNettyPacket<*>) {
-            msg.initResponseConnection(ctx.channel().attr(ConnectionImpl.CHANNEL_ATTRIBUTE_KEY).get())
+            msg.initResponseConnection(
+                ctx.channel().attr(ConnectionImpl.CHANNEL_ATTRIBUTE_KEY).get()
+            )
         }
 
         if (msg is ResponseNettyPacket) {
@@ -57,16 +58,13 @@ class RespondingPacketSendHandler : UnifiedReadOnlyChannelHandler<NettyPacket>()
         if (msg is RespondingNettyPacket<*> || msg is ResponseNettyPacket) {
             if (msg.handled) {
                 error("Packet $msg was already handled")
-                return
             }
             msg.handled()
         }
 
         if (msg is RespondingNettyPacket<*>) {
-            respondingPackets.put(
-                msg.getUniqueSessionIdOrCreate(),
+            respondingPackets[msg.getUniqueSessionIdOrCreate()] =
                 msg.response as CompletableDeferred<ResponseNettyPacket>
-            )
         }
     }
 }

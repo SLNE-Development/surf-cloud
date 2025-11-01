@@ -107,7 +107,7 @@ open class UserListImpl : UserList {
      *
      * **Note:** If a UUID in the set cannot be resolved to a [CloudPlayer]
      * (e.g., the player disconnected between reading the UUID and resolution),
-     * a [NoSuchElementException] is thrown from [next] to signal the race.
+     * a [NoSuchElementException] is thrown from [java.util.Iterator.next] to signal the race.
      *
      * @throws NoSuchElementException if a UUID cannot be resolved to a player at iteration time.
      */

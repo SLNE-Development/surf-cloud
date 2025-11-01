@@ -2,7 +2,6 @@ package dev.slne.surf.cloud.standalone.console
 
 import dev.slne.surf.cloud.core.common.coroutines.ConsoleCommandInputScope
 import dev.slne.surf.cloud.standalone.commands.CommandManagerImpl
-import jakarta.annotation.PostConstruct
 import kotlinx.coroutines.launch
 import net.minecrell.terminalconsole.SimpleTerminalConsole
 import org.jline.reader.LineReader

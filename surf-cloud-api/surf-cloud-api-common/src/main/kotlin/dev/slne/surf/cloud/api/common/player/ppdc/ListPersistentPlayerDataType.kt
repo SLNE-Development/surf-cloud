@@ -6,7 +6,7 @@ package dev.slne.surf.cloud.api.common.player.ppdc
  * @param P The primitive type of the list elements.
  * @param C The complex type of the list elements.
  */
-interface ListPersistentPlayerDataType<P : Any, C>: PersistentPlayerDataType<List<P>, List<C>> {
+interface ListPersistentPlayerDataType<P : Any, C> : PersistentPlayerDataType<List<P>, List<C>> {
 
     /**
      * The data type of the elements in the list.

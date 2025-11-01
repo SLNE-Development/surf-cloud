@@ -6,7 +6,7 @@ import dev.slne.surf.cloud.api.server.command.*
 import dev.slne.surf.cloud.standalone.config.StandaloneConfigHolder
 
 @ConsoleCommand
-class ConfigCommand(private val configHolder: StandaloneConfigHolder): AbstractConsoleCommand() {
+class ConfigCommand(private val configHolder: StandaloneConfigHolder) : AbstractConsoleCommand() {
     override fun register(dispatcher: CommandDispatcher<CommandSource>) {
         dispatcher.register(literal("config") {
             then("reload") {

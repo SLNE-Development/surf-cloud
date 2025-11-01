@@ -116,8 +116,7 @@ abstract class PersistentPlayerDataContainerViewImpl : PersistentPlayerDataConta
     override fun snapshot(): PersistentPlayerDataContainerViewImpl {
         val tag = deepCopy(toTagCompound())
 
-
-        val tagCopy = CompoundBinaryTag.builder() // TODO: deep copy
+        val tagCopy = CompoundBinaryTag.builder()
             .put(tag)
             .build()
 

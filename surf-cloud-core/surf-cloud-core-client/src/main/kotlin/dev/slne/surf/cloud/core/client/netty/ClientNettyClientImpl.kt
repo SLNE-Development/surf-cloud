@@ -88,7 +88,8 @@ class ClientNettyClientImpl(
             ConnectionImpl.connect(
                 inetSocketAddress,
                 configHolder.config.connectionConfig.nettyConfig.useEpoll,
-                connection
+                connection,
+                configHolder
             )
 
             ConnectionTickScope.launch {
@@ -205,7 +206,7 @@ class ClientNettyClientImpl(
         useEpoll: Boolean,
     ): ConnectionImpl {
         val connection = ConnectionImpl(PacketFlow.CLIENTBOUND, EncryptionManager.instance)
-        ConnectionImpl.connect(address, useEpoll, connection)
+        ConnectionImpl.connect(address, useEpoll, connection, configHolder)
         return connection
     }
 

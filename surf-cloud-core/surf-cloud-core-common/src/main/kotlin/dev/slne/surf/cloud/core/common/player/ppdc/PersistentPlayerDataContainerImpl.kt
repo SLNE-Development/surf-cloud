@@ -144,7 +144,7 @@ open class PersistentPlayerDataContainerImpl(
     }
 
     override fun snapshot(): PersistentPlayerDataContainerImpl {
-        return PersistentPlayerDataContainerImpl(tag.fast())
+        return PersistentPlayerDataContainerImpl(snapshotTag().fast())
     }
 
     fun fromTagCompound(tag: CompoundBinaryTag) {

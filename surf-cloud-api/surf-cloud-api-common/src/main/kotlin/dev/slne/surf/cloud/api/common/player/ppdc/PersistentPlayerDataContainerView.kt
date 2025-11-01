@@ -43,6 +43,21 @@ interface PersistentPlayerDataContainerView {
      */
     fun <P : Any, C> get(key: Key, type: PersistentPlayerDataType<P, C>): C?
 
+    // region Primitive-specific get methods.
+    fun getBoolean(key: Key): Boolean?
+    fun getNumber(key: Key): Number?
+    fun getByte(key: Key): Byte?
+    fun getShort(key: Key): Short?
+    fun getInt(key: Key): Int?
+    fun getLong(key: Key): Long?
+    fun getFloat(key: Key): Float?
+    fun getDouble(key: Key): Double?
+    fun getString(key: Key): String?
+    fun getByteArray(key: Key): ByteArray?
+    fun getIntArray(key: Key): IntArray?
+    fun getLongArray(key: Key): LongArray?
+    // endregion
+
     /**
      * Retrieves all keys present in this container.
      *
@@ -70,4 +85,37 @@ interface PersistentPlayerDataContainerView {
      * @param buf The buffer to write to.
      */
     fun writeToBuf(buf: SurfByteBuf)
+
+    fun snapshot(): PersistentPlayerDataContainerView
+
+    companion object {
+        /**
+         * Maximum nesting depth for compound tags.
+         * This limit prevents memory exhaustion from extremely large nested structures.
+         * Set to a reasonable limit that should handle most legitimate use cases while
+         * protecting against pathological inputs.
+         */
+        const val MAX_NESTING_DEPTH = 512
+
+        /**
+         * Ensures that the nesting depth does not exceed the maximum allowed limit.
+         *
+         * This function validates that the provided depth is within acceptable bounds,
+         * preventing memory exhaustion from extremely deep nested structures.
+         *
+         * @param depth The current nesting depth to validate.
+         * @param exceptionFactory A factory function that creates the exception to throw
+         *                         when the depth exceeds the limit. Defaults to [IllegalStateException].
+         * @throws Throwable When the depth exceeds [MAX_NESTING_DEPTH]. The specific exception
+         *                   type is determined by the [exceptionFactory] parameter.
+         */
+        inline fun ensureValidNestingDepth(
+            depth: Int,
+            exceptionFactory: (message: String) -> Throwable = ::IllegalStateException
+        ) {
+            if (depth > MAX_NESTING_DEPTH) {
+                throw exceptionFactory("Exceeded maximum allowed nesting depth of $MAX_NESTING_DEPTH. This likely indicates a corrupted or maliciously crafted data structure.")
+            }
+        }
+    }
 }

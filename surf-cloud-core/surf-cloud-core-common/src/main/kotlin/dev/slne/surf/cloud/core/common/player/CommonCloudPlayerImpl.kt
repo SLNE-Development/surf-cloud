@@ -2,13 +2,55 @@ package dev.slne.surf.cloud.core.common.player
 
 import dev.slne.surf.cloud.api.common.player.CloudPlayer
 import dev.slne.surf.cloud.api.common.player.ConnectionResultEnum
+import dev.slne.surf.cloud.api.common.player.ppdc.PersistentPlayerDataContainer
 import dev.slne.surf.cloud.api.common.server.CloudServer
 import dev.slne.surf.cloud.api.common.server.CloudServerManager
+import dev.slne.surf.cloud.core.common.player.ppdc.PersistentPlayerDataContainerViewImpl
+import dev.slne.surf.cloud.core.common.player.ppdc.TrackingPlayerPersistentDataContainerImpl
+import dev.slne.surf.cloud.core.common.player.ppdc.network.PdcPatch
 import java.time.ZonedDateTime
 import java.util.*
+import java.util.concurrent.locks.ReentrantReadWriteLock
+import kotlin.concurrent.read
+import kotlin.concurrent.write
 
 abstract class CommonCloudPlayerImpl(uuid: UUID, override val name: String) :
     CommonOfflineCloudPlayerImpl(uuid), CloudPlayer {
+
+    protected val ppdc = TrackingPlayerPersistentDataContainerImpl()
+    protected val ppdcReentrantLock = ReentrantReadWriteLock(true)
+    protected val persistentDataView = object : PersistentPlayerDataContainerViewImpl() {
+        override fun toTagCompound() = ppdcReentrantLock.read { ppdc.tag }
+        override fun getTag(key: String) = ppdcReentrantLock.read { ppdc.getTag(key) }
+        override fun snapshotTag() = ppdcReentrantLock.read { super.snapshotTag() }
+    }
+
+    override val persistentData get() = persistentDataView
+
+    private inline fun <R> runWithTracking(
+        target: TrackingPlayerPersistentDataContainerImpl,
+        block: TrackingPlayerPersistentDataContainerImpl.() -> R
+    ): Pair<R, PdcPatch> = try {
+        target.startTracking()
+        val result = target.block()
+        val patch = target.getPatchOps()
+        result to patch
+    } finally {
+        target.clearTracking()
+    }
+
+    fun <R> editPdc0(
+        snapshot: Boolean,
+        block: PersistentPlayerDataContainer.() -> R
+    ): Pair<R, PdcPatch> = if (snapshot) {
+        val snapshotPpdc = ppdcReentrantLock.read { ppdc.snapshot() }
+        runWithTracking(snapshotPpdc, block)
+    } else {
+        ppdcReentrantLock.write {
+            runWithTracking(ppdc, block)
+        }
+    }
+
 
     override suspend fun connectToServer(
         group: String,

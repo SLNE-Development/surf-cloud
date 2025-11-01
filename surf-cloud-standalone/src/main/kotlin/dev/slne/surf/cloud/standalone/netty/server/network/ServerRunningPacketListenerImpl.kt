@@ -11,7 +11,6 @@ import dev.slne.surf.cloud.api.common.player.whitelist.WhitelistSettings
 import dev.slne.surf.cloud.api.common.player.whitelist.WhitelistStatus
 import dev.slne.surf.cloud.api.common.server.CloudServer
 import dev.slne.surf.cloud.api.common.server.CloudServerManager
-import dev.slne.surf.cloud.api.common.util.mutableIntSetOf
 import dev.slne.surf.cloud.core.common.coroutines.PacketHandlerScope
 import dev.slne.surf.cloud.core.common.coroutines.PunishmentHandlerScope
 import dev.slne.surf.cloud.core.common.coroutines.QueueConnectionScope
@@ -26,6 +25,7 @@ import dev.slne.surf.cloud.core.common.util.bean
 import dev.slne.surf.cloud.standalone.netty.server.NettyServerImpl
 import dev.slne.surf.cloud.standalone.netty.server.ServerClientImpl
 import dev.slne.surf.cloud.standalone.player.StandaloneCloudPlayerImpl
+import dev.slne.surf.cloud.standalone.player.standalonePlayerManagerImpl
 import dev.slne.surf.cloud.standalone.server.StandaloneCloudServerImpl
 import dev.slne.surf.cloud.standalone.server.StandaloneProxyCloudServerImpl
 import dev.slne.surf.cloud.standalone.server.serverManagerImpl
@@ -51,7 +51,7 @@ class ServerRunningPacketListenerImpl(
     private val log = logger()
 
     override suspend fun handlePlayerConnectToServer(packet: PlayerConnectToServerPacket) {
-        val result = playerManagerImpl.updateOrCreatePlayer(
+        val result = standalonePlayerManagerImpl.updateOrCreatePlayer(
             packet.uuid,
             packet.name,
             packet.proxy,
@@ -60,7 +60,8 @@ class ServerRunningPacketListenerImpl(
             true
         )
 
-        packet.respond(PlayerConnectToServerResponsePacket(result))
+        packet.respond(PlayerConnectToServerResponsePacket(result.preJoinResult))
+        if (!result.preJoinAllowed) return
 
         broadcast(
             PlayerConnectedToServerPacket(
@@ -68,9 +69,11 @@ class ServerRunningPacketListenerImpl(
                 packet.name,
                 packet.serverName,
                 packet.proxy,
-                packet.playerIp
+                packet.playerIp,
+                result.player!!.ppdcTagSnapshot()
             )
         )
+
         serverManagerImpl.getCommonStandaloneServerByName(packet.serverName)
             ?.handlePlayerConnect(packet.uuid)
     }
@@ -234,31 +237,12 @@ class ServerRunningPacketListenerImpl(
         packet.respond(LuckpermsMetaDataResponsePacket(data))
     }
 
-    private val pendingVerificationIds = mutableIntSetOf()
     override suspend fun handleRequestPlayerPersistentDataContainer(packet: ServerboundRequestPlayerPersistentDataContainer) {
         withPlayer(packet.uuid) {
-            val data = getPersistentData()
+            val data = ppdcTagSnapshot()
             val id = random.nextInt()
-            pendingVerificationIds.add(id)
 
             packet.respond(ClientboundPlayerPersistentDataContainerResponse(id, data))
-        }
-    }
-
-    override suspend fun handlePlayerPersistentDataContainerUpdate(packet: ServerboundPlayerPersistentDataContainerUpdatePacket) {
-        if (!pendingVerificationIds.remove(packet.verificationId)) {
-            log.atWarning()
-                .log(
-                    "Received invalid persistent data container update id %s",
-                    packet.verificationId
-                )
-            return
-        }
-
-        withPlayer(packet.uuid) {
-            log.atInfo()
-                .log("Updating persistent data for %s with data %s", packet.uuid, packet.nbt)
-            updatePersistentData(packet.nbt)
         }
     }
 
@@ -266,7 +250,7 @@ class ServerRunningPacketListenerImpl(
         val (uuid, serverName, queue, sendQueuedMessage) = packet
         withPlayer(uuid) {
             val result = when (val server = CloudServerManager.retrieveServerByName(serverName)) {
-                null -> ConnectionResultEnum.SERVER_NOT_FOUND(serverName.toString())
+                null -> ConnectionResultEnum.SERVER_NOT_FOUND(serverName)
                 !is CloudServer -> ConnectionResultEnum.CANNOT_CONNECT_TO_PROXY
                 else -> withContext(QueueConnectionScope.context) {
                     if (queue) connectToServerOrQueue(server, sendQueuedMessage)
@@ -607,6 +591,12 @@ class ServerRunningPacketListenerImpl(
 
     override fun handleSendToast(packet: SendToastPacket) {
         withPlayer(packet.uuid) { sendToast(packet.toast) }
+    }
+
+    override fun handleUpdatePlayerPersistentDataContainer(packet: UpdatePlayerPersistentDataContainerPacket) {
+        withPlayer(packet.uuid) {
+            applyPpdcPatch(packet.patch)
+        }
     }
 
     override fun handlePacket(packet: NettyPacket) {

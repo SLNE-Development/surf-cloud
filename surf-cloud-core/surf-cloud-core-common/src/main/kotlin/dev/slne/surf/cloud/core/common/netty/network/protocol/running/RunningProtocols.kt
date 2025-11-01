@@ -31,8 +31,8 @@ object RunningProtocols {
                 .addPacket(ClientboundSendResourcePacksPacket.STREAM_CODEC)
                 .addPacket(ClientboundRemoveResourcePacksPacket.STREAM_CODEC)
                 .addPacket(ClientboundClearResourcePacksPacket.STREAM_CODEC)
-                .addPacket(PlayerConnectedToServerPacket::class.createCodec())
-                .addPacket(PlayerConnectToServerResponsePacket::class.createCodec())
+                .addPacket(PlayerConnectedToServerPacket.STREAM_CODEC)
+                .addPacket(PlayerConnectToServerResponsePacket.STREAM_CODEC)
                 .addPacket(PlayerDisconnectFromServerPacket.STREAM_CODEC)
                 .addPacket(ClientboundRequestDisplayNamePacket.STREAM_CODEC)
                 .addPacket(ResponseDisplayNamePacketRequestPacket.STREAM_CODEC)
@@ -72,6 +72,7 @@ object RunningProtocols {
                 .addPacket(WhitelistStatusResponsePacket::class.createCodec())
                 .addPacket(WhitelistResponsePacket::class.createCodec())
                 .addPacket(SendToastPacket.STREAM_CODEC)
+                .addPacket(UpdatePlayerPersistentDataContainerPacket.STREAM_CODEC)
         }
 
     val CLIENTBOUND by lazy { CLIENTBOUND_TEMPLATE.freeze().bind(::SurfByteBuf) }
@@ -101,15 +102,14 @@ object RunningProtocols {
                 .addPacket(ServerboundBroadcastPacket.STREAM_CODEC)
                 .addPacket(ServerboundClientInformationPacket.STREAM_CODEC)
                 .addPacket(ServerboundPingRequestPacket.STREAM_CODEC)
-                .addPacket(PlayerConnectToServerPacket::class.createCodec())
-                .addPacket(PlayerConnectToServerResponsePacket::class.createCodec())
+                .addPacket(PlayerConnectToServerPacket.STREAM_CODEC)
+                .addPacket(PlayerConnectToServerResponsePacket.STREAM_CODEC)
                 .addPacket(PlayerDisconnectFromServerPacket.STREAM_CODEC)
                 .addPacket(ServerboundRequestDisplayNamePacket.STREAM_CODEC)
                 .addPacket(ResponseDisplayNamePacketRequestPacket.STREAM_CODEC)
                 .addPacket(RequestLuckpermsMetaDataPacket.STREAM_CODEC)
                 .addPacket(LuckpermsMetaDataResponsePacket.STREAM_CODEC)
                 .addPacket(ServerboundRequestPlayerPersistentDataContainer.STREAM_CODEC)
-                .addPacket(ServerboundPlayerPersistentDataContainerUpdatePacket.STREAM_CODEC)
                 .addPacket(ServerboundConnectPlayerToServerPacket::class.createCodec())
                 .addPacket(DisconnectPlayerPacket.STREAM_CODEC)
                 .addPacket(TeleportPlayerPacket.STREAM_CODEC)
@@ -121,7 +121,7 @@ object RunningProtocols {
                 .addPacket(ServerboundPullPlayersToGroupPacket::class.createCodec())
                 .addPacket(SilentDisconnectPlayerPacket::class.createCodec())
                 .addPacket(TeleportPlayerToPlayerPacket::class.createCodec())
-                .addPacket(RunPrePlayerJoinTasksResultPacket::class.createCodec())
+                .addPacket(RunPrePlayerJoinTasksResultPacket.STREAM_CODEC)
                 .addPacket(ServerboundGeneratePunishmentIdPacket::class.createCodec())
                 .addPacket(ServerboundCreateKickPacket::class.createCodec())
                 .addPacket(ServerboundCreateWarnPacket::class.createCodec())
@@ -150,6 +150,7 @@ object RunningProtocols {
                 .addPacket(ServerboundUpdateWhitelistPacket::class.createCodec())
                 .addPacket(ServerboundRefreshWhitelistPacket.STREAM_CODEC)
                 .addPacket(SendToastPacket.STREAM_CODEC)
+                .addPacket(UpdatePlayerPersistentDataContainerPacket.STREAM_CODEC)
         }
 
     val SERVERBOUND by lazy { SERVERBOUND_TEMPLATE.freeze().bind(::SurfByteBuf) }

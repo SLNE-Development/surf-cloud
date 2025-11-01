@@ -97,5 +97,7 @@ interface RunningClientPacketListener : ClientCommonPacketListener {
 
     fun handleSendToast(packet: SendToastPacket)
 
+    fun handleUpdatePlayerPersistentDataContainer(packet: UpdatePlayerPersistentDataContainerPacket)
+
     fun handlePacket(packet: NettyPacket)
 }

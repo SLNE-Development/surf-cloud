@@ -364,10 +364,6 @@ class ConnectionImpl(
                             msg
                         )
 
-                        is ServerboundPlayerPersistentDataContainerUpdatePacket -> listener.handlePlayerPersistentDataContainerUpdate(
-                            msg
-                        )
-
                         is ServerboundConnectPlayerToServerPacket -> listener.handleConnectPlayerToServer(
                             msg
                         )
@@ -449,6 +445,9 @@ class ConnectionImpl(
                         )
 
                         is SendToastPacket -> listener.handleSendToast(msg)
+                        is UpdatePlayerPersistentDataContainerPacket -> listener.handleUpdatePlayerPersistentDataContainer(
+                            msg
+                        )
 
                         else -> listener.handlePacket(msg) // handle other packets
                     }
@@ -629,6 +628,9 @@ class ConnectionImpl(
                         is ClientboundCacheDeltaPacket -> listener.handleCacheDelta(msg)
                         is ClientboundCacheErrorPacket -> listener.handleCacheError(msg)
                         is SendToastPacket -> listener.handleSendToast(msg)
+                        is UpdatePlayerPersistentDataContainerPacket -> listener.handleUpdatePlayerPersistentDataContainer(
+                            msg
+                        )
 
                         else -> listener.handlePacket(msg)
                     }

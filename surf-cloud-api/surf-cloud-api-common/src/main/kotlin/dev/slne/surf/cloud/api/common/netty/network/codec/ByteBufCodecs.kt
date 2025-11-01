@@ -3,14 +3,27 @@ package dev.slne.surf.cloud.api.common.netty.network.codec
 import dev.slne.surf.cloud.api.common.netty.protocol.buffer.*
 import dev.slne.surf.cloud.api.common.netty.protocol.buffer.types.Utf8String
 import dev.slne.surf.cloud.api.common.util.ByIdMap
+import dev.slne.surf.cloud.api.common.util.ByIdMap.OutOfBoundsStrategy
 import dev.slne.surf.cloud.api.common.util.createUnresolvedInetSocketAddress
 import io.netty.buffer.ByteBuf
+import io.netty.buffer.ByteBufInputStream
+import io.netty.buffer.ByteBufOutputStream
+import io.netty.handler.codec.DecoderException
+import io.netty.handler.codec.EncoderException
+import it.unimi.dsi.fastutil.io.FastBufferedInputStream
+import it.unimi.dsi.fastutil.io.FastBufferedOutputStream
+import it.unimi.dsi.fastutil.objects.ObjectArrayList
 import net.kyori.adventure.key.Key
+import net.kyori.adventure.nbt.BinaryTag
 import net.kyori.adventure.nbt.BinaryTagIO
+import net.kyori.adventure.nbt.BinaryTagType
+import net.kyori.adventure.nbt.BinaryTagTypes
 import net.kyori.adventure.sound.Sound
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
+import java.io.DataInputStream
+import java.io.DataOutputStream
 import java.math.BigDecimal
 import java.math.BigInteger
 import java.math.MathContext
@@ -21,10 +34,15 @@ import java.time.Instant
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.util.*
+import java.util.zip.GZIPInputStream
+import java.util.zip.GZIPOutputStream
+import kotlin.math.min
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 
 object ByteBufCodecs {
+    const val MAX_INITIAL_COLLECTION_SIZE = 65536
+
     val BOOLEAN_CODEC = streamCodec(ByteBuf::writeBoolean, ByteBuf::readBoolean)
     val BYTE_CODEC = streamCodec({ buf, byte -> buf.writeByte(byte.toInt()) }, ByteBuf::readByte)
     val SHORT_CODEC =
@@ -59,7 +77,7 @@ object ByteBufCodecs {
     private val SOUND_SOURCE_BY_ID = ByIdMap.continuous(
         { it.ordinal },
         Sound.Source.entries.toTypedArray(),
-        ByIdMap.OutOfBoundsStrategy.ZERO
+        OutOfBoundsStrategy.ZERO
     )
     val SOUND_CODEC = streamCodecComposite(
         KEY_CODEC,
@@ -138,6 +156,85 @@ object ByteBufCodecs {
         BigDecimal(unscaledValue, scale, MathContext(precision))
     }
 
+    private val TAG_TYPES = arrayOf(
+        BinaryTagTypes.END,
+        BinaryTagTypes.BYTE,
+        BinaryTagTypes.SHORT,
+        BinaryTagTypes.INT,
+        BinaryTagTypes.LONG,
+        BinaryTagTypes.FLOAT,
+        BinaryTagTypes.DOUBLE,
+        BinaryTagTypes.BYTE_ARRAY,
+        BinaryTagTypes.STRING,
+        BinaryTagTypes.LIST,
+        BinaryTagTypes.COMPOUND,
+        BinaryTagTypes.INT_ARRAY,
+        BinaryTagTypes.LONG_ARRAY,
+    )
+
+    private val BINARY_TAG_BY_ID = ByIdMap.continuous(
+        { it.id().toInt() },
+        TAG_TYPES,
+        OutOfBoundsStrategy.DECODE_ERROR
+    )
+
+    val BINARY_TAG_CODEC: StreamCodec<ByteBuf, BinaryTag> = streamCodec({ buf, tag ->
+        val type = tag.type() as BinaryTagType<BinaryTag>
+        buf.writeByte(type.id().toInt())
+
+        val tmp = buf.alloc().buffer()
+        try {
+            DataOutputStream(FastBufferedOutputStream(ByteBufOutputStream(tmp))).use { out ->
+                type.write(tag, out)
+            }
+            val length = tmp.readableBytes()
+            buf.writeVarInt(length)
+            buf.writeBytes(tmp, tmp.readerIndex(), length)
+        } finally {
+            tmp.release()
+        }
+
+    }, { buf ->
+        val type = BINARY_TAG_BY_ID(buf.readByte().toInt())
+        val len = buf.readVarInt()
+        val slice = buf.readRetainedSlice(len)
+
+        try {
+            DataInputStream(FastBufferedInputStream(ByteBufInputStream(slice))).use { input ->
+                type.read(input)
+            }
+        } finally {
+            slice.release()
+        }
+    })
+
+    val BINARY_TAG_CODEC_COMPRESSED: StreamCodec<ByteBuf, BinaryTag> = streamCodec({ buf, tag ->
+        val type = tag.type() as BinaryTagType<BinaryTag>
+        buf.writeByte(type.id().toInt())
+        val temp = buf.alloc().buffer()
+
+        try {
+            DataOutputStream(FastBufferedOutputStream(GZIPOutputStream(ByteBufOutputStream(temp)))).use {
+                type.write(tag, it)
+            }
+            buf.writeVarInt(temp.readableBytes())
+            buf.writeBytes(temp, temp.readerIndex(), temp.readableBytes())
+        } finally {
+            temp.release()
+        }
+    }, { buf ->
+        val type = BINARY_TAG_BY_ID(buf.readByte().toInt())
+        val length = buf.readVarInt()
+        val slice = buf.readRetainedSlice(length)
+
+        try {
+            DataInputStream(FastBufferedInputStream(GZIPInputStream(ByteBufInputStream(slice)))).use {
+                type.read(it)
+            }
+        } finally {
+            slice.release()
+        }
+    })
 
     fun <E : Enum<E>> enumStreamCodec(clazz: Class<E>): StreamCodec<ByteBuf, E> =
         streamCodec(ByteBuf::writeEnum) { it.readEnum(clazz) }
@@ -155,4 +252,67 @@ object ByteBufCodecs {
             buf.writeVarInt(idGetter(value))
         }
     }
+
+    fun readCount(buffer: ByteBuf, maxSize: Int): Int {
+        val count = buffer.readVarInt()
+        if (count > maxSize) {
+            throw DecoderException("$count elements exceeded max size of: $maxSize")
+        } else {
+            return count
+        }
+    }
+
+    fun writeCount(buffer: ByteBuf, count: Int, maxSize: Int) {
+        if (count > maxSize) {
+            throw EncoderException("$count elements exceeded max size of: $maxSize")
+        } else {
+            buffer.writeVarInt(count)
+        }
+    }
+
+    fun <B : ByteBuf, V, C : MutableCollection<V>> collection(
+        factory: (Int) -> C,
+        codec: StreamCodec<in B, V>,
+        maxSize: Int = Int.MAX_VALUE
+    ): StreamCodec<B, C> = object : StreamCodec<B, C> {
+        override fun decode(buf: B): C {
+            val count = readCount(buf, maxSize)
+            val collection = factory(min(count, MAX_INITIAL_COLLECTION_SIZE))
+
+            repeat(count) {
+                collection.add(codec.decode(buf))
+            }
+
+            return collection
+        }
+
+        override fun encode(buf: B, value: C) {
+            writeCount(buf, value.size, maxSize)
+
+            for (element in value) {
+                codec.encode(buf, element)
+            }
+        }
+    }
+
+    fun <B : ByteBuf, V, C : MutableCollection<V>> collection(factory: (Int) -> C): CodecOperation<B, V, C> {
+        return CodecOperation { size -> collection(factory, size) }
+    }
+
+
+    fun <B : ByteBuf, V> list(): CodecOperation<B, V, MutableList<V>> {
+        return CodecOperation { size -> collection(::ObjectArrayList, size) }
+    }
+
+    fun <B : ByteBuf, V> list(maxSize: Int): CodecOperation<B, V, MutableList<V>> {
+        return CodecOperation { size -> collection(::ObjectArrayList, size, maxSize) }
+    }
+
+    @Suppress("NOTHING_TO_INLINE")
+    private inline fun decodeError(message: Any): Nothing =
+        throw DecoderException(message.toString())
+
+    @Suppress("NOTHING_TO_INLINE")
+    private inline fun encodeError(message: Any): Nothing =
+        throw EncoderException(message.toString())
 }

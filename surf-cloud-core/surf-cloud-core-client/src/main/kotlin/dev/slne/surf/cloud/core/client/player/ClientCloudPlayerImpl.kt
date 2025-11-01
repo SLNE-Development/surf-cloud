@@ -23,15 +23,15 @@ import dev.slne.surf.cloud.core.common.netty.network.protocol.running.*
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ServerboundRequestPlayerDataPacket.DataRequestType
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ServerboundRequestPlayerDataResponse.*
 import dev.slne.surf.cloud.core.common.player.CommonCloudPlayerImpl
-import dev.slne.surf.cloud.core.common.player.ppdc.PersistentPlayerDataContainerImpl
+import dev.slne.surf.cloud.core.common.player.ppdc.network.PdcPatch
 import dev.slne.surf.cloud.core.common.util.hasPermissionPlattform
 import dev.slne.surf.surfapi.core.api.messages.adventure.getPointer
-import dev.slne.surf.surfapi.core.api.nbt.fast
 import net.kyori.adventure.audience.Audience
 import net.kyori.adventure.audience.MessageType
 import net.kyori.adventure.bossbar.BossBar
 import net.kyori.adventure.identity.Identity
 import net.kyori.adventure.inventory.Book
+import net.kyori.adventure.nbt.CompoundBinaryTag
 import net.kyori.adventure.resource.ResourcePackRequest
 import net.kyori.adventure.sound.Sound
 import net.kyori.adventure.sound.Sound.Emitter
@@ -46,6 +46,7 @@ import java.net.Inet4Address
 import java.time.ZonedDateTime
 import java.util.*
 import java.util.concurrent.atomic.AtomicBoolean
+import kotlin.concurrent.write
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.days
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ServerboundRequestPlayerDataResponse.NameHistory as NameHistoryResponse
@@ -65,6 +66,7 @@ abstract class ClientCloudPlayerImpl<PlatformPlayer : Audience>(
     override val connectedToProxy get() = proxyServerName != null
     override val connectedToServer get() = serverName != null
 
+
     /**
      * The audience for this player. If the player is on this server, this will point to
      * the bukkit / velocity player. Otherwise packets will be sent to the player via the network.
@@ -72,6 +74,27 @@ abstract class ClientCloudPlayerImpl<PlatformPlayer : Audience>(
     protected abstract val audience: PlatformPlayer?
 
     protected abstract val platformClass: Class<PlatformPlayer>
+
+    fun applyPpdcPatch(patch: PdcPatch) {
+        ppdcReentrantLock.write {
+            ppdc.applyOps(ppdc.tag, patch)
+        }
+    }
+
+    fun overwritePpdc(tag: CompoundBinaryTag) {
+        ppdcReentrantLock.write {
+            ppdc.fromTagCompound(tag)
+        }
+    }
+
+    override fun <R> editPdc(block: PersistentPlayerDataContainer.() -> R): R {
+        val (result, patch) = editPdc0(true, block)
+        if (!patch.empty) {
+            UpdatePlayerPersistentDataContainerPacket(uuid, patch).fireAndForget()
+        }
+
+        return result
+    }
 
     override suspend fun latestIpAddress(): Inet4Address {
         return request<IpAddress>(DataRequestType.LATEST_IP_ADDRESS).ip
@@ -119,22 +142,6 @@ abstract class ClientCloudPlayerImpl<PlatformPlayer : Audience>(
             group,
             ignoreCase = true
         ) == true
-    }
-
-    override suspend fun <R> withPersistentData(block: PersistentPlayerDataContainer.() -> R): R {
-        val response = ServerboundRequestPlayerPersistentDataContainer(uuid).fireAndAwaitOrThrow()
-
-        val nbt = response.nbt
-        val container = PersistentPlayerDataContainerImpl(nbt.fast(synchronize = true))
-        val result = container.block()
-
-        ServerboundPlayerPersistentDataContainerUpdatePacket(
-            uuid,
-            response.verificationId,
-            container.toTagCompound()
-        ).fireAndForget()
-
-        return result
     }
 
     override suspend fun displayName(): Component {

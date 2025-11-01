@@ -3,6 +3,7 @@ plugins {
 }
 
 dependencies {
+    api(project(":surf-cloud-test-plugin:surf-cloud-test-core"))
     compileOnly(project(":surf-cloud-api:surf-cloud-api-server"))
 
     // https://mvnrepository.com/artifact/commons-io/commons-io

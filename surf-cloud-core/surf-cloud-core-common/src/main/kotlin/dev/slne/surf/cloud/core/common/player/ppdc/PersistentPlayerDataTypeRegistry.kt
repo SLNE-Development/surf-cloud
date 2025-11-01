@@ -4,239 +4,200 @@ import com.google.common.primitives.Primitives
 import dev.slne.surf.cloud.api.common.player.ppdc.ListPersistentPlayerDataType
 import dev.slne.surf.cloud.api.common.player.ppdc.PersistentPlayerDataContainer
 import dev.slne.surf.cloud.api.common.player.ppdc.PersistentPlayerDataType
-import dev.slne.surf.cloud.api.common.util.mutableObject2ObjectMapOf
 import dev.slne.surf.cloud.api.common.util.mutableObjectListOf
-import dev.slne.surf.cloud.api.common.util.synchronize
 import net.kyori.adventure.nbt.*
-import kotlin.reflect.KClass
-import kotlin.reflect.cast
+import java.util.concurrent.ConcurrentHashMap
 
-private typealias AdapterCreator = (KClass<*>) -> PersistentPlayerDataTypeRegistry.TagAdapter<*, *>
+private typealias AdapterCreator = (Class<*>) -> PersistentPlayerDataTypeRegistry.TagAdapter<*, *>
 
+@Suppress("UNCHECKED_CAST")
 object PersistentPlayerDataTypeRegistry {
-    private val adapters = mutableObject2ObjectMapOf<KClass<*>, TagAdapter<*, *>>().synchronize()
+    private val adapters = ConcurrentHashMap<Class<*>, TagAdapter<*, *>>()
 
     private val createAdapter: AdapterCreator = { createAdapter(it) }
 
-    private fun <T : Any> createAdapter(type: KClass<T>): TagAdapter<*, *> {
+    private fun <T : Any> createAdapter(type: Class<T>): TagAdapter<*, *> {
         var type = type
-        if (!Primitives.isWrapperType(type.java)) {
-            type =
-                Primitives.wrap(type.java).kotlin //Make sure we will always "switch" over the wrapper types
+        if (!Primitives.isWrapperType(type)) {
+            type = Primitives.wrap(type) //Make sure we will always "switch" over the wrapper types
         }
 
         // region Primitives
-        when (type) {
-            Byte::class -> {
-                return createAdapter(
-                    Byte::class,
-                    BinaryTagTypes.BYTE,
-                    ByteBinaryTag::byteBinaryTag
-                ) { it.value() }
-            }
+        return when (type) {
+            Byte::class.java -> createAdapter(
+                Byte::class.java,
+                ByteBinaryTag::class.java,
+                BinaryTagTypes.BYTE,
+                ByteBinaryTag::byteBinaryTag
+            ) { it.value() }
 
-            Short::class -> {
-                return createAdapter(
-                    Short::class,
-                    BinaryTagTypes.SHORT,
-                    ShortBinaryTag::shortBinaryTag
-                ) { it.value() }
-            }
+            Short::class.java -> createAdapter(
+                Short::class.java,
+                ShortBinaryTag::class.java,
+                BinaryTagTypes.SHORT,
+                ShortBinaryTag::shortBinaryTag
+            ) { it.value() }
 
-            Int::class -> {
-                return createAdapter(
-                    Int::class,
-                    BinaryTagTypes.INT,
-                    IntBinaryTag::intBinaryTag
-                ) { it.value() }
-            }
+            Int::class.java -> createAdapter(
+                Int::class.java,
+                IntBinaryTag::class.java,
+                BinaryTagTypes.INT,
+                IntBinaryTag::intBinaryTag
+            ) { it.value() }
 
-            Long::class -> {
-                return createAdapter(
-                    Long::class,
-                    BinaryTagTypes.LONG,
-                    LongBinaryTag::longBinaryTag
-                ) { it.value() }
-            }
+            Long::class.java -> createAdapter(
+                Long::class.java,
+                LongBinaryTag::class.java,
+                BinaryTagTypes.LONG,
+                LongBinaryTag::longBinaryTag
+            ) { it.value() }
 
-            Float::class -> {
-                return createAdapter(
-                    Float::class,
-                    BinaryTagTypes.FLOAT,
-                    FloatBinaryTag::floatBinaryTag
-                ) { it.value() }
-            }
+            Float::class.java -> createAdapter(
+                Float::class.java,
+                FloatBinaryTag::class.java,
+                BinaryTagTypes.FLOAT,
+                FloatBinaryTag::floatBinaryTag
+            ) { it.value() }
 
-            Double::class -> {
-                return createAdapter(
-                    Double::class,
-                    BinaryTagTypes.DOUBLE,
-                    DoubleBinaryTag::doubleBinaryTag
-                ) { it.value() }
-            }
+            Double::class.java -> createAdapter(
+                Double::class.java,
+                DoubleBinaryTag::class.java,
+                BinaryTagTypes.DOUBLE,
+                DoubleBinaryTag::doubleBinaryTag
+            ) { it.value() }
 
-            Boolean::class -> {
-                return createAdapter(
-                    Boolean::class,
-                    BinaryTagTypes.BYTE,
-                    { if (it) ByteBinaryTag.ONE else ByteBinaryTag.ZERO }
-                ) { it.value() != 0.toByte() }
-            }
+            Boolean::class.java -> createAdapter(
+                Boolean::class.java,
+                ByteBinaryTag::class.java,
+                BinaryTagTypes.BYTE,
+                { if (it) ByteBinaryTag.ONE else ByteBinaryTag.ZERO }
+            ) { it.value() != 0.toByte() }
 
-            Char::class -> {
-                return createAdapter(
-                    Char::class,
-                    BinaryTagTypes.INT,
-                    { IntBinaryTag.intBinaryTag(it.code) }
-                ) { it.value().toChar() }
-            }
+            Char::class.java -> createAdapter(
+                Char::class.java,
+                IntBinaryTag::class.java,
+                BinaryTagTypes.INT,
+                { IntBinaryTag.intBinaryTag(it.code) }
+            ) { it.value().toChar() }
 
-            String::class -> {
-                return createAdapter(
-                    String::class,
-                    BinaryTagTypes.STRING,
-                    StringBinaryTag::stringBinaryTag
-                ) { it.value() }
-            }
+            String::class.java -> createAdapter(
+                String::class.java,
+                StringBinaryTag::class.java,
+                BinaryTagTypes.STRING,
+                StringBinaryTag::stringBinaryTag
+            ) { it.value() }
+
             // endregion
             // region Primitive non-list arrays
-            ByteArray::class -> {
-                return createAdapter(
-                    ByteArray::class,
-                    BinaryTagTypes.BYTE_ARRAY,
-                    { ByteArrayBinaryTag.byteArrayBinaryTag(*it.copyOf()) },
-                    { it.value().copyOf() }
-                )
-            }
+            ByteArray::class.java -> createAdapter(
+                ByteArray::class.java,
+                ByteArrayBinaryTag::class.java,
+                BinaryTagTypes.BYTE_ARRAY,
+                ByteArrayBinaryTag::byteArrayBinaryTag,
+                ByteArrayBinaryTag::value
+            )
 
-            IntArray::class -> {
-                return createAdapter(
-                    IntArray::class,
-                    BinaryTagTypes.INT_ARRAY,
-                    { IntArrayBinaryTag.intArrayBinaryTag(*it.copyOf()) },
-                    { it.value().copyOf() }
-                )
-            }
 
-            LongArray::class -> {
-                return createAdapter(
-                    LongArray::class,
-                    BinaryTagTypes.LONG_ARRAY,
-                    { LongArrayBinaryTag.longArrayBinaryTag(*it.copyOf()) },
-                    { it.value().copyOf() }
-                )
-            }
+            IntArray::class.java -> createAdapter(
+                IntArray::class.java,
+                IntArrayBinaryTag::class.java,
+                BinaryTagTypes.INT_ARRAY,
+                IntArrayBinaryTag::intArrayBinaryTag,
+                IntArrayBinaryTag::value
+            )
 
-            BooleanArray::class -> {
-                return createAdapter(
-                    BooleanArray::class,
-                    BinaryTagTypes.BYTE_ARRAY,
-                    { bytes ->
-                        ByteArrayBinaryTag.byteArrayBinaryTag(*bytes.map { if (it) 1.toByte() else 0.toByte() }
-                            .toByteArray())
-                    },
-                    { tag -> tag.value().map { it == 1.toByte() }.toBooleanArray() }
-                )
-            }
+            LongArray::class.java -> createAdapter(
+                LongArray::class.java,
+                LongArrayBinaryTag::class.java,
+                BinaryTagTypes.LONG_ARRAY,
+                LongArrayBinaryTag::longArrayBinaryTag,
+                LongArrayBinaryTag::value
+            )
 
-            CharArray::class -> {
-                return createAdapter(
-                    CharArray::class,
-                    BinaryTagTypes.INT_ARRAY,
-                    { ints ->
-                        IntArrayBinaryTag.intArrayBinaryTag(*ints.map { it.code }.toIntArray())
-                    },
-                    { tag -> tag.value().map { it.toChar() }.toCharArray() }
-                )
-            }
             // endregion
-            Array<PersistentPlayerDataContainer>::class -> {
-                return createAdapter(
-                    Array<PersistentPlayerDataContainer>::class,
-                    BinaryTagTypes.LIST,
-                    { pdcs ->
-                        val builder = ListBinaryTag.builder(BinaryTagTypes.COMPOUND)
-                        for (pdc in pdcs) {
-                            require(pdc is PersistentPlayerDataContainerImpl) { "The PDC must be an instance of PersistentPlayerDataContainerImpl" }
-                            builder.add(pdc.toTagCompound())
-                        }
-                        builder.build()
-                    }, {
-                        it.mapIndexed { index, _ ->
-                            val container = PersistentPlayerDataContainerImpl()
-                            val compound = it.getCompound(index)
-                            compound.forEach { (key, value) -> container.put(key, value) }
-                            container
-                        }.toTypedArray()
+            Array<PersistentPlayerDataContainer>::class.java -> createAdapter(
+                Array<PersistentPlayerDataContainer>::class.java,
+                ListBinaryTag::class.java,
+                BinaryTagTypes.LIST,
+                { containerArray ->
+                    val builder = ListBinaryTag.builder(BinaryTagTypes.COMPOUND)
+                    for (pdc in containerArray) {
+                        require(pdc is PersistentPlayerDataContainerImpl) { "The PDC must be an instance of PersistentPlayerDataContainerImpl" }
+                        builder.add(pdc.toTagCompound())
                     }
-                )
+                    builder.build()
+                }, { tag ->
+                    tag.mapIndexed { index, _ ->
+                        val container = PersistentPlayerDataContainerImpl()
+                        val compound = tag.getCompound(index)
+                        compound.forEach { (key, value) -> container.put(key, value) }
+                        container
+                    }.toTypedArray()
+                }
+            )
+
+
+            PersistentPlayerDataContainer::class.java -> createAdapter(
+                PersistentPlayerDataContainerImpl::class.java,
+                CompoundBinaryTag::class.java,
+                BinaryTagTypes.COMPOUND,
+                PersistentPlayerDataContainerImpl::toTagCompound
+            ) {
+                PersistentPlayerDataContainerImpl().apply {
+                    it.forEach { (key, value) ->
+                        put(key, value)
+                    }
+                }
             }
 
-            PersistentPlayerDataContainer::class -> {
-                return createAdapter(
-                    PersistentPlayerDataContainerImpl::class,
-                    BinaryTagTypes.COMPOUND,
-                    { it.toTagCompound() },
-                    {
-                        PersistentPlayerDataContainerImpl().apply {
-                            it.forEach { (key, value) ->
-                                put(key, value)
-                            }
-                        }
-                    }
-                )
-            }
+            List::class.java -> createAdapter(
+                List::class.java,
+                ListBinaryTag::class.java,
+                BinaryTagTypes.LIST,
+                { type, value ->
+                    constructList(
+                        type as PersistentPlayerDataType<List<T>, *>,
+                        value as List<T>
+                    )
+                },
+                this::extractList,
+                this::matchesListTag
+            )
 
-            List::class -> {
-                @Suppress("UNCHECKED_CAST")
-                return createAdapter(
-                    List::class,
-                    BinaryTagTypes.LIST,
-                    { type, value ->
-                        constructList(
-                            type as PersistentPlayerDataType<List<T>, *>,
-                            value as List<T>
-                        )
-                    },
-                    this::extractList,
-                    this::matchesListTag
-                )
-            }
+            else -> error("Could not find a valid TagAdapter implementation for the requested type ${type.simpleName}")
         }
-
-        error("Could not find a valid TagAdapter implementation for the requested type ${type.simpleName}")
     }
 
     private fun <T : Any, Z : BinaryTag> createAdapter(
-        primitiveType: KClass<T>,
+        primitiveType: Class<T>,
+        tagType: Class<Z>,
         nbtBaseType: BinaryTagType<Z>,
         builder: (T) -> Z,
         extractor: (Z) -> T
-    ): TagAdapter<T, Z> {
-        return createAdapter(
-            primitiveType,
-            nbtBaseType,
-            { _, value -> builder(value) },
-            { _, value -> extractor(value) },
-            { _, tag -> nbtBaseType.test(tag.type()) }
-        )
-    }
+    ): TagAdapter<T, Z> = createAdapter(
+        primitiveType,
+        tagType,
+        nbtBaseType,
+        { _, value -> builder(value) },
+        { _, value -> extractor(value) },
+        { _, tag -> nbtBaseType.test(tag.type()) }
+    )
 
     private fun <T : Any, Z : BinaryTag> createAdapter(
-        primitiveType: KClass<T>,
+        primitiveType: Class<T>,
+        tagType: Class<Z>,
         nbtBaseType: BinaryTagType<Z>,
         builder: (PersistentPlayerDataType<T, *>, T) -> Z,
         extractor: (PersistentPlayerDataType<T, *>, Z) -> T,
         matcher: (PersistentPlayerDataType<T, *>, BinaryTag) -> Boolean
-    ): TagAdapter<T, Z> {
-        return TagAdapter(primitiveType, nbtBaseType, builder, extractor, matcher)
-    }
+    ): TagAdapter<T, Z> =
+        TagAdapter(primitiveType, tagType, nbtBaseType, builder, extractor, matcher)
+
 
     fun <P : Any, C> isInstanceOf(type: PersistentPlayerDataType<P, C>, tag: BinaryTag): Boolean {
         return getOrCreateAdapter<P, BinaryTag>(type).isInstance(type, tag)
     }
 
-    @Suppress("UNCHECKED_CAST")
     private fun <T : Any, Z : BinaryTag> getOrCreateAdapter(type: PersistentPlayerDataType<T, *>): TagAdapter<T, Z> {
         return adapters.computeIfAbsent(type.primitiveType, createAdapter) as TagAdapter<T, Z>
     }
@@ -260,31 +221,30 @@ object PersistentPlayerDataTypeRegistry {
         return primitiveType.cast(foundValue)
     }
 
-    @Suppress("UNCHECKED_CAST")
-    private fun <P : Any, T : List<P>> constructList(
-        type: PersistentPlayerDataType<T, *>,
+    private fun <P : Any> constructList(
+        type: PersistentPlayerDataType<List<P>, *>,
         list: List<P>
     ): ListBinaryTag {
         check(type is ListPersistentPlayerDataType<*, *>) { "The passed list cannot be written to the PDC with a ${type::class.simpleName} (expected a list data type)" }
-        val type = type as ListPersistentPlayerDataType<P, *>
-        val elementType = type.elementType
+        val listType = type as ListPersistentPlayerDataType<P, *>
+        val elementType = listType.elementType
+        val elementAdapter = getOrCreateAdapter<P, BinaryTag>(elementType)
 
-        getOrCreateAdapter<P, BinaryTag>(elementType)
-        val values = list.map { wrap(elementType, it) }
+        val builder = ListBinaryTag.builder(elementAdapter.nbtBaseType, list.size)
+        for (element in list) {
+            builder.add(wrap(elementType, element))
+        }
 
-        return ListBinaryTag.heterogeneousListBinaryTag()
-            .add(values)
-            .build()
+        return builder.build()
     }
 
-    @Suppress("UNCHECKED_CAST")
     private fun <P : Any> extractList(
         type: PersistentPlayerDataType<P, *>,
         listTag: ListBinaryTag
     ): List<P> {
         check(type is ListPersistentPlayerDataType<*, *>) { "The found list tag cannot be read with a ${type::class.simpleName} (expected a list data type)" }
-        val type = type as ListPersistentPlayerDataType<P, *>
-        val elementType = type.elementType
+        val listType = type as ListPersistentPlayerDataType<P, *>
+        val elementType = listType.elementType
         val output = mutableObjectListOf<P>(listTag.size())
 
         for (tag in listTag) {
@@ -314,16 +274,16 @@ object PersistentPlayerDataTypeRegistry {
     }
 
     internal data class TagAdapter<P : Any, T : BinaryTag>(
-        val primitiveType: KClass<P>,
+        val primitiveType: Class<P>,
+        val tagType: Class<T>,
         val nbtBaseType: BinaryTagType<T>,
         val builder: (PersistentPlayerDataType<P, *>, P) -> T,
         val extractor: (PersistentPlayerDataType<P, *>, T) -> P,
         val matcher: (PersistentPlayerDataType<P, *>, BinaryTag) -> Boolean
     ) {
-        @Suppress("UNCHECKED_CAST")
         fun extract(dataType: PersistentPlayerDataType<P, *>, base: BinaryTag): P {
             require(nbtBaseType.test(base.type())) { "The provided NBTBase was of the type ${base.type()}. Expected type $nbtBaseType" }
-            return extractor(dataType, base as T)
+            return extractor(dataType, tagType.cast(base))
         }
 
         fun build(dataType: PersistentPlayerDataType<P, *>, value: Any): T {

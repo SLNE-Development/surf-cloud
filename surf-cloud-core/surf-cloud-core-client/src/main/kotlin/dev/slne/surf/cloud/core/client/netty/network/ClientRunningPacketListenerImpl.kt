@@ -46,14 +46,16 @@ class ClientRunningPacketListenerImpl(
     private val log = logger()
 
     override suspend fun handlePlayerConnectedToServer(packet: PlayerConnectedToServerPacket) {
-        playerManagerImpl.updateOrCreatePlayer(
+        commonPlayerManagerImpl.updateOrCreatePlayer(
             packet.uuid,
             packet.name,
             packet.proxy,
             packet.playerIp,
             packet.serverName,
             false
-        )
+        ) {
+            overwritePpdc(packet.pdc)
+        }
     }
 
     override suspend fun handlePlayerDisconnectFromServer(packet: PlayerDisconnectFromServerPacket) {
@@ -209,7 +211,9 @@ class ClientRunningPacketListenerImpl(
     }
 
     override suspend fun handleAddPlayerToServer(packet: ClientboundAddPlayerToServerPacket) {
-        (serverManagerImpl.retrieveServerByName(packet.serverName)?.users as? UserListImpl)?.add(packet.playerUuid)
+        (serverManagerImpl.retrieveServerByName(packet.serverName)?.users as? UserListImpl)?.add(
+            packet.playerUuid
+        )
     }
 
     override suspend fun handleRemovePlayerFromServer(packet: ClientboundRemovePlayerFromServerPacket) {
@@ -369,6 +373,11 @@ class ClientRunningPacketListenerImpl(
 
     override fun handleSendToast(packet: SendToastPacket) {
         platformExtension.sendToast(packet.uuid, packet.toast)
+    }
+
+    override fun handleUpdatePlayerPersistentDataContainer(packet: UpdatePlayerPersistentDataContainerPacket) {
+        val player = commonPlayerManagerImpl.getPlayer(packet.uuid) ?: return
+        player.applyPpdcPatch(packet.patch)
     }
 
     override fun handlePacket(packet: NettyPacket) {

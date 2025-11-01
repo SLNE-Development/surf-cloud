@@ -4,6 +4,7 @@ import dev.slne.surf.cloud.api.server.plugin.PluginConfig
 import dev.slne.surf.cloud.api.server.plugin.configuration.PluginMeta
 import dev.slne.surf.cloud.api.server.plugin.provider.classloader.SpringPluginClassloader
 import dev.slne.surf.cloud.core.common.spring.CloudChildSpringApplicationConfiguration
+import dev.slne.surf.cloud.standalone.commands.ConsoleCommandProcessor
 import dev.slne.surf.cloud.standalone.plugin.entrypoint.classloader.SpringPluginClassloaderImpl
 import dev.slne.surf.cloud.standalone.plugin.spring.config.DatabaseConfigConfiguration
 import dev.slne.surf.cloud.standalone.plugin.spring.config.PluginDatasourceConfiguration
@@ -16,7 +17,7 @@ import org.springframework.boot.builder.SpringApplicationBuilder
 import org.springframework.stereotype.Component
 
 @Component
-class PluginSpringConfig() :
+class PluginSpringConfig(private val consoleCommandProcessor: ConsoleCommandProcessor) :
     CloudChildSpringApplicationConfiguration {
 
     override fun configureChildApplication(
@@ -34,6 +35,10 @@ class PluginSpringConfig() :
             context.registerBeanDefinition(
                 "pluginClassloader",
                 RootBeanDefinition(SpringPluginClassloader::class.java) { classLoader }
+            )
+            context.registerBeanDefinition(
+                "pluginConsoleCommandProcessor",
+                RootBeanDefinition(ConsoleCommandProcessor::class.java) { consoleCommandProcessor }
             )
 
             classLoader.context = context

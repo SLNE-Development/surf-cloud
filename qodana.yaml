@@ -29,3 +29,15 @@ projectJDK: "21" #(Applied in CI/CD pipeline)
 
 #Specify Qodana linter for analysis (Applied in CI/CD pipeline)
 linter: jetbrains/qodana-jvm:2024.3
+
+exclude:
+  - name: All
+    paths:
+      - surf-cloud-test-plugin
+      - api
+      - cert_generation
+      - cert_new
+      - Writerside
+
+include:
+  - name: IncorrectFormatting

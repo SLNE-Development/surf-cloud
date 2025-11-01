@@ -77,6 +77,6 @@ open class TrackingPlayerPersistentDataContainerImpl(
     }
 
     override fun snapshot(): TrackingPlayerPersistentDataContainerImpl {
-        return TrackingPlayerPersistentDataContainerImpl(tag.fast())
+        return TrackingPlayerPersistentDataContainerImpl(snapshotTag().fast())
     }
 }

@@ -91,7 +91,8 @@ class ServerConnectionListener(
                         ConnectionImpl.configureSerialization(
                             pipeline,
                             PacketFlow.SERVERBOUND,
-                            false
+                            false,
+                            configHolder
                         )
 
                         val connection =

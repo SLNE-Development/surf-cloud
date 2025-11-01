@@ -1221,7 +1221,8 @@ class ConnectionImpl(
         suspend fun connect(
             address: InetSocketAddress,
             useEpoll: Boolean,
-            connection: ConnectionImpl
+            connection: ConnectionImpl,
+            configHolder: AbstractSurfCloudConfigHolder<*>
         ) {
             val channelClass: Class<out SocketChannel>
             val eventLoopGroup: EventLoopGroup
@@ -1248,7 +1249,12 @@ class ConnectionImpl(
                         val pipeline = channel.pipeline()
                             .addLast(HandlerNames.TIMEOUT, ReadTimeoutHandler(30))
 
-                        configureSerialization(pipeline, PacketFlow.CLIENTBOUND, local = false)
+                        configureSerialization(
+                            pipeline,
+                            PacketFlow.CLIENTBOUND,
+                            false,
+                            configHolder
+                        )
                         connection.configurePacketHandler(channel, pipeline)
                     }
                 })
@@ -1256,7 +1262,12 @@ class ConnectionImpl(
                 .suspend()
         }
 
-        fun configureSerialization(pipeline: ChannelPipeline, side: PacketFlow, local: Boolean) {
+        fun configureSerialization(
+            pipeline: ChannelPipeline,
+            side: PacketFlow,
+            local: Boolean,
+            configHolder: AbstractSurfCloudConfigHolder<*>
+        ) {
             val opposite = side.getOpposite()
             val receivingSide = side == PacketFlow.SERVERBOUND
             val sendingSide = opposite == PacketFlow.SERVERBOUND
@@ -1264,7 +1275,7 @@ class ConnectionImpl(
 
             pipeline.addFirst(
                 HandlerNames.LOGGER,
-                LoggingHandler(bean<AbstractSurfCloudConfigHolder<*>>().config.logging.nettyLogLevel)
+                LoggingHandler(configHolder.config.logging.nettyLogLevel)
             )
 //                .addLast(HandlerNames.SSL_HANDLER_ENFORCER, EnforceSslHandler())
                 .addLast(HandlerNames.COMPRESS, ZstdEncoder(8))

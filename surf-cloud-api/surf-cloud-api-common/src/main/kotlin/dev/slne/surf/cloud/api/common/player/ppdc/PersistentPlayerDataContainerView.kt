@@ -97,6 +97,18 @@ interface PersistentPlayerDataContainerView {
          */
         const val MAX_NESTING_DEPTH = 512
 
+        /**
+         * Ensures that the nesting depth does not exceed the maximum allowed limit.
+         *
+         * This function validates that the provided depth is within acceptable bounds,
+         * preventing memory exhaustion from extremely deep nested structures.
+         *
+         * @param depth The current nesting depth to validate.
+         * @param exceptionFactory A factory function that creates the exception to throw
+         *                         when the depth exceeds the limit. Defaults to [IllegalStateException].
+         * @throws Throwable When the depth exceeds [MAX_NESTING_DEPTH]. The specific exception
+         *                   type is determined by the [exceptionFactory] parameter.
+         */
         inline fun ensureValidNestingDepth(
             depth: Int,
             exceptionFactory: (message: String) -> Throwable = ::IllegalStateException

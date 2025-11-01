@@ -38,7 +38,7 @@ abstract class RespondingNettyPacket<P : ResponseNettyPacket> : NettyPacket() {
      * A deferred response object for awaiting the associated response.
      */
     @InternalApi
-    val response = CompletableDeferred<P>()
+    val response by lazy { CompletableDeferred<P>() }
 
     /**
      * The connection through which the response will be sent.
@@ -120,6 +120,11 @@ abstract class RespondingNettyPacket<P : ResponseNettyPacket> : NettyPacket() {
         if (responseConnection == null) {
             log.atWarning()
                 .log("Cannot respond to packet ${this::class.simpleName} with session ID $uniqueSessionId: original connection has been garbage collected")
+
+            if ((::response.getDelegate() as Lazy<*>).isInitialized()) {
+                response.completeExceptionally(IllegalStateException("Original connection has been garbage collected"))
+            }
+
             return
         }
 

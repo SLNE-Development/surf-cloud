@@ -143,8 +143,14 @@ abstract class PersistentPlayerDataContainerViewImpl : PersistentPlayerDataConta
      * to build a complete copy. It avoids stack overflow issues that can occur with deeply nested structures
      * when using a recursive approach.
      *
+     * Uses `ArrayDeque` instead of `Stack` for better performance characteristics:
+     * - `ArrayDeque` is not synchronized, making it faster for single-threaded use
+     * - `Stack` extends `Vector`, which has legacy synchronization overhead
+     * - `ArrayDeque` is the recommended implementation for stack operations in modern Java/Kotlin
+     *
      * @param root The root `CompoundBinaryTag` to be deep copied.
      * @return A deep copy of the specified `CompoundBinaryTag`.
+     * @throws IllegalStateException if the structure is too deeply nested (exceeds [MAX_NESTING_DEPTH])
      */
     private fun deepCopy(root: CompoundBinaryTag): CompoundBinaryTag {
         data class Frame(
@@ -181,6 +187,8 @@ abstract class PersistentPlayerDataContainerViewImpl : PersistentPlayerDataConta
                 val (key, value) = top.entries[top.idx++]
 
                 if (value is CompoundBinaryTag) {
+                    PersistentPlayerDataContainerView.ensureValidNestingDepth(stack.size)
+
                     stack.addLast(top)
                     stack.addLast(
                         Frame(

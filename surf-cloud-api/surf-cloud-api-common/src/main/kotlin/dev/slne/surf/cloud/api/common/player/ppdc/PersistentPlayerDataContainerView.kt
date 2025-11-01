@@ -87,4 +87,23 @@ interface PersistentPlayerDataContainerView {
     fun writeToBuf(buf: SurfByteBuf)
 
     fun snapshot(): PersistentPlayerDataContainerView
+
+    companion object {
+        /**
+         * Maximum nesting depth for compound tags.
+         * This limit prevents memory exhaustion from extremely large nested structures.
+         * Set to a reasonable limit that should handle most legitimate use cases while
+         * protecting against pathological inputs.
+         */
+        const val MAX_NESTING_DEPTH = 512
+
+        inline fun ensureValidNestingDepth(
+            depth: Int,
+            exceptionFactory: (message: String) -> Throwable = ::IllegalStateException
+        ) {
+            if (depth > MAX_NESTING_DEPTH) {
+                throw exceptionFactory("Exceeded maximum allowed nesting depth of $MAX_NESTING_DEPTH. This likely indicates a corrupted or maliciously crafted data structure.")
+            }
+        }
+    }
 }

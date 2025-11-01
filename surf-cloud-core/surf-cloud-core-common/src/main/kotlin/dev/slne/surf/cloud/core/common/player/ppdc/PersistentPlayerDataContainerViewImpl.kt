@@ -124,16 +124,25 @@ abstract class PersistentPlayerDataContainerViewImpl : PersistentPlayerDataConta
     }
 
     override fun snapshot(): PersistentPlayerDataContainerViewImpl {
-        val tag = deepCopy(toTagCompound())
-
-        val tagCopy = CompoundBinaryTag.builder()
-            .put(tag)
-            .build()
+        val tagCopy = snapshotTag()
 
         return object : PersistentPlayerDataContainerViewImpl() {
             override fun toTagCompound() = tagCopy
             override fun getTag(key: String) = tagCopy.get(key)
+            override fun snapshotTag() = tagCopy
         }
+    }
+
+    /**
+     * Creates a snapshot of the tag compound.
+     * Subclasses should override this method to ensure the snapshot is created
+     * while holding appropriate locks to prevent concurrent modifications.
+     */
+    protected open fun snapshotTag(): CompoundBinaryTag {
+        val tag = deepCopy(toTagCompound())
+        return CompoundBinaryTag.builder()
+            .put(tag)
+            .build()
     }
 
 

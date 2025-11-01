@@ -66,7 +66,7 @@ interface CloudPlayer : Audience, OfflineCloudPlayer {
      */
     fun <R> editPdc(block: PersistentPlayerDataContainer.() -> R): R
 
-    @Deprecated("Use renamed non-suspendable method", ReplaceWith("editPdc(block)"))
+    @Deprecated("Use non-suspending editPdc method instead", ReplaceWith("editPdc(block)"))
     suspend fun <R> withPersistentData(block: PersistentPlayerDataContainer.() -> R): R =
         editPdc(block)
 

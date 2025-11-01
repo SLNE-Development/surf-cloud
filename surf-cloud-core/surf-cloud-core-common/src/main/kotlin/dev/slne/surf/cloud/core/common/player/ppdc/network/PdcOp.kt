@@ -6,6 +6,7 @@ import dev.slne.surf.cloud.api.common.netty.protocol.buffer.readList
 import dev.slne.surf.cloud.api.common.netty.protocol.buffer.readUtf
 import dev.slne.surf.cloud.api.common.netty.protocol.buffer.writeCollection
 import dev.slne.surf.cloud.api.common.netty.protocol.buffer.writeUtf
+import dev.slne.surf.cloud.api.common.player.ppdc.PersistentPlayerDataContainerView
 import dev.slne.surf.cloud.api.common.util.ByIdMap
 import io.netty.buffer.ByteBuf
 import net.kyori.adventure.nbt.BinaryTag
@@ -19,12 +20,20 @@ sealed interface PdcOp {
         val value: BinaryTag
     ) : PdcOp {
         override val type = Type.PUT
+
+        init {
+            PersistentPlayerDataContainerView.ensureValidNestingDepth(path.size)
+        }
     }
 
     data class Remove(
         override val path: List<String>
     ) : PdcOp {
         override val type = Type.REMOVE
+
+        init {
+            PersistentPlayerDataContainerView.ensureValidNestingDepth(path.size)
+        }
     }
 
     companion object {

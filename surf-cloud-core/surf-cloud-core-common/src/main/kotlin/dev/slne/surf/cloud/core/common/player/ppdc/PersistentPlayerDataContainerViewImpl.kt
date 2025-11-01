@@ -17,16 +17,6 @@ abstract class PersistentPlayerDataContainerViewImpl : PersistentPlayerDataConta
     abstract fun toTagCompound(): CompoundBinaryTag
     abstract fun getTag(key: String): BinaryTag?
 
-    companion object {
-        /**
-         * Maximum nesting depth for compound tags during deep copy operations.
-         * This limit prevents memory exhaustion from extremely large nested structures.
-         * Set to a reasonable limit that should handle most legitimate use cases while
-         * protecting against pathological inputs.
-         */
-        private const val MAX_NESTING_DEPTH = 512
-    }
-
     override fun <P : Any, C> has(
         key: Key,
         type: PersistentPlayerDataType<P, C>
@@ -177,7 +167,6 @@ abstract class PersistentPlayerDataContainerViewImpl : PersistentPlayerDataConta
             return list
         }
 
-        // Use ArrayDeque for optimal performance in stack-like operations
         val stack = ArrayDeque<Frame>()
         stack.addLast(
             Frame(
@@ -198,14 +187,8 @@ abstract class PersistentPlayerDataContainerViewImpl : PersistentPlayerDataConta
                 val (key, value) = top.entries[top.idx++]
 
                 if (value is CompoundBinaryTag) {
-                    // Check nesting depth to prevent memory exhaustion
-                    if (stack.size >= MAX_NESTING_DEPTH) {
-                        throw IllegalStateException(
-                            "CompoundBinaryTag nesting depth exceeds maximum limit of $MAX_NESTING_DEPTH. " +
-                            "This likely indicates a corrupted or maliciously crafted data structure."
-                        )
-                    }
-                    
+                    PersistentPlayerDataContainerView.ensureValidNestingDepth(stack.size)
+
                     stack.addLast(top)
                     stack.addLast(
                         Frame(

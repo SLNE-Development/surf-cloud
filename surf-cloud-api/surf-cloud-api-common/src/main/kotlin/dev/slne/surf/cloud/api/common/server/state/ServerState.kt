@@ -4,10 +4,10 @@ import dev.slne.surf.cloud.api.common.netty.network.codec.ByteBufCodecs
 import dev.slne.surf.cloud.api.common.util.ByIdMap
 
 enum class ServerState(val id: Int, val allowJoin: Boolean) {
-    RESTARTING(1, false),
-    LOBBY(2, true),
-    ONLINE(3, true),
-    OFFLINE(4, false);
+    RESTARTING(0, false),
+    LOBBY(1, true),
+    ONLINE(2, true),
+    OFFLINE(3, false);
 
     companion object {
         val BY_ID = ByIdMap.continuous(

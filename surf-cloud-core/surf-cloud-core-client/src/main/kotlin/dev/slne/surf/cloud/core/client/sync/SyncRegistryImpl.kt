@@ -8,6 +8,7 @@ import dev.slne.surf.cloud.core.common.netty.network.protocol.running.SyncSetDel
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.SyncValueChangePacket
 import dev.slne.surf.cloud.core.common.sync.BasicSyncValue
 import dev.slne.surf.cloud.core.common.sync.CommonSyncRegistryImpl
+import dev.slne.surf.cloud.core.common.sync.SyncSetImpl
 import dev.slne.surf.surfapi.core.api.util.logger
 import dev.slne.surf.surfapi.core.api.util.mutableObject2LongMapOf
 import dev.slne.surf.surfapi.core.api.util.synchronize
@@ -20,6 +21,16 @@ class SyncRegistryImpl : CommonSyncRegistryImpl() {
     override fun afterChange(syncValue: BasicSyncValue<*>) {
         super.afterChange(syncValue)
         SyncValueChangePacket(CloudProperties.SERVER_NAME, syncValue).fireAndForget()
+    }
+
+    override fun <T> afterChange(
+        syncSet: SyncSetImpl<T>,
+        added: Boolean,
+        changeId: Long,
+        element: T
+    ) {
+        super.afterChange(syncSet, added, changeId, element)
+        SyncSetDeltaPacket(syncSet, added, changeId, element).fireAndForget()
     }
 
     fun applyBatchSyncValue(syncValues: List<Pair<String, Any?>>) {

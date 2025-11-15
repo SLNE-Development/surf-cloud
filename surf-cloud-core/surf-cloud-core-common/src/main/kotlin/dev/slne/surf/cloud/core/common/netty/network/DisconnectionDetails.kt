@@ -29,18 +29,18 @@ enum class DisconnectReason(
     val message: String,
     val shouldRestart: Boolean = true
 ) {
-    UNKNOWN(1, "Disconnected", true),
-    TIMEOUT(2, "Timed out", true),
-    INTERNAL_EXCEPTION(3, "Internal exception", true),
-    END_OF_STREAM(4, "End of stream", true),
-    SERVER_ID_FETCHED(5, "Server ID fetched", false),
-    CLIENT_SHUTDOWN(6, "Client shutdown", false),
-    CLIENT_NAME_ALREADY_EXISTS(7, "Client name already exists", false),
-    SERVER_SHUTDOWN(8, "Server is shutting down", true),
-    OUTDATED_SERVER(9, "Outdated server", false),
-    OUTDATED_CLIENT(10, "Outdated client", false),
-    PROXY_ALREADY_CONNECTED(11, "Proxy already connected", false),
-    TOOK_TOO_LONG(12, "Took too long to log in", false);
+    UNKNOWN(0, "Disconnected", true),
+    TIMEOUT(1, "Timed out", true),
+    INTERNAL_EXCEPTION(2, "Internal exception", true),
+    END_OF_STREAM(3, "End of stream", true),
+    SERVER_ID_FETCHED(4, "Server ID fetched", false),
+    CLIENT_SHUTDOWN(5, "Client shutdown", false),
+    CLIENT_NAME_ALREADY_EXISTS(6, "Client name already exists", false),
+    SERVER_SHUTDOWN(7, "Server is shutting down", true),
+    OUTDATED_SERVER(8, "Outdated server", false),
+    OUTDATED_CLIENT(9, "Outdated client", false),
+    PROXY_ALREADY_CONNECTED(10, "Proxy already connected", false),
+    TOOK_TOO_LONG(11, "Took too long to log in", false);
 
     companion object {
         val BY_ID = ByIdMap.continuous(

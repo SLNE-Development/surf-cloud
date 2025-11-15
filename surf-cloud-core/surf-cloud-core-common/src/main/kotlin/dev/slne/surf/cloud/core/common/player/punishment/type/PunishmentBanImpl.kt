@@ -1,7 +1,11 @@
 package dev.slne.surf.cloud.core.common.player.punishment.type
 
 import com.google.common.net.InetAddresses
+import dev.slne.surf.cloud.api.common.netty.network.codec.ByteBufCodecs
+import dev.slne.surf.cloud.api.common.netty.network.codec.StreamCodec
+import dev.slne.surf.cloud.api.common.netty.network.codec.composite
 import dev.slne.surf.cloud.api.common.player.punishment.type.PunishmentAttachedIpAddress
+import dev.slne.surf.cloud.api.common.player.punishment.type.PunishmentType
 import dev.slne.surf.cloud.api.common.player.punishment.type.ban.PunishmentBan
 import dev.slne.surf.cloud.api.common.player.punishment.type.note.PunishmentNote
 import dev.slne.surf.cloud.core.common.messages.MessageManager
@@ -34,6 +38,44 @@ data class PunishmentBanImpl(
     override val unpunisherUuid: @Contextual UUID? = null,
     override val parent: PunishmentBanImpl? = null,
 ) : AbstractUnpunishablePunishment(), PunishmentBan {
+    companion object {
+        private val apiType = ResolvableType.forClass(PunishmentBan::class.java)
+        val STREAM_CODEC = StreamCodec.recursive { parent ->
+            StreamCodec.composite(
+                ByteBufCodecs.LONG_CODEC,
+                PunishmentBanImpl::id,
+                ByteBufCodecs.STRING_CODEC,
+                PunishmentBanImpl::punishmentId,
+                ByteBufCodecs.UUID_CODEC,
+                PunishmentBanImpl::punishedUuid,
+                ByteBufCodecs.UUID_CODEC.apply(ByteBufCodecs::nullable),
+                PunishmentBanImpl::issuerUuid,
+                ByteBufCodecs.STRING_CODEC.apply(ByteBufCodecs::nullable),
+                PunishmentBanImpl::reason,
+                ByteBufCodecs.BOOLEAN_CODEC,
+                PunishmentBanImpl::permanent,
+                ByteBufCodecs.BOOLEAN_CODEC,
+                PunishmentBanImpl::securityBan,
+                ByteBufCodecs.BOOLEAN_CODEC,
+                PunishmentBanImpl::raw,
+                ByteBufCodecs.ZONED_DATE_TIME_CODEC.apply(ByteBufCodecs::nullable),
+                PunishmentBanImpl::expirationDate,
+                ByteBufCodecs.ZONED_DATE_TIME_CODEC,
+                PunishmentBanImpl::punishmentDate,
+                ByteBufCodecs.BOOLEAN_CODEC,
+                PunishmentBanImpl::unpunished,
+                ByteBufCodecs.ZONED_DATE_TIME_CODEC.apply(ByteBufCodecs::nullable),
+                PunishmentBanImpl::unpunishedDate,
+                ByteBufCodecs.UUID_CODEC.apply(ByteBufCodecs::nullable),
+                PunishmentBanImpl::unpunisherUuid,
+                parent.apply(ByteBufCodecs::nullable),
+                PunishmentBanImpl::parent,
+                ::PunishmentBanImpl
+            )
+        }
+        val TYPE = PunishmentTypeAndCodec(PunishmentType.BAN, STREAM_CODEC)
+    }
+
     override val punishmentUrlReplacer: String = "bans"
 
     override suspend fun attachIpAddress(rawIp: String): Boolean {
@@ -61,7 +103,5 @@ data class PunishmentBanImpl(
         return apiType
     }
 
-    companion object {
-        private val apiType = ResolvableType.forClass(PunishmentBan::class.java)
-    }
+    override fun typeCodec(): PunishmentTypeAndCodec = TYPE
 }

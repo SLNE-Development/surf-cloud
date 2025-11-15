@@ -1,11 +1,15 @@
 package dev.slne.surf.cloud.core.common.player.punishment.type
 
+import dev.slne.surf.cloud.api.common.netty.network.codec.ByteBufCodecs
+import dev.slne.surf.cloud.api.common.netty.network.codec.StreamCodec
+import dev.slne.surf.cloud.api.common.netty.network.codec.composite
+import dev.slne.surf.cloud.api.common.player.punishment.type.PunishmentType
 import dev.slne.surf.cloud.api.common.player.punishment.type.mute.PunishmentMute
 import dev.slne.surf.cloud.api.common.player.punishment.type.note.PunishmentNote
-import dev.slne.surf.surfapi.core.api.util.toObjectList
 import dev.slne.surf.cloud.core.common.messages.MessageManager
 import dev.slne.surf.cloud.core.common.player.PunishmentManager
 import dev.slne.surf.cloud.core.common.util.bean
+import dev.slne.surf.surfapi.core.api.util.toObjectList
 import it.unimi.dsi.fastutil.objects.ObjectList
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
@@ -30,6 +34,42 @@ data class PunishmentMuteImpl(
     override val unpunisherUuid: @Contextual UUID? = null,
     override val parent: PunishmentMuteImpl? = null,
 ) : AbstractUnpunishablePunishment(), PunishmentMute {
+    companion object {
+        private val apiType = ResolvableType.forClass(PunishmentMute::class.java)
+
+        val STREAM_CODEC = StreamCodec.recursive { parent ->
+            StreamCodec.composite(
+                ByteBufCodecs.LONG_CODEC,
+                PunishmentMuteImpl::id,
+                ByteBufCodecs.STRING_CODEC,
+                PunishmentMuteImpl::punishmentId,
+                ByteBufCodecs.UUID_CODEC,
+                PunishmentMuteImpl::punishedUuid,
+                ByteBufCodecs.UUID_CODEC.apply(ByteBufCodecs::nullable),
+                PunishmentMuteImpl::issuerUuid,
+                ByteBufCodecs.STRING_CODEC.apply(ByteBufCodecs::nullable),
+                PunishmentMuteImpl::reason,
+                ByteBufCodecs.BOOLEAN_CODEC,
+                PunishmentMuteImpl::permanent,
+                ByteBufCodecs.ZONED_DATE_TIME_CODEC.apply(ByteBufCodecs::nullable),
+                PunishmentMuteImpl::expirationDate,
+                ByteBufCodecs.ZONED_DATE_TIME_CODEC,
+                PunishmentMuteImpl::punishmentDate,
+                ByteBufCodecs.BOOLEAN_CODEC,
+                PunishmentMuteImpl::unpunished,
+                ByteBufCodecs.ZONED_DATE_TIME_CODEC.apply(ByteBufCodecs::nullable),
+                PunishmentMuteImpl::unpunishedDate,
+                ByteBufCodecs.UUID_CODEC.apply(ByteBufCodecs::nullable),
+                PunishmentMuteImpl::unpunisherUuid,
+                parent.apply(ByteBufCodecs::nullable),
+                PunishmentMuteImpl::parent,
+                ::PunishmentMuteImpl
+            )
+        }
+
+        val TYPE = PunishmentTypeAndCodec(PunishmentType.MUTE, STREAM_CODEC)
+    }
+
     override val punishmentUrlReplacer: String = "mutes"
 
     override fun punishmentPlayerComponent(): Component {
@@ -48,7 +88,5 @@ data class PunishmentMuteImpl(
         return apiType
     }
 
-    companion object {
-        private val apiType = ResolvableType.forClass(PunishmentMute::class.java)
-    }
+    override fun typeCodec(): PunishmentTypeAndCodec = TYPE
 }

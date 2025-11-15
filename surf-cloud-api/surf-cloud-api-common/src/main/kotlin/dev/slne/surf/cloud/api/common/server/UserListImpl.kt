@@ -143,7 +143,7 @@ open class UserListImpl : UserList {
      */
     fun snapshotArray(): Array<UUID> {
         val m = modSeq.get()
-        if (m == cachedModSeq) return cachedSnapshot
+        if (m == cachedModSeq) return cachedSnapshot.clone()
         val snap = uuids.toTypedArray()
         cachedSnapshot = snap
         cachedModSeq = m

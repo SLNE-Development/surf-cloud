@@ -174,3 +174,9 @@ operator fun AtomicBoolean.setValue(thisRef: Any?, property: KProperty<*>, value
 }
 
 fun <K, V> Cache<K, V>.currentValues() = underlying().asMap().values.mapNotNull { it.getNow(null) }
+
+inline fun <reified E : Enum<E>> Array<out E>.toEnumSet(): EnumSet<E> {
+    val set = EnumSet.noneOf(E::class.java)
+    repeat(size) { index -> set.add(this[index]) }
+    return set
+}

@@ -2,41 +2,40 @@ package dev.slne.surf.cloud.core.common.netty.network.protocol.running
 
 import dev.slne.surf.cloud.api.common.meta.DefaultIds
 import dev.slne.surf.cloud.api.common.meta.SurfNettyPacket
+import dev.slne.surf.cloud.api.common.netty.network.codec.ByteBufCodecs
+import dev.slne.surf.cloud.api.common.netty.network.codec.StreamCodec
+import dev.slne.surf.cloud.api.common.netty.network.codec.composite
 import dev.slne.surf.cloud.api.common.netty.network.protocol.PacketFlow
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
-import dev.slne.surf.cloud.api.common.netty.packet.packetCodec
-import dev.slne.surf.cloud.api.common.netty.protocol.buffer.SurfByteBuf
+import dev.slne.surf.cloud.api.common.netty.packet.PacketHandlerMode
+import dev.slne.surf.cloud.core.common.netty.network.InternalNettyPacket
 import net.kyori.adventure.text.Component
 import java.util.*
 
-@SurfNettyPacket(DefaultIds.SERVERBOUND_SEND_PLAYER_LIST_HEADER_AND_FOOTER, PacketFlow.SERVERBOUND)
-class ServerboundSendPlayerListHeaderAndFooterPacket : NettyPacket {
+@SurfNettyPacket(
+    DefaultIds.SERVERBOUND_SEND_PLAYER_LIST_HEADER_AND_FOOTER,
+    PacketFlow.SERVERBOUND,
+    handlerMode = PacketHandlerMode.NETTY
+)
+class ServerboundSendPlayerListHeaderAndFooterPacket(
+    val uuid: UUID,
+    val header: Component,
+    val footer: Component
+) : NettyPacket(),
+    InternalNettyPacket<RunningServerPacketListener> {
     companion object {
-        val STREAM_CODEC = packetCodec(
-            ServerboundSendPlayerListHeaderAndFooterPacket::write,
+        val STREAM_CODEC = StreamCodec.composite(
+            ByteBufCodecs.UUID_CODEC,
+            ServerboundSendPlayerListHeaderAndFooterPacket::uuid,
+            ByteBufCodecs.COMPONENT_CODEC,
+            ServerboundSendPlayerListHeaderAndFooterPacket::header,
+            ByteBufCodecs.COMPONENT_CODEC,
+            ServerboundSendPlayerListHeaderAndFooterPacket::footer,
             ::ServerboundSendPlayerListHeaderAndFooterPacket
         )
     }
 
-    val uuid: UUID
-    val header: Component
-    val footer: Component
-
-    constructor(uuid: UUID, header: Component, footer: Component) {
-        this.uuid = uuid
-        this.header = header
-        this.footer = footer
-    }
-
-    private constructor(buf: SurfByteBuf) {
-        this.uuid = buf.readUuid()
-        this.header = buf.readComponent()
-        this.footer = buf.readComponent()
-    }
-
-    private fun write(buf: SurfByteBuf) {
-        buf.writeUuid(uuid)
-        buf.writeComponent(header)
-        buf.writeComponent(footer)
+    override fun handle(listener: RunningServerPacketListener) {
+        listener.handleSendPlayerListHeaderAndFooter(this)
     }
 }

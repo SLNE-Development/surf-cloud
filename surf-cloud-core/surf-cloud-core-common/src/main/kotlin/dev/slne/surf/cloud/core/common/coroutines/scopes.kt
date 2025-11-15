@@ -42,6 +42,11 @@ object PacketHandlerScope : BaseScope(
     name = "netty-listener"
 )
 
+object PacketHandlerIoScope : BaseScope(
+    dispatcher = Dispatchers.IO,
+    name = "netty-listener-io"
+)
+
 object ConnectionManagementScope : BaseScope(
     dispatcher = Dispatchers.Default,
     name = "netty-connection"

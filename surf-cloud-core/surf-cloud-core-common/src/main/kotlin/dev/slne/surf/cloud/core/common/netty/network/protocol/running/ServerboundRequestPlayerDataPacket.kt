@@ -3,12 +3,14 @@ package dev.slne.surf.cloud.core.common.netty.network.protocol.running
 import dev.slne.surf.cloud.api.common.meta.SurfNettyPacket
 import dev.slne.surf.cloud.api.common.netty.network.codec.StreamDecoder
 import dev.slne.surf.cloud.api.common.netty.network.protocol.PacketFlow
+import dev.slne.surf.cloud.api.common.netty.packet.PacketHandlerMode
 import dev.slne.surf.cloud.api.common.netty.packet.RespondingNettyPacket
 import dev.slne.surf.cloud.api.common.netty.packet.ResponseNettyPacket
 import dev.slne.surf.cloud.api.common.netty.packet.packetCodec
 import dev.slne.surf.cloud.api.common.netty.protocol.buffer.SurfByteBuf
 import dev.slne.surf.cloud.api.common.netty.protocol.buffer.readEnum
 import dev.slne.surf.cloud.api.common.player.OfflineCloudPlayer
+import dev.slne.surf.cloud.core.common.netty.network.InternalNettyPacket
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ServerboundRequestPlayerDataPacket.DataRequestType
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ServerboundRequestPlayerDataResponse.*
 import dev.slne.surf.cloud.core.common.player.playtime.PlaytimeImpl
@@ -20,16 +22,20 @@ import kotlin.time.Duration
 import dev.slne.surf.cloud.api.common.player.name.NameHistory as ApiNameHistory
 import dev.slne.surf.cloud.api.common.player.playtime.Playtime as ApiPlaytime
 
-@SurfNettyPacket("cloud:request:player_data", PacketFlow.SERVERBOUND)
+@SurfNettyPacket(
+    "cloud:request:player_data",
+    PacketFlow.SERVERBOUND,
+    handlerMode = PacketHandlerMode.DEFAULT
+)
 class ServerboundRequestPlayerDataPacket(val uuid: UUID, val type: DataRequestType) :
-    RespondingNettyPacket<ServerboundRequestPlayerDataResponse>() {
+    RespondingNettyPacket<ServerboundRequestPlayerDataResponse>(),
+    InternalNettyPacket<RunningServerPacketListener> {
 
     companion object {
-        val STREAM_CODEC =
-            packetCodec(
-                ServerboundRequestPlayerDataPacket::write,
-                ::ServerboundRequestPlayerDataPacket
-            )
+        val STREAM_CODEC = packetCodec(
+            ServerboundRequestPlayerDataPacket::write,
+            ::ServerboundRequestPlayerDataPacket
+        )
     }
 
     private constructor(buf: SurfByteBuf) : this(
@@ -40,6 +46,10 @@ class ServerboundRequestPlayerDataPacket(val uuid: UUID, val type: DataRequestTy
     private fun write(buf: SurfByteBuf) {
         buf.writeUuid(uuid)
         buf.writeEnum(type)
+    }
+
+    override fun handle(listener: RunningServerPacketListener) {
+        listener.handleRequestPlayerData(this)
     }
 
     enum class DataRequestType(val reader: StreamDecoder<SurfByteBuf, DataResponse>) {

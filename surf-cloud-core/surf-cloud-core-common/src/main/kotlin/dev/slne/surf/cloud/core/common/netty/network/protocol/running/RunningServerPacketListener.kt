@@ -3,15 +3,19 @@ package dev.slne.surf.cloud.core.common.netty.network.protocol.running
 import dev.slne.surf.cloud.api.common.netty.network.ConnectionProtocol
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
 import dev.slne.surf.cloud.core.common.netty.network.TickablePacketListener
+import dev.slne.surf.cloud.core.common.netty.network.protocol.common.CommonRunningPacketListener
+import dev.slne.surf.cloud.core.common.netty.network.protocol.common.CommonServerSynchronizingRunningPacketListener
 import dev.slne.surf.cloud.core.common.netty.network.protocol.common.ServerCommonPacketListener
 import dev.slne.surf.cloud.core.common.netty.network.protocol.synchronizing.ServerboundCacheRegisterKeysPacket
 
-interface RunningServerPacketListener : ServerCommonPacketListener, TickablePacketListener {
+interface RunningServerPacketListener :
+    ServerCommonPacketListener,
+    TickablePacketListener,
+    CommonServerSynchronizingRunningPacketListener,
+    CommonRunningPacketListener {
     override val protocol get() = ConnectionProtocol.RUNNING
 
-    suspend fun handlePlayerConnectToServer(packet: PlayerConnectToServerPacket)
-
-    suspend fun handlePlayerDisconnectFromServer(packet: PlayerDisconnectFromServerPacket)
+    fun handlePlayerConnectToServer(packet: PlayerConnectToServerPacket)
 
     fun handleSendResourcePacks(packet: ServerboundSendResourcePacksPacket)
 
@@ -43,33 +47,17 @@ interface RunningServerPacketListener : ServerCommonPacketListener, TickablePack
 
     fun handleSendPlayerListHeaderAndFooter(packet: ServerboundSendPlayerListHeaderAndFooterPacket)
 
-    suspend fun handleRequestDisplayName(packet: ServerboundRequestDisplayNamePacket)
+    fun handleRequestDisplayName(packet: ServerboundRequestDisplayNamePacket)
 
-    suspend fun handleRequestOfflinePlayerDisplayName(packet: RequestOfflineDisplayNamePacket)
+    fun handleClientInformation(packet: ServerboundClientInformationPacket)
 
-    suspend fun handleClientInformation(packet: ServerboundClientInformationPacket)
+    fun handleConnectPlayerToServer(packet: ServerboundConnectPlayerToServerPacket)
 
-    suspend fun handleRequestLuckpermsMetaData(packet: RequestLuckpermsMetaDataPacket)
+    fun handleQueuePlayerToGroup(packet: ServerboundQueuePlayerToGroupPacket)
 
-    suspend fun handleRequestPlayerPersistentDataContainer(packet: ServerboundRequestPlayerPersistentDataContainer)
+    fun handleShutdownServer(packet: ServerboundShutdownServerPacket)
 
-    suspend fun handleConnectPlayerToServer(packet: ServerboundConnectPlayerToServerPacket)
-
-    suspend fun handleQueuePlayerToGroup(packet: ServerboundQueuePlayerToGroupPacket)
-
-    fun handleDisconnectPlayer(packet: DisconnectPlayerPacket)
-
-    fun handleSilentDisconnectPlayer(packet: SilentDisconnectPlayerPacket)
-
-    suspend fun handleTeleportPlayer(packet: TeleportPlayerPacket)
-
-    suspend fun handleTeleportPlayerToPlayer(packet: TeleportPlayerToPlayerPacket)
-
-    suspend fun handleShutdownServer(packet: ServerboundShutdownServerPacket)
-
-    suspend fun handleRequestPlayerData(packet: ServerboundRequestPlayerDataPacket)
-
-    fun handleUpdateAFKState(packet: UpdateAFKStatePacket)
+    fun handleRequestPlayerData(packet: ServerboundRequestPlayerDataPacket)
 
     fun handleGeneratePunishmentId(packet: ServerboundGeneratePunishmentIdPacket)
 
@@ -101,21 +89,13 @@ interface RunningServerPacketListener : ServerCommonPacketListener, TickablePack
 
     fun handleFetchIpBans(packet: ServerboundFetchIpBansPacket)
 
-    suspend fun handleRequestPlayerPermission(packet: RequestPlayerPermissionPacket)
+    fun handleRequestWhitelistStatus(packet: ServerboundRequestWhitelistStatusPacket)
 
-    fun handleSyncValueChange(packet: SyncValueChangePacket)
+    fun handleRequestWhitelist(packet: ServerboundRequestWhitelistPacket)
 
-    fun handleSyncSetDelta(packet: SyncSetDeltaPacket)
+    fun handleCreateWhitelist(packet: ServerboundCreateWhitelistPacket)
 
-    fun handleCreateOfflineCloudPlayerIfNotExists(packet: ServerboundCreateOfflineCloudPlayerIfNotExistsPacket)
-
-    suspend fun handleRequestWhitelistStatus(packet: ServerboundRequestWhitelistStatusPacket)
-
-    suspend fun handleRequestWhitelist(packet: ServerboundRequestWhitelistPacket)
-
-    suspend fun handleCreateWhitelist(packet: ServerboundCreateWhitelistPacket)
-
-    suspend fun handleUpdateWhitelist(packet: ServerboundUpdateWhitelistPacket)
+    fun handleUpdateWhitelist(packet: ServerboundUpdateWhitelistPacket)
 
     fun handleRefreshWhitelist(packet: ServerboundRefreshWhitelistPacket)
 
@@ -123,10 +103,6 @@ interface RunningServerPacketListener : ServerCommonPacketListener, TickablePack
     fun handleCacheOp(packet: ServerboundCacheOpPacket)
     fun handleCacheFetch(packet: ServerboundCacheFetchPacket)
     fun handleCacheWatchPlayers(packet: ServerboundCacheWatchPlayersPacket)
-
-    fun handleSendToast(packet: SendToastPacket)
-
-    fun handleUpdatePlayerPersistentDataContainer(packet: UpdatePlayerPersistentDataContainerPacket)
 
     fun handlePacket(packet: NettyPacket)
 }

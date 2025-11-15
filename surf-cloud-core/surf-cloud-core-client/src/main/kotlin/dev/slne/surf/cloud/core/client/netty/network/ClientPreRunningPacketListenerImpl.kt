@@ -3,11 +3,13 @@ package dev.slne.surf.cloud.core.client.netty.network
 import dev.slne.surf.cloud.api.common.exceptions.FatalSurfError
 import dev.slne.surf.cloud.core.client.netty.ClientNettyClientImpl
 import dev.slne.surf.cloud.core.client.netty.network.AbstractStatusUpdater.State
+import dev.slne.surf.cloud.core.common.coroutines.PacketHandlerScope
 import dev.slne.surf.cloud.core.common.netty.network.ConnectionImpl
 import dev.slne.surf.cloud.core.common.netty.network.DisconnectionDetails
 import dev.slne.surf.cloud.core.common.netty.network.protocol.prerunning.*
 import dev.slne.surf.cloud.core.common.netty.network.protocol.synchronizing.SynchronizingProtocols
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.launch
 
 class ClientPreRunningPacketListenerImpl(
     val client: ClientNettyClientImpl,
@@ -30,27 +32,31 @@ class ClientPreRunningPacketListenerImpl(
         client.preRunningCallback.complete(Unit)
     }
 
-    override suspend fun handlePreRunningFinished(packet: ClientboundPreRunningFinishedPacket) {
-        finishPreRunning()
-        connection.send(ServerboundPreRunningAcknowledgedPacket)
+    override fun handlePreRunningFinished(packet: ClientboundPreRunningFinishedPacket) {
+        PacketHandlerScope.launch {
+            finishPreRunning()
+            connection.send(ServerboundPreRunningAcknowledgedPacket)
+        }
     }
 
-    override suspend fun handleProceedToSynchronizing(packet: ClientboundProceedToSynchronizingPacket) {
-        val listener = ClientSynchronizingPacketListenerImpl(
-            client,
-            connection,
-            platformExtension,
-            statusUpdater
-        )
-        connection.setupInboundProtocol(
-            SynchronizingProtocols.CLIENTBOUND,
-            listener
-        )
-        connection.send(ServerboundProceedToSynchronizingAcknowledgedPacket(client.playAddress))
-        connection.setupOutboundProtocol(SynchronizingProtocols.SERVERBOUND)
+    override fun handleProceedToSynchronizing(packet: ClientboundProceedToSynchronizingPacket) {
+        PacketHandlerScope.launch {
+            val listener = ClientSynchronizingPacketListenerImpl(
+                client,
+                connection,
+                platformExtension,
+                statusUpdater
+            )
+            connection.setupInboundProtocol(
+                SynchronizingProtocols.CLIENTBOUND,
+                listener
+            )
+            connection.send(ServerboundProceedToSynchronizingAcknowledgedPacket(client.playAddress))
+            connection.setupOutboundProtocol(SynchronizingProtocols.SERVERBOUND)
 
-        completion.complete(Unit)
-        listener.startSynchronizing()
+            completion.complete(Unit)
+            listener.startSynchronizing()
+        }
     }
 
 

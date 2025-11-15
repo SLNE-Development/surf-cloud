@@ -6,6 +6,8 @@ import dev.slne.surf.cloud.api.common.netty.network.ConnectionProtocol
 import dev.slne.surf.cloud.api.common.netty.network.codec.streamCodecUnitSimple
 import dev.slne.surf.cloud.api.common.netty.network.protocol.PacketFlow
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
+import dev.slne.surf.cloud.api.common.netty.packet.PacketHandlerMode
+import dev.slne.surf.cloud.core.common.netty.network.InternalNettyPacket
 
 /**
  * This packet is sent by the server to the client to indicate that the login process was successful on the server.
@@ -13,9 +15,15 @@ import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
 @SurfNettyPacket(
     DefaultIds.CLIENTBOUND_LOGIN_FINISHED_PACKET,
     PacketFlow.CLIENTBOUND,
-    ConnectionProtocol.LOGIN
+    ConnectionProtocol.LOGIN,
+    handlerMode = PacketHandlerMode.DEFAULT
 )
-object ClientboundLoginFinishedPacket : NettyPacket() {
+object ClientboundLoginFinishedPacket : NettyPacket(),
+    InternalNettyPacket<ClientLoginPacketListener> {
     val STREAM_CODEC = streamCodecUnitSimple(this)
     override val terminal = true
+
+    override fun handle(listener: ClientLoginPacketListener) {
+        listener.handleLoginFinished(this)
+    }
 }

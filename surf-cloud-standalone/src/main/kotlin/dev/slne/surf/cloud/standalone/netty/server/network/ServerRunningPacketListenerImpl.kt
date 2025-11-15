@@ -1,5 +1,6 @@
 package dev.slne.surf.cloud.standalone.netty.server.network
 
+import com.google.common.flogger.LogPerBucketingStrategy
 import dev.slne.surf.cloud.api.common.netty.network.ConnectionProtocol
 import dev.slne.surf.cloud.api.common.netty.network.protocol.respond
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
@@ -11,6 +12,7 @@ import dev.slne.surf.cloud.api.common.player.whitelist.WhitelistSettings
 import dev.slne.surf.cloud.api.common.player.whitelist.WhitelistStatus
 import dev.slne.surf.cloud.api.common.server.CloudServer
 import dev.slne.surf.cloud.api.common.server.CloudServerManager
+import dev.slne.surf.cloud.core.common.coroutines.PacketHandlerIoScope
 import dev.slne.surf.cloud.core.common.coroutines.PacketHandlerScope
 import dev.slne.surf.cloud.core.common.coroutines.PunishmentHandlerScope
 import dev.slne.surf.cloud.core.common.coroutines.QueueConnectionScope
@@ -30,17 +32,19 @@ import dev.slne.surf.cloud.standalone.server.StandaloneCloudServerImpl
 import dev.slne.surf.cloud.standalone.server.StandaloneProxyCloudServerImpl
 import dev.slne.surf.cloud.standalone.server.serverManagerImpl
 import dev.slne.surf.cloud.standalone.sync.SyncRegistryImpl
+import dev.slne.surf.surfapi.core.api.messages.adventure.text
 import dev.slne.surf.surfapi.core.api.util.logger
-import dev.slne.surf.surfapi.core.api.util.random
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.title.Title
 import net.kyori.adventure.title.TitlePart
 import java.util.*
+import java.util.concurrent.TimeUnit
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
+import kotlin.coroutines.cancellation.CancellationException
 
 
 class ServerRunningPacketListenerImpl(
@@ -50,39 +54,48 @@ class ServerRunningPacketListenerImpl(
 ) : ServerCommonPacketListenerImpl(server, client, connection), RunningServerPacketListener {
     private val log = logger()
 
-    override suspend fun handlePlayerConnectToServer(packet: PlayerConnectToServerPacket) {
-        val result = standalonePlayerManagerImpl.updateOrCreatePlayer(
-            packet.uuid,
-            packet.name,
-            packet.proxy,
-            packet.playerIp,
-            packet.serverName,
-            true
-        )
-
-        packet.respond(PlayerConnectToServerResponsePacket(result.preJoinResult))
-        if (!result.preJoinAllowed) return
-
-        broadcast(
-            PlayerConnectedToServerPacket(
+    override fun handlePlayerConnectToServer(packet: PlayerConnectToServerPacket) {
+        PacketHandlerScope.launch {
+            val result = standalonePlayerManagerImpl.updateOrCreatePlayer(
                 packet.uuid,
                 packet.name,
-                packet.serverName,
                 packet.proxy,
                 packet.playerIp,
-                result.player!!.ppdcTagSnapshot()
+                packet.serverName,
+                true
             )
-        )
 
-        serverManagerImpl.getCommonStandaloneServerByName(packet.serverName)
-            ?.handlePlayerConnect(packet.uuid)
+            packet.respond(PlayerConnectToServerResponsePacket(result.preJoinResult))
+
+            if (result.preJoinAllowed) {
+                broadcast(
+                    PlayerConnectedToServerPacket(
+                        packet.uuid,
+                        packet.name,
+                        packet.serverName,
+                        packet.proxy,
+                        packet.playerIp,
+                        result.player!!.ppdcTagSnapshot()
+                    )
+                )
+
+                serverManagerImpl.getCommonStandaloneServerByName(packet.serverName)
+                    ?.handlePlayerConnect(packet.uuid)
+            }
+        }
     }
 
-    override suspend fun handlePlayerDisconnectFromServer(packet: PlayerDisconnectFromServerPacket) {
-        playerManagerImpl.updateOrRemoveOnDisconnect(packet.uuid, packet.serverName, packet.proxy)
-        serverManagerImpl.getCommonStandaloneServerByName(packet.serverName)
-            ?.handlePlayerDisconnect(packet.uuid)
-        broadcast(packet)
+    override fun handlePlayerDisconnectFromServer(packet: PlayerDisconnectFromServerPacket) {
+        PacketHandlerScope.launch {
+            playerManagerImpl.updateOrRemoveOnDisconnect(
+                packet.uuid,
+                packet.serverName,
+                packet.proxy
+            )
+            serverManagerImpl.getCommonStandaloneServerByName(packet.serverName)
+                ?.handlePlayerDisconnect(packet.uuid)
+            broadcast(packet)
+        }
     }
 
     override fun handleSendResourcePacks(packet: ServerboundSendResourcePacksPacket) {
@@ -94,7 +107,7 @@ class ServerRunningPacketListenerImpl(
     }
 
     override fun handleRemoveResourcePacks(packet: ServerboundRemoveResourcePacksPacket) {
-        withPlayer(packet.uuid) { removeResourcePacks(packet.first, *packet.others) }
+        withPlayer(packet.uuid) { removeResourcePacks(packet.packIds) }
     }
 
     override fun handleShowTitle(packet: ServerboundShowTitlePacket) {
@@ -191,34 +204,40 @@ class ServerRunningPacketListenerImpl(
         withPlayer(packet.uuid) { sendPlayerListHeaderAndFooter(packet.header, packet.footer) }
     }
 
-    override suspend fun handleRequestDisplayName(packet: ServerboundRequestDisplayNamePacket) {
-        log.atInfo()
-            .log("Requesting display name for %s", packet.uuid)
+    override fun handleRequestDisplayName(packet: ServerboundRequestDisplayNamePacket) {
+        PacketHandlerScope.launch {
+            withPlayer(packet.uuid) {
+                val displayName = try {
+                    displayName()
+                } catch (e: Throwable) {
+                    log.atWarning()
+                        .per(packet.uuid, LogPerBucketingStrategy.byHashCode(250))
+                        .atMostEvery(15, TimeUnit.SECONDS)
+                        .withCause(e)
+                        .log("Failed to retrieve display name for player ${packet.uuid}! Using fallback name.")
 
-        withPlayer(packet.uuid) {
-            log.atInfo()
-                .log("Trying to respond with display name for %s", packet.uuid)
+                    text(name)
+                }
 
-            val displayName = displayName()
-
-            log.atInfo()
-                .log("Responding with display name for %s: %s", packet.uuid, displayName)
-
-            packet.respond(
-                ResponseDisplayNamePacketRequestPacket(
-                    uuid,
-                    displayName
+                packet.respond(
+                    ResponseDisplayNamePacketRequestPacket(
+                        uuid,
+                        displayName
+                    )
                 )
-            )
+            }
+        }
+
+    }
+
+    override fun handleRequestOfflinePlayerDisplayName(packet: RequestOfflineDisplayNamePacket) {
+        PacketHandlerScope.launch {
+            val name = serverManagerImpl.requestOfflineDisplayName(packet.uuid)
+            packet.respond(name)
         }
     }
 
-    override suspend fun handleRequestOfflinePlayerDisplayName(packet: RequestOfflineDisplayNamePacket) {
-        val name = serverManagerImpl.requestOfflineDisplayName(packet.uuid)
-        packet.respond(name)
-    }
-
-    override suspend fun handleClientInformation(packet: ServerboundClientInformationPacket) {
+    override fun handleClientInformation(packet: ServerboundClientInformationPacket) {
         val server = serverManagerImpl.retrieveServerByName(packet.serverName) ?: return
 
         if (server is StandaloneProxyCloudServerImpl) {
@@ -230,46 +249,71 @@ class ServerRunningPacketListenerImpl(
         broadcast(ClientboundUpdateServerInformationPacket(packet.serverName, packet.information))
     }
 
-    override suspend fun handleRequestLuckpermsMetaData(packet: RequestLuckpermsMetaDataPacket) {
-        val player = playerManagerImpl.getPlayer(packet.uuid)
-            ?: error("Received luckperms meta data request for unknown player ${packet.uuid}! Is the player online?")
-        val data = player.getLuckpermsMetaData(packet.key)
-        packet.respond(LuckpermsMetaDataResponsePacket(data))
-    }
-
-    override suspend fun handleRequestPlayerPersistentDataContainer(packet: ServerboundRequestPlayerPersistentDataContainer) {
-        withPlayer(packet.uuid) {
-            val data = ppdcTagSnapshot()
-            val id = random.nextInt()
-
-            packet.respond(ClientboundPlayerPersistentDataContainerResponse(id, data))
+    override fun handleRequestLuckpermsMetaData(packet: RequestLuckpermsMetaDataPacket) {
+        withPlayer(packet.uuid, {
+            log.atWarning()
+                .per(packet.uuid, LogPerBucketingStrategy.byHashCode(25))
+                .atMostEvery(15, TimeUnit.SECONDS)
+                .log("Failed to retrieve luckperms meta data for player ${packet.uuid}! Player not found.")
+        }) {
+            PacketHandlerScope.launch {
+                packet.respond(LuckpermsMetaDataResponsePacket(getLuckpermsMetaData(packet.key)))
+            }
         }
     }
 
-    override suspend fun handleConnectPlayerToServer(packet: ServerboundConnectPlayerToServerPacket) {
+    override fun handleConnectPlayerToServer(packet: ServerboundConnectPlayerToServerPacket) {
         val (uuid, serverName, queue, sendQueuedMessage) = packet
-        withPlayer(uuid) {
-            val result = when (val server = CloudServerManager.retrieveServerByName(serverName)) {
-                null -> ConnectionResultEnum.SERVER_NOT_FOUND(serverName)
-                !is CloudServer -> ConnectionResultEnum.CANNOT_CONNECT_TO_PROXY
-                else -> withContext(QueueConnectionScope.context) {
-                    if (queue) connectToServerOrQueue(server, sendQueuedMessage)
-                    else connectToServer(server)
+        withPlayer(uuid, {
+            packet.respond(ClientboundConnectPlayerToServerResponse(ConnectionResultEnum.DISCONNECTED))
+        }) {
+            PacketHandlerScope.launch {
+                try {
+                    val result =
+                        when (val server = CloudServerManager.retrieveServerByName(serverName)) {
+                            null -> ConnectionResultEnum.SERVER_NOT_FOUND(serverName)
+                            !is CloudServer -> ConnectionResultEnum.CANNOT_CONNECT_TO_PROXY
+                            else -> withContext(QueueConnectionScope.context) {
+                                if (queue) connectToServerOrQueue(server, sendQueuedMessage)
+                                else connectToServer(server)
+                            }
+                        }
+
+                    packet.respond(ClientboundConnectPlayerToServerResponse(result))
+                } catch (e: Throwable) {
+                    if (e is CancellationException) throw e
+                    log.atWarning()
+                        .per(serverName, LogPerBucketingStrategy.byHashCode(25))
+                        .atMostEvery(15, TimeUnit.SECONDS)
+                        .withCause(e)
+                        .log("Failed to connect player ${packet.uuid} to server $serverName!")
+
+                    packet.respond(ClientboundConnectPlayerToServerResponse(ConnectionResultEnum.SERVER_DISCONNECTED))
                 }
             }
-
-            packet.respond(ClientboundConnectPlayerToServerResponse(result))
         }
     }
 
-    override suspend fun handleQueuePlayerToGroup(packet: ServerboundQueuePlayerToGroupPacket) {
+    override fun handleQueuePlayerToGroup(packet: ServerboundQueuePlayerToGroupPacket) {
         val (uuid, group, sendQueuedMessage) = packet
-        withPlayer(uuid) {
-            val result = withContext(QueueConnectionScope.context) {
-                connectToServerOrQueue(group, sendQueuedMessage)
-            }
+        withPlayer(uuid, {
+            packet.respond(ClientboundConnectPlayerToServerResponse(ConnectionResultEnum.DISCONNECTED))
+        }) {
+            QueueConnectionScope.launch {
+                try {
+                    val result = connectToServerOrQueue(group, sendQueuedMessage)
+                    packet.respond(ClientboundConnectPlayerToServerResponse(result))
+                } catch (e: Throwable) {
+                    if (e is CancellationException) throw e
+                    log.atWarning()
+                        .per(group, LogPerBucketingStrategy.byHashCode(25))
+                        .atMostEvery(15, TimeUnit.SECONDS)
+                        .withCause(e)
+                        .log("Failed to connect player ${packet.uuid} to group $group!")
 
-            packet.respond(ClientboundConnectPlayerToServerResponse(result))
+                    packet.respond(ClientboundConnectPlayerToServerResponse(ConnectionResultEnum.SERVER_DISCONNECTED))
+                }
+            }
         }
     }
 
@@ -281,45 +325,73 @@ class ServerRunningPacketListenerImpl(
         withPlayer(packet.uuid) { disconnectSilent() }
     }
 
-    override suspend fun handleTeleportPlayer(packet: TeleportPlayerPacket) {
+    override fun handleTeleportPlayer(packet: TeleportPlayerPacket) {
         withPlayer(packet.uuid) {
-            val result = teleport(
-                location = packet.location,
-                teleportCause = packet.teleportCause,
-                flags = packet.flags
-            )
+            PacketHandlerScope.launch {
+                try {
+                    val result = teleport(
+                        location = packet.location,
+                        teleportCause = packet.teleportCause,
+                        flags = packet.flags.toTypedArray()
+                    )
 
-            packet.respond(TeleportPlayerResultPacket(result))
+                    packet.respond(result)
+                } catch (e: Throwable) {
+                    log.atWarning()
+                        .log("Failed to teleport player ${packet.uuid} to location ${packet.location}!")
+                    packet.respond(false)
+                }
+            }
         }
     }
 
-    override suspend fun handleTeleportPlayerToPlayer(packet: TeleportPlayerToPlayerPacket) {
+    override fun handleTeleportPlayerToPlayer(packet: TeleportPlayerToPlayerPacket) {
         val player = CloudPlayerManager.getPlayer(packet.uuid)
         val targetPlayer = CloudPlayerManager.getPlayer(packet.target)
 
         if (player == null || targetPlayer == null) {
             packet.respond(false)
+            log.atWarning()
+                .log("Failed to teleport player ${packet.uuid} to player ${packet.target}! One of the players is not online!")
             return
         }
 
-        packet.respond(player.teleport(targetPlayer))
+        PacketHandlerScope.launch {
+            try {
+                packet.respond(player.teleport(targetPlayer))
+            } catch (e: Throwable) {
+                log.atWarning()
+                    .withCause(e)
+                    .log("Failed to teleport player ${packet.uuid} to player ${packet.target}!")
+                packet.respond(false)
+            }
+        }
     }
 
-    override suspend fun handleShutdownServer(packet: ServerboundShutdownServerPacket) {
+    override fun handleShutdownServer(packet: ServerboundShutdownServerPacket) {
         val server = CloudServerManager.retrieveServerByName(packet.serverName) ?: return
         server.shutdown()
     }
 
-    override suspend fun handleRequestPlayerData(packet: ServerboundRequestPlayerDataPacket) {
-        packet.respond(
-            ServerboundRequestPlayerDataResponse(
-                packet.type.readData(
-                    playerManagerImpl.getOfflinePlayer(
-                        packet.uuid
+    override fun handleRequestPlayerData(packet: ServerboundRequestPlayerDataPacket) {
+        PacketHandlerScope.launch {
+            try {
+                packet.respond(
+                    ServerboundRequestPlayerDataResponse(
+                        packet.type.readData(
+                            playerManagerImpl.getOfflinePlayer(
+                                packet.uuid
+                            )
+                        )
                     )
                 )
-            )
-        )
+            } catch (e: Throwable) {
+                if (e is CancellationException) throw e
+                log.atWarning()
+                    .withCause(e)
+                    .log("Failed to retrieve player data for player ${packet.uuid}!")
+            }
+        }
     }
 
     override fun handleUpdateAFKState(packet: UpdateAFKStatePacket) {
@@ -328,166 +400,281 @@ class ServerRunningPacketListenerImpl(
 
     override fun handleGeneratePunishmentId(packet: ServerboundGeneratePunishmentIdPacket) {
         PunishmentHandlerScope.launch {
-            packet.respond(bean<PunishmentManager>().generatePunishmentId())
+            try {
+                packet.respond(bean<PunishmentManager>().generatePunishmentId())
+            } catch (e: Throwable) {
+                if (e is CancellationException) throw e
+                log.atWarning()
+                    .withCause(e)
+                    .log("Failed to generate punishment id!")
+            }
         }
     }
 
     override fun handleCreateKick(packet: ServerboundCreateKickPacket) {
         PunishmentHandlerScope.launch {
-            val punishment = bean<PunishmentManager>().createKick(
-                punishedUuid = packet.punishedUuid,
-                issuerUuid = packet.issuerUuid,
-                reason = packet.reason,
-                initialNotes = packet.initialNotes,
-                parentId = packet.parentId
-            )
-
-            packet.respond(ClientboundCreatedPunishmentResponsePacket(punishment))
+            try {
+                val punishment = bean<PunishmentManager>().createKick(
+                    punishedUuid = packet.punishedUuid,
+                    issuerUuid = packet.issuerUuid,
+                    reason = packet.reason,
+                    initialNotes = packet.initialNotes,
+                    parentId = packet.parentId
+                )
+                packet.respond(ClientboundCreatedPunishmentResponsePacket(punishment))
+            } catch (e: Throwable) {
+                if (e is CancellationException) throw e
+                log.atWarning()
+                    .withCause(e)
+                    .log("Failed to create kick punishment!")
+            }
         }
     }
 
     override fun handleCreateWarn(packet: ServerboundCreateWarnPacket) {
         PunishmentHandlerScope.launch {
-            val punishment = bean<PunishmentManager>().createWarn(
-                punishedUuid = packet.punishedUuid,
-                issuerUuid = packet.issuerUuid,
-                reason = packet.reason,
-                initialNotes = packet.initialNotes,
-                parentId = packet.parentId
-            )
-
-            packet.respond(ClientboundCreatedPunishmentResponsePacket(punishment))
+            try {
+                val punishment = bean<PunishmentManager>().createWarn(
+                    punishedUuid = packet.punishedUuid,
+                    issuerUuid = packet.issuerUuid,
+                    reason = packet.reason,
+                    initialNotes = packet.initialNotes,
+                    parentId = packet.parentId
+                )
+                packet.respond(ClientboundCreatedPunishmentResponsePacket(punishment))
+            } catch (e: Throwable) {
+                if (e is CancellationException) throw e
+                log.atWarning()
+                    .withCause(e)
+                    .log("Failed to create warn punishment!")
+            }
         }
     }
 
     override fun handleCreateMute(packet: ServerboundCreateMutePacket) {
         PunishmentHandlerScope.launch {
-            val punishment = bean<PunishmentManager>().createMute(
-                punishedUuid = packet.punishedUuid,
-                issuerUuid = packet.issuerUuid,
-                reason = packet.reason,
-                permanent = packet.permanent,
-                expirationDate = packet.expirationDate,
-                initialNotes = packet.initialNotes,
-                parentId = packet.parentId
-            )
-
-            packet.respond(ClientboundCreatedPunishmentResponsePacket(punishment))
+            try {
+                val punishment = bean<PunishmentManager>().createMute(
+                    punishedUuid = packet.punishedUuid,
+                    issuerUuid = packet.issuerUuid,
+                    reason = packet.reason,
+                    permanent = packet.permanent,
+                    expirationDate = packet.expirationDate,
+                    initialNotes = packet.initialNotes,
+                    parentId = packet.parentId
+                )
+                packet.respond(ClientboundCreatedPunishmentResponsePacket(punishment))
+            } catch (e: Throwable) {
+                if (e is CancellationException) throw e
+                log.atWarning()
+                    .withCause(e)
+                    .log("Failed to create mute punishment!")
+            }
         }
     }
 
     override fun handleCreateBan(packet: ServerboundCreateBanPacket) {
         PunishmentHandlerScope.launch {
-            val punishment = bean<PunishmentManager>().createBan(
-                punishedUuid = packet.punishedUuid,
-                issuerUuid = packet.issuerUuid,
-                reason = packet.reason,
-                permanent = packet.permanent,
-                expirationDate = packet.expirationDate,
-                securityBan = packet.securityBan,
-                raw = packet.raw,
-                initialNotes = packet.initialNotes,
-                initialIpAddresses = packet.initialIpAddresses,
-                parentId = packet.parentId
-            )
+            try {
+                val punishment = bean<PunishmentManager>().createBan(
+                    punishedUuid = packet.punishedUuid,
+                    issuerUuid = packet.issuerUuid,
+                    reason = packet.reason,
+                    permanent = packet.permanent,
+                    expirationDate = packet.expirationDate,
+                    securityBan = packet.securityBan,
+                    raw = packet.raw,
+                    initialNotes = packet.initialNotes,
+                    initialIpAddresses = packet.initialIpAddresses,
+                    parentId = packet.parentId
+                )
 
-            packet.respond(ClientboundCreatedPunishmentResponsePacket(punishment))
+                packet.respond(ClientboundCreatedPunishmentResponsePacket(punishment))
+            } catch (e: Throwable) {
+                if (e is CancellationException) throw e
+                log.atWarning()
+                    .withCause(e)
+                    .log("Failed to create ban punishment!")
+            }
         }
     }
 
     override fun handleAttachIpAddressToBan(packet: ServerboundAttachIpAddressToBanPacket) {
         PunishmentHandlerScope.launch {
-            packet.respond(
-                bean<PunishmentManager>().attachIpAddressToBan(
-                    packet.banId,
-                    packet.rawIp
+            try {
+                packet.respond(
+                    bean<PunishmentManager>().attachIpAddressToBan(
+                        packet.banId,
+                        packet.rawIp
+                    )
                 )
-            )
+            } catch (e: Throwable) {
+                if (e is CancellationException) throw e
+                log.atWarning()
+                    .withCause(e)
+                    .log("Failed to attach ip address to ban!")
+            }
         }
     }
 
     override fun handleAttachNoteToPunishment(packet: ServerboundAttachNoteToPunishmentPacket) {
         PunishmentHandlerScope.launch {
-            val (id, rawNote, type) = packet
-            val manager = bean<PunishmentManager>()
-            val note = when (type) {
-                PunishmentType.BAN -> manager.attachNoteToBan(id, rawNote)
-                PunishmentType.MUTE -> manager.attachNoteToMute(id, rawNote)
-                PunishmentType.KICK -> manager.attachNoteToKick(id, rawNote)
-                PunishmentType.WARN -> manager.attachNoteToWarn(id, rawNote)
+            try {
+                val (id, rawNote, type) = packet
+                val manager = bean<PunishmentManager>()
+                val note = when (type) {
+                    PunishmentType.BAN -> manager.attachNoteToBan(id, rawNote)
+                    PunishmentType.MUTE -> manager.attachNoteToMute(id, rawNote)
+                    PunishmentType.KICK -> manager.attachNoteToKick(id, rawNote)
+                    PunishmentType.WARN -> manager.attachNoteToWarn(id, rawNote)
+                }
+                packet.respond(ClientboundAttachedNoteToPunishmentResponse(note))
+            } catch (e: Throwable) {
+                if (e is CancellationException) throw e
+                log.atWarning()
+                    .withCause(e)
+                    .log("Failed to attach note to punishment!")
             }
-
-            packet.respond(ClientboundAttachedNoteToPunishmentResponse(note))
         }
     }
 
     override fun handleFetchNotesFromPunishment(packet: ServerboundFetchNotesFromPunishmentPacket) {
         PunishmentHandlerScope.launch {
-            val (id, type) = packet
-            val manager = bean<PunishmentManager>()
-            val notes = when (type) {
-                PunishmentType.BAN -> manager.fetchNotesForBan(id)
-                PunishmentType.MUTE -> manager.fetchNotesForMute(id)
-                PunishmentType.KICK -> manager.fetchNotesForKick(id)
-                PunishmentType.WARN -> manager.fetchNotesForWarn(id)
+            try {
+                val (id, type) = packet
+                val manager = bean<PunishmentManager>()
+                val notes = when (type) {
+                    PunishmentType.BAN -> manager.fetchNotesForBan(id)
+                    PunishmentType.MUTE -> manager.fetchNotesForMute(id)
+                    PunishmentType.KICK -> manager.fetchNotesForKick(id)
+                    PunishmentType.WARN -> manager.fetchNotesForWarn(id)
+                }
+                packet.respond(ClientboundFetchNotesFromPunishmentResponse(notes))
+            } catch (e: Throwable) {
+                if (e is CancellationException) throw e
+                log.atWarning()
+                    .withCause(e)
+                    .log("Failed to fetch notes from punishment!")
             }
-            packet.respond(ClientboundFetchNotesFromPunishmentResponse(notes))
         }
     }
 
     override fun handleFetchMutes(packet: ServerboundFetchMutesPacket) {
         PunishmentHandlerScope.launch {
-            val mutes = bean<PunishmentManager>().fetchMutes(packet.punishedUuid, packet.onlyActive)
-            packet.respond(ClientboundFetchedPunishmentsResponsePacket(mutes))
+            try {
+                val mutes =
+                    bean<PunishmentManager>().fetchMutes(packet.punishedUuid, packet.onlyActive)
+                packet.respond(ClientboundFetchedPunishmentsResponsePacket(mutes))
+            } catch (e: Throwable) {
+                if (e is CancellationException) throw e
+                log.atWarning()
+                    .withCause(e)
+                    .log("Failed to fetch mutes!")
+            }
         }
     }
 
     override fun handleFetchBans(packet: ServerboundFetchBansPacket) {
         PunishmentHandlerScope.launch {
-            val bans = bean<PunishmentManager>().fetchBans(packet.punishedUuid, packet.onlyActive)
-            packet.respond(ClientboundFetchedPunishmentsResponsePacket(bans))
+            try {
+                val bans =
+                    bean<PunishmentManager>().fetchBans(packet.punishedUuid, packet.onlyActive)
+                packet.respond(ClientboundFetchedPunishmentsResponsePacket(bans))
+            } catch (e: Throwable) {
+                if (e is CancellationException) throw e
+                log.atWarning()
+                    .withCause(e)
+                    .log("Failed to fetch bans!")
+            }
         }
     }
 
     override fun handleFetchKicks(packet: ServerboundFetchKicksPacket) {
         PunishmentHandlerScope.launch {
-            val kicks = bean<PunishmentManager>().fetchKicks(packet.punishedUuid)
-            packet.respond(ClientboundFetchedPunishmentsResponsePacket(kicks))
+            try {
+                val kicks = bean<PunishmentManager>().fetchKicks(packet.punishedUuid)
+                packet.respond(ClientboundFetchedPunishmentsResponsePacket(kicks))
+            } catch (e: Throwable) {
+                if (e is CancellationException) throw e
+                log.atWarning()
+                    .withCause(e)
+                    .log("Failed to fetch kicks!")
+            }
         }
     }
 
     override fun handleFetchWarns(packet: ServerboundFetchWarnsPacket) {
         PunishmentHandlerScope.launch {
-            val warns = bean<PunishmentManager>().fetchWarnings(packet.punishedUuid)
-            packet.respond(ClientboundFetchedPunishmentsResponsePacket(warns))
+            try {
+                val warns = bean<PunishmentManager>().fetchWarnings(packet.punishedUuid)
+                packet.respond(ClientboundFetchedPunishmentsResponsePacket(warns))
+            } catch (e: Throwable) {
+                if (e is CancellationException) throw e
+                log.atWarning()
+                    .withCause(e)
+                    .log("Failed to fetch warns!")
+            }
         }
     }
 
     override fun handleGetCurrentLoginValidationPunishmentCache(packet: ServerboundGetCurrentLoginValidationPunishmentCachePacket) {
         PunishmentHandlerScope.launch {
-            val cache =
-                bean<PunishmentManager>().getCurrentLoginValidationPunishmentCache(packet.uuid)
-            packet.respond(ClientboundGetCurrentLoginValidationPunishmentCacheResponsePacket(cache))
+            try {
+                val cache = bean<PunishmentManager>()
+                    .getCurrentLoginValidationPunishmentCache(packet.uuid)
+                val response =
+                    ClientboundGetCurrentLoginValidationPunishmentCacheResponsePacket(cache)
+                packet.respond(response)
+            } catch (e: Throwable) {
+                if (e is CancellationException) throw e
+                log.atWarning()
+                    .withCause(e)
+                    .log("Failed to fetch current login validation punishment cache!")
+            }
         }
     }
 
     override fun handleFetchIpAddressesForBan(packet: ServerboundFetchIpAddressesForBanPacket) {
         PunishmentHandlerScope.launch {
-            val ipAddresses = bean<PunishmentManager>().fetchIpAddressesForBan(packet.banId)
-            packet.respond(ClientboundFetchIpAddressesResponsePacket(ipAddresses))
+            try {
+                val ipAddresses = bean<PunishmentManager>().fetchIpAddressesForBan(packet.banId)
+                packet.respond(ClientboundFetchIpAddressesResponsePacket(ipAddresses))
+            } catch (e: Throwable) {
+                if (e is CancellationException) throw e
+                log.atWarning()
+                    .withCause(e)
+                    .log("Failed to fetch ip addresses for ban!")
+            }
         }
     }
 
     override fun handleFetchIpBans(packet: ServerboundFetchIpBansPacket) {
         PunishmentHandlerScope.launch {
-            val bans = bean<PunishmentManager>().fetchIpBans(packet.ip, packet.onlyActive)
-            packet.respond(ClientboundFetchedPunishmentsResponsePacket(bans))
+            try {
+                val bans = bean<PunishmentManager>().fetchIpBans(packet.ip, packet.onlyActive)
+                packet.respond(ClientboundFetchedPunishmentsResponsePacket(bans))
+            } catch (e: Throwable) {
+                if (e is CancellationException) throw e
+                log.atWarning()
+                    .withCause(e)
+                    .log("Failed to fetch ip bans!")
+            }
         }
     }
 
-    override suspend fun handleRequestPlayerPermission(packet: RequestPlayerPermissionPacket) {
+    override fun handleRequestPlayerPermission(packet: RequestPlayerPermissionPacket) {
         withPlayer(packet.uuid) {
-            packet.respond(hasPermission(packet.permission))
+            PacketHandlerScope.launch {
+                try {
+                    packet.respond(hasPermission(packet.permission))
+                } catch (e: Throwable) {
+                    packet.respond(false)
+                    if (e is CancellationException) throw e
+                    log.atWarning()
+                        .withCause(e)
+                        .log("Failed to check if player ${packet.uuid} has permission ${packet.permission}!")
+                }
+            }
         }
     }
 
@@ -515,51 +702,61 @@ class ServerRunningPacketListenerImpl(
         CloudPlayerManager.getOfflinePlayer(packet.uuid, true)
     }
 
-    override suspend fun handleRequestWhitelistStatus(packet: ServerboundRequestWhitelistStatusPacket) {
-        try {
-            val status = bean<WhitelistService>().whitelistStatus(packet.uuid, packet.groupOrServer)
-            packet.respond(WhitelistStatusResponsePacket(status))
-        } catch (e: Throwable) {
-            log.atWarning()
-                .withCause(e)
-                .log("Failed to handle whitelist status request for %s", packet.uuid)
-            packet.respond(WhitelistStatusResponsePacket(WhitelistStatus.UNKNOWN))
+    override fun handleRequestWhitelistStatus(packet: ServerboundRequestWhitelistStatusPacket) {
+        PacketHandlerIoScope.launch {
+            try {
+                val status =
+                    bean<WhitelistService>().whitelistStatus(packet.uuid, packet.groupOrServer)
+                packet.respond(WhitelistStatusResponsePacket(status))
+            } catch (e: Throwable) {
+                log.atWarning()
+                    .withCause(e)
+                    .log("Failed to handle whitelist status request for %s", packet.uuid)
+                packet.respond(WhitelistStatusResponsePacket(WhitelistStatus.UNKNOWN))
+            }
         }
     }
 
-    override suspend fun handleRequestWhitelist(packet: ServerboundRequestWhitelistPacket) {
-        try {
-            val whitelist = bean<WhitelistService>().getWhitelist(packet.uuid, packet.groupOrServer)
-            packet.respond(WhitelistResponsePacket(whitelist))
-        } catch (e: Throwable) {
-            log.atWarning()
-                .withCause(e)
-                .log("Failed to handle whitelist request for %s", packet.uuid)
-            packet.respond(WhitelistResponsePacket(null))
+    override fun handleRequestWhitelist(packet: ServerboundRequestWhitelistPacket) {
+        PacketHandlerIoScope.launch {
+            try {
+                val whitelist =
+                    bean<WhitelistService>().getWhitelist(packet.uuid, packet.groupOrServer)
+                packet.respond(WhitelistResponsePacket(whitelist))
+            } catch (e: Throwable) {
+                log.atWarning()
+                    .withCause(e)
+                    .log("Failed to handle whitelist request for %s", packet.uuid)
+                packet.respond(WhitelistResponsePacket(null))
+            }
         }
     }
 
-    override suspend fun handleCreateWhitelist(packet: ServerboundCreateWhitelistPacket) {
-        try {
-            val whitelist = bean<WhitelistService>().createWhitelist(packet.entry)
-            packet.respond(WhitelistResponsePacket(whitelist))
-        } catch (e: Throwable) {
-            log.atWarning()
-                .withCause(e)
-                .log("Failed to handle create whitelist request for %s", packet.entry)
-            packet.respond(WhitelistResponsePacket(null))
+    override fun handleCreateWhitelist(packet: ServerboundCreateWhitelistPacket) {
+        PacketHandlerIoScope.launch {
+            try {
+                val whitelist = bean<WhitelistService>().createWhitelist(packet.entry)
+                packet.respond(WhitelistResponsePacket(whitelist))
+            } catch (e: Throwable) {
+                log.atWarning()
+                    .withCause(e)
+                    .log("Failed to handle create whitelist request for %s", packet.entry)
+                packet.respond(WhitelistResponsePacket(null))
+            }
         }
     }
 
-    override suspend fun handleUpdateWhitelist(packet: ServerboundUpdateWhitelistPacket) {
-        try {
-            val changed = bean<WhitelistService>().updateWhitelist(packet.updated)
-            packet.respond(changed)
-        } catch (e: Throwable) {
-            log.atWarning()
-                .withCause(e)
-                .log("Failed to handle update whitelist request for %s", packet.updated)
-            packet.respond(false)
+    override fun handleUpdateWhitelist(packet: ServerboundUpdateWhitelistPacket) {
+        PacketHandlerIoScope.launch {
+            try {
+                val changed = bean<WhitelistService>().updateWhitelist(packet.updated)
+                packet.respond(changed)
+            } catch (e: Throwable) {
+                log.atWarning()
+                    .withCause(e)
+                    .log("Failed to handle update whitelist request for %s", packet.updated)
+                packet.respond(false)
+            }
         }
     }
 
@@ -595,7 +792,13 @@ class ServerRunningPacketListenerImpl(
 
     override fun handleUpdatePlayerPersistentDataContainer(packet: UpdatePlayerPersistentDataContainerPacket) {
         withPlayer(packet.uuid) {
-            applyPpdcPatch(packet.patch)
+            try {
+                applyPpdcPatch(packet.patch)
+            } catch (e: Throwable) {
+                log.atWarning()
+                    .withCause(e)
+                    .log("Failed to apply ppdc patch for %s", packet.uuid)
+            }
         }
     }
 
@@ -623,12 +826,18 @@ class ServerRunningPacketListenerImpl(
     }
 
     @OptIn(ExperimentalContracts::class)
-    private inline fun withPlayer(uuid: UUID, block: StandaloneCloudPlayerImpl.() -> Unit) {
+    private inline fun withPlayer(
+        uuid: UUID,
+        orElse: () -> Unit = {},
+        block: StandaloneCloudPlayerImpl.() -> Unit
+    ) {
         contract {
             callsInPlace(block, InvocationKind.AT_MOST_ONCE)
+            callsInPlace(orElse, InvocationKind.AT_MOST_ONCE)
         }
 
-        val player = playerManagerImpl.getPlayer(uuid) as? StandaloneCloudPlayerImpl ?: return
+        val player =
+            playerManagerImpl.getPlayer(uuid) as? StandaloneCloudPlayerImpl ?: return orElse()
         player.block()
     }
 

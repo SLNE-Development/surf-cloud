@@ -8,9 +8,6 @@ import dev.slne.surf.cloud.api.common.player.CloudPlayer
 import dev.slne.surf.cloud.api.common.player.ConnectionResultEnum
 import dev.slne.surf.cloud.api.common.server.CloudServer
 import dev.slne.surf.cloud.api.common.server.CloudServerManager
-import dev.slne.surf.surfapi.core.api.util.emptyObjectList
-import dev.slne.surf.surfapi.core.api.util.freeze
-import dev.slne.surf.surfapi.core.api.util.mutableObjectListOf
 import dev.slne.surf.cloud.api.server.server.ServerCloudServerManager
 import dev.slne.surf.cloud.api.server.server.ServerCommonCloudServer
 import dev.slne.surf.cloud.api.server.server.ServerProxyCloudServer
@@ -23,7 +20,11 @@ import dev.slne.surf.cloud.core.common.util.bean
 import dev.slne.surf.cloud.standalone.event.server.CloudServerRegisteredEvent
 import dev.slne.surf.cloud.standalone.netty.server.NettyServerImpl
 import dev.slne.surf.cloud.standalone.player.StandaloneCloudPlayerImpl
+import dev.slne.surf.surfapi.core.api.util.emptyObjectList
+import dev.slne.surf.surfapi.core.api.util.freeze
 import dev.slne.surf.surfapi.core.api.util.logger
+import dev.slne.surf.surfapi.core.api.util.mutableObjectListOf
+import io.ktor.utils.io.*
 import it.unimi.dsi.fastutil.objects.ObjectCollection
 import it.unimi.dsi.fastutil.objects.ObjectList
 import net.kyori.adventure.text.Component
@@ -82,21 +83,29 @@ class StandaloneCloudServerManagerImpl : CommonCloudServerManagerImpl<ServerComm
         // so let's ask them first
         val proxies = servers.filterIsInstance<StandaloneProxyCloudServerImpl>()
         for (proxy in proxies) {
-            val name =
-                RequestOfflineDisplayNamePacket(uuid).awaitOrThrowUrgent(proxy.connection)
-            if (name != null) {
-                return name
+            try {
+                val name =
+                    RequestOfflineDisplayNamePacket(uuid).awaitOrThrowUrgent(proxy.connection)
+                if (name != null) {
+                    return name
+                }
+            } catch (e: Throwable) {
+                if (e is CancellationException) throw e
             }
         }
 
         // if no proxy responded, we ask the other servers
         for (server in servers) {
             if (server !is StandaloneProxyCloudServerImpl) {
-                val (name) = RequestOfflineDisplayNamePacket(uuid).fireAndAwaitOrThrowUrgent(
-                    server.connection
-                )
-                if (name != null) {
-                    return name
+                try {
+                    val (name) = RequestOfflineDisplayNamePacket(uuid).fireAndAwaitOrThrowUrgent(
+                        server.connection
+                    )
+                    if (name != null) {
+                        return name
+                    }
+                } catch (e: Throwable) {
+                    if (e is CancellationException) throw e
                 }
             }
         }

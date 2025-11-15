@@ -62,22 +62,17 @@ class VelocitySpecificPacketListenerExtension : PlatformSpecificPacketListenerEx
         player.disconnect(reason)
     }
 
-    override fun silentDisconnectPlayer(playerUuid: UUID) {
-        error("Silent disconnect is not supported on Velocity")
-    }
+    override fun silentDisconnectPlayer(playerUuid: UUID) = Unit
 
     override suspend fun teleportPlayer(
         uuid: UUID,
         location: WorldLocation,
         teleportCause: TeleportCause,
-        flags: Array<out TeleportFlag>
-    ): Boolean {
-        error("Teleporting players is not supported on Velocity")
-    }
+        flags: EnumSet<TeleportFlag>
+    ): Boolean = false
 
-    override fun registerCloudServersToProxy(packets: Array<RegistrationInfo>) {
-        packets.map { (name, address) -> ServerInfo(name, address) }
-            .forEach { proxy.registerServer(it) }
+    override fun registerCloudServerToProxy(info: RegistrationInfo) {
+        proxy.registerServer(ServerInfo(info.first, info.second))
     }
 
     override fun registerCloudServerToProxy(client: ClientCloudServerImpl) {
@@ -95,9 +90,7 @@ class VelocitySpecificPacketListenerExtension : PlatformSpecificPacketListenerEx
     override suspend fun teleportPlayerToPlayer(
         uuid: UUID,
         target: UUID
-    ): Boolean {
-        error("Teleporting players is not supported on Velocity")
-    }
+    ): Boolean = false
 
     override fun sendToast(uuid: UUID, toast: NetworkToast) {
         log.atWarning()

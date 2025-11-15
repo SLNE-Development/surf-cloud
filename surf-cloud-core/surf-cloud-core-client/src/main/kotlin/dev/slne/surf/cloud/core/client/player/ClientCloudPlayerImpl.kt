@@ -17,6 +17,7 @@ import dev.slne.surf.cloud.api.common.player.toast.NetworkToast
 import dev.slne.surf.cloud.api.common.server.CloudServer
 import dev.slne.surf.cloud.api.common.util.getValue
 import dev.slne.surf.cloud.api.common.util.setValue
+import dev.slne.surf.cloud.api.common.util.toEnumSet
 import dev.slne.surf.cloud.core.client.server.serverManagerImpl
 import dev.slne.surf.cloud.core.client.util.luckperms
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.*
@@ -406,14 +407,18 @@ abstract class ClientCloudPlayerImpl<PlatformPlayer : Audience>(
         ServerboundSendResourcePacksPacket(uuid, request).fireAndForget()
     }
 
-    override fun removeResourcePacks(id: UUID, vararg others: UUID) {
+    override fun removeResourcePacks(ids: Iterable<UUID>) {
         val audience = audience
         if (audience != null) {
-            audience.removeResourcePacks(id, *others)
+            audience.removeResourcePacks(ids)
             return
         }
 
-        ServerboundRemoveResourcePacksPacket(uuid, id, *others).fireAndForget()
+        ServerboundRemoveResourcePacksPacket(uuid, ids.toMutableList()).fireAndForget()
+    }
+
+    override fun removeResourcePacks(id: UUID, vararg others: UUID) {
+        removeResourcePacks(listOf(id, *others))
     }
 
     override fun clearResourcePacks() {
@@ -430,7 +435,7 @@ abstract class ClientCloudPlayerImpl<PlatformPlayer : Audience>(
         location: WorldLocation,
         teleportCause: TeleportCause,
         vararg flags: TeleportFlag
-    ) = TeleportPlayerPacket(uuid, location, teleportCause, *flags).fireAndAwaitOrThrow().result
+    ) = TeleportPlayerPacket(uuid, location, teleportCause, flags.toEnumSet()).awaitOrThrow()
 
     override suspend fun teleport(target: CloudPlayer): Boolean {
         return TeleportPlayerToPlayerPacket(uuid, target.uuid).awaitOrThrow()

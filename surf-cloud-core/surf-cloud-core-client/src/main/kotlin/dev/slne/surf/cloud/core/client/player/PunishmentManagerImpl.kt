@@ -19,7 +19,7 @@ import java.util.*
 @Component
 class PunishmentManagerImpl : PunishmentManager {
     override suspend fun generatePunishmentId(): String =
-        ServerboundGeneratePunishmentIdPacket().awaitOrThrow()
+        ServerboundGeneratePunishmentIdPacket.awaitOrThrow()
 
     override suspend fun createKick(
         punishedUuid: UUID,

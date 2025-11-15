@@ -3,13 +3,21 @@ package dev.slne.surf.cloud.core.common.netty.network.protocol.running
 import dev.slne.surf.cloud.api.common.meta.SurfNettyPacket
 import dev.slne.surf.cloud.api.common.netty.network.protocol.PacketFlow
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
+import dev.slne.surf.cloud.api.common.netty.packet.PacketHandlerMode
 import dev.slne.surf.cloud.api.common.netty.packet.packetCodec
 import dev.slne.surf.cloud.api.common.netty.protocol.buffer.SurfByteBuf
+import dev.slne.surf.cloud.core.common.netty.network.InternalNettyPacket
+import dev.slne.surf.cloud.core.common.netty.network.protocol.common.CommonSynchronizingRunningPacketListener
 import dev.slne.surf.cloud.core.common.sync.BasicSyncValue
 import dev.slne.surf.cloud.core.common.sync.CommonSyncRegistryImpl
 
-@SurfNettyPacket("cloud:sync_value_change", PacketFlow.BIDIRECTIONAL)
-class SyncValueChangePacket : NettyPacket {
+@SurfNettyPacket(
+    "cloud:sync_value_change",
+    PacketFlow.BIDIRECTIONAL,
+    handlerMode = PacketHandlerMode.DEFAULT
+)
+class SyncValueChangePacket : NettyPacket,
+    InternalNettyPacket<CommonSynchronizingRunningPacketListener> {
 
     companion object {
         val STREAM_CODEC = packetCodec(SyncValueChangePacket::write, ::SyncValueChangePacket)
@@ -58,6 +66,10 @@ class SyncValueChangePacket : NettyPacket {
                 "value=$value" +
                 ")" +
                 " ${super.toString()}"
+    }
+
+    override fun handle(listener: CommonSynchronizingRunningPacketListener) {
+        listener.handleSyncValueChange(this)
     }
 
 }

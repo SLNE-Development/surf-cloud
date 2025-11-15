@@ -30,10 +30,10 @@ interface PlatformSpecificPacketListenerExtension {
         uuid: UUID,
         location: WorldLocation,
         teleportCause: TeleportCause,
-        flags: Array<out TeleportFlag>
+        flags: EnumSet<TeleportFlag>
     ): Boolean
 
-    fun registerCloudServersToProxy(packets: Array<RegistrationInfo>)
+    fun registerCloudServerToProxy(info: RegistrationInfo)
     fun registerCloudServerToProxy(client: ClientCloudServerImpl)
     fun unregisterCloudServerFromProxy(client: ClientCloudServerImpl)
 

@@ -39,17 +39,18 @@ class ClientSynchronizingPacketListenerImpl(
         }
     }
 
-    override suspend fun handleSynchronizeFinish(packet: ClientboundSynchronizeFinishPacket) {
+    override fun handleSynchronizeFinish(packet: ClientboundSynchronizeFinishPacket) {
         statusUpdater.switchState(AbstractStatusUpdater.State.SYNCHRONIZED)
 
-        val listener = ClientRunningPacketListenerImpl(connection, client, platformExtension)
-        connection.setupInboundProtocol(RunningProtocols.CLIENTBOUND, listener)
-        connection.send(ServerboundSynchronizeFinishAcknowledgedPacket)
-        connection.setupOutboundProtocol(RunningProtocols.SERVERBOUND)
-
-        client.initListener(listener)
-        statusUpdater.switchState(AbstractStatusUpdater.State.CONNECTED)
-        client.synchronizeCallback.complete(Unit)
+        PacketHandlerScope.launch {
+            val listener = ClientRunningPacketListenerImpl(connection, client, platformExtension)
+            connection.setupInboundProtocol(RunningProtocols.CLIENTBOUND, listener)
+            connection.send(ServerboundSynchronizeFinishAcknowledgedPacket)
+            connection.setupOutboundProtocol(RunningProtocols.SERVERBOUND)
+            client.initListener(listener)
+            statusUpdater.switchState(AbstractStatusUpdater.State.CONNECTED)
+            client.synchronizeCallback.complete(Unit)
+        }
     }
 
     override fun handleSyncValueChange(packet: SyncValueChangePacket) {
@@ -83,7 +84,7 @@ class ClientSynchronizingPacketListenerImpl(
         }
     }
 
-    override suspend fun handleBatchUpdateServer(packet: ClientboundBatchUpdateServer) {
+    override fun handleBatchUpdateServer(packet: ClientboundBatchUpdateServer) {
         serverManagerImpl.batchUpdateServer(packet.servers.map { data ->
             if (data.proxy) {
                 ClientProxyCloudServerImpl(data.group, data.name, data.playAddress)

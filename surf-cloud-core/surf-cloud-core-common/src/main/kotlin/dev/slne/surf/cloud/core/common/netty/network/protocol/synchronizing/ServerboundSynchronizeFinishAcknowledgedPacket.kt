@@ -5,13 +5,21 @@ import dev.slne.surf.cloud.api.common.netty.network.ConnectionProtocol
 import dev.slne.surf.cloud.api.common.netty.network.codec.streamCodecUnitSimple
 import dev.slne.surf.cloud.api.common.netty.network.protocol.PacketFlow
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
+import dev.slne.surf.cloud.api.common.netty.packet.PacketHandlerMode
+import dev.slne.surf.cloud.core.common.netty.network.InternalNettyPacket
 
 @SurfNettyPacket(
     "cloud:serverbound:synchronize_finish_acknowledged",
     PacketFlow.SERVERBOUND,
-    ConnectionProtocol.SYNCHRONIZING
+    ConnectionProtocol.SYNCHRONIZING,
+    handlerMode = PacketHandlerMode.DEFAULT,
 )
-object ServerboundSynchronizeFinishAcknowledgedPacket : NettyPacket() {
+object ServerboundSynchronizeFinishAcknowledgedPacket : NettyPacket(),
+    InternalNettyPacket<ServerSynchronizingPacketListener> {
     val STREAM_CODEC = streamCodecUnitSimple(ServerboundSynchronizeFinishAcknowledgedPacket)
     override val terminal = true
+
+    override fun handle(listener: ServerSynchronizingPacketListener) {
+        listener.handleSynchronizeFinishAcknowledged(this)
+    }
 }

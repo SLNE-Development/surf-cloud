@@ -1,5 +1,6 @@
 package dev.slne.surf.cloud.standalone.netty.server.network
 
+import dev.slne.surf.cloud.core.common.coroutines.PacketHandlerScope
 import dev.slne.surf.cloud.core.common.netty.network.ConnectionImpl
 import dev.slne.surf.cloud.core.common.netty.network.DisconnectReason
 import dev.slne.surf.cloud.core.common.netty.network.DisconnectionDetails
@@ -11,6 +12,7 @@ import dev.slne.surf.cloud.core.common.netty.network.protocol.initialize.Initial
 import dev.slne.surf.cloud.core.common.netty.network.protocol.login.ClientboundLoginDisconnectPacket
 import dev.slne.surf.cloud.core.common.netty.network.protocol.login.LoginProtocols
 import dev.slne.surf.cloud.standalone.netty.server.NettyServerImpl
+import kotlinx.coroutines.launch
 import java.net.InetSocketAddress
 
 class ServerHandshakePacketListenerImpl(
@@ -18,16 +20,18 @@ class ServerHandshakePacketListenerImpl(
     val connection: ConnectionImpl
 ) :
     ServerHandshakePacketListener {
-    override suspend fun handleHandshake(packet: ServerboundHandshakePacket) {
-        connection.hostname = "${packet.hostName}:${packet.port}"
+    override fun handleHandshake(packet: ServerboundHandshakePacket) {
+        PacketHandlerScope.launch {
+            connection.hostname = "${packet.hostName}:${packet.port}"
 
-        when (packet.intention) {
-            ClientIntent.INITIALIZE -> initialize(packet)
-            ClientIntent.LOGIN -> beginLogin(packet)
-            ClientIntent.STATUS -> error("Status intention is not supported")
+            when (packet.intention) {
+                ClientIntent.INITIALIZE -> initialize(packet)
+                ClientIntent.LOGIN -> beginLogin(packet)
+                ClientIntent.STATUS -> error("Status intention is not supported")
+            }
+
+            connection.virtualHost = prepareVirtualHost(packet.hostName, packet.port)
         }
-
-        connection.virtualHost = prepareVirtualHost(packet.hostName, packet.port)
     }
 
     private suspend fun beginLogin(packet: ServerboundHandshakePacket) {

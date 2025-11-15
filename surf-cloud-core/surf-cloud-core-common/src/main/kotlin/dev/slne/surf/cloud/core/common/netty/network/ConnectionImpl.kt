@@ -1,31 +1,34 @@
 package dev.slne.surf.cloud.core.common.netty.network
 
 import dev.slne.surf.cloud.api.common.exceptions.SkipPacketException
+import dev.slne.surf.cloud.api.common.meta.SurfNettyPacket
 import dev.slne.surf.cloud.api.common.netty.network.Connection
 import dev.slne.surf.cloud.api.common.netty.network.ConnectionProtocol
 import dev.slne.surf.cloud.api.common.netty.network.protocol.PacketFlow
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
-import dev.slne.surf.cloud.api.common.netty.packet.ResponseNettyPacket
+import dev.slne.surf.cloud.api.common.netty.packet.NettyPacketInfo
+import dev.slne.surf.cloud.api.common.netty.packet.PacketHandlerMode
+import dev.slne.surf.cloud.api.common.netty.packet.PacketHandlerMode.*
 import dev.slne.surf.cloud.api.common.util.DefaultUncaughtExceptionHandlerWithName
 import dev.slne.surf.cloud.api.common.util.math.lerp
 import dev.slne.surf.cloud.api.common.util.netty.suspend
 import dev.slne.surf.cloud.api.common.util.threadFactory
 import dev.slne.surf.cloud.core.common.config.AbstractSurfCloudConfigHolder
 import dev.slne.surf.cloud.core.common.coroutines.ConnectionManagementScope
+import dev.slne.surf.cloud.core.common.coroutines.PacketHandlerIoScope
 import dev.slne.surf.cloud.core.common.coroutines.PacketHandlerScope
 import dev.slne.surf.cloud.core.common.netty.network.protocol.common.*
 import dev.slne.surf.cloud.core.common.netty.network.protocol.handshake.ClientIntent
 import dev.slne.surf.cloud.core.common.netty.network.protocol.handshake.HandshakeProtocols
-import dev.slne.surf.cloud.core.common.netty.network.protocol.handshake.ServerHandshakePacketListener
+import dev.slne.surf.cloud.core.common.netty.network.protocol.handshake.PROTOCOL_VERSION
 import dev.slne.surf.cloud.core.common.netty.network.protocol.handshake.ServerboundHandshakePacket
 import dev.slne.surf.cloud.core.common.netty.network.protocol.initialize.ClientInitializePacketListener
 import dev.slne.surf.cloud.core.common.netty.network.protocol.initialize.InitializeProtocols
-import dev.slne.surf.cloud.core.common.netty.network.protocol.initialize.ServerInitializePacketListener
-import dev.slne.surf.cloud.core.common.netty.network.protocol.initialize.ServerboundInitializeRequestIdPacket
-import dev.slne.surf.cloud.core.common.netty.network.protocol.login.*
-import dev.slne.surf.cloud.core.common.netty.network.protocol.prerunning.*
+import dev.slne.surf.cloud.core.common.netty.network.protocol.login.ClientLoginPacketListener
+import dev.slne.surf.cloud.core.common.netty.network.protocol.login.ClientboundLoginDisconnectPacket
+import dev.slne.surf.cloud.core.common.netty.network.protocol.login.LoginProtocols
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.*
-import dev.slne.surf.cloud.core.common.netty.network.protocol.synchronizing.*
+import dev.slne.surf.cloud.core.common.netty.registry.listener.NettyListenerRegistry
 import dev.slne.surf.cloud.core.common.util.bean
 import dev.slne.surf.surfapi.core.api.util.logger
 import io.netty.bootstrap.Bootstrap
@@ -48,7 +51,6 @@ import io.netty.handler.timeout.TimeoutException
 import io.netty.util.AttributeKey
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import java.net.InetSocketAddress
 import java.net.SocketAddress
 import java.nio.channels.ClosedChannelException
@@ -231,414 +233,105 @@ class ConnectionImpl(
         if (!packetListener.shouldHandleMessage(msg)) return
 
         this.receivedPackets++
-        PacketHandlerScope.launch {
-            runCatching {
-                handlePacket(msg)
-            }.onFailure {
-                exceptionCaught(ctx, it)
+        handlePacket(ctx, msg)
+    }
+
+    private object PacketModeCache : ClassValue<PacketHandlerMode>() {
+        override fun computeValue(type: Class<*>): PacketHandlerMode {
+            val annotation = type.getAnnotation(SurfNettyPacket::class.java)
+            return annotation?.handlerMode ?: DEFAULT
+        }
+    }
+
+    private fun resolvePacketMode(packet: NettyPacket): PacketHandlerMode {
+        return PacketModeCache.get(packet.javaClass)
+    }
+
+    fun handlePacket(msg: NettyPacket) {
+        handlePacket(channel.pipeline().context(this), msg)
+    }
+
+    fun handlePacket(ctx: ChannelHandlerContext, msg: NettyPacket) {
+        val packetMode = resolvePacketMode(msg)
+        when (packetMode) {
+            NETTY -> {
+                try {
+                    if (!handleInternalPacket(packetListener, msg)) {
+                        dispatchPluginListeners(ctx, msg)
+                    }
+                } catch (e: Throwable) {
+                    handlePacketHandleException(ctx, msg, e)
+                }
+            }
+
+            DEFAULT, INHERIT -> {
+                PacketHandlerScope.launch {
+                    try {
+                        if (!handleInternalPacket(packetListener, msg)) {
+                            dispatchPluginListeners(ctx, msg)
+                        }
+                    } catch (e: Throwable) {
+                        handlePacketHandleException(ctx, msg, e)
+                    }
+                }
+            }
+
+            IO -> {
+                PacketHandlerIoScope.launch {
+                    try {
+                        if (!handleInternalPacket(packetListener, msg)) {
+                            dispatchPluginListeners(ctx, msg)
+                        }
+                    } catch (e: Throwable) {
+                        handlePacketHandleException(ctx, msg, e)
+                    }
+                }
             }
         }
     }
 
-    suspend fun handlePacket(msg: NettyPacket) = withContext(PacketHandlerScope.coroutineContext) {
-        val listener = _packetListener ?: return@withContext
-
-        when (listener) {
-            is ServerboundPacketListener -> {
-                if (listener is ServerCommonPacketListener) {
-                    val handled = when (msg) {
-                        is ServerboundBundlePacket -> listener.handleBundlePacket(msg)
-                        is KeepAlivePacket -> listener.handleKeepAlivePacket(msg)
-                        is ServerboundPingRequestPacket -> listener.handlePingRequest(msg)
-                        is ResponseNettyPacket -> {}
-
-                        else -> null
-                    }
-
-                    if (handled != null) return@withContext
-                }
-
-                when (listener) {
-                    is ServerHandshakePacketListener -> when (msg) {
-                        is ServerboundHandshakePacket -> listener.handleHandshake(msg)
-                        else -> error("Unexpected packet $msg")
-                    }
-
-                    is ServerInitializePacketListener -> when (msg) {
-                        is ServerboundInitializeRequestIdPacket -> listener.handleIdRequest(msg)
-
-                        else -> error("Unexpected packet $msg")
-                    }
-
-                    is ServerLoginPacketListener -> when (msg) {
-                        is ServerboundLoginStartPacket -> listener.handleLoginStart(msg)
-                        is ServerboundLoginAcknowledgedPacket -> listener.handleLoginAcknowledgement(
-                            msg
-                        )
-
-                        else -> error("Unexpected packet $msg")
-                    }
-
-                    is ServerPreRunningPacketListener -> when (msg) {
-                        is ServerboundProceedToSynchronizingAcknowledgedPacket -> listener.handleReadyToRun(
-                            msg
-                        )
-
-                        is ServerboundPreRunningAcknowledgedPacket -> listener.handlePreRunningAcknowledged(
-                            msg
-                        )
-
-                        is ServerboundRequestContinuation -> listener.handleRequestContinuation(msg)
-
-                        else -> error("Unexpected packet $msg")
-                    }
-
-                    is ServerSynchronizingPacketListener -> when (msg) {
-                        is FinishSynchronizingPacket -> listener.handleFinishSynchronizing(msg)
-                        is ServerboundSynchronizeFinishAcknowledgedPacket -> listener.handleSynchronizeFinishAcknowledged(
-                            msg
-                        )
-
-                        is SyncValueChangePacket -> listener.handleSyncValueChange(msg)
-                        is SyncSetDeltaPacket -> listener.handleSyncSetDelta(msg)
-                        is ServerboundCreateOfflineCloudPlayerIfNotExistsPacket -> listener.handleCreateOfflineCloudPlayerIfNotExists(
-                            msg
-                        )
-
-                        else -> listener.handlePacket(msg)
-                    }
-
-                    is RunningServerPacketListener -> when (msg) {
-                        is PlayerConnectToServerPacket -> listener.handlePlayerConnectToServer(
-                            msg
-                        )
-
-                        is PlayerDisconnectFromServerPacket -> listener.handlePlayerDisconnectFromServer(
-                            msg
-                        )
-
-                        is ServerboundSendResourcePacksPacket -> listener.handleSendResourcePacks(
-                            msg
-                        )
-
-                        is ServerboundClearResourcePacksPacket -> listener.handleClearResourcePacks(
-                            msg
-                        )
-
-                        is ServerboundRemoveResourcePacksPacket -> listener.handleRemoveResourcePacks(
-                            msg
-                        )
-
-                        is ServerboundShowTitlePacket -> listener.handleShowTitle(msg)
-                        is ServerboundSendTitlePartPacket -> listener.handleSendTitlePart(msg)
-                        is ServerboundClearTitlePacket -> listener.handleClearTitle(msg)
-                        is ServerboundResetTitlePacket -> listener.handleResetTitle(msg)
-                        is ServerboundShowBossBarPacket -> listener.handleShowBossBar(msg)
-                        is ServerboundHideBossBarPacket -> listener.handleHideBossBar(msg)
-                        is ServerboundOpenBookPacket -> listener.handleOpenBook(msg)
-                        is ServerboundPlaySoundPacket -> listener.handlePlaySound(msg)
-                        is ServerboundStopSoundPacket -> listener.handleStopSound(msg)
-                        is ServerboundSendMessagePacket -> listener.handleSendMessage(msg)
-                        is ServerboundSendActionBarPacket -> listener.handleSendActionBar(msg)
-                        is ServerboundSendPlayerListHeaderAndFooterPacket -> listener.handleSendPlayerListHeaderAndFooter(
-                            msg
-                        )
-
-                        is ServerboundRequestDisplayNamePacket -> listener.handleRequestDisplayName(
-                            msg
-                        )
-
-                        is RequestOfflineDisplayNamePacket -> listener.handleRequestOfflinePlayerDisplayName(
-                            msg
-                        )
-
-                        is ServerboundClientInformationPacket -> listener.handleClientInformation(
-                            msg
-                        )
-
-                        is RequestLuckpermsMetaDataPacket -> listener.handleRequestLuckpermsMetaData(
-                            msg
-                        )
-
-                        is ServerboundRequestPlayerPersistentDataContainer -> listener.handleRequestPlayerPersistentDataContainer(
-                            msg
-                        )
-
-                        is ServerboundConnectPlayerToServerPacket -> listener.handleConnectPlayerToServer(
-                            msg
-                        )
-
-                        is ServerboundQueuePlayerToGroupPacket -> listener.handleQueuePlayerToGroup(
-                            msg
-                        )
-
-                        is DisconnectPlayerPacket -> listener.handleDisconnectPlayer(msg)
-                        is SilentDisconnectPlayerPacket -> listener.handleSilentDisconnectPlayer(msg)
-
-                        is TeleportPlayerPacket -> listener.handleTeleportPlayer(msg)
-                        is TeleportPlayerToPlayerPacket -> listener.handleTeleportPlayerToPlayer(msg)
-                        is ServerboundShutdownServerPacket -> listener.handleShutdownServer(msg)
-                        is ServerboundRequestPlayerDataPacket -> listener.handleRequestPlayerData(
-                            msg
-                        )
-
-                        is UpdateAFKStatePacket -> listener.handleUpdateAFKState(msg)
-                        is ServerboundGeneratePunishmentIdPacket -> listener.handleGeneratePunishmentId(
-                            msg
-                        )
-
-                        is ServerboundCreateKickPacket -> listener.handleCreateKick(msg)
-                        is ServerboundCreateWarnPacket -> listener.handleCreateWarn(msg)
-                        is ServerboundCreateMutePacket -> listener.handleCreateMute(msg)
-                        is ServerboundCreateBanPacket -> listener.handleCreateBan(msg)
-                        is ServerboundAttachIpAddressToBanPacket -> listener.handleAttachIpAddressToBan(
-                            msg
-                        )
-
-                        is ServerboundAttachNoteToPunishmentPacket -> listener.handleAttachNoteToPunishment(
-                            msg
-                        )
-
-                        is ServerboundFetchNotesFromPunishmentPacket -> listener.handleFetchNotesFromPunishment(
-                            msg
-                        )
-
-                        is ServerboundFetchMutesPacket -> listener.handleFetchMutes(msg)
-                        is ServerboundFetchBansPacket -> listener.handleFetchBans(msg)
-                        is ServerboundFetchKicksPacket -> listener.handleFetchKicks(msg)
-                        is ServerboundFetchWarnsPacket -> listener.handleFetchWarns(msg)
-                        is ServerboundGetCurrentLoginValidationPunishmentCachePacket -> listener.handleGetCurrentLoginValidationPunishmentCache(
-                            msg
-                        )
-
-                        is ServerboundFetchIpAddressesForBanPacket -> listener.handleFetchIpAddressesForBan(
-                            msg
-                        )
-
-                        is ServerboundFetchIpBansPacket -> listener.handleFetchIpBans(msg)
-                        is RequestPlayerPermissionPacket -> listener.handleRequestPlayerPermission(
-                            msg
-                        )
-
-                        is SyncValueChangePacket -> listener.handleSyncValueChange(msg)
-                        is SyncSetDeltaPacket -> listener.handleSyncSetDelta(msg)
-                        is ServerboundCreateOfflineCloudPlayerIfNotExistsPacket -> listener.handleCreateOfflineCloudPlayerIfNotExists(
-                            msg
-                        )
-
-                        is ServerboundRequestWhitelistStatusPacket -> listener.handleRequestWhitelistStatus(
-                            msg
-                        )
-
-                        is ServerboundRequestWhitelistPacket -> listener.handleRequestWhitelist(msg)
-                        is ServerboundCreateWhitelistPacket -> listener.handleCreateWhitelist(msg)
-                        is ServerboundUpdateWhitelistPacket -> listener.handleUpdateWhitelist(msg)
-                        is ServerboundRefreshWhitelistPacket -> listener.handleRefreshWhitelist(msg)
-                        is ServerboundCacheRegisterKeysPacket -> listener.handleCacheRegisterKeys(
-                            msg
-                        )
-
-                        is ServerboundCacheOpPacket -> listener.handleCacheOp(msg)
-                        is ServerboundCacheFetchPacket -> listener.handleCacheFetch(msg)
-                        is ServerboundCacheWatchPlayersPacket -> listener.handleCacheWatchPlayers(
-                            msg
-                        )
-
-                        is SendToastPacket -> listener.handleSendToast(msg)
-                        is UpdatePlayerPersistentDataContainerPacket -> listener.handleUpdatePlayerPersistentDataContainer(
-                            msg
-                        )
-
-                        else -> listener.handlePacket(msg) // handle other packets
-                    }
-                }
-            }
-
-            is ClientboundPacketListener -> {
-                if (listener is ClientCommonPacketListener) {
-                    val handled = when (msg) {
-                        is ClientboundBundlePacket -> listener.handleBundlePacket(msg)
-                        is KeepAlivePacket -> listener.handleKeepAlive(msg)
-                        is ClientboundPingPacket -> listener.handlePing(msg)
-                        is ClientboundDisconnectPacket -> listener.handleDisconnect(msg)
-                        is ResponseNettyPacket -> {}
-                        else -> null
-                    }
-                    if (handled != null) return@withContext
-                }
-
-                when (listener) {
-                    is ClientInitializePacketListener -> when (msg) {
-                        else -> error("Unexpected packet $msg")
-                    }
-
-                    is ClientLoginPacketListener -> when (msg) {
-                        is ClientboundLoginFinishedPacket -> listener.handleLoginFinished(msg)
-
-                        else -> error("Unexpected packet $msg")
-                    }
-
-                    is ClientPreRunningPacketListener -> when (msg) {
-                        is ClientboundPreRunningFinishedPacket -> listener.handlePreRunningFinished(
-                            msg
-                        )
-
-                        is ClientboundProceedToSynchronizingPacket -> listener.handleProceedToSynchronizing(
-                            msg
-                        )
-
-                        else -> error("Unexpected packet $msg")
-                    }
-
-                    is ClientSynchronizingPacketListener -> when (msg) {
-                        is ClientboundSynchronizeFinishPacket -> listener.handleSynchronizeFinish(
-                            msg
-                        )
-
-                        is SyncValueChangePacket -> listener.handleSyncValueChange(msg)
-                        is ClientboundBatchSyncValuePacket -> listener.handleBatchSyncValue(msg)
-                        is ClientboundBatchSyncSetPacket -> listener.handleBatchSyncSet(msg)
-                        is ClientboundBatchUpdateServer -> listener.handleBatchUpdateServer(msg)
-                        is SyncSetDeltaPacket -> listener.handleSyncSetDelta(msg)
-                        is ClientboundSetVelocitySecretPacket -> listener.handleSetVelocitySecret(
-                            msg
-                        )
-
-                        is ClientboundPlayerCacheHydrateStartPacket -> listener.handlePlayerCacheHydrateStart(
-                            msg
-                        )
-
-                        is ClientboundPlayerCacheHydrateChunkPacket -> listener.handlePlayerCacheHydrateChunk(
-                            msg
-                        )
-
-                        is ClientboundPlayerCacheHydrateEndPacket -> listener.handlePlayerCacheHydrateEnd(
-                            msg
-                        )
-
-                        else -> listener.handlePacket(msg)
-                    }
-
-                    is RunningClientPacketListener -> when (msg) {
-                        is PlayerConnectedToServerPacket -> listener.handlePlayerConnectedToServer(
-                            msg
-                        )
-
-                        is PlayerDisconnectFromServerPacket -> listener.handlePlayerDisconnectFromServer(
-                            msg
-                        )
-
-                        is ClientboundSendResourcePacksPacket -> listener.handleSendResourcePacks(
-                            msg
-                        )
-
-                        is ClientboundClearResourcePacksPacket -> listener.handleClearResourcePacks(
-                            msg
-                        )
-
-                        is ClientboundRemoveResourcePacksPacket -> listener.handleRemoveResourcePacks(
-                            msg
-                        )
-
-                        is ClientboundShowTitlePacket -> listener.handleShowTitle(msg)
-                        is ClientboundSendTitlePartPacket -> listener.handleSendTitlePart(msg)
-                        is ClientboundClearTitlePacket -> listener.handleClearTitle(msg)
-                        is ClientboundResetTitlePacket -> listener.handleResetTitle(msg)
-                        is ClientboundShowBossBarPacket -> listener.handleShowBossBar(msg)
-                        is ClientboundHideBossBarPacket -> listener.handleHideBossBar(msg)
-                        is ClientboundOpenBookPacket -> listener.handleOpenBook(msg)
-                        is ClientboundPlaySoundPacket -> listener.handlePlaySound(msg)
-                        is ClientboundStopSoundPacket -> listener.handleStopSound(msg)
-                        is ClientboundSendMessagePacket -> listener.handleSendMessage(msg)
-                        is ClientboundSendActionBarPacket -> listener.handleSendActionBar(msg)
-                        is ClientboundSendPlayerListHeaderAndFooterPacket -> listener.handleSendPlayerListHeaderAndFooter(
-                            msg
-                        )
-
-                        is ClientboundRequestDisplayNamePacket -> listener.handleRequestDisplayName(
-                            msg
-                        )
-
-                        is RequestOfflineDisplayNamePacket -> listener.handleRequestOfflinePlayerDisplayName(
-                            msg
-                        )
-
-                        is ClientboundRegisterServerPacket -> listener.handleRegisterServerPacket(
-                            msg
-                        )
-
-                        is ClientboundUnregisterServerPacket -> listener.handleUnregisterServerPacket(
-                            msg
-                        )
-
-                        is ClientboundAddPlayerToServerPacket -> listener.handleAddPlayerToServer(
-                            msg
-                        )
-
-                        is ClientboundRemovePlayerFromServerPacket -> listener.handleRemovePlayerFromServer(
-                            msg
-                        )
-
-                        is ClientboundUpdateServerInformationPacket -> listener.handleUpdateServerInformation(
-                            msg
-                        )
-
-                        is ClientboundIsServerManagedByThisProxyPacket -> listener.handleIsServerManagedByThisProxy(
-                            msg
-                        )
-
-                        is ClientboundTransferPlayerPacket -> listener.handleTransferPlayer(msg)
-                        is RequestLuckpermsMetaDataPacket -> listener.handleRequestLuckpermsMetaData(
-                            msg
-                        )
-
-                        is DisconnectPlayerPacket -> listener.handleDisconnectPlayer(msg)
-                        is SilentDisconnectPlayerPacket -> listener.handleSilentDisconnectPlayer(msg)
-                        is TeleportPlayerPacket -> listener.handleTeleportPlayer(msg)
-                        is TeleportPlayerToPlayerPacket -> listener.handleTeleportPlayerToPlayer(msg)
-                        is ClientboundRegisterCloudServersToProxyPacket -> listener.handleRegisterCloudServersToProxy(
-                            msg
-                        )
-
-                        is ClientboundTriggerShutdownPacket -> listener.handleTriggerShutdown(msg)
-                        is UpdateAFKStatePacket -> listener.handleUpdateAFKState(msg)
-                        is ClientboundRunPrePlayerJoinTasksPacket -> listener.handleRunPlayerPreJoinTasks(
-                            msg
-                        )
-
-                        is ClientboundTriggerPunishmentUpdateEventPacket -> listener.handleTriggerPunishmentUpdateEvent(
-                            msg
-                        )
-
-                        is ClientboundTriggerPunishmentCreatedEventPacket -> listener.handleTriggerPunishmentCreatedEvent(
-                            msg
-                        )
-
-                        is RequestPlayerPermissionPacket -> listener.handleRequestPlayerPermission(
-                            msg
-                        )
-
-                        is SyncValueChangePacket -> listener.handleSyncValueChange(msg)
-                        is SyncSetDeltaPacket -> listener.handleSyncSetDelta(msg)
-                        is ClientboundSetVelocitySecretPacket -> listener.handleSetVelocitySecret(
-                            msg
-                        )
-
-                        is ClientboundCacheRegisterAckPacket -> listener.handleCacheRegisterAck(msg)
-                        is ClientboundCacheDeltaPacket -> listener.handleCacheDelta(msg)
-                        is ClientboundCacheErrorPacket -> listener.handleCacheError(msg)
-                        is SendToastPacket -> listener.handleSendToast(msg)
-                        is UpdatePlayerPersistentDataContainerPacket -> listener.handleUpdatePlayerPersistentDataContainer(
-                            msg
-                        )
-
-                        else -> listener.handlePacket(msg)
-                    }
-                }
-            }
-
-            else -> error("Invalid packet listener")
+    @Suppress("UNCHECKED_CAST")
+    private fun handleInternalPacket(listener: PacketListener, msg: NettyPacket): Boolean {
+        if (msg !is InternalNettyPacket<*>) return false
+        msg as InternalNettyPacket<PacketListener>
+        msg.handle(listener)
+
+        return true
+    }
+
+    private fun dispatchPluginListeners(ctx: ChannelHandlerContext, msg: NettyPacket) {
+        val protocol = inboundProtocolInfo.id
+        if (protocol != ConnectionProtocol.RUNNING && protocol != ConnectionProtocol.SYNCHRONIZING) {
+            error("Unexpected packet: " + msg::class.simpleName + " in protocol " + protocol)
         }
+
+        val info = NettyPacketInfo(this, protocol)
+
+        NettyListenerRegistry.dispatch(
+            ctx.channel(),
+            msg,
+            info
+        ) { e, listener ->
+            log.atWarning()
+                .withCause(e)
+                .log(
+                    "Failed to call listener %s for packet %s",
+                    listener.owner::class.simpleName,
+                    msg::class.simpleName
+                )
+        }
+    }
+
+    private fun handlePacketHandleException(
+        ctx: ChannelHandlerContext,
+        msg: NettyPacket,
+        e: Throwable
+    ) {
+        if (e is Error) return exceptionCaught(ctx, e)
+
+        log.atWarning()
+            .withCause(e)
+            .log("Exception while handling packet %s", msg::class.simpleName)
     }
 
     private fun validateListener(protocolInfo: ProtocolInfo<*>, listener: PacketListener) {
@@ -758,7 +451,14 @@ class ConnectionImpl(
         check(serverboundProtocolInfo.id == clientboundProtocolInfo.id) { "Mismatched initial protocols" }
         runOnceConnectedSuspend {
             setupInboundProtocol(clientboundProtocolInfo, clientboundListener)
-            sendSuspendPacket(ServerboundHandshakePacket(hostname, port, intention), flush = true)
+            sendSuspendPacket(
+                ServerboundHandshakePacket(
+                    PROTOCOL_VERSION,
+                    hostname,
+                    port,
+                    intention
+                ), flush = true
+            )
             setupOutboundProtocol(serverboundProtocolInfo)
         }
     }

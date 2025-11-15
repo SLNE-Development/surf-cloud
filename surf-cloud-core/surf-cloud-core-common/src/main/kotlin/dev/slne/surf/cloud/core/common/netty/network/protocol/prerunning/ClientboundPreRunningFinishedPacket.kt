@@ -6,12 +6,20 @@ import dev.slne.surf.cloud.api.common.netty.network.ConnectionProtocol
 import dev.slne.surf.cloud.api.common.netty.network.codec.streamCodecUnitSimple
 import dev.slne.surf.cloud.api.common.netty.network.protocol.PacketFlow
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
+import dev.slne.surf.cloud.api.common.netty.packet.PacketHandlerMode
+import dev.slne.surf.cloud.core.common.netty.network.InternalNettyPacket
 
 @SurfNettyPacket(
     DefaultIds.CLIENTBOUND_PRE_RUNNING_FINISHED_PACKET,
     PacketFlow.CLIENTBOUND,
-    ConnectionProtocol.PRE_RUNNING
+    ConnectionProtocol.PRE_RUNNING,
+    handlerMode = PacketHandlerMode.DEFAULT
 )
-object ClientboundPreRunningFinishedPacket : NettyPacket() {
+object ClientboundPreRunningFinishedPacket : NettyPacket(),
+    InternalNettyPacket<ClientPreRunningPacketListener> {
     val STREAM_CODEC = streamCodecUnitSimple(ClientboundPreRunningFinishedPacket)
+
+    override fun handle(listener: ClientPreRunningPacketListener) {
+        listener.handlePreRunningFinished(this)
+    }
 }

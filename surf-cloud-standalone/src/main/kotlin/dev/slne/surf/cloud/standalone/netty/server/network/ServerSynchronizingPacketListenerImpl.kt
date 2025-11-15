@@ -19,6 +19,7 @@ import dev.slne.surf.cloud.standalone.netty.server.NettyServerImpl
 import dev.slne.surf.cloud.standalone.netty.server.ProxySecretHolder
 import dev.slne.surf.cloud.standalone.netty.server.ServerClientImpl
 import dev.slne.surf.cloud.standalone.netty.server.network.config.SynchronizeRegistriesTask
+import dev.slne.surf.cloud.standalone.netty.server.network.config.SynchronizeUserTask
 import dev.slne.surf.cloud.standalone.server.serverManagerImpl
 import dev.slne.surf.cloud.standalone.sync.SyncRegistryImpl
 import dev.slne.surf.surfapi.core.api.util.logger
@@ -56,6 +57,7 @@ class ServerSynchronizingPacketListenerImpl(
             send(ClientboundBatchUpdateServer(serverManagerImpl.retrieveAllServers()))
 
             SynchronizeRegistriesTask.execute(client)
+            SynchronizeUserTask.execute(client)
             CloudSynchronizeTaskManager.executeTasks(client)
 
             state = State.WAIT_FOR_CLIENT
@@ -67,19 +69,21 @@ class ServerSynchronizingPacketListenerImpl(
         connection.send(ClientboundSynchronizeFinishPacket)
     }
 
-    override suspend fun handleFinishSynchronizing(packet: FinishSynchronizingPacket) {
+    override fun handleFinishSynchronizing(packet: FinishSynchronizingPacket) {
         clientFinishedSynchronizing = true
     }
 
-    override suspend fun handleSynchronizeFinishAcknowledged(packet: ServerboundSynchronizeFinishAcknowledgedPacket) {
+    override fun handleSynchronizeFinishAcknowledged(packet: ServerboundSynchronizeFinishAcknowledgedPacket) {
         check(state == State.FINALIZING) { "Unexpected synchronize finish acknowledgement packet" }
 
-        connection.setupOutboundProtocol(RunningProtocols.CLIENTBOUND)
-        val listener = ServerRunningPacketListenerImpl(server, client, connection)
-        connection.setupInboundProtocol(RunningProtocols.SERVERBOUND, listener)
-        client.initListener(listener)
-        server.registerClient(client, proxy)
-        state = State.SYNCHRONIZED
+        PacketHandlerScope.launch {
+            connection.setupOutboundProtocol(RunningProtocols.CLIENTBOUND)
+            val listener = ServerRunningPacketListenerImpl(server, client, connection)
+            connection.setupInboundProtocol(RunningProtocols.SERVERBOUND, listener)
+            client.initListener(listener)
+            server.registerClient(client, proxy)
+            state = State.SYNCHRONIZED
+        }
     }
 
     override fun handleSyncValueChange(packet: SyncValueChangePacket) {

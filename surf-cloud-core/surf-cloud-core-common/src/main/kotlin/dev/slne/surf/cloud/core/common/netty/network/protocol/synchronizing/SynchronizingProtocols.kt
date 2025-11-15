@@ -17,7 +17,7 @@ object SynchronizingProtocols {
             ConnectionProtocol.SYNCHRONIZING
         ) { builder ->
             builder.withBundlePacket(::ClientboundBundlePacket, ClientboundBundleDelimiterPacket())
-            builder.addPacket(KeepAlivePacket::class.createCodec())
+            builder.addPacket(KeepAlivePacket.STREAM_CODEC)
                 .addPacket(ClientboundPongResponsePacket.STREAM_CODEC)
                 .addPacket(ClientboundBatchUpdateServer.STREAM_CODEC)
                 .addPacket(SyncValueChangePacket.STREAM_CODEC)
@@ -26,7 +26,7 @@ object SynchronizingProtocols {
                 .addPacket(SyncSetDeltaPacket.STREAM_CODEC)
                 .addPacket(FinishSynchronizingPacket.STREAM_CODEC)
                 .addPacket(ClientboundSynchronizeFinishPacket.STREAM_CODEC)
-                .addPacket(ClientboundSetVelocitySecretPacket::class.createCodec())
+                .addPacket(ClientboundSetVelocitySecretPacket.STREAM_CODEC)
         }
 
     val CLIENTBOUND by lazy { CLIENTBOUND_TEMPLATE.bind(::SurfByteBuf) }
@@ -36,13 +36,13 @@ object SynchronizingProtocols {
             ConnectionProtocol.SYNCHRONIZING
         ) { builder ->
             builder.withBundlePacket(::ServerboundBundlePacket, ServerboundBundleDelimiterPacket())
-            builder.addPacket(KeepAlivePacket::class.createCodec())
+            builder.addPacket(KeepAlivePacket.STREAM_CODEC)
                 .addPacket(ServerboundPingRequestPacket.STREAM_CODEC)
                 .addPacket(ServerboundSynchronizeFinishAcknowledgedPacket.STREAM_CODEC)
                 .addPacket(SyncValueChangePacket.STREAM_CODEC)
                 .addPacket(SyncSetDeltaPacket.STREAM_CODEC)
                 .addPacket(FinishSynchronizingPacket.STREAM_CODEC)
-                .addPacket(ServerboundCreateOfflineCloudPlayerIfNotExistsPacket::class.createCodec())
+                .addPacket(ServerboundCreateOfflineCloudPlayerIfNotExistsPacket.STREAM_CODEC)
                 .addPacket(ServerboundCacheRegisterKeysPacket::class.createCodec())
         }
 

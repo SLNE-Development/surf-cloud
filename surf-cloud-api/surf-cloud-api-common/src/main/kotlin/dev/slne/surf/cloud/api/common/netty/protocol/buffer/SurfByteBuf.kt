@@ -892,6 +892,17 @@ inline fun checkEncoded(value: Boolean, message: () -> Any) {
     if (!value) throw EncoderException(message().toString())
 }
 
+inline fun <T : Any> checkEncodedNotNull(
+    value: T?,
+    message: () -> Any
+): T {
+    contract {
+        returns() implies (value != null)
+    }
+    return value ?: throw EncoderException(message().toString())
+}
+
+
 inline fun checkDecoded(value: Boolean, message: () -> Any) {
     contract {
         returns() implies value
@@ -899,6 +910,23 @@ inline fun checkDecoded(value: Boolean, message: () -> Any) {
 
     if (!value) throw DecoderException(message().toString())
 }
+
+inline fun <T : Any> checkDecodedNotNull(
+    value: T?,
+    message: () -> Any
+): T {
+    contract {
+        returns() implies (value != null)
+    }
+    return value ?: throw DecoderException(message().toString())
+}
+
+
+@Suppress("NOTHING_TO_INLINE")
+inline fun decodeError(message: Any): Nothing = throw DecoderException(message.toString())
+
+@Suppress("NOTHING_TO_INLINE")
+inline fun encodeError(message: Any): Nothing = throw EncoderException(message.toString())
 
 // region ByteBuf extensions
 fun ByteBuf.writeVarInt(value: Int) = SurfByteBuf.writeVarInt(this, value)

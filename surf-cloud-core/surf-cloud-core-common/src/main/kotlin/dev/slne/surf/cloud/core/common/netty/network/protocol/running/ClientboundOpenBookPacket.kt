@@ -2,37 +2,34 @@ package dev.slne.surf.cloud.core.common.netty.network.protocol.running
 
 import dev.slne.surf.cloud.api.common.meta.DefaultIds
 import dev.slne.surf.cloud.api.common.meta.SurfNettyPacket
+import dev.slne.surf.cloud.api.common.netty.network.codec.ByteBufCodecs
+import dev.slne.surf.cloud.api.common.netty.network.codec.StreamCodec
 import dev.slne.surf.cloud.api.common.netty.network.protocol.PacketFlow
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
-import dev.slne.surf.cloud.api.common.netty.packet.packetCodec
-import dev.slne.surf.cloud.api.common.netty.protocol.buffer.SurfByteBuf
-import dev.slne.surf.cloud.api.common.util.codec.ExtraCodecs
+import dev.slne.surf.cloud.api.common.netty.packet.PacketHandlerMode
+import dev.slne.surf.cloud.core.common.netty.network.InternalNettyPacket
 import net.kyori.adventure.inventory.Book
 import java.util.*
 
-@SurfNettyPacket(DefaultIds.CLIENTBOUND_OPEN_BOOK_PACKET, PacketFlow.CLIENTBOUND)
-class ClientboundOpenBookPacket : NettyPacket {
+@SurfNettyPacket(
+    DefaultIds.CLIENTBOUND_OPEN_BOOK_PACKET,
+    PacketFlow.CLIENTBOUND,
+    handlerMode = PacketHandlerMode.DEFAULT
+)
+class ClientboundOpenBookPacket(val uuid: UUID, val book: Book) : NettyPacket(),
+    InternalNettyPacket<RunningClientPacketListener> {
 
     companion object {
-        val STREAM_CODEC =
-            packetCodec(ClientboundOpenBookPacket::write, ::ClientboundOpenBookPacket)
+        val STREAM_CODEC = StreamCodec.composite(
+            ByteBufCodecs.UUID_CODEC,
+            ClientboundOpenBookPacket::uuid,
+            ByteBufCodecs.BOOK_CODEC,
+            ClientboundOpenBookPacket::book,
+            ::ClientboundOpenBookPacket
+        )
     }
 
-    val uuid: UUID
-    val book: Book
-
-    constructor(uuid: UUID, book: Book) {
-        this.uuid = uuid
-        this.book = book
-    }
-
-    private constructor(buf: SurfByteBuf) {
-        this.uuid = buf.readUuid()
-        this.book = ExtraCodecs.STREAM_BOOK_CODEC.decode(buf)
-    }
-
-    private fun write(buf: SurfByteBuf) {
-        buf.writeUuid(uuid)
-        ExtraCodecs.STREAM_BOOK_CODEC.encode(buf, book)
+    override fun handle(listener: RunningClientPacketListener) {
+        listener.handleOpenBook(this)
     }
 }

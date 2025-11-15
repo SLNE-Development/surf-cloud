@@ -4,19 +4,23 @@ import dev.slne.surf.cloud.api.common.meta.SurfNettyPacket
 import dev.slne.surf.cloud.api.common.netty.network.ConnectionProtocol
 import dev.slne.surf.cloud.api.common.netty.network.protocol.PacketFlow
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
+import dev.slne.surf.cloud.api.common.netty.packet.PacketHandlerMode
 import dev.slne.surf.cloud.api.common.netty.packet.packetCodec
 import dev.slne.surf.cloud.api.common.netty.protocol.buffer.SurfByteBuf
-import dev.slne.surf.surfapi.core.api.util.mutableObjectListOf
+import dev.slne.surf.cloud.api.common.netty.protocol.buffer.encodeError
+import dev.slne.surf.cloud.core.common.netty.network.InternalNettyPacket
 import dev.slne.surf.cloud.core.common.sync.CommonSyncRegistryImpl
 import dev.slne.surf.cloud.core.common.sync.SyncSetImpl
 import dev.slne.surf.surfapi.core.api.util.logger
+import dev.slne.surf.surfapi.core.api.util.mutableObjectListOf
 
 @SurfNettyPacket(
     "cloud:batch_sync_set",
     PacketFlow.BIDIRECTIONAL,
-    ConnectionProtocol.SYNCHRONIZING
+    ConnectionProtocol.SYNCHRONIZING,
+    handlerMode = PacketHandlerMode.DEFAULT
 )
-class ClientboundBatchSyncSetPacket : NettyPacket {
+class ClientboundBatchSyncSetPacket : NettyPacket, InternalNettyPacket<ClientSynchronizingPacketListener> {
     companion object {
         private val log = logger()
         val STREAM_CODEC =
@@ -62,12 +66,16 @@ class ClientboundBatchSyncSetPacket : NettyPacket {
 
             val startIndex = buf.writerIndex()
             val syncSet = CommonSyncRegistryImpl.instance.getSet<Any?>(syncId)
-                ?: error("SyncSet '$syncId' is not registered in SyncRegistry")
+                ?: encodeError("SyncSet '$syncId' is not registered in SyncRegistry")
             syncSet.codec.encode(buf, set)
             val endIndex = buf.writerIndex()
 
             // Write the actual length of the encoded value
             buf.setInt(lengthIndex, endIndex - startIndex)
         }
+    }
+
+    override fun handle(listener: ClientSynchronizingPacketListener) {
+        listener.handleBatchSyncSet(this)
     }
 }

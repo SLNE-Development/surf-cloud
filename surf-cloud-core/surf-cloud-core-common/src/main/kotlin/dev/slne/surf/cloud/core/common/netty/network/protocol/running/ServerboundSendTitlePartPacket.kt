@@ -2,55 +2,63 @@ package dev.slne.surf.cloud.core.common.netty.network.protocol.running
 
 import dev.slne.surf.cloud.api.common.meta.DefaultIds
 import dev.slne.surf.cloud.api.common.meta.SurfNettyPacket
+import dev.slne.surf.cloud.api.common.netty.network.codec.ByteBufCodecs
 import dev.slne.surf.cloud.api.common.netty.network.protocol.PacketFlow
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
+import dev.slne.surf.cloud.api.common.netty.packet.PacketHandlerMode
 import dev.slne.surf.cloud.api.common.netty.packet.packetCodec
-import dev.slne.surf.cloud.api.common.netty.protocol.buffer.SurfByteBuf
-import dev.slne.surf.cloud.api.common.util.codec.ExtraCodecs
+import dev.slne.surf.cloud.api.common.netty.protocol.buffer.decodeError
+import dev.slne.surf.cloud.api.common.netty.protocol.buffer.encodeError
+import dev.slne.surf.cloud.core.common.netty.network.InternalNettyPacket
+import io.netty.buffer.ByteBuf
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.title.Title
 import net.kyori.adventure.title.TitlePart
 import java.util.*
 
-@SurfNettyPacket(DefaultIds.SERVERBOUND_SEND_TITLE_PART_PACKET, PacketFlow.SERVERBOUND)
-class ServerboundSendTitlePartPacket : NettyPacket {
+@SurfNettyPacket(
+    DefaultIds.SERVERBOUND_SEND_TITLE_PART_PACKET,
+    PacketFlow.SERVERBOUND,
+    handlerMode = PacketHandlerMode.NETTY
+)
+class ServerboundSendTitlePartPacket(
+    val uuid: UUID,
+    val titlePart: TitlePart<*>,
+    val value: Any
+) : NettyPacket(), InternalNettyPacket<RunningServerPacketListener> {
 
     companion object {
-        val STREAM_CODEC =
-            packetCodec(ServerboundSendTitlePartPacket::write, ::ServerboundSendTitlePartPacket)
-    }
+        val STREAM_CODEC = packetCodec(ServerboundSendTitlePartPacket::write, ::read)
 
-    val uuid: UUID
-    val titlePart: TitlePart<*>
-    val value: Any
+        private fun read(buf: ByteBuf): ServerboundSendTitlePartPacket {
+            val uuid = ByteBufCodecs.UUID_CODEC.decode(buf)
+            val titlePart = ByteBufCodecs.TITLE_PART_CODEC.decode(buf)
+            val value = when (titlePart) {
+                TitlePart.TITLE, TitlePart.SUBTITLE -> ByteBufCodecs.COMPONENT_CODEC.decode(buf)
+                TitlePart.TIMES -> ByteBufCodecs.TITLE_TIMES_CODEC.decode(buf)
+                else -> decodeError("Unknown title part: $titlePart")
+            }
 
-    constructor(uuid: UUID, titlePart: TitlePart<*>, value: Any) {
-        this.uuid = uuid
-        this.titlePart = titlePart
-        this.value = value
-    }
-
-    private constructor(buf: SurfByteBuf) {
-        this.uuid = buf.readUuid()
-        this.titlePart = ExtraCodecs.STREAM_TITLE_PART_CODEC.decode(buf)
-        this.value = when (titlePart) {
-            TitlePart.TITLE, TitlePart.SUBTITLE -> buf.readComponent()
-            TitlePart.TIMES -> ExtraCodecs.TITLE_TIMES_STREAM_CODEC.decode(buf)
-            else -> error("Unknown title part: $titlePart")
+            return ServerboundSendTitlePartPacket(uuid, titlePart, value)
         }
+
     }
 
-    private fun write(buf: SurfByteBuf) {
-        buf.writeUuid(uuid)
-        ExtraCodecs.STREAM_TITLE_PART_CODEC.encode(buf, titlePart)
+    private fun write(buf: ByteBuf) {
+        ByteBufCodecs.UUID_CODEC.encode(buf, uuid)
+        ByteBufCodecs.TITLE_PART_CODEC.encode(buf, titlePart)
         when (titlePart) {
-            TitlePart.TITLE, TitlePart.SUBTITLE -> buf.writeComponent(value as Component)
-            TitlePart.TIMES -> ExtraCodecs.TITLE_TIMES_STREAM_CODEC.encode(
+            TitlePart.TITLE, TitlePart.SUBTITLE -> ByteBufCodecs.COMPONENT_CODEC.encode(
                 buf,
-                value as Title.Times
+                value as Component
             )
 
-            else -> error("Unknown title part: $titlePart")
+            TitlePart.TIMES -> ByteBufCodecs.TITLE_TIMES_CODEC.encode(buf, value as Title.Times)
+            else -> encodeError("Unknown title part: $titlePart")
         }
+    }
+
+    override fun handle(listener: RunningServerPacketListener) {
+        listener.handleSendTitlePart(this)
     }
 }

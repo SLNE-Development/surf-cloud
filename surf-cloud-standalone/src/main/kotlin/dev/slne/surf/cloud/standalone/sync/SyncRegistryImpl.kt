@@ -75,7 +75,6 @@ class SyncRegistryImpl : CommonSyncRegistryImpl() {
         lastChangeIds[packet.setId] = packet.changeId
 
         broadcast(packet, sender)
-
     }
 
     fun prepareBatchSyncValues(): Map<String, BasicSyncValue<*>> {

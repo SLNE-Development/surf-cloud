@@ -92,7 +92,7 @@ class StandaloneCloudPlayerManagerImpl : CloudPlayerManagerImpl<StandaloneCloudP
     }
 
 
-    override suspend fun createPlayer(
+    override fun createPlayer(
         uuid: UUID,
         name: String,
         proxy: Boolean,
@@ -116,7 +116,7 @@ class StandaloneCloudPlayerManagerImpl : CloudPlayerManagerImpl<StandaloneCloudP
         }
     }
 
-    override suspend fun updateProxyServer(player: StandaloneCloudPlayerImpl, serverName: String) {
+    override fun updateProxyServer(player: StandaloneCloudPlayerImpl, serverName: String) {
         val server = serverName.toServer()
         check(server == null || server is StandaloneProxyCloudServerImpl) { "Server with id $serverName is not a proxy server but specified as proxy" }
 
@@ -127,7 +127,7 @@ class StandaloneCloudPlayerManagerImpl : CloudPlayerManagerImpl<StandaloneCloudP
         }
     }
 
-    override suspend fun updateServer(player: StandaloneCloudPlayerImpl, serverName: String) {
+    override fun updateServer(player: StandaloneCloudPlayerImpl, serverName: String) {
         val server = serverName.toServer()
         check(server == null || server is StandaloneCloudServerImpl) { "Server with id $serverName is not a standalone server but specified as standalone" }
 
@@ -138,7 +138,7 @@ class StandaloneCloudPlayerManagerImpl : CloudPlayerManagerImpl<StandaloneCloudP
         }
     }
 
-    override suspend fun removeProxyServer(player: StandaloneCloudPlayerImpl, serverName: String) {
+    override fun removeProxyServer(player: StandaloneCloudPlayerImpl, serverName: String) {
         val server = serverName.toServer()
         check(server == null || server is StandaloneProxyCloudServerImpl) { "Server with id $serverName is not a proxy server but specified as proxy" }
 
@@ -149,7 +149,7 @@ class StandaloneCloudPlayerManagerImpl : CloudPlayerManagerImpl<StandaloneCloudP
         }
     }
 
-    override suspend fun removeServer(player: StandaloneCloudPlayerImpl, serverName: String) {
+    override fun removeServer(player: StandaloneCloudPlayerImpl, serverName: String) {
         val server = serverName.toServer()
         check(server == null || server is StandaloneCloudServerImpl) { "Server with id $serverName is not a standalone server but specified as standalone" }
 

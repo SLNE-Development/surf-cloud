@@ -1,5 +1,6 @@
 package dev.slne.surf.cloud.standalone.netty.server.network
 
+import dev.slne.surf.cloud.core.common.coroutines.PacketHandlerScope
 import dev.slne.surf.cloud.core.common.netty.network.CommonTickablePacketListener
 import dev.slne.surf.cloud.core.common.netty.network.ConnectionImpl
 import dev.slne.surf.cloud.core.common.netty.network.DisconnectReason
@@ -9,6 +10,7 @@ import dev.slne.surf.cloud.core.common.netty.network.protocol.prerunning.PreRunn
 import dev.slne.surf.cloud.standalone.netty.server.NettyServerImpl
 import dev.slne.surf.cloud.standalone.netty.server.ServerClientImpl
 import dev.slne.surf.surfapi.core.api.util.logger
+import kotlinx.coroutines.launch
 
 private const val MAX_LOGIN_TIME = 30
 
@@ -64,14 +66,16 @@ class ServerLoginPacketListenerImpl(val server: NettyServerImpl, val connection:
         connection.send(ClientboundLoginFinishedPacket)
     }
 
-    override suspend fun handleLoginAcknowledgement(packet: ServerboundLoginAcknowledgedPacket) {
+    override fun handleLoginAcknowledgement(packet: ServerboundLoginAcknowledgedPacket) {
         check(state == State.PROTOCOL_SWITCHING) { "Unexpected login acknowledgement packet" }
 
-        client!!.initConnection(connection)
-        connection.setupOutboundProtocol(PreRunningProtocols.CLIENTBOUND)
-        val listener = ServerPreRunningPacketListenerImpl(server, connection, client!!, proxy)
-        connection.setupInboundProtocol(PreRunningProtocols.SERVERBOUND, listener)
-        state = State.ACCEPTED
+        PacketHandlerScope.launch {
+            client!!.initConnection(connection)
+            connection.setupOutboundProtocol(PreRunningProtocols.CLIENTBOUND)
+            val listener = ServerPreRunningPacketListenerImpl(server, connection, client!!, proxy)
+            connection.setupInboundProtocol(PreRunningProtocols.SERVERBOUND, listener)
+            state = State.ACCEPTED
+        }
     }
 
     override suspend fun onDisconnect(details: DisconnectionDetails) {

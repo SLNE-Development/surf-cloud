@@ -7,17 +7,20 @@ import dev.slne.surf.cloud.api.common.netty.network.codec.StreamCodec
 import dev.slne.surf.cloud.api.common.netty.network.codec.composite
 import dev.slne.surf.cloud.api.common.netty.network.protocol.PacketFlow
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
+import dev.slne.surf.cloud.api.common.netty.packet.PacketHandlerMode
 import dev.slne.surf.cloud.api.common.server.state.ServerState
+import dev.slne.surf.cloud.core.common.netty.network.InternalNettyPacket
 
 
 @SurfNettyPacket(
     DefaultIds.SERVERBOUND_CLIENT_INFORMATION_PACKET,
-    PacketFlow.SERVERBOUND
+    PacketFlow.SERVERBOUND,
+    handlerMode = PacketHandlerMode.NETTY
 )
 class ServerboundClientInformationPacket(
     val serverName: String,
     val information: ClientInformation
-) : NettyPacket() {
+) : NettyPacket(), InternalNettyPacket<RunningServerPacketListener> {
     companion object {
         val STREAM_CODEC = StreamCodec.composite(
             ByteBufCodecs.STRING_CODEC,
@@ -26,6 +29,10 @@ class ServerboundClientInformationPacket(
             ServerboundClientInformationPacket::information,
             ::ServerboundClientInformationPacket
         )
+    }
+
+    override fun handle(listener: RunningServerPacketListener) {
+        listener.handleClientInformation(this)
     }
 }
 

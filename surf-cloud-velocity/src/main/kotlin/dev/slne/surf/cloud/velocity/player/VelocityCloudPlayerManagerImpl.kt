@@ -16,7 +16,7 @@ class VelocityCloudPlayerManagerImpl :
         checkInstantiationByServiceLoader()
     }
 
-    override suspend fun createPlayer(
+    override fun createPlayer(
         uuid: UUID,
         name: String,
         proxy: Boolean,

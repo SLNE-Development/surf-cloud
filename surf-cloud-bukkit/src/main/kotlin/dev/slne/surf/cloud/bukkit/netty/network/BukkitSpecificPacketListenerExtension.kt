@@ -3,6 +3,9 @@ package dev.slne.surf.cloud.bukkit.netty.network
 import com.github.shynixn.mccoroutine.folia.entityDispatcher
 import com.github.shynixn.mccoroutine.folia.globalRegionDispatcher
 import com.github.shynixn.mccoroutine.folia.launch
+import dev.slne.surf.cloud.api.client.paper.toBukkitTpCause
+import dev.slne.surf.cloud.api.client.paper.toBukkitTpFlag
+import dev.slne.surf.cloud.api.client.paper.toLocation
 import dev.slne.surf.cloud.api.common.player.teleport.TeleportCause
 import dev.slne.surf.cloud.api.common.player.teleport.TeleportFlag
 import dev.slne.surf.cloud.api.common.player.teleport.WorldLocation
@@ -35,9 +38,7 @@ class BukkitSpecificPacketListenerExtension : PlatformSpecificPacketListenerExte
     @OptIn(NmsUseWithCaution::class)
     override val playAddress: InetSocketAddress by lazy { nmsCommonBridge.getServerIp() }
 
-    override fun isServerManagedByThisProxy(address: InetSocketAddress): Boolean {
-        error("Requested wrong server! This packet can only be acknowledged on a proxy!")
-    }
+    override fun isServerManagedByThisProxy(address: InetSocketAddress): Boolean = false
 
     override suspend fun transferPlayerToServer(
         playerUuid: UUID,
@@ -58,22 +59,17 @@ class BukkitSpecificPacketListenerExtension : PlatformSpecificPacketListenerExte
         SilentDisconnectListener.silentDisconnect(player)
     }
 
+    @Suppress("UNCHECKED_CAST")
     override suspend fun teleportPlayer(
         uuid: UUID,
         location: WorldLocation,
         teleportCause: TeleportCause,
-        flags: Array<out TeleportFlag>
+        flags: EnumSet<TeleportFlag>
     ): Boolean {
-        val player = Bukkit.getPlayer(uuid) ?: return false
-        val cloudPlayer = player.toCloudPlayer() ?: return false
-
-        return cloudPlayer.teleport(location, teleportCause, *flags)
+        return Companion.teleportPlayer(uuid, location, teleportCause, flags)
     }
 
-    override fun registerCloudServersToProxy(packets: Array<RegistrationInfo>) {
-        error("Requested wrong server! This packet can only be acknowledged on a proxy!")
-    }
-
+    override fun registerCloudServerToProxy(info: Array<RegistrationInfo>) = Unit
     override fun registerCloudServerToProxy(client: ClientCloudServerImpl) = Unit
     override fun unregisterCloudServerFromProxy(client: ClientCloudServerImpl) = Unit
 
@@ -116,16 +112,11 @@ class BukkitSpecificPacketListenerExtension : PlatformSpecificPacketListenerExte
 
     @OptIn(NmsUseWithCaution::class)
     object BukkitVelocitySecretManager {
-
-        @Volatile
         var currentVelocityEnabled = nmsCommonBridge.isVelocityEnabled()
-
-        @Volatile
         var currentVelocitySecret = nmsCommonBridge
             .getVelocitySecret()
             .toByteArray()
 
-        @Volatile
         var currentOnlineMode = server.onlineMode
 
         init {
@@ -156,6 +147,25 @@ class BukkitSpecificPacketListenerExtension : PlatformSpecificPacketListenerExte
                     }
                 }
                 .launchIn(CommonObservableScope)
+        }
+    }
+
+    companion object {
+        suspend fun teleportPlayer(
+            uuid: UUID,
+            location: WorldLocation,
+            teleportCause: TeleportCause,
+            flags: EnumSet<TeleportFlag>
+        ): Boolean {
+            val player = Bukkit.getPlayer(uuid) ?: return false
+            val bukkitFlags = arrayOfNulls<io.papermc.paper.entity.TeleportFlag>(flags.size)
+            flags.forEachIndexed { index, flag -> bukkitFlags[index] = flag.toBukkitTpFlag() }
+
+            return player.teleportAsync(
+                location.toLocation(),
+                teleportCause.toBukkitTpCause(),
+                *(bukkitFlags as Array<io.papermc.paper.entity.TeleportFlag>)
+            ).await()
         }
     }
 }

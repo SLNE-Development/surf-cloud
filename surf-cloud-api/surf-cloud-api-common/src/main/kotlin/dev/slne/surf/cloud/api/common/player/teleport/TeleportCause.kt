@@ -1,62 +1,70 @@
 package dev.slne.surf.cloud.api.common.player.teleport
 
-enum class TeleportCause {
+import dev.slne.surf.cloud.api.common.util.ByIdMap
+import dev.slne.surf.cloud.api.common.util.IdRepresentable
+
+enum class TeleportCause(override val id: Int) : IdRepresentable {
     /**
      * Indicates the teleporation was caused by a player throwing an Ender
      * Pearl
      */
-    ENDER_PEARL,
+    ENDER_PEARL(1),
 
     /**
      * Indicates the teleportation was caused by a player executing a
      * command
      */
-    COMMAND,
+    COMMAND(2),
 
     /**
      * Indicates the teleportation was caused by a plugin
      */
-    PLUGIN,
+    PLUGIN(3),
 
     /**
      * Indicates the teleportation was caused by a player entering a
      * Nether portal
      */
-    NETHER_PORTAL,
+    NETHER_PORTAL(4),
 
     /**
      * Indicates the teleportation was caused by a player entering an End
      * portal
      */
-    END_PORTAL,
+    END_PORTAL(5),
 
     /**
      * Indicates the teleportation was caused by a player teleporting to a
      * Entity/Player via the spectator menu
      */
-    SPECTATE,
+    SPECTATE(6),
 
     /**
      * Indicates the teleportation was caused by a player entering an End
      * gateway
      */
-    END_GATEWAY,
+    END_GATEWAY(7),
 
     /**
      * Indicates the teleportation was caused by a player exiting a vehicle
      */
-    DISMOUNT,
+    DISMOUNT(8),
 
     /**
      * Indicates the teleportation was caused by a player exiting a bed
      */
-    EXIT_BED,
+    EXIT_BED(9),
+
+    CONSUMABLE_EFFECT(10),
 
     /**
      * Indicates the teleportation was caused by an event not covered by
      * this enum
      */
-    UNKNOWN,
+    UNKNOWN(11);
 
-    CONSUMABLE_EFFECT
+    companion object {
+        val BY_ID = IdRepresentable.enumIdMap<TeleportCause>(ByIdMap.OutOfBoundsStrategy.LAST)
+        val STREAM_CODEC = IdRepresentable.codec(BY_ID)
+    }
 }

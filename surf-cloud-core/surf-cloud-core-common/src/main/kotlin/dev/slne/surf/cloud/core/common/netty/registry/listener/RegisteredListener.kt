@@ -2,6 +2,7 @@ package dev.slne.surf.cloud.core.common.netty.registry.listener
 
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacketInfo
+import dev.slne.surf.cloud.api.common.netty.packet.PacketHandlerMode
 import net.bytebuddy.ByteBuddy
 import net.bytebuddy.description.method.MethodDescription
 import net.bytebuddy.dynamic.loading.ClassLoadingStrategy
@@ -17,7 +18,8 @@ class RegisteredListener(
     private val listenerMethod: Method,
     packetClassIndex: Int,
     packetInfoIndex: Int,
-    private val suspending: Boolean
+    private val suspending: Boolean,
+    val mode: PacketHandlerMode
 ) {
     val owner: Any get() = bean
 
@@ -80,7 +82,25 @@ class RegisteredListener(
                 (invoker as RegisteredListenerInvoker2Rev).handle(bean, info, packet)
             }
         }
+    }
 
+    fun handleOnNetty(packet: NettyPacket, info: NettyPacketInfo) {
+        check(!suspending) { "Listener ${listenerMethod.declaringClass.name}#${listenerMethod.name} is suspend, but mode=NETTY." }
+
+        when (invokerType) {
+            InvokerType.ONE_PARAM -> (invoker as RegisteredListenerInvoker1).handle(bean, packet)
+            InvokerType.TWO_PARAMS -> (invoker as RegisteredListenerInvoker2).handle(
+                bean,
+                packet,
+                info
+            )
+
+            InvokerType.TWO_PARAMS_REVERSED -> (invoker as RegisteredListenerInvoker2Rev).handle(
+                bean,
+                info,
+                packet
+            )
+        }
     }
 
     private fun <I> generateInvoker(

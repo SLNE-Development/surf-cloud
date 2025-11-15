@@ -2,37 +2,34 @@ package dev.slne.surf.cloud.core.common.netty.network.protocol.running
 
 import dev.slne.surf.cloud.api.common.meta.DefaultIds
 import dev.slne.surf.cloud.api.common.meta.SurfNettyPacket
+import dev.slne.surf.cloud.api.common.netty.network.codec.ByteBufCodecs
+import dev.slne.surf.cloud.api.common.netty.network.codec.StreamCodec
 import dev.slne.surf.cloud.api.common.netty.network.protocol.PacketFlow
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
-import dev.slne.surf.cloud.api.common.netty.packet.packetCodec
-import dev.slne.surf.cloud.api.common.netty.protocol.buffer.SurfByteBuf
-import dev.slne.surf.cloud.api.common.util.codec.ExtraCodecs
+import dev.slne.surf.cloud.api.common.netty.packet.PacketHandlerMode
+import dev.slne.surf.cloud.core.common.netty.network.InternalNettyPacket
 import net.kyori.adventure.bossbar.BossBar
 import java.util.*
 
-@SurfNettyPacket(DefaultIds.CLIENTBOUND_HIDE_BOSS_BAR_PACKET, PacketFlow.CLIENTBOUND)
-class ClientboundHideBossBarPacket : NettyPacket {
+@SurfNettyPacket(
+    DefaultIds.CLIENTBOUND_HIDE_BOSS_BAR_PACKET,
+    PacketFlow.CLIENTBOUND,
+    handlerMode = PacketHandlerMode.DEFAULT
+)
+class ClientboundHideBossBarPacket(val uuid: UUID, val bossBar: BossBar) : NettyPacket(),
+    InternalNettyPacket<RunningClientPacketListener> {
 
     companion object {
-        val STREAM_CODEC =
-            packetCodec(ClientboundHideBossBarPacket::write, ::ClientboundHideBossBarPacket)
+        val STREAM_CODEC = StreamCodec.composite(
+            ByteBufCodecs.UUID_CODEC,
+            ClientboundHideBossBarPacket::uuid,
+            ByteBufCodecs.BOSS_BAR_CODEC,
+            ClientboundHideBossBarPacket::bossBar,
+            ::ClientboundHideBossBarPacket
+        )
     }
 
-    val uuid: UUID
-    val bossBar: BossBar
-
-    constructor(uuid: UUID, bossBar: BossBar) {
-        this.uuid = uuid
-        this.bossBar = bossBar
-    }
-
-    private constructor(buf: SurfByteBuf) {
-        this.uuid = buf.readUuid()
-        this.bossBar = ExtraCodecs.STREAM_BOSSBAR_CODEC.decode(buf)
-    }
-
-    private fun write(buf: SurfByteBuf) {
-        buf.writeUuid(uuid)
-        ExtraCodecs.STREAM_BOSSBAR_CODEC.encode(buf, bossBar)
+    override fun handle(listener: RunningClientPacketListener) {
+        listener.handleHideBossBar(this)
     }
 }

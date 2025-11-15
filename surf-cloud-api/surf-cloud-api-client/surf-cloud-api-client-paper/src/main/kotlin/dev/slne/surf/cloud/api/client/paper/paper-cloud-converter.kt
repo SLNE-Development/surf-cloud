@@ -38,6 +38,7 @@ fun TeleportCause.toBukkitTpCause(): PlayerTeleportEvent.TeleportCause = when (t
     TeleportCause.CONSUMABLE_EFFECT -> PlayerTeleportEvent.TeleportCause.CONSUMABLE_EFFECT
 }
 
+@Suppress("DEPRECATION")
 fun TeleportFlag.toCloudTpFlag(): CloudTeleportFlag = when (this) {
     TeleportFlag.Relative.VELOCITY_X -> CloudTeleportFlag.VELOCITY_X
     TeleportFlag.Relative.VELOCITY_Y -> CloudTeleportFlag.VELOCITY_Y
@@ -48,6 +49,7 @@ fun TeleportFlag.toCloudTpFlag(): CloudTeleportFlag = when (this) {
     TeleportFlag.EntityState.RETAIN_OPEN_INVENTORY -> CloudTeleportFlag.RETAIN_OPEN_INVENTORY
 }
 
+@Suppress("DEPRECATION")
 fun CloudTeleportFlag.toBukkitTpFlag(): TeleportFlag = when (this) {
     CloudTeleportFlag.VELOCITY_X -> TeleportFlag.Relative.VELOCITY_X
     CloudTeleportFlag.VELOCITY_Y -> TeleportFlag.Relative.VELOCITY_Y

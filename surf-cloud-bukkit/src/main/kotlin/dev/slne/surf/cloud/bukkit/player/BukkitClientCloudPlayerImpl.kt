@@ -1,14 +1,13 @@
 package dev.slne.surf.cloud.bukkit.player
 
 import dev.slne.surf.cloud.api.client.netty.packet.fireAndForget
-import dev.slne.surf.cloud.api.client.paper.toBukkitTpCause
-import dev.slne.surf.cloud.api.client.paper.toBukkitTpFlag
-import dev.slne.surf.cloud.api.client.paper.toLocation
 import dev.slne.surf.cloud.api.common.player.teleport.TeleportCause
 import dev.slne.surf.cloud.api.common.player.teleport.TeleportFlag
 import dev.slne.surf.cloud.api.common.player.teleport.WorldLocation
 import dev.slne.surf.cloud.api.common.player.toast.NetworkToast
+import dev.slne.surf.cloud.api.common.util.toEnumSet
 import dev.slne.surf.cloud.bukkit.listener.player.SilentDisconnectListener
+import dev.slne.surf.cloud.bukkit.netty.network.BukkitSpecificPacketListenerExtension
 import dev.slne.surf.cloud.core.client.player.ClientCloudPlayerImpl
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.DisconnectPlayerPacket
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.SilentDisconnectPlayerPacket
@@ -18,7 +17,6 @@ import dev.slne.surf.surfapi.core.api.util.logger
 import io.papermc.paper.advancement.AdvancementDisplay
 import io.papermc.paper.registry.RegistryAccess
 import io.papermc.paper.registry.RegistryKey
-import kotlinx.coroutines.future.await
 import net.kyori.adventure.text.Component
 import org.bukkit.Bukkit
 import org.bukkit.entity.Player
@@ -46,14 +44,14 @@ class BukkitClientCloudPlayerImpl(uuid: UUID, name: String) : ClientCloudPlayerI
         teleportCause: TeleportCause,
         vararg flags: TeleportFlag
     ): Boolean {
-        val player = audience ?: return super.teleport(location, teleportCause, *flags)
+        audience ?: return super.teleport(location, teleportCause, *flags)
 
-        val bukkitTeleportFlags = flags.map { it.toBukkitTpFlag() }.toTypedArray()
-        return player.teleportAsync(
-            location.toLocation(),
-            teleportCause.toBukkitTpCause(),
-            *bukkitTeleportFlags
-        ).await()
+        return BukkitSpecificPacketListenerExtension.teleportPlayer(
+            uuid,
+            location,
+            teleportCause,
+            flags.toEnumSet()
+        )
     }
 
     override fun sendToast(toast: NetworkToast) {

@@ -4,14 +4,17 @@ import dev.slne.surf.cloud.api.common.netty.network.ConnectionProtocol
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
 import dev.slne.surf.cloud.core.common.netty.network.protocol.common.ClientCommonPacketListener
 import dev.slne.surf.cloud.core.common.netty.network.protocol.common.ClientboundSetVelocitySecretPacket
+import dev.slne.surf.cloud.core.common.netty.network.protocol.common.CommonRunningPacketListener
+import dev.slne.surf.cloud.core.common.netty.network.protocol.common.CommonServerSynchronizingRunningPacketListener
 import dev.slne.surf.cloud.core.common.netty.network.protocol.synchronizing.ClientboundCacheRegisterAckPacket
 
-interface RunningClientPacketListener : ClientCommonPacketListener {
+interface RunningClientPacketListener :
+    ClientCommonPacketListener,
+    CommonServerSynchronizingRunningPacketListener,
+    CommonRunningPacketListener {
     override val protocol get() = ConnectionProtocol.RUNNING
 
-    suspend fun handlePlayerConnectedToServer(packet: PlayerConnectedToServerPacket)
-
-    suspend fun handlePlayerDisconnectFromServer(packet: PlayerDisconnectFromServerPacket)
+    fun handlePlayerConnectedToServer(packet: PlayerConnectedToServerPacket)
 
     fun handleSendResourcePacks(packet: ClientboundSendResourcePacksPacket)
 
@@ -45,59 +48,35 @@ interface RunningClientPacketListener : ClientCommonPacketListener {
 
     fun handleRequestDisplayName(packet: ClientboundRequestDisplayNamePacket)
 
-    suspend fun handleRequestOfflinePlayerDisplayName(packet: RequestOfflineDisplayNamePacket)
+    fun handleRegisterServerPacket(packet: ClientboundRegisterServerPacket)
 
-    suspend fun handleRegisterServerPacket(packet: ClientboundRegisterServerPacket)
+    fun handleUnregisterServerPacket(packet: ClientboundUnregisterServerPacket)
 
-    suspend fun handleUnregisterServerPacket(packet: ClientboundUnregisterServerPacket)
+    fun handleAddPlayerToServer(packet: ClientboundAddPlayerToServerPacket)
 
-    suspend fun handleAddPlayerToServer(packet: ClientboundAddPlayerToServerPacket)
-
-    suspend fun handleRemovePlayerFromServer(packet: ClientboundRemovePlayerFromServerPacket)
+    fun handleRemovePlayerFromServer(packet: ClientboundRemovePlayerFromServerPacket)
 
     fun handleUpdateServerInformation(packet: ClientboundUpdateServerInformationPacket)
 
     fun handleIsServerManagedByThisProxy(packet: ClientboundIsServerManagedByThisProxyPacket)
 
-    suspend fun handleTransferPlayer(packet: ClientboundTransferPlayerPacket)
-
-    suspend fun handleRequestLuckpermsMetaData(packet: RequestLuckpermsMetaDataPacket)
-
-    fun handleDisconnectPlayer(packet: DisconnectPlayerPacket)
-
-    fun handleSilentDisconnectPlayer(packet: SilentDisconnectPlayerPacket)
-
-    suspend fun handleTeleportPlayer(packet: TeleportPlayerPacket)
-
-    suspend fun handleTeleportPlayerToPlayer(packet: TeleportPlayerToPlayerPacket)
+    fun handleTransferPlayer(packet: ClientboundTransferPlayerPacket)
 
     fun handleRegisterCloudServersToProxy(packet: ClientboundRegisterCloudServersToProxyPacket)
 
     fun handleTriggerShutdown(packet: ClientboundTriggerShutdownPacket)
 
-    fun handleUpdateAFKState(packet: UpdateAFKStatePacket)
+    fun handleRunPlayerPreJoinTasks(packet: ClientboundRunPrePlayerJoinTasksPacket)
 
-    suspend fun handleRunPlayerPreJoinTasks(packet: ClientboundRunPrePlayerJoinTasksPacket)
+    fun handleTriggerPunishmentUpdateEvent(packet: ClientboundTriggerPunishmentUpdateEventPacket)
 
-    suspend fun handleTriggerPunishmentUpdateEvent(packet: ClientboundTriggerPunishmentUpdateEventPacket)
-
-    suspend fun handleTriggerPunishmentCreatedEvent(packet: ClientboundTriggerPunishmentCreatedEventPacket)
-
-    suspend fun handleRequestPlayerPermission(packet: RequestPlayerPermissionPacket)
-
-    fun handleSyncValueChange(packet: SyncValueChangePacket)
-
-    fun handleSyncSetDelta(packet: SyncSetDeltaPacket)
+    fun handleTriggerPunishmentCreatedEvent(packet: ClientboundTriggerPunishmentCreatedEventPacket)
 
     fun handleSetVelocitySecret(packet: ClientboundSetVelocitySecretPacket)
 
     fun handleCacheRegisterAck(packet: ClientboundCacheRegisterAckPacket)
     fun handleCacheDelta(packet: ClientboundCacheDeltaPacket)
     fun handleCacheError(packet: ClientboundCacheErrorPacket)
-
-    fun handleSendToast(packet: SendToastPacket)
-
-    fun handleUpdatePlayerPersistentDataContainer(packet: UpdatePlayerPersistentDataContainerPacket)
 
     fun handlePacket(packet: NettyPacket)
 }

@@ -6,7 +6,7 @@ import dev.slne.surf.cloud.core.common.netty.network.protocol.common.ClientCommo
 interface ClientPreRunningPacketListener : ClientCommonPacketListener {
     override val protocol get() = ConnectionProtocol.PRE_RUNNING
 
-    suspend fun handlePreRunningFinished(packet: ClientboundPreRunningFinishedPacket)
+    fun handlePreRunningFinished(packet: ClientboundPreRunningFinishedPacket)
 
-    suspend fun handleProceedToSynchronizing(packet: ClientboundProceedToSynchronizingPacket)
+    fun handleProceedToSynchronizing(packet: ClientboundProceedToSynchronizingPacket)
 }

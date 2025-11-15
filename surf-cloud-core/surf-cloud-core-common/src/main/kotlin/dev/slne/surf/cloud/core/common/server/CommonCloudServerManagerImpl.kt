@@ -24,14 +24,12 @@ abstract class CommonCloudServerManagerImpl<CommonServer : CommonCloudServer> : 
     override fun retrieveServerByCategoryAndName(
         category: String,
         name: String
-    ) = serverCache.asMap().values.asSequence()
-        .filter { it.isInGroup(category) && it.name.equals(name, true) }
-        .singleOrNull()
+    ) = serverCache.asMap().values
+        .singleOrNull { it.isInGroup(category) && it.name.equals(name, true)
+    }
 
     override fun retrieveServerByName(name: String) =
-        serverCache.asMap().values.asSequence()
-            .filter { it.name.equals(name, true) }
-            .singleOrNull()
+        serverCache.asMap().values.singleOrNull { it.name.equals(name, true) }
 
     override fun retrieveServersInGroup(group: String): ObjectList<out CommonServer> =
         serverCache.asMap().values.filterTo(mutableObjectListOf()) { it.isInGroup(group) }

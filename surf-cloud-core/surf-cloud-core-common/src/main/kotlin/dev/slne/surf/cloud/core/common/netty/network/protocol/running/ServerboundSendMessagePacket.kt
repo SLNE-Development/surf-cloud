@@ -2,45 +2,39 @@ package dev.slne.surf.cloud.core.common.netty.network.protocol.running
 
 import dev.slne.surf.cloud.api.common.meta.DefaultIds
 import dev.slne.surf.cloud.api.common.meta.SurfNettyPacket
+import dev.slne.surf.cloud.api.common.netty.network.codec.ByteBufCodecs
+import dev.slne.surf.cloud.api.common.netty.network.codec.StreamCodec
+import dev.slne.surf.cloud.api.common.netty.network.codec.composite
 import dev.slne.surf.cloud.api.common.netty.network.protocol.PacketFlow
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
-import dev.slne.surf.cloud.api.common.netty.packet.packetCodec
-import dev.slne.surf.cloud.api.common.netty.protocol.buffer.SurfByteBuf
+import dev.slne.surf.cloud.api.common.netty.packet.PacketHandlerMode
+import dev.slne.surf.cloud.core.common.netty.network.InternalNettyPacket
 import net.kyori.adventure.text.Component
 import java.util.*
 
-@SurfNettyPacket(DefaultIds.SERVERBOUND_SEND_MESSAGE_PACKET, PacketFlow.SERVERBOUND)
-class ServerboundSendMessagePacket : NettyPacket {
+@SurfNettyPacket(
+    DefaultIds.SERVERBOUND_SEND_MESSAGE_PACKET,
+    PacketFlow.SERVERBOUND,
+    handlerMode = PacketHandlerMode.NETTY
+)
+class ServerboundSendMessagePacket(
+    val uuid: UUID,
+    val message: Component,
+    val permission: String? = null
+) : NettyPacket(), InternalNettyPacket<RunningServerPacketListener> {
     companion object {
-        val STREAM_CODEC =
-            packetCodec(ServerboundSendMessagePacket::write, ::ServerboundSendMessagePacket)
+        val STREAM_CODEC = StreamCodec.composite(
+            ByteBufCodecs.UUID_CODEC,
+            ServerboundSendMessagePacket::uuid,
+            ByteBufCodecs.COMPONENT_CODEC,
+            ServerboundSendMessagePacket::message,
+            ByteBufCodecs.STRING_CODEC.apply(ByteBufCodecs::nullable),
+            ServerboundSendMessagePacket::permission,
+            ::ServerboundSendMessagePacket
+        )
     }
 
-    val uuid: UUID
-    val message: Component
-    val permission: String?
-
-    constructor(uuid: UUID, message: Component) {
-        this.uuid = uuid
-        this.message = message
-        this.permission = null
-    }
-
-    constructor(uuid: UUID, message: Component, permission: String) {
-        this.uuid = uuid
-        this.message = message
-        this.permission = permission
-    }
-
-    private constructor(buffer: SurfByteBuf) {
-        uuid = buffer.readUuid()
-        message = buffer.readComponent()
-        permission = buffer.readNullableString()
-    }
-
-    private fun write(buffer: SurfByteBuf) {
-        buffer.writeUuid(uuid)
-        buffer.writeComponent(message)
-        buffer.writeNullable(permission)
+    override fun handle(listener: RunningServerPacketListener) {
+        listener.handleSendMessage(this)
     }
 }

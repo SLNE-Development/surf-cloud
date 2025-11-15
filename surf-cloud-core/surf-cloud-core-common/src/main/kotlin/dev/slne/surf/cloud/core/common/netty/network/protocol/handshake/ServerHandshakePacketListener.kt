@@ -7,5 +7,5 @@ interface ServerHandshakePacketListener : ServerboundPacketListener {
 
     override val protocol get() = ConnectionProtocol.HANDSHAKING
 
-    suspend fun handleHandshake(packet: ServerboundHandshakePacket)
+    fun handleHandshake(packet: ServerboundHandshakePacket)
 }

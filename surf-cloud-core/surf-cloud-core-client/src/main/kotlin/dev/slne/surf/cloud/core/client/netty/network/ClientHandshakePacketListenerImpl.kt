@@ -1,12 +1,14 @@
 package dev.slne.surf.cloud.core.client.netty.network
 
 import dev.slne.surf.cloud.core.client.netty.ClientNettyClientImpl
+import dev.slne.surf.cloud.core.common.coroutines.PacketHandlerScope
 import dev.slne.surf.cloud.core.common.netty.network.ConnectionImpl
 import dev.slne.surf.cloud.core.common.netty.network.DisconnectionDetails
 import dev.slne.surf.cloud.core.common.netty.network.protocol.login.ClientLoginPacketListener
 import dev.slne.surf.cloud.core.common.netty.network.protocol.login.ClientboundLoginFinishedPacket
 import dev.slne.surf.cloud.core.common.netty.network.protocol.login.ServerboundLoginAcknowledgedPacket
 import dev.slne.surf.cloud.core.common.netty.network.protocol.prerunning.PreRunningProtocols
+import kotlinx.coroutines.launch
 
 
 class ClientHandshakePacketListenerImpl(
@@ -16,23 +18,25 @@ class ClientHandshakePacketListenerImpl(
     updateStatus: StatusUpdate,
 ) : AbstractStatusUpdater(State.CONNECTING, updateStatus), ClientLoginPacketListener {
 
-    override suspend fun handleLoginFinished(packet: ClientboundLoginFinishedPacket) {
+    override fun handleLoginFinished(packet: ClientboundLoginFinishedPacket) {
         switchState(State.PREPARE_CONNECTION)
 
-        client.initConnection(connection)
-        val listener = ClientPreRunningPacketListenerImpl(
-            client,
-            connection,
-            platformExtension,
-            this,
-        )
-        connection.setupInboundProtocol(
-            PreRunningProtocols.CLIENTBOUND,
-            listener
-        )
-        connection.send(ServerboundLoginAcknowledgedPacket)
-        connection.setupOutboundProtocol(PreRunningProtocols.SERVERBOUND)
-        switchState(State.PRE_PRE_RUNNING)
+        PacketHandlerScope.launch {
+            client.initConnection(connection)
+            val listener = ClientPreRunningPacketListenerImpl(
+                client,
+                connection,
+                platformExtension,
+                this@ClientHandshakePacketListenerImpl,
+            )
+            connection.setupInboundProtocol(
+                PreRunningProtocols.CLIENTBOUND,
+                listener
+            )
+            connection.send(ServerboundLoginAcknowledgedPacket)
+            connection.setupOutboundProtocol(PreRunningProtocols.SERVERBOUND)
+            switchState(State.PRE_PRE_RUNNING)
+        }
     }
 
     override suspend fun onDisconnect(details: DisconnectionDetails) = Unit

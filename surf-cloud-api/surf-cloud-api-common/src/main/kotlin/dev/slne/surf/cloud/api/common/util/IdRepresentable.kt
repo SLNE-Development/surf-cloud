@@ -27,7 +27,7 @@ interface IdRepresentable {
 
 
         class IdRepresentableStreamCodec<S : IdRepresentable>(
-            private val itemLookup: (Int) -> S,
+            val itemLookup: (Int) -> S,
         ) : StreamCodec<ByteBuf, S> {
 
             override fun decode(buf: ByteBuf): S {
@@ -38,5 +38,13 @@ interface IdRepresentable {
                 buf.writeVarInt(value.id)
             }
         }
+
+        @FunctionalInterface
+        fun interface IdRepresentableCodecOperation<B, S : IdRepresentable, T> {
+            fun apply(codec: IdRepresentableStreamCodec<S>): StreamCodec<B, T>
+        }
+
+        fun <B, V : IdRepresentable, O> IdRepresentableStreamCodec<V>.apply(function: IdRepresentableCodecOperation<B, V, O>) =
+            function.apply(this)
     }
 }

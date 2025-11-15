@@ -2,54 +2,47 @@ package dev.slne.surf.cloud.core.common.netty.network.protocol.running
 
 import dev.slne.surf.cloud.api.common.meta.DefaultIds
 import dev.slne.surf.cloud.api.common.meta.SurfNettyPacket
+import dev.slne.surf.cloud.api.common.netty.network.codec.ByteBufCodecs
+import dev.slne.surf.cloud.api.common.netty.network.codec.StreamCodec
+import dev.slne.surf.cloud.api.common.netty.network.codec.composite
 import dev.slne.surf.cloud.api.common.netty.network.protocol.PacketFlow
-import dev.slne.surf.cloud.api.common.netty.packet.RespondingNettyPacket
-import dev.slne.surf.cloud.api.common.netty.packet.packetCodec
-import dev.slne.surf.cloud.api.common.netty.protocol.buffer.SurfByteBuf
-import dev.slne.surf.cloud.api.common.netty.protocol.buffer.readEnum
+import dev.slne.surf.cloud.api.common.netty.network.protocol.boolean.BooleanResponsePacket
+import dev.slne.surf.cloud.api.common.netty.packet.PacketHandlerMode
 import dev.slne.surf.cloud.api.common.player.teleport.TeleportCause
 import dev.slne.surf.cloud.api.common.player.teleport.TeleportFlag
 import dev.slne.surf.cloud.api.common.player.teleport.WorldLocation
+import dev.slne.surf.cloud.api.common.util.IdRepresentable.Companion.apply
+import dev.slne.surf.cloud.core.common.netty.network.InternalNettyPacket
+import dev.slne.surf.cloud.core.common.netty.network.protocol.common.CommonRunningPacketListener
 import java.util.*
 
-@SurfNettyPacket(DefaultIds.BIDIRECTIONAL_TELEPORT_PLAYER, PacketFlow.BIDIRECTIONAL)
-class TeleportPlayerPacket : RespondingNettyPacket<TeleportPlayerResultPacket> {
+@SurfNettyPacket(
+    DefaultIds.BIDIRECTIONAL_TELEPORT_PLAYER,
+    PacketFlow.BIDIRECTIONAL,
+    handlerMode = PacketHandlerMode.DEFAULT
+)
+class TeleportPlayerPacket(
+    val uuid: UUID,
+    val location: WorldLocation,
+    val teleportCause: TeleportCause,
+    val flags: EnumSet<TeleportFlag>
+) : BooleanResponsePacket(), InternalNettyPacket<CommonRunningPacketListener> {
 
     companion object {
-        val STREAM_CODEC = packetCodec(
-            TeleportPlayerPacket::write,
+        val STREAM_CODEC = StreamCodec.composite(
+            ByteBufCodecs.UUID_CODEC,
+            TeleportPlayerPacket::uuid,
+            WorldLocation.STREAM_CODEC,
+            TeleportPlayerPacket::location,
+            TeleportCause.STREAM_CODEC,
+            TeleportPlayerPacket::teleportCause,
+            TeleportFlag.STREAM_CODEC.apply(ByteBufCodecs.idEnumSet()),
+            TeleportPlayerPacket::flags,
             ::TeleportPlayerPacket
         )
     }
 
-    val uuid: UUID
-    val location: WorldLocation
-    val teleportCause: TeleportCause
-    val flags: Array<out TeleportFlag>
-
-    constructor(
-        uuid: UUID,
-        location: WorldLocation,
-        teleportCause: TeleportCause,
-        vararg flags: TeleportFlag
-    ) {
-        this.uuid = uuid
-        this.location = location
-        this.teleportCause = teleportCause
-        this.flags = flags
-    }
-
-    private constructor(buf: SurfByteBuf) {
-        this.uuid = buf.readUuid()
-        this.location = WorldLocation.STREAM_CODEC.decode(buf)
-        this.flags = buf.readArray { it.readEnum() }
-        this.teleportCause = buf.readEnum()
-    }
-
-    private fun write(buf: SurfByteBuf) {
-        buf.writeUuid(uuid)
-        WorldLocation.STREAM_CODEC.encode(buf, location)
-        buf.writeArray(flags, SurfByteBuf::writeEnum)
-        buf.writeEnum(teleportCause)
+    override fun handle(listener: CommonRunningPacketListener) {
+        listener.handleTeleportPlayer(this)
     }
 }

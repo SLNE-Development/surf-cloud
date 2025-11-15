@@ -1,5 +1,6 @@
 package dev.slne.surf.cloud.core.client.netty.network
 
+import com.google.common.flogger.LogPerBucketingStrategy
 import com.google.common.flogger.StackSize
 import dev.slne.surf.cloud.api.common.event.offlineplayer.punishment.CloudPlayerPunishEvent
 import dev.slne.surf.cloud.api.common.event.offlineplayer.punishment.CloudPlayerPunishmentUpdatedEvent
@@ -8,6 +9,7 @@ import dev.slne.surf.cloud.api.common.netty.network.ConnectionProtocol
 import dev.slne.surf.cloud.api.common.netty.network.protocol.respond
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacketInfo
+import dev.slne.surf.cloud.api.common.player.task.PrePlayerJoinTask
 import dev.slne.surf.cloud.api.common.server.UserListImpl
 import dev.slne.surf.cloud.core.client.netty.ClientNettyClientImpl
 import dev.slne.surf.cloud.core.client.player.ClientCloudPlayerImpl
@@ -28,7 +30,6 @@ import dev.slne.surf.cloud.core.common.player.playerManagerImpl
 import dev.slne.surf.cloud.core.common.player.task.PrePlayerJoinTaskManager
 import dev.slne.surf.cloud.core.common.util.hasPermissionPlattform
 import dev.slne.surf.surfapi.core.api.messages.adventure.getPointer
-import dev.slne.surf.surfapi.core.api.messages.adventure.text
 import dev.slne.surf.surfapi.core.api.util.logger
 import kotlinx.coroutines.launch
 import net.kyori.adventure.audience.Audience
@@ -37,6 +38,7 @@ import net.kyori.adventure.text.Component
 import net.kyori.adventure.title.Title
 import net.kyori.adventure.title.TitlePart
 import java.util.*
+import java.util.concurrent.TimeUnit
 
 class ClientRunningPacketListenerImpl(
     connection: ConnectionImpl,
@@ -45,21 +47,29 @@ class ClientRunningPacketListenerImpl(
 ) : ClientCommonPacketListenerImpl(connection), RunningClientPacketListener {
     private val log = logger()
 
-    override suspend fun handlePlayerConnectedToServer(packet: PlayerConnectedToServerPacket) {
-        commonPlayerManagerImpl.updateOrCreatePlayer(
-            packet.uuid,
-            packet.name,
-            packet.proxy,
-            packet.playerIp,
-            packet.serverName,
-            false
-        ) {
-            overwritePpdc(packet.pdc)
+    override fun handlePlayerConnectedToServer(packet: PlayerConnectedToServerPacket) {
+        PacketHandlerScope.launch {
+            commonPlayerManagerImpl.updateOrCreatePlayer(
+                packet.uuid,
+                packet.name,
+                packet.proxy,
+                packet.playerIp,
+                packet.serverName,
+                false
+            ) {
+                overwritePpdc(packet.pdc)
+            }
         }
     }
 
-    override suspend fun handlePlayerDisconnectFromServer(packet: PlayerDisconnectFromServerPacket) {
-        playerManagerImpl.updateOrRemoveOnDisconnect(packet.uuid, packet.serverName, packet.proxy)
+    override fun handlePlayerDisconnectFromServer(packet: PlayerDisconnectFromServerPacket) {
+        PacketHandlerScope.launch {
+            playerManagerImpl.updateOrRemoveOnDisconnect(
+                packet.uuid,
+                packet.serverName,
+                packet.proxy
+            )
+        }
     }
 
     override fun handleSendResourcePacks(packet: ClientboundSendResourcePacksPacket) {
@@ -71,7 +81,7 @@ class ClientRunningPacketListenerImpl(
     }
 
     override fun handleRemoveResourcePacks(packet: ClientboundRemoveResourcePacksPacket) {
-        withAudience(packet.uuid) { removeResourcePacks(packet.first, *packet.others) }
+        withAudience(packet.uuid) { removeResourcePacks(packet.packIds) }
     }
 
     override fun handleShowTitle(packet: ClientboundShowTitlePacket) {
@@ -177,11 +187,22 @@ class ClientRunningPacketListenerImpl(
         }) { "Display name requested for player ${packet.uuid} who is not online. Probably send to wrong server." }
     }
 
-    override suspend fun handleRequestOfflinePlayerDisplayName(packet: RequestOfflineDisplayNamePacket) {
-        packet.respond(luckperms.userManager.getOrLoadUser(packet.uuid).username?.let { text(it) })
+    override fun handleRequestOfflinePlayerDisplayName(packet: RequestOfflineDisplayNamePacket) {
+        PacketHandlerScope.launch {
+            try {
+                val lpUser = luckperms.userManager.getOrLoadUser(packet.uuid)
+                val lpName = lpUser.username
+                packet.respond(lpName?.let(Component::text))
+            } catch (e: Throwable) {
+                log.atWarning()
+                    .withCause(e)
+                    .log("Failed to get offline player display name for packet $packet")
+                packet.respond(null)
+            }
+        }
     }
 
-    override suspend fun handleRegisterServerPacket(packet: ClientboundRegisterServerPacket) {
+    override fun handleRegisterServerPacket(packet: ClientboundRegisterServerPacket) {
         val server = if (packet.proxy) {
             ClientProxyCloudServerImpl(
                 packet.group,
@@ -195,30 +216,39 @@ class ClientRunningPacketListenerImpl(
                 packet.playAddress,
                 packet.lobby
             ).also { client ->
-                platformExtension.registerCloudServerToProxy(client)
+                try {
+                    platformExtension.registerCloudServerToProxy(client)
+                } catch (e: Throwable) {
+                    log.atWarning()
+                        .withCause(e)
+                        .log("Failed to register server ${packet.serverName} to proxy")
+                }
             }
         }
 
         serverManagerImpl.registerServer(server)
     }
 
-    override suspend fun handleUnregisterServerPacket(packet: ClientboundUnregisterServerPacket) {
+    override fun handleUnregisterServerPacket(packet: ClientboundUnregisterServerPacket) {
         val removed = serverManagerImpl.unregisterServer(packet.serverName)
-        println("Unregistered server (${packet.serverName}): $removed")
+
         if (removed is ClientCloudServerImpl) {
             platformExtension.unregisterCloudServerFromProxy(removed)
         }
     }
 
-    override suspend fun handleAddPlayerToServer(packet: ClientboundAddPlayerToServerPacket) {
-        (serverManagerImpl.retrieveServerByName(packet.serverName)?.users as? UserListImpl)?.add(
-            packet.playerUuid
-        )
+    override fun handleAddPlayerToServer(packet: ClientboundAddPlayerToServerPacket) {
+        val server = serverManagerImpl.retrieveServerByName(packet.serverName) ?: return
+        val users = server.users
+        check(users is UserListImpl) { "Server ${server.name} has unsupported user list implementation: ${users::class.simpleName}" }
+        users.add(packet.playerUuid)
     }
 
-    override suspend fun handleRemovePlayerFromServer(packet: ClientboundRemovePlayerFromServerPacket) {
-        (serverManagerImpl.retrieveServerByName(packet.serverName)?.users as? UserListImpl)
-            ?.remove(packet.playerUuid)
+    override fun handleRemovePlayerFromServer(packet: ClientboundRemovePlayerFromServerPacket) {
+        val server = serverManagerImpl.retrieveServerByName(packet.serverName) ?: return
+        val users = server.users
+        check(users is UserListImpl) { "Server ${server.name} has unsupported user list implementation: ${users::class.simpleName}" }
+        users.remove(packet.playerUuid)
     }
 
     override fun handleUpdateServerInformation(packet: ClientboundUpdateServerInformationPacket) {
@@ -230,45 +260,100 @@ class ClientRunningPacketListenerImpl(
         packet.respond(ServerboundIsServerManagedByThisProxyResponse(managed))
     }
 
-    override suspend fun handleTransferPlayer(packet: ClientboundTransferPlayerPacket) {
-        val (status, reason) = platformExtension.transferPlayerToServer(
-            packet.playerUuid,
-            packet.address
-        )
-        packet.respond(ServerboundTransferPlayerPacketResponse(status, reason))
+    override fun handleTransferPlayer(packet: ClientboundTransferPlayerPacket) {
+        PacketHandlerScope.launch {
+            try {
+                val (status, reason) = platformExtension.transferPlayerToServer(
+                    packet.playerUuid,
+                    packet.address
+                )
+                packet.respond(ServerboundTransferPlayerPacketResponse(status, reason))
+            } catch (e: Throwable) {
+                log.atWarning()
+                    .withCause(e)
+                    .log("Failed to transfer player ${packet.playerUuid} to server at ${packet.address}")
+            }
+        }
     }
 
-    override suspend fun handleRequestLuckpermsMetaData(packet: RequestLuckpermsMetaDataPacket) {
-        val metaValue =
-            luckperms.userManager.getOrLoadUser(packet.uuid).cachedData.metaData.getMetaValue(packet.key)
-        packet.respond(LuckpermsMetaDataResponsePacket(metaValue))
+    override fun handleRequestLuckpermsMetaData(packet: RequestLuckpermsMetaDataPacket) {
+        PacketHandlerScope.launch {
+            try {
+                val lpUser = luckperms.userManager.getOrLoadUser(packet.uuid)
+                val metaData = lpUser.cachedData.metaData.getMetaValue(packet.key)
+                packet.respond(LuckpermsMetaDataResponsePacket(metaData))
+            } catch (e: Throwable) {
+                log.atWarning()
+                    .withCause(e)
+                    .log("Failed to get luckperms meta data for packet $packet")
+                packet.respond(LuckpermsMetaDataResponsePacket(null))
+            }
+        }
     }
 
     override fun handleDisconnectPlayer(packet: DisconnectPlayerPacket) {
-        platformExtension.disconnectPlayer(packet.uuid, packet.reason)
+        try {
+            platformExtension.disconnectPlayer(packet.uuid, packet.reason)
+        } catch (e: Throwable) {
+            log.atWarning()
+                .withCause(e)
+                .log("Failed to disconnect player ${packet.uuid} with reason ${packet.reason}")
+        }
     }
 
     override fun handleSilentDisconnectPlayer(packet: SilentDisconnectPlayerPacket) {
-        platformExtension.silentDisconnectPlayer(packet.uuid)
+        try {
+            platformExtension.silentDisconnectPlayer(packet.uuid)
+        } catch (e: Throwable) {
+            log.atWarning()
+                .withCause(e)
+                .log("Failed to silent disconnect player ${packet.uuid}")
+        }
     }
 
-    override suspend fun handleTeleportPlayer(packet: TeleportPlayerPacket) {
-        val result = platformExtension.teleportPlayer(
-            packet.uuid,
-            packet.location,
-            packet.teleportCause,
-            packet.flags
-        )
-
-        packet.respond(TeleportPlayerResultPacket(result))
+    override fun handleTeleportPlayer(packet: TeleportPlayerPacket) {
+        PacketHandlerScope.launch {
+            try {
+                val result = platformExtension.teleportPlayer(
+                    packet.uuid,
+                    packet.location,
+                    packet.teleportCause,
+                    packet.flags
+                )
+                packet.respond(result)
+            } catch (e: Throwable) {
+                log.atWarning()
+                    .withCause(e)
+                    .log("Failed to teleport player ${packet.uuid} to location ${packet.location}")
+                packet.respond(false)
+            }
+        }
     }
 
-    override suspend fun handleTeleportPlayerToPlayer(packet: TeleportPlayerToPlayerPacket) {
-        packet.respond(platformExtension.teleportPlayerToPlayer(packet.uuid, packet.target))
+    override fun handleTeleportPlayerToPlayer(packet: TeleportPlayerToPlayerPacket) {
+        PacketHandlerScope.launch {
+            try {
+                val result = platformExtension.teleportPlayerToPlayer(packet.uuid, packet.target)
+                packet.respond(result)
+            } catch (e: Throwable) {
+                log.atWarning()
+                    .withCause(e)
+                    .log("Failed to teleport player ${packet.uuid} to player ${packet.target}")
+                packet.respond(false)
+            }
+        }
     }
 
     override fun handleRegisterCloudServersToProxy(packet: ClientboundRegisterCloudServersToProxyPacket) {
-        platformExtension.registerCloudServersToProxy(packet.servers)
+        for (info in packet.servers) {
+            try {
+                platformExtension.registerCloudServerToProxy(info)
+            } catch (e: Throwable) {
+                log.atWarning()
+                    .withCause(e)
+                    .log("Failed to register server ${info.first} to proxy")
+            }
+        }
     }
 
     override fun handleTriggerShutdown(packet: ClientboundTriggerShutdownPacket) {
@@ -283,13 +368,24 @@ class ClientRunningPacketListenerImpl(
         }
     }
 
-    override suspend fun handleRunPlayerPreJoinTasks(packet: ClientboundRunPrePlayerJoinTasksPacket) {
-        val player = commonPlayerManagerImpl.getOfflinePlayer(packet.uuid)
-        val result = PrePlayerJoinTaskManager.runTasks(player)
-        packet.respond(RunPrePlayerJoinTasksResultPacket(result))
+    override fun handleRunPlayerPreJoinTasks(packet: ClientboundRunPrePlayerJoinTasksPacket) {
+        PacketHandlerScope.launch {
+            try {
+                val player = commonPlayerManagerImpl.getOfflinePlayer(packet.uuid)
+                val result = PrePlayerJoinTaskManager.runTasks(player)
+                packet.respond(RunPrePlayerJoinTasksResultPacket(result))
+            } catch (e: Throwable) {
+                log.atWarning()
+                    .per(e.javaClass, LogPerBucketingStrategy.byClass())
+                    .atMostEvery(5, TimeUnit.SECONDS)
+                    .withCause(e)
+                    .log("Failed to run pre player join tasks for player ${packet.uuid}")
+                packet.respond(RunPrePlayerJoinTasksResultPacket(PrePlayerJoinTask.Result.ERROR))
+            }
+        }
     }
 
-    override suspend fun handleTriggerPunishmentUpdateEvent(packet: ClientboundTriggerPunishmentUpdateEventPacket) {
+    override fun handleTriggerPunishmentUpdateEvent(packet: ClientboundTriggerPunishmentUpdateEventPacket) {
         val (updatedPunishment, operation) = packet
         try {
             CloudPlayerPunishmentUpdatedEvent(
@@ -297,7 +393,7 @@ class ClientRunningPacketListenerImpl(
                 updatedPunishment.punishedPlayer(),
                 updatedPunishment,
                 operation
-            ).post()
+            ).postAndForget()
         } catch (e: Throwable) {
             log.atWarning()
                 .withCause(e)
@@ -305,14 +401,14 @@ class ClientRunningPacketListenerImpl(
         }
     }
 
-    override suspend fun handleTriggerPunishmentCreatedEvent(packet: ClientboundTriggerPunishmentCreatedEventPacket) {
+    override fun handleTriggerPunishmentCreatedEvent(packet: ClientboundTriggerPunishmentCreatedEventPacket) {
         val punishment = packet.createdPunishment
         try {
             CloudPlayerPunishEvent(
                 this,
                 punishment.punishedPlayer(),
                 punishment,
-            ).post()
+            ).postAndForget()
         } catch (e: Throwable) {
             log.atWarning()
                 .withCause(e)
@@ -320,7 +416,7 @@ class ClientRunningPacketListenerImpl(
         }
     }
 
-    override suspend fun handleRequestPlayerPermission(packet: RequestPlayerPermissionPacket) {
+    override fun handleRequestPlayerPermission(packet: RequestPlayerPermissionPacket) {
         withAudience(packet.uuid) {
             val permission = hasPermissionPlattform(packet.permission)
             packet.respond(permission)
@@ -372,12 +468,24 @@ class ClientRunningPacketListenerImpl(
     }
 
     override fun handleSendToast(packet: SendToastPacket) {
-        platformExtension.sendToast(packet.uuid, packet.toast)
+        try {
+            platformExtension.sendToast(packet.uuid, packet.toast)
+        } catch (e: Throwable) {
+            log.atWarning()
+                .withCause(e)
+                .log("Failed to send toast to player ${packet.uuid}")
+        }
     }
 
     override fun handleUpdatePlayerPersistentDataContainer(packet: UpdatePlayerPersistentDataContainerPacket) {
         val player = commonPlayerManagerImpl.getPlayer(packet.uuid) ?: return
-        player.applyPpdcPatch(packet.patch)
+        try {
+            player.applyPpdcPatch(packet.patch)
+        } catch (e: Throwable) {
+            log.atWarning()
+                .withCause(e)
+                .log("Failed to apply patch to player ${packet.uuid}'s persistent data container")
+        }
     }
 
     override fun handlePacket(packet: NettyPacket) {

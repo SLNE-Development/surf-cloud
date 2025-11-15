@@ -3,12 +3,15 @@ package dev.slne.surf.cloud.core.common.netty.network.protocol.handshake
 import dev.slne.surf.cloud.api.common.meta.DefaultIds
 import dev.slne.surf.cloud.api.common.meta.SurfNettyPacket
 import dev.slne.surf.cloud.api.common.netty.network.ConnectionProtocol
+import dev.slne.surf.cloud.api.common.netty.network.codec.ByteBufCodecs
+import dev.slne.surf.cloud.api.common.netty.network.codec.StreamCodec
+import dev.slne.surf.cloud.api.common.netty.network.codec.composite
 import dev.slne.surf.cloud.api.common.netty.network.protocol.PacketFlow
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
-import dev.slne.surf.cloud.api.common.netty.packet.packetCodec
-import dev.slne.surf.cloud.api.common.netty.protocol.buffer.SurfByteBuf
+import dev.slne.surf.cloud.api.common.netty.packet.PacketHandlerMode
+import dev.slne.surf.cloud.core.common.netty.network.InternalNettyPacket
 
-const val PROTOCOL_VERSION = 2
+const val PROTOCOL_VERSION = 1
 
 /**
  * First packet sent by the client to the cloud server. It is used to establish a connection to the cloud server.
@@ -16,39 +19,32 @@ const val PROTOCOL_VERSION = 2
 @SurfNettyPacket(
     DefaultIds.SERVERBOUND_HANDSHAKE_PACKET,
     PacketFlow.SERVERBOUND,
-    ConnectionProtocol.HANDSHAKING
+    ConnectionProtocol.HANDSHAKING,
+    handlerMode = PacketHandlerMode.DEFAULT
 )
-class ServerboundHandshakePacket : NettyPacket {
-    companion object {
-        @JvmStatic
-        val STREAM_CODEC =
-            packetCodec(ServerboundHandshakePacket::write, ::ServerboundHandshakePacket)
-    }
-
-    val protocolVersion: Int
-    val hostName: String
-    val port: Int
+class ServerboundHandshakePacket(
+    val protocolVersion: Int,
+    val hostName: String,
+    val port: Int,
     val intention: ClientIntent
-
+) : NettyPacket(), InternalNettyPacket<ServerHandshakePacketListener> {
     override val terminal = true
 
-    constructor(hostName: String, port: Int, intention: ClientIntent) {
-        this.protocolVersion = PROTOCOL_VERSION // Currently not used
-        this.hostName = hostName
-        this.port = port
-        this.intention = intention
+    companion object {
+        val STREAM_CODEC = StreamCodec.composite(
+            ByteBufCodecs.INT_CODEC,
+            ServerboundHandshakePacket::protocolVersion,
+            ByteBufCodecs.STRING_CODEC,
+            ServerboundHandshakePacket::hostName,
+            ByteBufCodecs.VAR_INT_CODEC,
+            ServerboundHandshakePacket::port,
+            ClientIntent.STREAM_CODEC,
+            ServerboundHandshakePacket::intention,
+            ::ServerboundHandshakePacket
+        )
     }
 
-    constructor(buf: SurfByteBuf) {
-        protocolVersion = PROTOCOL_VERSION // Currently not used
-        hostName = buf.readUtf()
-        port = buf.readVarInt()
-        intention = buf.readEnum(ClientIntent::class)
-    }
-
-    fun write(buffer: SurfByteBuf) {
-        buffer.writeUtf(hostName)
-        buffer.writeVarInt(port)
-        buffer.writeEnum(intention)
+    override fun handle(listener: ServerHandshakePacketListener) {
+        listener.handleHandshake(this)
     }
 }

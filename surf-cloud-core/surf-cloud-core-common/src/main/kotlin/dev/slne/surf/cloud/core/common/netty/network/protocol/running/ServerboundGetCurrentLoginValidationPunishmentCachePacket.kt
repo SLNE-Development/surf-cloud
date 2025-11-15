@@ -1,21 +1,38 @@
 package dev.slne.surf.cloud.core.common.netty.network.protocol.running
 
 import dev.slne.surf.cloud.api.common.meta.SurfNettyPacket
+import dev.slne.surf.cloud.api.common.netty.network.codec.ByteBufCodecs
+import dev.slne.surf.cloud.api.common.netty.network.codec.StreamCodec
 import dev.slne.surf.cloud.api.common.netty.network.protocol.PacketFlow
+import dev.slne.surf.cloud.api.common.netty.packet.PacketHandlerMode
 import dev.slne.surf.cloud.api.common.netty.packet.RespondingNettyPacket
 import dev.slne.surf.cloud.api.common.netty.packet.ResponseNettyPacket
+import dev.slne.surf.cloud.core.common.netty.network.InternalNettyPacket
 import dev.slne.surf.cloud.core.common.player.PunishmentCacheImpl
-import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
 import java.util.*
 
-@Serializable
 @SurfNettyPacket(
     "cloud:serverbound:get_current_login_validation_punishment_cache",
-    PacketFlow.SERVERBOUND
+    PacketFlow.SERVERBOUND,
+    handlerMode = PacketHandlerMode.NETTY
 )
-class ServerboundGetCurrentLoginValidationPunishmentCachePacket(val uuid: @Contextual UUID) :
-    RespondingNettyPacket<ClientboundGetCurrentLoginValidationPunishmentCacheResponsePacket>()
+class ServerboundGetCurrentLoginValidationPunishmentCachePacket(val uuid: UUID) :
+    RespondingNettyPacket<ClientboundGetCurrentLoginValidationPunishmentCacheResponsePacket>(),
+    InternalNettyPacket<RunningServerPacketListener> {
+
+    companion object {
+        val STREAM_CODEC = StreamCodec.composite(
+            ByteBufCodecs.UUID_CODEC,
+            ServerboundGetCurrentLoginValidationPunishmentCachePacket::uuid,
+            ::ServerboundGetCurrentLoginValidationPunishmentCachePacket
+        )
+    }
+
+    override fun handle(listener: RunningServerPacketListener) {
+        listener.handleGetCurrentLoginValidationPunishmentCache(this)
+    }
+}
 
 @Serializable
 @SurfNettyPacket(

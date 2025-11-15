@@ -38,7 +38,7 @@ abstract class CloudPlayerManagerImpl<P : CommonCloudPlayerImpl> : CloudPlayerMa
     override fun getPlayer(name: String): CloudPlayer? =
         playerCache.currentValues().find { it.name.equals(name, ignoreCase = true) }
 
-    abstract suspend fun createPlayer(
+    abstract fun createPlayer(
         uuid: UUID,
         name: String,
         proxy: Boolean,
@@ -46,11 +46,11 @@ abstract class CloudPlayerManagerImpl<P : CommonCloudPlayerImpl> : CloudPlayerMa
         serverName: String
     ): P
 
-    abstract suspend fun updateProxyServer(player: P, serverName: String)
-    abstract suspend fun updateServer(player: P, serverName: String)
+    abstract fun updateProxyServer(player: P, serverName: String)
+    abstract fun updateServer(player: P, serverName: String)
 
-    abstract suspend fun removeProxyServer(player: P, serverName: String)
-    abstract suspend fun removeServer(player: P, serverName: String)
+    abstract fun removeProxyServer(player: P, serverName: String)
+    abstract fun removeServer(player: P, serverName: String)
 
     abstract fun getProxyServerName(player: P): String?
     abstract fun getServerName(player: P): String?

@@ -2,37 +2,32 @@ package dev.slne.surf.cloud.core.common.netty.network.protocol.running
 
 import dev.slne.surf.cloud.api.common.meta.DefaultIds
 import dev.slne.surf.cloud.api.common.meta.SurfNettyPacket
+import dev.slne.surf.cloud.api.common.netty.network.codec.ByteBufCodecs
+import dev.slne.surf.cloud.api.common.netty.network.codec.StreamCodec
 import dev.slne.surf.cloud.api.common.netty.network.protocol.PacketFlow
+import dev.slne.surf.cloud.api.common.netty.packet.PacketHandlerMode
 import dev.slne.surf.cloud.api.common.netty.packet.RespondingNettyPacket
-import dev.slne.surf.cloud.api.common.netty.packet.packetCodec
-import dev.slne.surf.cloud.api.common.netty.protocol.buffer.SurfByteBuf
+import dev.slne.surf.cloud.core.common.netty.network.InternalNettyPacket
 import java.net.InetSocketAddress
 
 @SurfNettyPacket(
     DefaultIds.SERVERBOUND_IS_SERVER_MANAGED_BY_THIS_PROXY_REQUEST,
-    PacketFlow.CLIENTBOUND
+    PacketFlow.CLIENTBOUND,
+    handlerMode = PacketHandlerMode.NETTY
 )
-class ClientboundIsServerManagedByThisProxyPacket :
-    RespondingNettyPacket<ServerboundIsServerManagedByThisProxyResponse> {
+class ClientboundIsServerManagedByThisProxyPacket(val clientAddress: InetSocketAddress) :
+    RespondingNettyPacket<ServerboundIsServerManagedByThisProxyResponse>(),
+    InternalNettyPacket<RunningClientPacketListener> {
 
     companion object {
-        val STREAM_CODEC = packetCodec(
-            ClientboundIsServerManagedByThisProxyPacket::write,
+        val STREAM_CODEC = StreamCodec.composite(
+            ByteBufCodecs.INET_SOCKET_ADDRESS_CODEC,
+            ClientboundIsServerManagedByThisProxyPacket::clientAddress,
             ::ClientboundIsServerManagedByThisProxyPacket
         )
     }
 
-    val clientAddress: InetSocketAddress
-
-    constructor(clientAddress: InetSocketAddress) {
-        this.clientAddress = clientAddress
-    }
-
-    private constructor(buf: SurfByteBuf) {
-        this.clientAddress = buf.readInetSocketAddress()
-    }
-
-    private fun write(buf: SurfByteBuf) {
-        buf.writeInetSocketAddress(clientAddress)
+    override fun handle(listener: RunningClientPacketListener) {
+        listener.handleIsServerManagedByThisProxy(this)
     }
 }

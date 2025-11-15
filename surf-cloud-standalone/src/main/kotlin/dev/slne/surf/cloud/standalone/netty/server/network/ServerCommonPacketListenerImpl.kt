@@ -75,7 +75,7 @@ abstract class ServerCommonPacketListenerImpl(
         }
     }
 
-    override suspend fun handleKeepAlivePacket(packet: KeepAlivePacket) {
+    override fun handleKeepAlive(packet: KeepAlivePacket) {
         packet.respond(packet.keepAliveId)
     }
 

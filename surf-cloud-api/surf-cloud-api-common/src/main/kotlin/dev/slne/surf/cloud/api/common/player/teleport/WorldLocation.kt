@@ -1,7 +1,9 @@
 package dev.slne.surf.cloud.api.common.player.teleport
 
+import dev.slne.surf.cloud.api.common.netty.network.codec.ByteBufCodecs
+import dev.slne.surf.cloud.api.common.netty.network.codec.StreamCodec
+import dev.slne.surf.cloud.api.common.netty.network.codec.composite
 import dev.slne.surf.cloud.api.common.netty.network.codec.kotlinx.java.SerializableUUID
-import dev.slne.surf.cloud.api.common.netty.protocol.buffer.SurfByteBuf
 import kotlinx.serialization.Serializable
 import org.spongepowered.math.GenericMath
 import org.spongepowered.math.vector.Vector3d
@@ -21,8 +23,21 @@ data class WorldLocation(
     val pitch: Float = 0.0f
 ) {
     companion object {
-        val STREAM_CODEC =
-            SurfByteBuf.streamCodecFromKotlin<SurfByteBuf, WorldLocation>(serializer())
+        val STREAM_CODEC = StreamCodec.composite(
+            ByteBufCodecs.UUID_CODEC,
+            WorldLocation::world,
+            ByteBufCodecs.DOUBLE_CODEC,
+            WorldLocation::x,
+            ByteBufCodecs.DOUBLE_CODEC,
+            WorldLocation::y,
+            ByteBufCodecs.DOUBLE_CODEC,
+            WorldLocation::z,
+            ByteBufCodecs.FLOAT_CODEC,
+            WorldLocation::yaw,
+            ByteBufCodecs.FLOAT_CODEC,
+            WorldLocation::pitch,
+            ::WorldLocation
+        )
 
         private const val DEG2RAD = PI / 180.0
 

@@ -31,6 +31,7 @@ import dev.slne.surf.cloud.standalone.server.queue.QueueManagerImpl
 import dev.slne.surf.surfapi.core.api.messages.adventure.sendText
 import dev.slne.surf.surfapi.core.api.util.logger
 import dev.slne.surf.surfapi.core.api.util.mutableObjectListOf
+import dev.slne.surf.surfapi.core.api.util.objectSetOf
 import dev.slne.surf.surfapi.core.api.util.toObjectList
 import it.unimi.dsi.fastutil.objects.ObjectList
 import net.kyori.adventure.audience.MessageType
@@ -408,7 +409,7 @@ class StandaloneCloudPlayerImpl(uuid: UUID, name: String, val ip: Inet4Address) 
         y: Double,
         z: Double
     ) {
-        send(ClientboundPlaySoundPacket(uuid, sound, x, y, z))
+        send(ClientboundPlaySoundPacket(uuid, sound, x = x, y = y, z = z))
     }
 
     override fun playSound(
@@ -419,7 +420,7 @@ class StandaloneCloudPlayerImpl(uuid: UUID, name: String, val ip: Inet4Address) 
             throw UnsupportedOperationException("Only self emitters are supported")
         }
 
-        send(ClientboundPlaySoundPacket(uuid, sound, emitter))
+        send(ClientboundPlaySoundPacket(uuid, sound, emitter = emitter))
     }
 
     override fun playSound(
@@ -431,7 +432,7 @@ class StandaloneCloudPlayerImpl(uuid: UUID, name: String, val ip: Inet4Address) 
             throw UnsupportedOperationException("Only self emitters are supported")
         }
 
-        send(ClientboundPlaySoundPacket(uuid, sound, emitter, permission))
+        send(ClientboundPlaySoundPacket(uuid, sound, emitter = emitter, permission = permission))
     }
 
     override suspend fun hasPermission(permission: String): Boolean {
@@ -456,14 +457,18 @@ class StandaloneCloudPlayerImpl(uuid: UUID, name: String, val ip: Inet4Address) 
         if (request.callback() != ResourcePackCallback.noOp()) {
             log.atWarning()
                 .atMostEvery(30, TimeUnit.SECONDS)
-                .log("Resource pack callback is not supported in standalone mode. Ignoring.")
+                .log("Resource pack callback is not supported in standalone mode. Ignoring...")
         }
 
         send(ClientboundSendResourcePacksPacket(uuid, request))
     }
 
+    override fun removeResourcePacks(ids: Iterable<UUID>) {
+        send(ClientboundRemoveResourcePacksPacket(uuid, ids.toMutableSet()))
+    }
+
     override fun removeResourcePacks(id: UUID, vararg others: UUID) {
-        send(ClientboundRemoveResourcePacksPacket(uuid, id, *others))
+        removeResourcePacks(objectSetOf(id, *others))
     }
 
     override fun clearResourcePacks() {
@@ -481,8 +486,8 @@ class StandaloneCloudPlayerImpl(uuid: UUID, name: String, val ip: Inet4Address) 
             uuid,
             location,
             teleportCause,
-            *flags
-        ).fireAndAwait(server.connection)?.result == true
+            EnumSet.copyOf(flags.toSet())
+        ).await(server.connection) == true
     }
 
     override suspend fun teleport(target: CloudPlayer): Boolean {

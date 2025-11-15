@@ -2,14 +2,50 @@ package dev.slne.surf.cloud.api.common.meta
 
 import dev.slne.surf.cloud.api.common.netty.network.ConnectionProtocol
 import dev.slne.surf.cloud.api.common.netty.network.protocol.PacketFlow
+import dev.slne.surf.cloud.api.common.netty.packet.PacketHandlerMode
 import dev.slne.surf.cloud.api.common.util.annotation.InternalApi
 
 /**
- * Annotation for marking a class as a Netty packet in the Surf Cloud application.
+ * Marks a class as a Netty packet in the Surf Cloud networking system.
  *
- * @property id The unique identifier of the packet.
- * @property flow The direction of the packet flow (e.g., client-to-server or server-to-client).
- * @property protocols The supported connection protocols for the packet. Defaults to [ConnectionProtocol.RUNNING].
+ * This annotation defines metadata for packets exchanged between clients and servers.
+ * It specifies the packet's unique identifier, its communication flow direction,
+ * and the default handler execution mode.
+ *
+ * Example:
+ * ```
+ * @SurfNettyPacket(
+ *     id = "player_update",
+ *     flow = PacketFlow.CLIENTBOUND,
+ *     handlerMode = PacketHandlerMode.IO
+ * )
+ * data class ClientboundPlayerUpdatePacket(val playerId: UUID, val position: Vector3d) {
+ *     companion object {
+ *         val STREAM_CODEC = StreamCodec.composite(
+ *             ByteBufCodecs.UUID_CODEC,
+ *             ClientboundPlayerUpdatePacket::playerId,
+ *             ByteBufCodecs.SPONGE_VECTOR_3D,
+ *             ClientboundPlayerUpdatePacket::position,
+ *             ::ClientboundPlayerUpdatePacket
+ *         )
+ *     }
+ * }
+ * ```
+ *
+ * @property id
+ * The unique identifier of the packet. Must be globally unique across all packets
+ * within the same protocol version.
+ *
+ * @property flow
+ * Defines the direction of the packet flow — for example, whether it is sent
+ * from client to server or from server to client.
+ *
+ * @property handlerMode
+ * Specifies the default execution mode for methods handling this packet.
+ *
+ * - If a handler method does not explicitly declare a mode via
+ *   [SurfNettyPacketHandler.mode], this value is used instead.
+ * - Defaults to [PacketHandlerMode.DEFAULT], which executes in the default coroutine dispatcher.
  */
 @Target(AnnotationTarget.CLASS)
 @Retention(AnnotationRetention.RUNTIME)
@@ -17,7 +53,8 @@ annotation class SurfNettyPacket(
     val id: String,
     val flow: PacketFlow,
     @property:InternalApi
-    vararg val protocols: ConnectionProtocol = [ConnectionProtocol.RUNNING, ConnectionProtocol.SYNCHRONIZING]
+    vararg val protocols: ConnectionProtocol = [ConnectionProtocol.RUNNING, ConnectionProtocol.SYNCHRONIZING],
+    val handlerMode: PacketHandlerMode = PacketHandlerMode.DEFAULT
 )
 
 /**

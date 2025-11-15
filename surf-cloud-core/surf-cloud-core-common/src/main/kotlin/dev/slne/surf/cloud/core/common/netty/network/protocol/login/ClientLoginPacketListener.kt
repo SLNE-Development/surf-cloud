@@ -7,5 +7,5 @@ interface ClientLoginPacketListener : ClientboundPacketListener {
     override val protocol: ConnectionProtocol
         get() = ConnectionProtocol.LOGIN
 
-    suspend fun handleLoginFinished(packet: ClientboundLoginFinishedPacket)
+    fun handleLoginFinished(packet: ClientboundLoginFinishedPacket)
 }

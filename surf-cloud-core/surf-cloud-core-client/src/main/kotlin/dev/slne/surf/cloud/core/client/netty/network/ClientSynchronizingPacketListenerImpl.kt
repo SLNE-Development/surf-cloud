@@ -20,7 +20,7 @@ import dev.slne.surf.surfapi.core.api.util.logger
 import kotlinx.coroutines.launch
 
 class ClientSynchronizingPacketListenerImpl(
-    val client: ClientNettyClientImpl,
+    override val client: ClientNettyClientImpl,
     connection: ConnectionImpl,
     val platformExtension: PlatformSpecificPacketListenerExtension,
     val statusUpdater: AbstractStatusUpdater,

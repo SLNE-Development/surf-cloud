@@ -4,9 +4,11 @@ import dev.slne.surf.cloud.api.common.netty.NettyClient
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
 import dev.slne.surf.cloud.api.common.netty.packet.RespondingNettyPacket
 import dev.slne.surf.cloud.api.common.netty.packet.ResponseNettyPacket
+import dev.slne.surf.cloud.api.common.server.CloudServer
+import dev.slne.surf.cloud.api.common.server.CommonCloudServer
+import dev.slne.surf.cloud.core.common.netty.network.ConnectionImpl
 import dev.slne.surf.surfapi.core.api.util.mutableObject2ObjectMapOf
 import dev.slne.surf.surfapi.core.api.util.synchronize
-import dev.slne.surf.cloud.core.common.netty.network.ConnectionImpl
 import kotlinx.coroutines.CompletableDeferred
 import java.net.InetSocketAddress
 import kotlin.time.Duration
@@ -39,6 +41,9 @@ abstract class CommonNettyClientImpl(
 
     abstract val playAddress: InetSocketAddress
     val displayName get() = "$serverName/$serverCategory (${_connection?.getLoggableAddress()})"
+
+    override val server: CommonCloudServer?
+        get() = CloudServer[serverName]
 
     override fun fireAndForget(packet: NettyPacket) {
         val connection = _connection

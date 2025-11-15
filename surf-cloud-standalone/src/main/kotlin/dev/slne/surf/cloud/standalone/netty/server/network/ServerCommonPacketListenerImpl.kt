@@ -28,7 +28,7 @@ import javax.annotation.OverridingMethodsMustInvokeSuper
  */
 abstract class ServerCommonPacketListenerImpl(
     val server: NettyServerImpl,
-    val client: ServerClientImpl,
+    override val client: ServerClientImpl,
     val connection: ConnectionImpl
 ) : CommonTickablePacketListener(), ServerCommonPacketListener {
     private val log = logger()

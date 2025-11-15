@@ -2,6 +2,7 @@ package dev.slne.surf.cloud.core.common.netty.network
 
 import dev.slne.surf.cloud.api.common.exceptions.SkipPacketException
 import dev.slne.surf.cloud.api.common.meta.SurfNettyPacket
+import dev.slne.surf.cloud.api.common.netty.NettyClient
 import dev.slne.surf.cloud.api.common.netty.network.Connection
 import dev.slne.surf.cloud.api.common.netty.network.ConnectionProtocol
 import dev.slne.surf.cloud.api.common.netty.network.protocol.PacketFlow
@@ -132,6 +133,9 @@ class ConnectionImpl(
     val connected get() = _channel != null && _channel!!.isOpen
     val connecting get() = _channel == null
 
+
+    override val client: NettyClient?
+        get() = (_packetListener as? CommonPacketListener)?.client
 
     override fun channelActive(ctx: ChannelHandlerContext) {
         super.channelActive(ctx)

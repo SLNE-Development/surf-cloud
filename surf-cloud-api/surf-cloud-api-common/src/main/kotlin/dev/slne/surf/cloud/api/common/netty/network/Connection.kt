@@ -1,5 +1,6 @@
 package dev.slne.surf.cloud.api.common.netty.network
 
+import dev.slne.surf.cloud.api.common.netty.NettyClient
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
 import kotlinx.coroutines.CompletableDeferred
 import java.net.InetSocketAddress
@@ -17,6 +18,8 @@ interface Connection {
 
     val hostname: String
     val virtualHost: InetSocketAddress
+
+    val client: NettyClient?
 
     /**
      * Sends a packet to the connection.

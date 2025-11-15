@@ -42,7 +42,7 @@ import java.util.concurrent.TimeUnit
 
 class ClientRunningPacketListenerImpl(
     connection: ConnectionImpl,
-    val client: ClientNettyClientImpl,
+    override val client: ClientNettyClientImpl,
     val platformExtension: PlatformSpecificPacketListenerExtension
 ) : ClientCommonPacketListenerImpl(connection), RunningClientPacketListener {
     private val log = logger()

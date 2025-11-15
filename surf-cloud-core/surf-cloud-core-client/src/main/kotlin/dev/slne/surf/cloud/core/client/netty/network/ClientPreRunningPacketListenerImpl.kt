@@ -12,7 +12,7 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.launch
 
 class ClientPreRunningPacketListenerImpl(
-    val client: ClientNettyClientImpl,
+    override val client: ClientNettyClientImpl,
     connection: ConnectionImpl,
     val platformExtension: PlatformSpecificPacketListenerExtension,
     val statusUpdater: AbstractStatusUpdater,

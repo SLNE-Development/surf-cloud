@@ -5,6 +5,7 @@ import dev.slne.surf.cloud.api.common.netty.packet.DEFAULT_TIMEOUT
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
 import dev.slne.surf.cloud.api.common.netty.packet.RespondingNettyPacket
 import dev.slne.surf.cloud.api.common.netty.packet.ResponseNettyPacket
+import dev.slne.surf.cloud.api.common.server.CommonCloudServer
 import kotlin.time.Duration
 
 /**
@@ -17,6 +18,8 @@ interface NettyClient {
     val velocitySecret: ByteArray
 
     val connection: Connection
+
+    val server: CommonCloudServer?
 
     /**
      * Sends a packet to the server without waiting for a response.

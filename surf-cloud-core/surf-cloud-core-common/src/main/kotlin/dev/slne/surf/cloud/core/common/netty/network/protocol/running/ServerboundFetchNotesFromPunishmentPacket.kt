@@ -8,9 +8,8 @@ import dev.slne.surf.cloud.api.common.netty.packet.PacketHandlerMode
 import dev.slne.surf.cloud.api.common.netty.packet.RespondingNettyPacket
 import dev.slne.surf.cloud.api.common.netty.packet.ResponseNettyPacket
 import dev.slne.surf.cloud.api.common.player.punishment.type.PunishmentType
-import dev.slne.surf.cloud.api.common.player.punishment.type.note.PunishmentNote.PunishmentNoteImpl
+import dev.slne.surf.cloud.api.common.player.punishment.type.note.PunishmentNote
 import dev.slne.surf.cloud.core.common.netty.network.InternalNettyPacket
-import kotlinx.serialization.Serializable
 
 @SurfNettyPacket(
     "cloud:serverbound:fetch_notes_from_punishment",
@@ -38,7 +37,15 @@ data class ServerboundFetchNotesFromPunishmentPacket(
     }
 }
 
-@Serializable
 @SurfNettyPacket("cloud:clientbound:fetch_notes_from_punishment_response", PacketFlow.CLIENTBOUND)
-data class ClientboundFetchNotesFromPunishmentResponse(val notes: List<PunishmentNoteImpl>) :
-    ResponseNettyPacket()
+data class ClientboundFetchNotesFromPunishmentResponse(val notes: MutableList<PunishmentNote>) :
+    ResponseNettyPacket() {
+    companion object {
+        val STREAM_CODEC = PunishmentNote.STREAM_CODEC
+            .apply(ByteBufCodecs.list())
+            .map(
+                ::ClientboundFetchNotesFromPunishmentResponse,
+                ClientboundFetchNotesFromPunishmentResponse::notes
+            )
+    }
+}

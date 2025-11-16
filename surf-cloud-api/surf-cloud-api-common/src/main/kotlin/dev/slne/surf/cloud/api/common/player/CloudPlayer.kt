@@ -1,8 +1,7 @@
 package dev.slne.surf.cloud.api.common.player
 
-import dev.slne.surf.bytebufserializer.Buf
+import dev.slne.surf.cloud.api.common.netty.network.codec.*
 import dev.slne.surf.cloud.api.common.netty.network.codec.kotlinx.cloud.CloudPlayerSerializer
-import dev.slne.surf.cloud.api.common.netty.network.codec.streamCodec
 import dev.slne.surf.cloud.api.common.player.ppdc.PersistentPlayerDataContainer
 import dev.slne.surf.cloud.api.common.player.ppdc.PersistentPlayerDataContainerView
 import dev.slne.surf.cloud.api.common.player.teleport.TeleportCause
@@ -12,7 +11,6 @@ import dev.slne.surf.cloud.api.common.player.toast.NetworkToast
 import dev.slne.surf.cloud.api.common.server.CloudServer
 import dev.slne.surf.surfapi.core.api.messages.adventure.buildText
 import io.netty.buffer.ByteBuf
-import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
 import net.kyori.adventure.audience.Audience
 import net.kyori.adventure.sound.Sound
@@ -213,100 +211,137 @@ interface CloudPlayer : Audience, OfflineCloudPlayer {
  * Enum like class representing the result of a player's connection attempt to a server.
  */
 @Suppress("ClassName")
-@Serializable
 sealed class ConnectionResultEnum(
-    val message: @Contextual Component,
+    val message: Component,
     val isSuccess: Boolean = false
 ) {
-    @Serializable
     object SUCCESS : ConnectionResultEnum(
         buildText { success("Du hast dich erfolgreich Verbunden.") },
         isSuccess = true
-    )
+    ), SealedVariantCodecProviderBufSimple<ConnectionResultEnum> {
+        override val id = 0
+        override val STREAM_CODEC = streamCodecUnitSimple(this)
+    }
 
-    @Serializable
     class SERVER_NOT_FOUND(val serverName: String) : ConnectionResultEnum(
         buildText {
             error("Der Server ")
             variableValue(serverName)
             error(" wurde nicht gefunden.")
         }
-    )
+    ) {
+        companion object : SealedVariantCodecProviderBufSimple<ConnectionResultEnum> {
+            override val id = 1
+            override val STREAM_CODEC =
+                ByteBufCodecs.STRING_CODEC.map(::SERVER_NOT_FOUND) { it.serverName }
+        }
+    }
 
-    @Serializable
     object SERVER_FULL : ConnectionResultEnum(
         buildText { error("Der Server ist voll.") }
-    )
+    ), SealedVariantCodecProviderBufSimple<ConnectionResultEnum> {
+        override val id = 2
+        override val STREAM_CODEC = streamCodecUnitSimple(this)
+    }
 
-    @Serializable
     object CATEGORY_FULL : ConnectionResultEnum(
         buildText { error("Die Kategorie ist voll.") }
-    )
+    ), SealedVariantCodecProviderBufSimple<ConnectionResultEnum> {
+        override val id = 3
+        override val STREAM_CODEC = streamCodecUnitSimple(this)
+    }
 
-    @Serializable
     object SERVER_OFFLINE : ConnectionResultEnum(
         buildText { error("Der Server ist offline.") }
-    )
+    ), SealedVariantCodecProviderBufSimple<ConnectionResultEnum> {
+        override val id = 4
+        override val STREAM_CODEC = streamCodecUnitSimple(this)
+    }
 
-    @Serializable
     object ALREADY_CONNECTED : ConnectionResultEnum(
         buildText { error("Du bist bereits mit diesem Server verbunden.") }
-    )
+    ), SealedVariantCodecProviderBufSimple<ConnectionResultEnum> {
+        override val id = 5
+        override val STREAM_CODEC = streamCodecUnitSimple(this)
+    }
 
-    @Serializable
     object CANNOT_SWITCH_PROXY : ConnectionResultEnum(
         buildText { error("Du kannst nicht zu diesem Server wechseln, da dieser unter einem anderen Proxy läuft.") }
-    )
+    ), SealedVariantCodecProviderBufSimple<ConnectionResultEnum> {
+        override val id = 6
+        override val STREAM_CODEC = streamCodecUnitSimple(this)
+    }
 
-    @Serializable
     object OTHER_SERVER_CANNOT_ACCEPT_TRANSFER_PACKET : ConnectionResultEnum(
         buildText { error("Der Server kann das Transfer-Paket nicht akzeptieren.") }
-    )
+    ), SealedVariantCodecProviderBufSimple<ConnectionResultEnum> {
+        override val id = 7
+        override val STREAM_CODEC = streamCodecUnitSimple(this)
+    }
 
-    @Serializable
     object CANNOT_COMMUNICATE_WITH_PROXY : ConnectionResultEnum(
         buildText { error("Der Proxy kann nicht erreicht werden.") }
-    )
+    ), SealedVariantCodecProviderBufSimple<ConnectionResultEnum> {
+        override val id = 8
+        override val STREAM_CODEC = streamCodecUnitSimple(this)
+    }
 
-    @Serializable
     object CONNECTION_IN_PROGRESS : ConnectionResultEnum(
         buildText { error("Du versuchst bereits eine Verbindung zu einem Server herzustellen.") }
-    )
+    ), SealedVariantCodecProviderBufSimple<ConnectionResultEnum> {
+        override val id = 9
+        override val STREAM_CODEC = streamCodecUnitSimple(this)
+    }
 
-    @Serializable
     object CONNECTION_CANCELLED : ConnectionResultEnum(
         buildText { error("Die Verbindung wurde abgebrochen.") }
-    )
+    ), SealedVariantCodecProviderBufSimple<ConnectionResultEnum> {
+        override val id = 10
+        override val STREAM_CODEC = streamCodecUnitSimple(this)
+    }
 
-    @Serializable
     object SERVER_DISCONNECTED : ConnectionResultEnum(
         buildText { error("Der Server hat die Verbindung getrennt.") }
-    )
+    ), SealedVariantCodecProviderBufSimple<ConnectionResultEnum> {
+        override val id = 11
+        override val STREAM_CODEC = streamCodecUnitSimple(this)
+    }
 
-    @Serializable
     object CANNOT_CONNECT_TO_PROXY : ConnectionResultEnum(
         buildText { error("Der Proxy kann nicht erreicht werden.") }
-    )
+    ), SealedVariantCodecProviderBufSimple<ConnectionResultEnum> {
+        override val id = 12
+        override val STREAM_CODEC = streamCodecUnitSimple(this)
+    }
 
-    @Serializable
     class ALREADY_QUEUED(val serverName: String) : ConnectionResultEnum(
         buildText {
             error("Du bist bereits in der Warteschlange für den Server ")
             variableValue(serverName)
             error(".")
         }
-    )
+    ) {
+        companion object : SealedVariantCodecProviderBufSimple<ConnectionResultEnum> {
+            override val id = 13
+            override val STREAM_CODEC =
+                ByteBufCodecs.STRING_CODEC.map(::ALREADY_QUEUED) { it.serverName }
+        }
+    }
 
-    @Serializable
     class QUEUE_SUSPENDED(val serverName: String) : ConnectionResultEnum(
         buildText {
             error("Die Warteschlange für den Server ")
             variableValue(serverName)
             error(" ist derzeit pausiert.")
         }
-    )
+    ) {
+        companion object : SealedVariantCodecProviderBufSimple<ConnectionResultEnum> {
+            override val id = 14
+            override val STREAM_CODEC =
+                ByteBufCodecs.STRING_CODEC.map(::QUEUE_SUSPENDED) { it.serverName }
+        }
+    }
 
-    @Serializable
     class MAX_QUEUE_CONNECTION_ATTEMPTS_REACHED(
         val latestFailure: ConnectionResultEnum,
         val serverName: String,
@@ -320,16 +355,32 @@ sealed class ConnectionResultEnum(
         }
         appendNewPrefixedLine()
         error("da das Maximum an Versuchen ($maxRetries) erreicht wurde.")
-    })
+    }) {
+        companion object : SealedVariantCodecProviderBufComplex<ConnectionResultEnum> {
+            override val id = 15
+            override fun localCodec(
+                parent: StreamCodec<ByteBuf, ConnectionResultEnum>
+            ) = StreamCodec.composite(
+                parent,
+                MAX_QUEUE_CONNECTION_ATTEMPTS_REACHED::latestFailure,
+                ByteBufCodecs.STRING_CODEC,
+                MAX_QUEUE_CONNECTION_ATTEMPTS_REACHED::serverName,
+                ByteBufCodecs.VAR_INT_CODEC,
+                MAX_QUEUE_CONNECTION_ATTEMPTS_REACHED::maxRetries,
+                ::MAX_QUEUE_CONNECTION_ATTEMPTS_REACHED
+            )
+        }
+    }
 
-    @Serializable
     object DISCONNECTED : ConnectionResultEnum(
         buildText {
             error("Du hast die Verbindung getrennt.")
         }
-    )
+    ), SealedVariantCodecProviderBufSimple<ConnectionResultEnum> {
+        override val id = 16
+        override val STREAM_CODEC = streamCodecUnitSimple(this)
+    }
 
-    @Serializable
     class QUEUE_SWAPPED(val oldQueue: String, val newQueue: String) : ConnectionResultEnum(
         buildText {
             error("Du bist von der Warteschlange ")
@@ -338,20 +389,30 @@ sealed class ConnectionResultEnum(
             variableValue(newQueue)
             error(" gewechselt.")
         }
-    )
+    ) {
+        companion object : SealedVariantCodecProviderBufSimple<ConnectionResultEnum> {
+            override val id = 17
+            override val STREAM_CODEC = StreamCodec.composite(
+                ByteBufCodecs.STRING_CODEC,
+                QUEUE_SWAPPED::oldQueue,
+                ByteBufCodecs.STRING_CODEC,
+                QUEUE_SWAPPED::newQueue,
+                ::QUEUE_SWAPPED
+            )
+        }
+    }
 
-    @Serializable
     object SERVER_SWITCHED : ConnectionResultEnum(
         buildText {
             error("Du bist auf einen anderen Server gewechselt.")
         }
-    )
+    ), SealedVariantCodecProviderBufSimple<ConnectionResultEnum> {
+        override val id = 18
+        override val STREAM_CODEC = streamCodecUnitSimple(this)
+    }
 
     companion object {
-        val STREAM_CODEC = streamCodec<ByteBuf, ConnectionResultEnum>({ buf, value ->
-            Buf.encodeToBuf(buf, value)
-        }, { buf ->
-            Buf.decodeFromBuf(buf)
-        })
+        val STREAM_CODEC =
+            StreamCodec.forSealedClassAuto(ByteBufCodecs.VAR_INT_CODEC, ConnectionResultEnum::class)
     }
 }

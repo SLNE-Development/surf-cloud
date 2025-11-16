@@ -9,7 +9,6 @@ import dev.slne.surf.cloud.api.common.netty.packet.RespondingNettyPacket
 import dev.slne.surf.cloud.api.common.netty.packet.ResponseNettyPacket
 import dev.slne.surf.cloud.core.common.netty.network.InternalNettyPacket
 import dev.slne.surf.cloud.core.common.player.punishment.type.AbstractPunishment
-import kotlinx.serialization.Serializable
 import java.util.*
 
 @SurfNettyPacket(
@@ -135,7 +134,15 @@ data class ServerboundFetchWarnsPacket(val punishedUuid: UUID) :
 }
 
 
-@Serializable
 @SurfNettyPacket("cloud:clientbound:fetch_punishments_response", PacketFlow.CLIENTBOUND)
-class ClientboundFetchedPunishmentsResponsePacket(val punishments: List<AbstractPunishment>) :
-    ResponseNettyPacket()
+class ClientboundFetchedPunishmentsResponsePacket(val punishments: MutableList<AbstractPunishment>) :
+    ResponseNettyPacket() {
+    companion object {
+        val STREAM_CODEC = AbstractPunishment.STREAM_CODEC
+            .apply(ByteBufCodecs.list())
+            .map(
+                ::ClientboundFetchedPunishmentsResponsePacket,
+                ClientboundFetchedPunishmentsResponsePacket::punishments
+            )
+    }
+}

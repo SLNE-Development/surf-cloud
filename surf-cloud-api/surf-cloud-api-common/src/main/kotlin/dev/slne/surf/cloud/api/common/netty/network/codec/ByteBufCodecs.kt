@@ -516,6 +516,15 @@ object ByteBufCodecs {
         return CodecOperation { size -> collection(::ObjectArrayList, size) }
     }
 
+    fun <B : ByteBuf, V> makeImmutableList(): CodecOperation<B, MutableList<V>, List<V>> {
+        return CodecOperation { size ->
+            size.map(
+                { Collections.unmodifiableList(it) },
+                ::ObjectArrayList
+            )
+        }
+    }
+
     fun <B : ByteBuf, V> list(maxSize: Int): CodecOperation<B, V, MutableList<V>> {
         return CodecOperation { size -> collection(::ObjectArrayList, size, maxSize) }
     }

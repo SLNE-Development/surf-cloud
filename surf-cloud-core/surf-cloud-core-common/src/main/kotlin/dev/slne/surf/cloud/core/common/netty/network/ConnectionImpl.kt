@@ -10,6 +10,7 @@ import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacketInfo
 import dev.slne.surf.cloud.api.common.netty.packet.PacketHandlerMode
 import dev.slne.surf.cloud.api.common.netty.packet.PacketHandlerMode.*
+import dev.slne.surf.cloud.api.common.netty.packet.ResponseNettyPacket
 import dev.slne.surf.cloud.api.common.util.DefaultUncaughtExceptionHandlerWithName
 import dev.slne.surf.cloud.api.common.util.math.lerp
 import dev.slne.surf.cloud.api.common.util.netty.suspend
@@ -237,6 +238,7 @@ class ConnectionImpl(
         if (!packetListener.shouldHandleMessage(msg)) return
 
         this.receivedPackets++
+        if (msg is ResponseNettyPacket) return // handled by RespondingPacketSendHandler
         handlePacket(ctx, msg)
     }
 

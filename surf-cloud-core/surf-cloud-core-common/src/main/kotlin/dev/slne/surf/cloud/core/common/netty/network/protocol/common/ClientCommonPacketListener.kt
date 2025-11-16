@@ -10,5 +10,7 @@ interface ClientCommonPacketListener : ClientboundPacketListener, CommonPacketLi
 
     fun handlePing(packet: ClientboundPingPacket)
 
+    fun handlePong(packet: ClientboundPongResponsePacket)
+
     fun handleDisconnect(packet: ClientboundDisconnectPacket)
 }

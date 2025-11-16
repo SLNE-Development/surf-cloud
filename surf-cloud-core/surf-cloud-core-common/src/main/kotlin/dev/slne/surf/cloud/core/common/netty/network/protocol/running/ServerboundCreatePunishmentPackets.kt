@@ -10,7 +10,6 @@ import dev.slne.surf.cloud.api.common.netty.packet.RespondingNettyPacket
 import dev.slne.surf.cloud.api.common.netty.packet.ResponseNettyPacket
 import dev.slne.surf.cloud.core.common.netty.network.InternalNettyPacket
 import dev.slne.surf.cloud.core.common.player.punishment.type.AbstractPunishment
-import kotlinx.serialization.Serializable
 import java.time.ZonedDateTime
 import java.util.*
 
@@ -175,7 +174,14 @@ class ServerboundCreateBanPacket(
     }
 }
 
-@Serializable
 @SurfNettyPacket("cloud:clientbound:created_punishment_response", PacketFlow.CLIENTBOUND)
 class ClientboundCreatedPunishmentResponsePacket(val punishment: AbstractPunishment) :
-    ResponseNettyPacket()
+    ResponseNettyPacket() {
+    companion object {
+        val STREAM_CODEC = StreamCodec.composite(
+            AbstractPunishment.STREAM_CODEC,
+            ClientboundCreatedPunishmentResponsePacket::punishment,
+            ::ClientboundCreatedPunishmentResponsePacket
+        )
+    }
+}

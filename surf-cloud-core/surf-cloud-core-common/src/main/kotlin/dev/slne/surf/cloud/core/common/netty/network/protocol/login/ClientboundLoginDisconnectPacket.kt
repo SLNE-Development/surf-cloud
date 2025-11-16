@@ -6,15 +6,19 @@ import dev.slne.surf.cloud.api.common.netty.network.ConnectionProtocol
 import dev.slne.surf.cloud.api.common.netty.network.codec.StreamCodec
 import dev.slne.surf.cloud.api.common.netty.network.protocol.PacketFlow
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
+import dev.slne.surf.cloud.api.common.netty.packet.PacketHandlerMode
 import dev.slne.surf.cloud.core.common.netty.network.DisconnectReason
 import dev.slne.surf.cloud.core.common.netty.network.DisconnectionDetails
+import dev.slne.surf.cloud.core.common.netty.network.InternalNettyPacket
 
 @SurfNettyPacket(
     DefaultIds.CLIENTBOUND_LOGIN_DISCONNECT_PACKET,
     PacketFlow.CLIENTBOUND,
-    ConnectionProtocol.LOGIN
+    ConnectionProtocol.LOGIN,
+    handlerMode = PacketHandlerMode.NETTY
 )
-class ClientboundLoginDisconnectPacket : NettyPacket {
+class ClientboundLoginDisconnectPacket : NettyPacket,
+    InternalNettyPacket<ClientLoginPacketListener> {
     companion object {
         val STREAM_CODEC = StreamCodec.composite(
             DisconnectionDetails.STREAM_CODEC,
@@ -31,5 +35,9 @@ class ClientboundLoginDisconnectPacket : NettyPacket {
 
     constructor(reason: DisconnectReason) {
         this.details = DisconnectionDetails(reason)
+    }
+
+    override fun handle(listener: ClientLoginPacketListener) {
+        listener.handleDisconnect(this)
     }
 }

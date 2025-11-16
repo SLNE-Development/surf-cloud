@@ -3,10 +3,12 @@ package dev.slne.surf.cloud.core.common.netty.network.protocol.common
 import dev.slne.surf.cloud.api.common.meta.DefaultIds
 import dev.slne.surf.cloud.api.common.meta.SurfNettyPacket
 import dev.slne.surf.cloud.api.common.netty.network.ConnectionProtocol
+import dev.slne.surf.cloud.api.common.netty.network.codec.ByteBufCodecs
+import dev.slne.surf.cloud.api.common.netty.network.codec.StreamCodec
 import dev.slne.surf.cloud.api.common.netty.network.protocol.PacketFlow
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
-import dev.slne.surf.cloud.api.common.netty.packet.packetCodec
-import dev.slne.surf.cloud.api.common.netty.protocol.buffer.SurfByteBuf
+import dev.slne.surf.cloud.api.common.netty.packet.PacketHandlerMode
+import dev.slne.surf.cloud.core.common.netty.network.InternalNettyPacket
 
 @SurfNettyPacket(
     DefaultIds.CLIENTBOUND_PING_REQUEST_RESPONSE_PACKET,
@@ -14,25 +16,19 @@ import dev.slne.surf.cloud.api.common.netty.protocol.buffer.SurfByteBuf
     ConnectionProtocol.RUNNING,
     ConnectionProtocol.PRE_RUNNING,
     ConnectionProtocol.SYNCHRONIZING,
+    handlerMode = PacketHandlerMode.NETTY
 )
-class ClientboundPongResponsePacket : NettyPacket {
-
+class ClientboundPongResponsePacket(val time: Long) : NettyPacket(),
+    InternalNettyPacket<ClientCommonPacketListener> {
     companion object {
-        val STREAM_CODEC =
-            packetCodec(ClientboundPongResponsePacket::write, ::ClientboundPongResponsePacket)
+        val STREAM_CODEC = StreamCodec.composite(
+            ByteBufCodecs.VAR_LONG_CODEC,
+            ClientboundPongResponsePacket::time,
+            ::ClientboundPongResponsePacket
+        )
     }
 
-    val time: Long
-
-    constructor(time: Long) {
-        this.time = time
-    }
-
-    private constructor(buf: SurfByteBuf) {
-        time = buf.readLong()
-    }
-
-    fun write(buffer: SurfByteBuf) {
-        buffer.writeLong(time)
+    override fun handle(listener: ClientCommonPacketListener) {
+        listener.handlePong(this)
     }
 }

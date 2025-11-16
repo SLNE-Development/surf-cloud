@@ -8,10 +8,7 @@ import dev.slne.surf.cloud.core.common.netty.network.CommonTickablePacketListene
 import dev.slne.surf.cloud.core.common.netty.network.ConnectionImpl
 import dev.slne.surf.cloud.core.common.netty.network.DisconnectReason
 import dev.slne.surf.cloud.core.common.netty.network.DisconnectionDetails
-import dev.slne.surf.cloud.core.common.netty.network.protocol.common.ClientCommonPacketListener
-import dev.slne.surf.cloud.core.common.netty.network.protocol.common.ClientboundBundlePacket
-import dev.slne.surf.cloud.core.common.netty.network.protocol.common.KeepAliveHandler
-import dev.slne.surf.cloud.core.common.netty.network.protocol.common.KeepAlivePacket
+import dev.slne.surf.cloud.core.common.netty.network.protocol.common.*
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ClientboundDisconnectPacket
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ClientboundPingPacket
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ServerboundPongPacket
@@ -50,6 +47,10 @@ abstract class ClientCommonPacketListenerImpl(
 
     override fun handlePing(packet: ClientboundPingPacket) {
         send(ServerboundPongPacket(packet.pingId))
+    }
+
+    override fun handlePong(packet: ClientboundPongResponsePacket) {
+
     }
 
     override fun handleDisconnect(packet: ClientboundDisconnectPacket) {

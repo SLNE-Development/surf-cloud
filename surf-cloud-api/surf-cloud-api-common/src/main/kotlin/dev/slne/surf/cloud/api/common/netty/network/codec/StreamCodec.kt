@@ -1,9 +1,15 @@
 package dev.slne.surf.cloud.api.common.netty.network.codec
 
+import dev.slne.surf.cloud.api.common.netty.protocol.buffer.checkEncoded
+import dev.slne.surf.cloud.api.common.netty.protocol.buffer.checkEncodedNotNull
 import io.netty.buffer.ByteBuf
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap
+import java.lang.reflect.Modifier
 import java.util.function.BiFunction
 import java.util.function.Function
 import java.util.function.UnaryOperator
+import kotlin.reflect.KClass
 
 interface StreamCodec<B, V> : StreamDecoder<B, V>, StreamEncoder<B, V> {
     fun <O> apply(function: CodecOperation<B, V, O>) = function.apply(this)
@@ -63,6 +69,72 @@ interface StreamCodec<B, V> : StreamDecoder<B, V>, StreamEncoder<B, V> {
                     check(value == otherValue) { "Can't encode '$otherValue', expected '$value'" }
                 }
             }
+        }
+
+        inline fun <B, T : Any> forSealedClass(
+            idCodec: StreamCodec<B, Int>,
+            noinline idOf: (T) -> Int,
+            crossinline build: SealedCodecBuilder<B, T>.(self: StreamCodec<B, T>) -> Unit
+        ): StreamCodec<B, T> = recursive { self ->
+            val b = SealedCodecBuilder<B, T>(idOf)
+            b.build(self)
+            b.build(idCodec)
+        }
+
+        fun <B, T : Any> forSealedClassAuto(
+            idCodec: StreamCodec<B, Int>,
+            root: KClass<T>
+        ): StreamCodec<B, T> = recursive<B, T> { parent ->
+            val idToCodec = Int2ObjectOpenHashMap<StreamCodec<B, out T>>()
+            val clazzToId = Object2IntOpenHashMap<Class<out T>>().apply {
+                defaultReturnValue(-1)
+            }
+
+            fun <T : Any> KClass<out T>.finalLeaves(): List<Class<out T>> {
+                fun walk(targetClass: Class<out T>, classes: MutableList<Class<out T>>) {
+                    val perms = targetClass.permittedSubclasses
+                    if (perms.isNullOrEmpty()) {
+                        classes += targetClass; return
+                    }
+                    perms.forEach { sub ->
+                        @Suppress("UNCHECKED_CAST")
+                        val subC = sub as Class<out T>
+                        if (Modifier.isFinal(subC.modifiers)) classes += subC
+                        else walk(subC, classes)
+                    }
+                }
+
+                val root = this.java
+                return buildList { walk(root, this) }
+            }
+
+            for (leaf in root.finalLeaves()) {
+                val provider = SealedVariantCodecProvider.findProvider<B, T>(leaf)
+                    ?: error("No SealedVariantCodecProvider on $leaf (object or companion)")
+                val codec = provider.codecSupplier(parent)
+                require(!idToCodec.containsKey(provider.id)) { "Duplicate id ${provider.id}" }
+                idToCodec[provider.id] = codec
+                clazzToId[leaf] = provider.id
+            }
+
+            ofMember(
+                { value, buf ->
+                    val id = clazzToId.getInt(value.javaClass)
+                    checkEncoded(id != -1) { "Unknown class ${value::class}" }
+                    val codec = idToCodec.get(id)
+                    checkEncodedNotNull(codec) { "Unknown id $id" }
+
+                    idCodec.encode(buf, id)
+                    @Suppress("UNCHECKED_CAST")
+                    (codec as StreamCodec<B, T>).encode(buf, value)
+                },
+                { buf ->
+                    val id = idCodec.decode(buf)
+                    val codec = idToCodec.get(id)
+                    checkEncodedNotNull(codec) { "Unknown id $id" }
+                    codec.decode(buf)
+                }
+            )
         }
 
         @JvmStatic

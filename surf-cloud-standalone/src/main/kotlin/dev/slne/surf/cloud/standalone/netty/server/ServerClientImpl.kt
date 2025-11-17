@@ -7,7 +7,7 @@ import dev.slne.surf.cloud.standalone.netty.server.network.ServerRunningPacketLi
 import java.net.InetSocketAddress
 
 class ServerClientImpl(
-    val server: NettyServerImpl,
+    val nettyServer: NettyServerImpl,
     serverCategory: String,
     serverName: String,
     val lobbyServer: Boolean,
@@ -26,7 +26,7 @@ class ServerClientImpl(
     }
 
     override fun broadcast(packets: List<NettyPacket>) {
-        server.connection.broadcast(packets)
+        nettyServer.connection.broadcast(packets)
     }
 
     companion object {

@@ -99,6 +99,8 @@ interface RunningServerPacketListener :
 
     fun handleRefreshWhitelist(packet: ServerboundRefreshWhitelistPacket)
 
+    fun handlePullPlayersToGroup(packet: ServerboundPullPlayersToGroupPacket)
+
     fun handleCacheRegisterKeys(packet: ServerboundCacheRegisterKeysPacket)
     fun handleCacheOp(packet: ServerboundCacheOpPacket)
     fun handleCacheFetch(packet: ServerboundCacheFetchPacket)

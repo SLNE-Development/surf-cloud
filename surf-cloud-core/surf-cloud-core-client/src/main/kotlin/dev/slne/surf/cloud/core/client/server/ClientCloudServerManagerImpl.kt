@@ -5,7 +5,6 @@ import dev.slne.surf.cloud.api.client.netty.packet.fireAndAwaitOrThrow
 import dev.slne.surf.cloud.api.client.server.CloudClientServerManager
 import dev.slne.surf.cloud.api.common.config.properties.CloudProperties
 import dev.slne.surf.cloud.api.common.player.CloudPlayer
-import dev.slne.surf.cloud.api.common.player.CloudPlayerManager
 import dev.slne.surf.cloud.api.common.player.ConnectionResultEnum
 import dev.slne.surf.cloud.api.common.server.CloudServer
 import dev.slne.surf.cloud.api.common.server.CloudServerManager
@@ -16,6 +15,7 @@ import dev.slne.surf.cloud.core.common.netty.network.protocol.running.Serverboun
 import dev.slne.surf.cloud.core.common.server.CommonCloudServerImpl
 import dev.slne.surf.cloud.core.common.server.CommonCloudServerManagerImpl
 import dev.slne.surf.surfapi.core.api.util.mutableObjectListOf
+import dev.slne.surf.surfapi.core.api.util.mutableObjectSetOf
 import it.unimi.dsi.fastutil.objects.ObjectList
 import org.jetbrains.annotations.Unmodifiable
 import kotlin.time.Duration
@@ -45,16 +45,20 @@ class ClientCloudServerManagerImpl : CommonCloudServerManagerImpl<CommonCloudSer
 
     override suspend fun pullPlayersToGroup(
         group: String,
-        players: Collection<CloudPlayer>
+        players: Iterable<CloudPlayer>
     ): @Unmodifiable ObjectList<Pair<CloudPlayer, ConnectionResultEnum>> {
-        return ServerboundPullPlayersToGroupPacket(
-            group,
-            players.map { it.uuid }
-        ).fireAndAwaitOrThrow(Duration.INFINITE)
-            .results
-            .mapNotNullTo(mutableObjectListOf()) { (uuid, result) ->
-                CloudPlayerManager.getPlayer(uuid)?.let { it to result }
+        val uuids = players.mapTo(mutableObjectSetOf()) { it.uuid }
+        val resultOrException = ServerboundPullPlayersToGroupPacket(group, uuids)
+            .fireAndAwaitOrThrow(Duration.INFINITE) // we will always get a response or something went terribly wrong
+            .result
+
+        return resultOrException.map({ result ->
+            result.mapNotNullTo(mutableObjectListOf()) { (uuid, result) ->
+                CloudPlayer[uuid]?.let { it to result }
             }
+        }, { errorMessage ->
+            throw IllegalStateException("Failed to pull players to group '$group': $errorMessage")
+        })
     }
 }
 

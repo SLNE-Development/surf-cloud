@@ -111,6 +111,7 @@ private fun executeBanCommand(
             (sender as? Player)?.uniqueId
         )
     } else {
+        @Suppress("DEPRECATION")
         player.punishmentManager.punish(
             PunishType.BAN.Raw,
             null,

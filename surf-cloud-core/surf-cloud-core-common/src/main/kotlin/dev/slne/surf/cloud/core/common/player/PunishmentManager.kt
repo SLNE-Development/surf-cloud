@@ -1,7 +1,7 @@
 package dev.slne.surf.cloud.core.common.player
 
-import dev.slne.surf.cloud.api.common.player.punishment.type.PunishmentAttachedIpAddress.PunishmentAttachedIpAddressImpl
-import dev.slne.surf.cloud.api.common.player.punishment.type.note.PunishmentNote.PunishmentNoteImpl
+import dev.slne.surf.cloud.api.common.player.punishment.type.PunishmentAttachedIpAddress
+import dev.slne.surf.cloud.api.common.player.punishment.type.note.PunishmentNote
 import dev.slne.surf.cloud.core.common.player.punishment.type.PunishmentBanImpl
 import dev.slne.surf.cloud.core.common.player.punishment.type.PunishmentKickImpl
 import dev.slne.surf.cloud.core.common.player.punishment.type.PunishmentMuteImpl
@@ -64,17 +64,17 @@ interface PunishmentManager {
 
     suspend fun attachIpAddressToBan(id: Long, rawIp: String): Boolean
 
-    suspend fun attachNoteToBan(id: Long, note: String): PunishmentNoteImpl
-    suspend fun attachNoteToMute(id: Long, note: String): PunishmentNoteImpl
-    suspend fun attachNoteToKick(id: Long, note: String): PunishmentNoteImpl
-    suspend fun attachNoteToWarn(id: Long, note: String): PunishmentNoteImpl
+    suspend fun attachNoteToBan(id: Long, note: String): PunishmentNote
+    suspend fun attachNoteToMute(id: Long, note: String): PunishmentNote
+    suspend fun attachNoteToKick(id: Long, note: String): PunishmentNote
+    suspend fun attachNoteToWarn(id: Long, note: String): PunishmentNote
 
-    suspend fun fetchNotesForBan(id: Long): List<PunishmentNoteImpl>
-    suspend fun fetchNotesForMute(id: Long): List<PunishmentNoteImpl>
-    suspend fun fetchNotesForKick(id: Long): List<PunishmentNoteImpl>
-    suspend fun fetchNotesForWarn(id: Long): List<PunishmentNoteImpl>
+    suspend fun fetchNotesForBan(id: Long): List<PunishmentNote>
+    suspend fun fetchNotesForMute(id: Long): List<PunishmentNote>
+    suspend fun fetchNotesForKick(id: Long): List<PunishmentNote>
+    suspend fun fetchNotesForWarn(id: Long): List<PunishmentNote>
 
-    suspend fun fetchIpAddressesForBan(id: Long): List<PunishmentAttachedIpAddressImpl>
+    suspend fun fetchIpAddressesForBan(id: Long): List<PunishmentAttachedIpAddress>
 
     suspend fun fetchMutes(punishedUuid: UUID, onlyActive: Boolean): List<PunishmentMuteImpl>
     suspend fun fetchBans(punishedUuid: UUID, onlyActive: Boolean): List<PunishmentBanImpl>

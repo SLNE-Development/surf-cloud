@@ -135,11 +135,12 @@ data class ServerboundFetchWarnsPacket(val punishedUuid: UUID) :
 
 
 @SurfNettyPacket("cloud:clientbound:fetch_punishments_response", PacketFlow.CLIENTBOUND)
-class ClientboundFetchedPunishmentsResponsePacket(val punishments: MutableList<AbstractPunishment>) :
+class ClientboundFetchedPunishmentsResponsePacket(val punishments: List<AbstractPunishment>) :
     ResponseNettyPacket() {
     companion object {
         val STREAM_CODEC = AbstractPunishment.STREAM_CODEC
             .apply(ByteBufCodecs.list())
+            .apply(ByteBufCodecs.makeImmutableList())
             .map(
                 ::ClientboundFetchedPunishmentsResponsePacket,
                 ClientboundFetchedPunishmentsResponsePacket::punishments

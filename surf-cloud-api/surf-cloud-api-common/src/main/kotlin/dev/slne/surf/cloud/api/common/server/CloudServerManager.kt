@@ -64,7 +64,7 @@ interface CloudServerManager {
 
     suspend fun pullPlayersToGroup(
         group: String,
-        players: Collection<CloudPlayer>
+        players: Iterable<CloudPlayer>
     ): @Unmodifiable ObjectList<Pair<CloudPlayer, ConnectionResultEnum>>
 
     suspend fun broadcastToGroup(

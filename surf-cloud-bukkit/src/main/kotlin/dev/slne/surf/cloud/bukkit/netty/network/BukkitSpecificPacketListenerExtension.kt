@@ -69,7 +69,7 @@ class BukkitSpecificPacketListenerExtension : PlatformSpecificPacketListenerExte
         return Companion.teleportPlayer(uuid, location, teleportCause, flags)
     }
 
-    override fun registerCloudServerToProxy(info: Array<RegistrationInfo>) = Unit
+    override fun registerCloudServerToProxy(info: RegistrationInfo) = Unit
     override fun registerCloudServerToProxy(client: ClientCloudServerImpl) = Unit
     override fun unregisterCloudServerFromProxy(client: ClientCloudServerImpl) = Unit
 

@@ -116,7 +116,7 @@ class StandaloneCloudServerManagerImpl : CommonCloudServerManagerImpl<ServerComm
 
     override suspend fun pullPlayersToGroup(
         group: String,
-        players: Collection<CloudPlayer>
+        players: Iterable<CloudPlayer>
     ): @Unmodifiable ObjectList<Pair<CloudPlayer, ConnectionResultEnum>> {
         val toConnect = players
             .filterNot { it.isInGroup(group) }

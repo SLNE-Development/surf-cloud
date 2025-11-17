@@ -2,9 +2,9 @@ package dev.slne.surf.cloud.core.client.player
 
 import dev.slne.surf.cloud.api.client.netty.packet.awaitOrThrow
 import dev.slne.surf.cloud.api.client.netty.packet.fireAndAwaitOrThrow
-import dev.slne.surf.cloud.api.common.player.punishment.type.PunishmentAttachedIpAddress.PunishmentAttachedIpAddressImpl
+import dev.slne.surf.cloud.api.common.player.punishment.type.PunishmentAttachedIpAddress
 import dev.slne.surf.cloud.api.common.player.punishment.type.PunishmentType
-import dev.slne.surf.cloud.api.common.player.punishment.type.note.PunishmentNote.PunishmentNoteImpl
+import dev.slne.surf.cloud.api.common.player.punishment.type.note.PunishmentNote
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.*
 import dev.slne.surf.cloud.core.common.player.PunishmentCacheImpl
 import dev.slne.surf.cloud.core.common.player.PunishmentManager
@@ -12,6 +12,7 @@ import dev.slne.surf.cloud.core.common.player.punishment.type.PunishmentBanImpl
 import dev.slne.surf.cloud.core.common.player.punishment.type.PunishmentKickImpl
 import dev.slne.surf.cloud.core.common.player.punishment.type.PunishmentMuteImpl
 import dev.slne.surf.cloud.core.common.player.punishment.type.PunishmentWarnImpl
+import dev.slne.surf.surfapi.core.api.util.toMutableObjectList
 import org.springframework.stereotype.Component
 import java.time.ZonedDateTime
 import java.util.*
@@ -31,7 +32,7 @@ class PunishmentManagerImpl : PunishmentManager {
         punishedUuid,
         issuerUuid,
         reason,
-        initialNotes,
+        initialNotes.toMutableObjectList(),
         parentId
     ).fireAndAwaitOrThrow().punishment as PunishmentKickImpl
 
@@ -45,7 +46,7 @@ class PunishmentManagerImpl : PunishmentManager {
         punishedUuid,
         issuerUuid,
         reason,
-        initialNotes,
+        initialNotes.toMutableObjectList(),
         parentId
     ).fireAndAwaitOrThrow().punishment as PunishmentWarnImpl
 
@@ -63,7 +64,7 @@ class PunishmentManagerImpl : PunishmentManager {
         reason,
         permanent,
         expirationDate,
-        initialNotes,
+        initialNotes.toMutableObjectList(),
         parentId
     ).fireAndAwaitOrThrow().punishment as PunishmentMuteImpl
 
@@ -86,8 +87,8 @@ class PunishmentManagerImpl : PunishmentManager {
         expirationDate,
         securityBan,
         raw,
-        initialNotes,
-        initialIpAddresses,
+        initialNotes.toMutableObjectList(),
+        initialIpAddresses.toMutableObjectList(),
         parentId
     ).fireAndAwaitOrThrow().punishment as PunishmentBanImpl
 
@@ -130,7 +131,7 @@ class PunishmentManagerImpl : PunishmentManager {
     override suspend fun attachNoteToBan(
         id: Long,
         note: String
-    ): PunishmentNoteImpl =
+    ): PunishmentNote =
         ServerboundAttachNoteToPunishmentPacket(
             id,
             note,
@@ -141,7 +142,7 @@ class PunishmentManagerImpl : PunishmentManager {
     override suspend fun attachNoteToMute(
         id: Long,
         note: String
-    ): PunishmentNoteImpl =
+    ): PunishmentNote =
         ServerboundAttachNoteToPunishmentPacket(
             id,
             note,
@@ -151,7 +152,7 @@ class PunishmentManagerImpl : PunishmentManager {
     override suspend fun attachNoteToKick(
         id: Long,
         note: String
-    ): PunishmentNoteImpl =
+    ): PunishmentNote =
         ServerboundAttachNoteToPunishmentPacket(
             id,
             note,
@@ -161,38 +162,38 @@ class PunishmentManagerImpl : PunishmentManager {
     override suspend fun attachNoteToWarn(
         id: Long,
         note: String
-    ): PunishmentNoteImpl =
+    ): PunishmentNote =
         ServerboundAttachNoteToPunishmentPacket(
             id,
             note,
             PunishmentType.WARN
         ).fireAndAwaitOrThrow().note
 
-    override suspend fun fetchNotesForBan(id: Long): List<PunishmentNoteImpl> =
+    override suspend fun fetchNotesForBan(id: Long): List<PunishmentNote> =
         ServerboundFetchNotesFromPunishmentPacket(
             id,
             PunishmentType.BAN
         ).fireAndAwaitOrThrow().notes
 
-    override suspend fun fetchNotesForMute(id: Long): List<PunishmentNoteImpl> =
+    override suspend fun fetchNotesForMute(id: Long): List<PunishmentNote> =
         ServerboundFetchNotesFromPunishmentPacket(
             id,
             PunishmentType.MUTE
         ).fireAndAwaitOrThrow().notes
 
-    override suspend fun fetchNotesForKick(id: Long): List<PunishmentNoteImpl> =
+    override suspend fun fetchNotesForKick(id: Long): List<PunishmentNote> =
         ServerboundFetchNotesFromPunishmentPacket(
             id,
             PunishmentType.KICK
         ).fireAndAwaitOrThrow().notes
 
-    override suspend fun fetchNotesForWarn(id: Long): List<PunishmentNoteImpl> =
+    override suspend fun fetchNotesForWarn(id: Long): List<PunishmentNote> =
         ServerboundFetchNotesFromPunishmentPacket(
             id,
             PunishmentType.WARN
         ).fireAndAwaitOrThrow().notes
 
-    override suspend fun fetchIpAddressesForBan(id: Long): List<PunishmentAttachedIpAddressImpl> {
+    override suspend fun fetchIpAddressesForBan(id: Long): List<PunishmentAttachedIpAddress> {
         return ServerboundFetchIpAddressesForBanPacket(id).fireAndAwaitOrThrow().ipAddresses
     }
 

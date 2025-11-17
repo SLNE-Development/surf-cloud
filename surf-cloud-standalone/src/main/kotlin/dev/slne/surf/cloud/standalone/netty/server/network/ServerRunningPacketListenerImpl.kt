@@ -5,6 +5,7 @@ import dev.slne.surf.cloud.api.common.netty.network.ConnectionProtocol
 import dev.slne.surf.cloud.api.common.netty.network.protocol.respond
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacketInfo
+import dev.slne.surf.cloud.api.common.player.CloudPlayer
 import dev.slne.surf.cloud.api.common.player.CloudPlayerManager
 import dev.slne.surf.cloud.api.common.player.ConnectionResultEnum
 import dev.slne.surf.cloud.api.common.player.punishment.type.PunishmentType
@@ -12,6 +13,7 @@ import dev.slne.surf.cloud.api.common.player.whitelist.WhitelistSettings
 import dev.slne.surf.cloud.api.common.player.whitelist.WhitelistStatus
 import dev.slne.surf.cloud.api.common.server.CloudServer
 import dev.slne.surf.cloud.api.common.server.CloudServerManager
+import dev.slne.surf.cloud.api.common.util.Either
 import dev.slne.surf.cloud.core.common.coroutines.PacketHandlerIoScope
 import dev.slne.surf.cloud.core.common.coroutines.PacketHandlerScope
 import dev.slne.surf.cloud.core.common.coroutines.PunishmentHandlerScope
@@ -34,6 +36,8 @@ import dev.slne.surf.cloud.standalone.server.serverManagerImpl
 import dev.slne.surf.cloud.standalone.sync.SyncRegistryImpl
 import dev.slne.surf.surfapi.core.api.messages.adventure.text
 import dev.slne.surf.surfapi.core.api.util.logger
+import dev.slne.surf.surfapi.core.api.util.mutableObjectListOf
+import dev.slne.surf.surfapi.core.api.util.toMutableObjectList
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import net.kyori.adventure.text.Component
@@ -548,10 +552,9 @@ class ServerRunningPacketListenerImpl(
                     PunishmentType.MUTE -> manager.fetchNotesForMute(id)
                     PunishmentType.KICK -> manager.fetchNotesForKick(id)
                     PunishmentType.WARN -> manager.fetchNotesForWarn(id)
-                }
+                }.toMutableObjectList()
                 packet.respond(ClientboundFetchNotesFromPunishmentResponse(notes))
             } catch (e: Throwable) {
-                if (e is CancellationException) throw e
                 log.atWarning()
                     .withCause(e)
                     .log("Failed to fetch notes from punishment!")
@@ -562,11 +565,10 @@ class ServerRunningPacketListenerImpl(
     override fun handleFetchMutes(packet: ServerboundFetchMutesPacket) {
         PunishmentHandlerScope.launch {
             try {
-                val mutes =
-                    bean<PunishmentManager>().fetchMutes(packet.punishedUuid, packet.onlyActive)
+                val mutes = bean<PunishmentManager>()
+                    .fetchMutes(packet.punishedUuid, packet.onlyActive)
                 packet.respond(ClientboundFetchedPunishmentsResponsePacket(mutes))
             } catch (e: Throwable) {
-                if (e is CancellationException) throw e
                 log.atWarning()
                     .withCause(e)
                     .log("Failed to fetch mutes!")
@@ -581,7 +583,6 @@ class ServerRunningPacketListenerImpl(
                     bean<PunishmentManager>().fetchBans(packet.punishedUuid, packet.onlyActive)
                 packet.respond(ClientboundFetchedPunishmentsResponsePacket(bans))
             } catch (e: Throwable) {
-                if (e is CancellationException) throw e
                 log.atWarning()
                     .withCause(e)
                     .log("Failed to fetch bans!")
@@ -626,7 +627,6 @@ class ServerRunningPacketListenerImpl(
                     ClientboundGetCurrentLoginValidationPunishmentCacheResponsePacket(cache)
                 packet.respond(response)
             } catch (e: Throwable) {
-                if (e is CancellationException) throw e
                 log.atWarning()
                     .withCause(e)
                     .log("Failed to fetch current login validation punishment cache!")
@@ -637,10 +637,12 @@ class ServerRunningPacketListenerImpl(
     override fun handleFetchIpAddressesForBan(packet: ServerboundFetchIpAddressesForBanPacket) {
         PunishmentHandlerScope.launch {
             try {
-                val ipAddresses = bean<PunishmentManager>().fetchIpAddressesForBan(packet.banId)
+                val ipAddresses = bean<PunishmentManager>()
+                    .fetchIpAddressesForBan(packet.banId)
+                    .toMutableObjectList()
+
                 packet.respond(ClientboundFetchIpAddressesResponsePacket(ipAddresses))
             } catch (e: Throwable) {
-                if (e is CancellationException) throw e
                 log.atWarning()
                     .withCause(e)
                     .log("Failed to fetch ip addresses for ban!")
@@ -767,6 +769,25 @@ class ServerRunningPacketListenerImpl(
             log.atWarning()
                 .withCause(e)
                 .log("Failed to handle refresh whitelist request")
+        }
+    }
+
+    override fun handlePullPlayersToGroup(packet: ServerboundPullPlayersToGroupPacket) {
+        PacketHandlerScope.launch {
+            try {
+                val players = packet.players.mapNotNull(CloudPlayer::get)
+                val result = CloudServerManager.pullPlayersToGroup(packet.group, players)
+                val networkResults = result
+                    .mapTo(mutableObjectListOf(result.size)) { (player, result) -> player.uuid to result }
+
+                packet.respond(PullPlayersToGroupResponsePacket(Either.left(networkResults)))
+            } catch (e: Throwable) {
+                log.atWarning()
+                    .withCause(e)
+                    .log("Failed to handle pull players to group request for %s", packet.players)
+
+                packet.respond(PullPlayersToGroupResponsePacket(Either.right(e.message)))
+            }
         }
     }
 

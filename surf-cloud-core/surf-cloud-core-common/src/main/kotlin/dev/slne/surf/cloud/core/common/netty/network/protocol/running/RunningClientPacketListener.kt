@@ -3,14 +3,13 @@ package dev.slne.surf.cloud.core.common.netty.network.protocol.running
 import dev.slne.surf.cloud.api.common.netty.network.ConnectionProtocol
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
 import dev.slne.surf.cloud.core.common.netty.network.protocol.common.ClientCommonPacketListener
-import dev.slne.surf.cloud.core.common.netty.network.protocol.common.ClientboundSetVelocitySecretPacket
+import dev.slne.surf.cloud.core.common.netty.network.protocol.common.CommonClientSynchronizingRunningPacketListener
 import dev.slne.surf.cloud.core.common.netty.network.protocol.common.CommonRunningPacketListener
-import dev.slne.surf.cloud.core.common.netty.network.protocol.common.CommonServerSynchronizingRunningPacketListener
 import dev.slne.surf.cloud.core.common.netty.network.protocol.synchronizing.ClientboundCacheRegisterAckPacket
 
 interface RunningClientPacketListener :
     ClientCommonPacketListener,
-    CommonServerSynchronizingRunningPacketListener,
+    CommonClientSynchronizingRunningPacketListener,
     CommonRunningPacketListener {
     override val protocol get() = ConnectionProtocol.RUNNING
 
@@ -71,8 +70,6 @@ interface RunningClientPacketListener :
     fun handleTriggerPunishmentUpdateEvent(packet: ClientboundTriggerPunishmentUpdateEventPacket)
 
     fun handleTriggerPunishmentCreatedEvent(packet: ClientboundTriggerPunishmentCreatedEventPacket)
-
-    fun handleSetVelocitySecret(packet: ClientboundSetVelocitySecretPacket)
 
     fun handleCacheRegisterAck(packet: ClientboundCacheRegisterAckPacket)
     fun handleCacheDelta(packet: ClientboundCacheDeltaPacket)

@@ -72,6 +72,7 @@ object RunningProtocols {
                 .addPacket(WhitelistResponsePacket.STREAM_CODEC)
                 .addPacket(SendToastPacket.STREAM_CODEC)
                 .addPacket(UpdatePlayerPersistentDataContainerPacket.STREAM_CODEC)
+                .addPacket(ClientboundTransferPlayerPacket.STREAM_CODEC)
         }
 
     val CLIENTBOUND by lazy { CLIENTBOUND_TEMPLATE.freeze().bind(::SurfByteBuf) }

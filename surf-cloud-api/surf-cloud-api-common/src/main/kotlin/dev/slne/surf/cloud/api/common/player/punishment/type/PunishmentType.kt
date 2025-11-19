@@ -10,10 +10,10 @@ enum class PunishmentType(
     val punishDisplay: Component,
     val unpunishDisplay: Component = punishDisplay
 ) : IdRepresentable {
-    WARN(1, buildText { error("Verwarnung") }),
-    KICK(2, buildText { error("Kick") }),
-    MUTE(3, buildText { error("Mute") }, buildText { success("Unmute") }),
-    BAN(4, buildText { error("Bann") }, buildText { success("Entbannung") });
+    WARN(0, buildText { error("Verwarnung") }),
+    KICK(1, buildText { error("Kick") }),
+    MUTE(2, buildText { error("Mute") }, buildText { success("Unmute") }),
+    BAN(3, buildText { error("Bann") }, buildText { success("Entbannung") });
 
     companion object {
         val BY_ID = IdRepresentable.enumIdMap<PunishmentType>(OutOfBoundsStrategy.DECODE_ERROR)

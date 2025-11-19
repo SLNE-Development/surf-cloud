@@ -3,8 +3,6 @@ package dev.slne.surf.cloud.api.common.netty.protocol.buffer.types
 import dev.slne.surf.cloud.api.common.netty.network.codec.streamCodec
 import dev.slne.surf.cloud.api.common.netty.protocol.buffer.checkDecoded
 import dev.slne.surf.cloud.api.common.netty.protocol.buffer.checkEncoded
-import dev.slne.surf.cloud.api.common.netty.protocol.buffer.readVarInt
-import dev.slne.surf.cloud.api.common.netty.protocol.buffer.writeVarInt
 import io.netty.buffer.ByteBuf
 import io.netty.buffer.ByteBufUtil
 import java.nio.charset.StandardCharsets
@@ -38,7 +36,7 @@ object Utf8String {
      */
     fun read(buf: ByteBuf, maxLength: Int): String {
         val utf8MaxLength = ByteBufUtil.utf8MaxBytes(maxLength)
-        val utf8Length = buf.readVarInt()
+        val utf8Length = VarInt.readVarInt(buf)
 
         checkDecoded(utf8Length <= utf8MaxLength) { "String too long (max $maxLength): $utf8Length" }
         checkDecoded(utf8Length >= 0) { "String length is negative: $utf8Length" }
@@ -78,7 +76,7 @@ object Utf8String {
 
             checkEncoded(bytesWritten <= utf8MaxLength) { "String too long (max $maxLength): $bytesWritten" }
 
-            buf.writeVarInt(bytesWritten)
+            VarInt.writeVarInt(buf, bytesWritten)
             buf.writeBytes(utf8Buffer)
         } finally {
             utf8Buffer.release()

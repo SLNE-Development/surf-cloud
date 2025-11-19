@@ -23,7 +23,7 @@ object VarLong {
      */
     fun getEncodedSize(value: Long): Int {
         for (i in 1 until MAX_VARLONG_SIZE) {
-            if ((value and -1L shl i * DATA_BITS_PER_BYTE) == 0L) {
+            if (value and (-1L shl (i * DATA_BITS_PER_BYTE)) == 0L) {
                 return i
             }
         }
@@ -49,16 +49,16 @@ object VarLong {
      */
     fun readVarLong(buf: ByteBuf): Long {
         var result = 0L
-        var shift = 0
+        var numBytes = 0
 
         var currentByte: Byte
         do {
             currentByte = buf.readByte()
-            result =
-                result or ((currentByte.toLong() and DATA_BITS_MASK.toLong()) shl (shift++ * DATA_BITS_PER_BYTE))
-            shift += DATA_BITS_PER_BYTE
+            result = result or
+                    ((currentByte.toLong() and DATA_BITS_MASK.toLong()) shl (numBytes * DATA_BITS_PER_BYTE))
+            numBytes++
 
-            checkDecoded(shift <= MAX_VARLONG_SIZE) { "VarLong too big" }
+            checkDecoded(numBytes <= MAX_VARLONG_SIZE) { "VarLong too big" }
         } while (currentByte.toInt() and CONTINUATION_BIT_MASK == CONTINUATION_BIT_MASK)
 
         return result

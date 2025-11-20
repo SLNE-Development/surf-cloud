@@ -4,6 +4,7 @@ import dev.slne.surf.cloud.api.common.netty.network.ConnectionProtocol
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacketInfo
 import dev.slne.surf.cloud.core.client.netty.ClientNettyClientImpl
+import dev.slne.surf.cloud.core.client.player.commonPlayerManagerImpl
 import dev.slne.surf.cloud.core.client.server.ClientCloudServerImpl
 import dev.slne.surf.cloud.core.client.server.ClientProxyCloudServerImpl
 import dev.slne.surf.cloud.core.client.server.serverManagerImpl
@@ -17,7 +18,12 @@ import dev.slne.surf.cloud.core.common.netty.network.protocol.synchronizing.*
 import dev.slne.surf.cloud.core.common.netty.registry.listener.NettyListenerRegistry
 import dev.slne.surf.cloud.core.common.plugin.task.CloudSynchronizeTaskManager
 import dev.slne.surf.surfapi.core.api.util.logger
+import dev.slne.surf.surfapi.core.api.util.mutableObjectListOf
+import dev.slne.surf.surfapi.core.api.util.mutableObjectSetOf
 import kotlinx.coroutines.launch
+import net.kyori.adventure.nbt.BinaryTagIO
+import java.util.*
+import java.util.concurrent.atomic.AtomicBoolean
 
 class ClientSynchronizingPacketListenerImpl(
     override val client: ClientNettyClientImpl,
@@ -27,6 +33,13 @@ class ClientSynchronizingPacketListenerImpl(
 ) : ClientCommonPacketListenerImpl(connection), ClientSynchronizingPacketListener {
 
     private val log = logger()
+    private val hydratingPlayers = AtomicBoolean(false)
+    private val pendingHydrationPlayers =
+        mutableObjectListOf<ClientboundSyncPlayerHydrationChunkPacket.Entry>()
+
+    private var currentLargePpdcUuid: UUID? = null
+    private var currentLargePpdc: ByteArray? = null
+    private val pendingLargePpdcs = mutableObjectSetOf<UUID>()
 
     fun startSynchronizing() {
         statusUpdater.switchState(AbstractStatusUpdater.State.SYNCHRONIZING)
@@ -132,6 +145,105 @@ class ClientSynchronizingPacketListenerImpl(
 
     override fun handlePlayerCacheHydrateEnd(packet: ClientboundPlayerCacheHydrateEndPacket) {
         TODO("Not yet implemented")
+    }
+
+    override fun handleSyncPlayerHydrationStart(packet: ClientboundSyncPlayerHydrationStartPacket) {
+        if (!hydratingPlayers.compareAndSet(false, true)) {
+            log.atWarning()
+                .log("Tried to start player hydration twice")
+            return
+        }
+    }
+
+    override fun handleSyncPlayerHydrationChunk(packet: ClientboundSyncPlayerHydrationChunkPacket) {
+        if (!hydratingPlayers.get()) {
+            log.atWarning()
+                .log("Received player hydration chunk before start")
+            return
+        }
+
+        pendingHydrationPlayers.addAll(packet.entries)
+    }
+
+    override fun handleSyncPlayerHydrationEnd(packet: ClientboundSyncPlayerHydrationEndPacket) {
+        if (!hydratingPlayers.compareAndSet(true, false)) {
+            log.atWarning()
+                .log("Tried to end player hydration twice")
+            return
+        }
+
+        for (data in pendingHydrationPlayers) {
+            val player = commonPlayerManagerImpl.createExistingPlayer(
+                data.uuid,
+                data.name,
+                data.playerIp,
+                data.serverName,
+                data.proxyName
+            )
+
+            data.pdcOrCallback.ifLeft { tag ->
+                player.overwritePpdc(tag)
+            }.ifRight { callback ->
+                pendingLargePpdcs.add(callback)
+            }
+        }
+
+        pendingHydrationPlayers.clear()
+    }
+
+    override fun handleSyncLargerPlayerPersistentDataContainerStart(packet: ClientboundSyncLargePlayerPersistentDataContainerStartPacket) {
+        if (currentLargePpdcUuid != null) {
+            log.atWarning()
+                .log("Received start of large PPD container before end of previous one (%s)", currentLargePpdcUuid)
+            return
+        }
+
+        currentLargePpdcUuid = packet.playerUuid
+        currentLargePpdc = null
+    }
+
+    override fun handleSyncLargerPlayerPersistentDataContainerChunk(packet: ClientboundSyncLargePlayerPersistentDataContainerChunkPacket) {
+        if (currentLargePpdcUuid == null) {
+            log.atWarning()
+                .log("Received chunk of large PPD container before start")
+            return
+        }
+
+        val existing = currentLargePpdc
+        val payload = packet.payload
+
+        currentLargePpdc = if (existing == null) {
+            payload
+        } else {
+            existing + payload
+        }
+    }
+
+    override fun handleSyncLargerPlayerPersistentDataContainerEnd(packet: ClientboundSyncLargePlayerPersistentDataContainerEndPacket) {
+        val uuid = currentLargePpdcUuid
+        val payload = currentLargePpdc
+        if (uuid == null || payload == null) {
+            log.atWarning()
+                .log("Received end of large PPD container before start")
+            return
+        }
+
+        currentLargePpdcUuid = null
+        currentLargePpdc = null
+
+        pendingLargePpdcs.remove(uuid)
+        val player = commonPlayerManagerImpl.getPlayer(uuid)
+        if (player == null) {
+            log.atWarning()
+                .log("Received large PPD container end for unknown player (%s)", uuid)
+            return
+        }
+
+        val tag = payload.inputStream().use { stream ->
+            BinaryTagIO.reader().read(stream)
+        }
+
+        player.overwritePpdc(tag)
     }
 
     override fun handlePacket(packet: NettyPacket) {

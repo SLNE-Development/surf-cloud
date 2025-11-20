@@ -25,17 +25,11 @@ abstract class CommonClientCloudPlayerManagerImpl<Platform : Audience, P : Clien
         player.serverName = serverName
     }
 
-    override fun removeProxyServer(
-        player: P,
-        serverName: String
-    ) {
+    override fun removeProxyServer(player: P) {
         player.proxyServerName = null
     }
 
-    override fun removeServer(
-        player: P,
-        serverName: String
-    ) {
+    override fun removeServer(player: P) {
         player.serverName = null
     }
 

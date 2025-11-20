@@ -29,7 +29,6 @@ object SynchronizeUserTask : CloudInitialSynchronizeTask {
         .expireAfterWrite(2, TimeUnit.MINUTES)
         .removalListener<String, ObjectSet<UUID>> { key, value, cause ->
             if (value != null && value.isNotEmpty()) {
-                // Log warning about untransferred PDCs if necessary
                 log.atWarning()
                     .withStackTrace(StackSize.SMALL)
                     .log(

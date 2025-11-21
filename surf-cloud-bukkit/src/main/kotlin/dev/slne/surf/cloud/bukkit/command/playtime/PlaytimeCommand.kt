@@ -11,19 +11,23 @@ import dev.slne.surf.cloud.api.common.player.toCloudPlayer
 import dev.slne.surf.cloud.bukkit.permission.CloudPermissionRegistry
 import dev.slne.surf.cloud.bukkit.plugin
 import dev.slne.surf.surfapi.core.api.messages.adventure.sendText
+import kotlinx.coroutines.Deferred
 import org.bukkit.command.CommandSender
 
 fun playtimeCommand() = commandTree("playtime") {
     withPermission(CloudPermissionRegistry.PLAYTIME_COMMAND)
 
-    playerExecutor { sender, args ->
+    playerExecutor { sender, _ ->
         sendPlaytime(sender, sender.toCloudPlayer() ?: throw AssertionError("Player is null"))
     }
     offlineCloudPlayerArgument("player") {
         withPermission(CloudPermissionRegistry.PLAYTIME_COMMAND_OTHER)
         anyExecutor { sender, args ->
-            val player: OfflineCloudPlayer? by args
-            player?.let { sendPlaytime(sender, it) }
+            val player: Deferred<OfflineCloudPlayer?> by args
+
+            plugin.launch {
+                player.await()?.let { sendPlaytime(sender, it) }
+            }
         }
     }
 }
@@ -39,7 +43,7 @@ private fun sendPlaytime(sender: CommandSender, player: OfflineCloudPlayer) = pl
         variableValue("${player.name()} (${player.uuid})")
         appendNewPrefixedLine()
         appendNewPrefixedLine {
-            variableKey("Total")
+            variableKey("Gesamt")
             spacer(": ")
             variableValue(complete.toString())
         }

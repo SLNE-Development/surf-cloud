@@ -6,6 +6,7 @@ import dev.slne.surf.cloud.core.common.netty.network.protocol.ProtocolInfoBuilde
 import dev.slne.surf.cloud.core.common.netty.network.protocol.common.*
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ClientboundBatchUpdateServer
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ServerboundCreateOfflineCloudPlayerIfNotExistsPacket
+import dev.slne.surf.cloud.core.common.netty.network.protocol.running.SyncMapDeltaPacket
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.SyncSetDeltaPacket
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.SyncValueChangePacket
 
@@ -22,7 +23,9 @@ object SynchronizingProtocols {
                 .addPacket(SyncValueChangePacket.STREAM_CODEC)
                 .addPacket(ClientboundBatchSyncValuePacket.STREAM_CODEC)
                 .addPacket(ClientboundBatchSyncSetPacket.STREAM_CODEC)
+                .addPacket(ClientboundBatchSyncMapPacket.STREAM_CODEC)
                 .addPacket(SyncSetDeltaPacket.STREAM_CODEC)
+                .addPacket(SyncMapDeltaPacket.STREAM_CODEC)
                 .addPacket(FinishSynchronizingPacket.STREAM_CODEC)
                 .addPacket(ClientboundSynchronizeFinishPacket.STREAM_CODEC)
                 .addPacket(ClientboundSetVelocitySecretPacket.STREAM_CODEC)
@@ -40,6 +43,7 @@ object SynchronizingProtocols {
                 .addPacket(ServerboundSynchronizeFinishAcknowledgedPacket.STREAM_CODEC)
                 .addPacket(SyncValueChangePacket.STREAM_CODEC)
                 .addPacket(SyncSetDeltaPacket.STREAM_CODEC)
+                .addPacket(SyncMapDeltaPacket.STREAM_CODEC)
                 .addPacket(FinishSynchronizingPacket.STREAM_CODEC)
                 .addPacket(ServerboundCreateOfflineCloudPlayerIfNotExistsPacket.STREAM_CODEC)
         }

@@ -171,6 +171,8 @@ object ByteBufCodecs {
         { epoch, zoneId -> ZonedDateTime.ofInstant(Instant.ofEpochMilli(epoch), ZoneId.of(zoneId)) }
     )
 
+    val INSTANT_CODEC = LONG_CODEC.map(Instant::ofEpochMilli, Instant::toEpochMilli)
+
     val DURATION_CODEC = streamCodecComposite(
         LONG_CODEC,
         Duration::inWholeMilliseconds

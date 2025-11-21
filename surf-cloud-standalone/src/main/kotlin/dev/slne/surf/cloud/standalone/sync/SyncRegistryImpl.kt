@@ -4,10 +4,12 @@ import com.google.auto.service.AutoService
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
 import dev.slne.surf.cloud.api.common.sync.SyncRegistry
 import dev.slne.surf.cloud.core.common.netty.network.ConnectionImpl
+import dev.slne.surf.cloud.core.common.netty.network.protocol.running.SyncMapDeltaPacket
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.SyncSetDeltaPacket
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.SyncValueChangePacket
 import dev.slne.surf.cloud.core.common.sync.BasicSyncValue
 import dev.slne.surf.cloud.core.common.sync.CommonSyncRegistryImpl
+import dev.slne.surf.cloud.core.common.sync.SyncMapImpl
 import dev.slne.surf.cloud.core.common.sync.SyncSetImpl
 import dev.slne.surf.cloud.core.common.util.bean
 import dev.slne.surf.cloud.standalone.netty.server.NettyServerImpl
@@ -40,6 +42,24 @@ class SyncRegistryImpl : CommonSyncRegistryImpl() {
         }
         lastChangeIds[syncSet.id] = changeId
         broadcast(SyncSetDeltaPacket(syncSet, added, changeId, element))
+    }
+
+    override fun <K, V> afterChange(
+        syncMap: SyncMapImpl<K, V>,
+        key: K,
+        oldValue: V?,
+        newValue: V?,
+        changeId: Long
+    ) {
+        super.afterChange(syncMap, key, oldValue, newValue, changeId)
+        val lastChangeId = lastChangeIds.getLong(syncMap.id)
+        if (changeId <= lastChangeId) {
+            log.atInfo()
+                .log("Ignoring stale SyncMapDeltaPacket for map '${syncMap.id}' with changeId $changeId, last known changeId is $lastChangeId")
+            return
+        }
+        lastChangeIds[syncMap.id] = changeId
+        broadcast(SyncMapDeltaPacket(syncMap, key, oldValue, newValue, changeId))
     }
 
     fun handleChangePacket(packet: SyncValueChangePacket, sender: ConnectionImpl) {
@@ -77,6 +97,32 @@ class SyncRegistryImpl : CommonSyncRegistryImpl() {
         broadcast(packet, sender)
     }
 
+    fun handleSyncMapDeltaPacket(packet: SyncMapDeltaPacket, sender: ConnectionImpl) {
+        if (!packet.registered) return
+        val map = getMap<Any?, Any?>(packet.mapId)
+        if (map == null) {
+            log.atWarning()
+                .log("SyncMap with id '${packet.mapId}' not found, cannot apply delta")
+            return
+        }
+
+        val lastChangeId = lastChangeIds.getLong(packet.mapId)
+        if (packet.changeId <= lastChangeId) {
+            log.atInfo()
+                .log("Ignoring stale SyncMapDeltaPacket for map '${packet.mapId}' with changeId ${packet.changeId}, last known changeId is $lastChangeId")
+            return
+        }
+
+        if (packet.newValue != null) {
+            map.putInternal(packet.key, packet.newValue)
+        } else {
+            map.removeInternal(packet.key)
+        }
+        lastChangeIds[packet.mapId] = packet.changeId
+
+        broadcast(packet, sender)
+    }
+
     fun prepareBatchSyncValues(): Map<String, BasicSyncValue<*>> {
         require(frozen) { "SyncRegistry is not frozen, cannot prepare batch" }
 
@@ -86,6 +132,11 @@ class SyncRegistryImpl : CommonSyncRegistryImpl() {
     fun prepareBatchSyncSets(): Map<String, SyncSetImpl<*>> {
         require(frozen) { "SyncRegistry is not frozen, cannot prepare batch sync set" }
         return syncSets.toMap()
+    }
+
+    fun prepareBatchSyncMaps(): Map<String, SyncMapImpl<*, *>> {
+        require(frozen) { "SyncRegistry is not frozen, cannot prepare batch sync map" }
+        return syncMaps.toMap()
     }
 
     private fun broadcast(packet: NettyPacket, sender: ConnectionImpl? = null) {

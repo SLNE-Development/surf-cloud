@@ -106,6 +106,16 @@ class ServerSynchronizingPacketListenerImpl(
         }
     }
 
+    override fun handleSyncMapDelta(packet: SyncMapDeltaPacket) {
+        try {
+            SyncRegistryImpl.instance.handleSyncMapDeltaPacket(packet, connection)
+        } catch (e: Exception) {
+            log.atWarning()
+                .withCause(e)
+                .log("Failed to handle sync map delta for packet $packet")
+        }
+    }
+
     override fun handleCreateOfflineCloudPlayerIfNotExists(packet: ServerboundCreateOfflineCloudPlayerIfNotExistsPacket) {
         CloudPlayerManager.getOfflinePlayer(packet.uuid, true)
     }

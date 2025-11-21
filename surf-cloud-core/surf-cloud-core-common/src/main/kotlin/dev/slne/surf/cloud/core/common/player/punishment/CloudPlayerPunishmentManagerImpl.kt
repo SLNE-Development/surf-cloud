@@ -9,15 +9,15 @@ import dev.slne.surf.cloud.api.common.player.punishment.type.ban.PunishmentBan
 import dev.slne.surf.cloud.api.common.player.punishment.type.kick.PunishmentKick
 import dev.slne.surf.cloud.api.common.player.punishment.type.mute.PunishmentMute
 import dev.slne.surf.cloud.api.common.player.punishment.type.warn.PunishmentWarn
-import dev.slne.surf.surfapi.core.api.util.emptyObjectList
-import dev.slne.surf.surfapi.core.api.util.toObjectList
 import dev.slne.surf.cloud.core.common.player.PunishmentManager
 import dev.slne.surf.cloud.core.common.player.punishment.type.PunishmentBanImpl
 import dev.slne.surf.cloud.core.common.player.punishment.type.PunishmentKickImpl
 import dev.slne.surf.cloud.core.common.player.punishment.type.PunishmentMuteImpl
 import dev.slne.surf.cloud.core.common.player.punishment.type.PunishmentWarnImpl
 import dev.slne.surf.cloud.core.common.util.bean
+import dev.slne.surf.surfapi.core.api.util.emptyObjectList
 import dev.slne.surf.surfapi.core.api.util.logger
+import dev.slne.surf.surfapi.core.api.util.toObjectList
 import it.unimi.dsi.fastutil.objects.ObjectList
 import org.jetbrains.annotations.Unmodifiable
 import java.util.*
@@ -64,6 +64,28 @@ class CloudPlayerPunishmentManagerImpl(private val playerUuid: UUID) :
 
         val mutes = if (onlyActive) cachedMutes.filter { it.active } else cachedMutes
         return (if (sort) mutes.sorted() else mutes).toObjectList()
+    }
+
+    fun rawCachedMutes(): MutableList<PunishmentMuteImpl> {
+        return cachedMutes
+    }
+
+    fun updateMutes(updated: List<PunishmentMuteImpl>) {
+        if (!cachedMutesFetched) {
+            cachedMutes = CopyOnWriteArrayList(updated)
+            cachedMutesFetched = true
+            return
+        }
+
+        val iterator = cachedMutes.iterator()
+        while (iterator.hasNext()) {
+            val mute = iterator.next()
+            if (updated.any { it.punishmentId == mute.punishmentId }) {
+                iterator.remove()
+            }
+        }
+
+        cachedMutes.addAll(updated)
     }
 
     @Suppress("UNCHECKED_CAST")

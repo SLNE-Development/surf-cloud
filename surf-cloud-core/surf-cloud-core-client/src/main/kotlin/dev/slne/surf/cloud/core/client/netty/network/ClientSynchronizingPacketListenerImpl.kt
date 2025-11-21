@@ -246,6 +246,18 @@ class ClientSynchronizingPacketListenerImpl(
         player.overwritePpdc(tag)
     }
 
+    override fun handleSynchronizePlayerMutes(packet: ClientboundSynchronizePlayerMutes) {
+        val player = commonPlayerManagerImpl.getPlayer(packet.playerUuid)
+
+        if (player == null) {
+            log.atWarning()
+                .log("Received mute update for unknown player (%s)", packet.playerUuid)
+            return
+        }
+
+        player.punishmentManager.updateMutes(packet.mutes)
+    }
+
     override fun handlePacket(packet: NettyPacket) {
         val listeners = NettyListenerRegistry.getListeners(packet.javaClass) ?: return
         if (listeners.isEmpty()) return

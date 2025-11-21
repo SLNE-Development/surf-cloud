@@ -32,6 +32,7 @@ object SynchronizingProtocols {
                 .addPacket(ClientboundSyncLargePlayerPersistentDataContainerStartPacket.STREAM_CODEC)
                 .addPacket(ClientboundSyncLargePlayerPersistentDataContainerEndPacket.STREAM_CODEC)
                 .addPacket(ClientboundSyncLargePlayerPersistentDataContainerChunkPacket.STREAM_CODEC)
+                .addPacket(ClientboundSynchronizePlayerMutes.STREAM_CODEC)
         }
 
     val CLIENTBOUND by lazy { CLIENTBOUND_TEMPLATE.bind(::SurfByteBuf) }

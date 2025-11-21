@@ -19,10 +19,7 @@ import dev.slne.surf.cloud.core.common.netty.registry.listener.NettyListenerRegi
 import dev.slne.surf.cloud.core.common.plugin.task.CloudSynchronizeTaskManager
 import dev.slne.surf.cloud.standalone.netty.server.NettyServerImpl
 import dev.slne.surf.cloud.standalone.netty.server.ServerClientImpl
-import dev.slne.surf.cloud.standalone.netty.server.network.config.SetVelocitySecretTask
-import dev.slne.surf.cloud.standalone.netty.server.network.config.SynchronizeRegistriesTask
-import dev.slne.surf.cloud.standalone.netty.server.network.config.SynchronizeServersTask
-import dev.slne.surf.cloud.standalone.netty.server.network.config.SynchronizeUserTask
+import dev.slne.surf.cloud.standalone.netty.server.network.config.*
 import dev.slne.surf.cloud.standalone.sync.SyncRegistryImpl
 import dev.slne.surf.surfapi.core.api.util.logger
 import kotlinx.coroutines.launch
@@ -59,6 +56,8 @@ class ServerSynchronizingPacketListenerImpl(
             SynchronizeServersTask.execute(client)
             SynchronizeRegistriesTask.execute(client)
             SynchronizeUserTask.execute(client)
+            SynchronizePlayerPunishmentManagers.execute(client)
+
             CloudSynchronizeTaskManager.executeTasks(client)
 
             state = State.WAIT_FOR_CLIENT

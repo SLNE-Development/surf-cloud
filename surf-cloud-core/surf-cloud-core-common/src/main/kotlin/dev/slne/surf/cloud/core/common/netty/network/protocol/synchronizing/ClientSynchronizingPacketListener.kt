@@ -33,5 +33,7 @@ interface ClientSynchronizingPacketListener : ClientCommonPacketListener,
     fun handleSyncLargerPlayerPersistentDataContainerChunk(packet: ClientboundSyncLargePlayerPersistentDataContainerChunkPacket)
     fun handleSyncLargerPlayerPersistentDataContainerEnd(packet: ClientboundSyncLargePlayerPersistentDataContainerEndPacket)
 
+    fun handleSynchronizePlayerMutes(packet: ClientboundSynchronizePlayerMutes)
+
     fun handlePacket(packet: NettyPacket)
 }

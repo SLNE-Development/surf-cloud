@@ -84,6 +84,16 @@ class ClientSynchronizingPacketListenerImpl(
         }
     }
 
+    override fun handleBatchSyncMap(packet: ClientboundBatchSyncMapPacket) {
+        try {
+            SyncRegistryImpl.instance.applyBatchSyncMaps(packet.syncMaps)
+        } catch (e: Exception) {
+            log.atWarning()
+                .withCause(e)
+                .log("Failed to apply batch sync maps for packet $packet")
+        }
+    }
+
     override fun handleBatchUpdateServer(packet: ClientboundBatchUpdateServer) {
         serverManagerImpl.batchUpdateServer(packet.servers.map { data ->
             if (data.proxy) {
@@ -108,6 +118,16 @@ class ClientSynchronizingPacketListenerImpl(
             log.atWarning()
                 .withCause(e)
                 .log("Failed to handle sync set delta for packet $packet")
+        }
+    }
+
+    override fun handleSyncMapDelta(packet: SyncMapDeltaPacket) {
+        try {
+            SyncRegistryImpl.instance.handleSyncMapDelta(packet)
+        } catch (e: Exception) {
+            log.atWarning()
+                .withCause(e)
+                .log("Failed to handle sync map delta for packet $packet")
         }
     }
 

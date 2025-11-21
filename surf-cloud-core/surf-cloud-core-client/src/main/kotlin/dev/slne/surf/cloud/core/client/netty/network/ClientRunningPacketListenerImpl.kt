@@ -444,6 +444,16 @@ class ClientRunningPacketListenerImpl(
         }
     }
 
+    override fun handleSyncMapDelta(packet: SyncMapDeltaPacket) {
+        try {
+            SyncRegistryImpl.instance.handleSyncMapDelta(packet)
+        } catch (e: Throwable) {
+            log.atWarning()
+                .withCause(e)
+                .log("Failed to handle sync map delta for packet $packet")
+        }
+    }
+
     override fun handleSetVelocitySecret(packet: ClientboundSetVelocitySecretPacket) {
         try {
             client.velocitySecret = packet.secret

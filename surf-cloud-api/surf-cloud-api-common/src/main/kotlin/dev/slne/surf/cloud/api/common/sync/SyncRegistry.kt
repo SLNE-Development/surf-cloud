@@ -19,6 +19,12 @@ interface SyncRegistry {
         codec: StreamCodec<SurfByteBuf, T>
     ): SyncSet<T>
 
+    fun <K, V> createSyncMap(
+        id: String,
+        keyCodec: StreamCodec<SurfByteBuf, K>,
+        valueCodec: StreamCodec<SurfByteBuf, V>
+    ): SyncMap<K, V>
+
     companion object {
         @InternalApi
         val instance = requiredService<SyncRegistry>()

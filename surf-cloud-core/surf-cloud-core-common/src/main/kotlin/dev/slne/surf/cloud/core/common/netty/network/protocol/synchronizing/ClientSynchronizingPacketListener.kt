@@ -19,6 +19,8 @@ interface ClientSynchronizingPacketListener : ClientCommonPacketListener,
 
     fun handleBatchSyncSet(packet: ClientboundBatchSyncSetPacket)
 
+    fun handleBatchSyncMap(packet: ClientboundBatchSyncMapPacket)
+
     fun handleBatchUpdateServer(packet: ClientboundBatchUpdateServer)
 
     fun handlePlayerCacheHydrateStart(packet: ClientboundPlayerCacheHydrateStartPacket)

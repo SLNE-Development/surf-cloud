@@ -88,7 +88,7 @@ interface Playtime {
      * @param since Optional start time to filter playtime.
      * @return An [Object2ObjectMap] where keys are server names and values are durations.
      */
-    fun playtimesPerServer(since: ZonedDateTime? = null): Object2ObjectMap<String, Duration>
+    fun playtimesPerServer(since: ZonedDateTime? = null, sortByPlaytime: Boolean = true): Object2ObjectMap<String, Duration>
 
     /**
      * Returns a mapping of categories to their respective total playtime durations.
@@ -96,9 +96,9 @@ interface Playtime {
      * @param since Optional start time to filter playtime.
      * @return An [Object2ObjectMap] where keys are category names and values are durations.
      */
-    fun playtimesPerCategory(since: ZonedDateTime? = null): Object2ObjectMap<String, Duration>
+    fun playtimesPerCategory(since: ZonedDateTime? = null, sortByPlaytime: Boolean = true): Object2ObjectMap<String, Duration>
 
-    fun playtimePerCategoryPerServer(since: ZonedDateTime? = null): Object2ObjectMap<String, Object2ObjectMap<String, Duration>>
+    fun playtimePerCategoryPerServer(since: ZonedDateTime? = null, sortByPlaytime: Boolean = true): Object2ObjectMap<String, Object2ObjectMap<String, Duration>>
 
     /**
      * Returns the average playtime per server, optionally filtered by category and start time.

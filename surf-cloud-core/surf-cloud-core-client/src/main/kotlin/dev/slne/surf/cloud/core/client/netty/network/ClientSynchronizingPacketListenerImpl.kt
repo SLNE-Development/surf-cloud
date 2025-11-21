@@ -9,8 +9,8 @@ import dev.slne.surf.cloud.core.client.server.ClientCloudServerImpl
 import dev.slne.surf.cloud.core.client.server.ClientProxyCloudServerImpl
 import dev.slne.surf.cloud.core.client.server.serverManagerImpl
 import dev.slne.surf.cloud.core.client.sync.SyncRegistryImpl
-import dev.slne.surf.cloud.core.common.coroutines.BeforeStartTaskScope
 import dev.slne.surf.cloud.core.common.coroutines.PacketHandlerScope
+import dev.slne.surf.cloud.core.common.coroutines.SynchronizeTasksScope
 import dev.slne.surf.cloud.core.common.netty.network.ConnectionImpl
 import dev.slne.surf.cloud.core.common.netty.network.protocol.common.ClientboundSetVelocitySecretPacket
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.*
@@ -44,7 +44,7 @@ class ClientSynchronizingPacketListenerImpl(
     fun startSynchronizing() {
         statusUpdater.switchState(AbstractStatusUpdater.State.SYNCHRONIZING)
 
-        BeforeStartTaskScope.launch {
+        SynchronizeTasksScope.launch {
             CloudSynchronizeTaskManager.executeTasks(client)
 
             statusUpdater.switchState(AbstractStatusUpdater.State.SYNCHRONIZE_WAIT_FOR_SERVER)

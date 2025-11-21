@@ -4,11 +4,13 @@ import dev.slne.surf.cloud.api.common.netty.network.ConnectionProtocol
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacketInfo
 import dev.slne.surf.cloud.api.common.player.CloudPlayerManager
-import dev.slne.surf.cloud.core.common.coroutines.BeforeStartTaskScope
 import dev.slne.surf.cloud.core.common.coroutines.PacketHandlerScope
+import dev.slne.surf.cloud.core.common.coroutines.SynchronizeTasksScope
 import dev.slne.surf.cloud.core.common.netty.network.ConnectionImpl
-import dev.slne.surf.cloud.core.common.netty.network.protocol.common.ClientboundSetVelocitySecretPacket
-import dev.slne.surf.cloud.core.common.netty.network.protocol.running.*
+import dev.slne.surf.cloud.core.common.netty.network.protocol.running.RunningProtocols
+import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ServerboundCreateOfflineCloudPlayerIfNotExistsPacket
+import dev.slne.surf.cloud.core.common.netty.network.protocol.running.SyncSetDeltaPacket
+import dev.slne.surf.cloud.core.common.netty.network.protocol.running.SyncValueChangePacket
 import dev.slne.surf.cloud.core.common.netty.network.protocol.synchronizing.ClientboundSynchronizeFinishPacket
 import dev.slne.surf.cloud.core.common.netty.network.protocol.synchronizing.FinishSynchronizingPacket
 import dev.slne.surf.cloud.core.common.netty.network.protocol.synchronizing.ServerSynchronizingPacketListener
@@ -16,11 +18,11 @@ import dev.slne.surf.cloud.core.common.netty.network.protocol.synchronizing.Serv
 import dev.slne.surf.cloud.core.common.netty.registry.listener.NettyListenerRegistry
 import dev.slne.surf.cloud.core.common.plugin.task.CloudSynchronizeTaskManager
 import dev.slne.surf.cloud.standalone.netty.server.NettyServerImpl
-import dev.slne.surf.cloud.standalone.netty.server.ProxySecretHolder
 import dev.slne.surf.cloud.standalone.netty.server.ServerClientImpl
+import dev.slne.surf.cloud.standalone.netty.server.network.config.SetVelocitySecretTask
 import dev.slne.surf.cloud.standalone.netty.server.network.config.SynchronizeRegistriesTask
+import dev.slne.surf.cloud.standalone.netty.server.network.config.SynchronizeServersTask
 import dev.slne.surf.cloud.standalone.netty.server.network.config.SynchronizeUserTask
-import dev.slne.surf.cloud.standalone.server.serverManagerImpl
 import dev.slne.surf.cloud.standalone.sync.SyncRegistryImpl
 import dev.slne.surf.surfapi.core.api.util.logger
 import kotlinx.coroutines.launch
@@ -52,10 +54,9 @@ class ServerSynchronizingPacketListenerImpl(
         check(state == State.START) { "Cannot start synchronizing from state $state" }
         state = State.SYNCHRONIZING
 
-        BeforeStartTaskScope.launch {
-            send(ClientboundSetVelocitySecretPacket(ProxySecretHolder.currentSecret()))
-            send(ClientboundBatchUpdateServer(serverManagerImpl.retrieveAllServers()))
-
+        SynchronizeTasksScope.launch {
+            SetVelocitySecretTask.execute(client)
+            SynchronizeServersTask.execute(client)
             SynchronizeRegistriesTask.execute(client)
             SynchronizeUserTask.execute(client)
             CloudSynchronizeTaskManager.executeTasks(client)

@@ -2,7 +2,7 @@ package dev.slne.surf.cloud.core.common.plugin.task
 
 import dev.slne.surf.cloud.api.common.netty.NettyClient
 import dev.slne.surf.cloud.api.common.plugin.spring.task.CloudInitialSynchronizeTask
-import dev.slne.surf.cloud.core.common.coroutines.BeforeStartTaskScope
+import dev.slne.surf.cloud.core.common.coroutines.SynchronizeTasksScope
 import dev.slne.surf.surfapi.core.api.util.logger
 import kotlinx.coroutines.launch
 import org.springframework.core.annotation.AnnotationAwareOrderComparator
@@ -35,7 +35,7 @@ object CloudSynchronizeTaskManager {
                 .log("Executing initial synchronize task: ${task.name} (${position + 1}/${tasks.size})")
 
             val duration = measureTime {
-                BeforeStartTaskScope.launch(BeforeStartTaskScope.TaskName(task.name, position)) {
+                SynchronizeTasksScope.launch(SynchronizeTasksScope.TaskName(task.name, position)) {
                     task.execute(client)
                 }.join()
             }

@@ -102,10 +102,11 @@ object SynchronizeUserTask : CloudInitialSynchronizeTask {
         while (iterator.hasNext()) {
             val uuid = iterator.next()
             val player = players.find { it.uuid == uuid } ?: run {
-                log.atWarning().log(
-                    "Unable to find player with UUID '%s' in hydration list. Maybe the player already disconnected?",
-                    uuid
-                )
+                log.atWarning()
+                    .log(
+                        "Unable to find player with UUID '%s' in hydration list. Maybe the player already disconnected?",
+                        uuid
+                    )
                 continue
             }
 

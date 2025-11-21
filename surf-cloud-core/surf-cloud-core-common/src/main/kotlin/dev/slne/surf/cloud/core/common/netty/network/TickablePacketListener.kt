@@ -1,9 +1,7 @@
 package dev.slne.surf.cloud.core.common.netty.network
 
-import dev.slne.surf.surfapi.core.api.util.mutableObjectListOf
-import dev.slne.surf.surfapi.core.api.util.synchronize
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
+import dev.slne.surf.surfapi.core.api.util.logger
+import java.util.concurrent.ConcurrentLinkedQueue
 
 interface TickablePacketListener : PacketListener {
 
@@ -14,22 +12,31 @@ interface TickablePacketListener : PacketListener {
 }
 
 abstract class CommonTickablePacketListener : TickablePacketListener {
-    private val schedules = mutableObjectListOf<suspend () -> Unit>().synchronize()
-    private val schedulesMutex = Mutex()
+    companion object {
+        private val log = logger()
+    }
+
+    private val schedules = ConcurrentLinkedQueue<suspend () -> Unit>()
 
     override suspend fun tick() {
-        schedulesMutex.withLock {
-            schedules.forEach { it() }
-            schedules.clear()
+        while (true) {
+            val task = schedules.poll() ?: break
+
+            try {
+                task()
+            } catch (e: Exception) {
+                log.atWarning()
+                    .withCause(e)
+                    .log("Error while executing scheduled task")
+            }
         }
+
         tick0()
     }
 
     protected abstract suspend fun tick0()
 
-    suspend fun schedule(function: suspend () -> Unit) {
-        schedulesMutex.withLock {
-            schedules.add(function)
-        }
+    fun schedule(function: suspend () -> Unit) {
+        schedules.add(function)
     }
 }

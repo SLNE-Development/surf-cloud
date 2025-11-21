@@ -1,7 +1,5 @@
 package dev.slne.surf.cloud.standalone.plugin.entrypoint.classloader
 
-import dev.slne.surf.surfapi.core.api.util.mutableObject2ObjectMapOf
-import dev.slne.surf.surfapi.core.api.util.synchronize
 import java.io.IOException
 import java.io.UncheckedIOException
 import java.net.JarURLConnection
@@ -10,6 +8,7 @@ import java.net.URL
 import java.net.URLClassLoader
 import java.security.CodeSigner
 import java.security.CodeSource
+import java.util.concurrent.ConcurrentHashMap
 import java.util.jar.Attributes
 import java.util.jar.Manifest
 
@@ -26,7 +25,7 @@ class ByteCodeModifyingURLClassloader(
         }
     }
 
-    private val manifestCache = mutableObject2ObjectMapOf<String, Any>().synchronize()
+    private val manifestCache = ConcurrentHashMap<String, Any>()
 
     override fun findClass(name: String): Class<*> {
         val path = name.replace('.', '/') + ".class"
@@ -43,7 +42,7 @@ class ByteCodeModifyingURLClassloader(
         val lastDot = name.lastIndexOf('.')
 
         if (lastDot != -1) {
-            val pkgName = name.substring(0, lastDot)
+            val pkgName = name.take(lastDot)
 
             // Check if package already loaded.
             val manifest = url.manifest()

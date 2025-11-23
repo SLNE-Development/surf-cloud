@@ -9,7 +9,7 @@ import dev.slne.surf.cloud.standalone.sync.SyncRegistryImpl
 object SynchronizeRegistriesTask : CloudInitialSynchronizeTask {
 
     override suspend fun execute(client: NettyClient) {
-        client.connection.send(ClientboundBatchSyncValuePacket(SyncRegistryImpl.instance.prepareBatchSyncValues()))
-        client.connection.send(ClientboundBatchSyncSetPacket(SyncRegistryImpl.instance.prepareBatchSyncSets()))
+        client.fireAndForget(ClientboundBatchSyncValuePacket(SyncRegistryImpl.instance.prepareBatchSyncValues()))
+        client.fireAndForget(ClientboundBatchSyncSetPacket(SyncRegistryImpl.instance.prepareBatchSyncSets()))
     }
 }

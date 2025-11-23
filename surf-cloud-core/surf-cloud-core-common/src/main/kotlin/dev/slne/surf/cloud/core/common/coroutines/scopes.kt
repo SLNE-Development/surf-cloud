@@ -1,7 +1,7 @@
 package dev.slne.surf.cloud.core.common.coroutines
 
 import dev.slne.surf.cloud.api.common.util.threadFactory
-import dev.slne.surf.cloud.core.common.coroutines.BeforeStartTaskScope.unnamedTask
+import dev.slne.surf.cloud.core.common.coroutines.SynchronizeTasksScope.unnamedTask
 import dev.slne.surf.surfapi.core.api.util.logger
 import dev.slne.surf.surfapi.core.api.util.mutableObjectListOf
 import kotlinx.coroutines.*
@@ -172,14 +172,14 @@ object PunishmentCacheRefreshScope : BaseScope(
     name = "punishment-cache-refresh"
 )
 
-object BeforeStartTaskScope : BaseScope(
-    dispatcher = Dispatchers.IO,
-    name = "before-start-task",
+object SynchronizeTasksScope : BaseScope(
+    dispatcher = Dispatchers.Default,
+    name = "synchronize-tasks",
     coroutineExceptionHandler = CoroutineExceptionHandler { context, throwable ->
         val task = context[TaskName] ?: unnamedTask
         log.atWarning()
             .withCause(throwable)
-            .log("Unhandled exception in before start task: $task")
+            .log("Unhandled exception in synchronize task: $task")
     }
 ) {
     @JvmStatic

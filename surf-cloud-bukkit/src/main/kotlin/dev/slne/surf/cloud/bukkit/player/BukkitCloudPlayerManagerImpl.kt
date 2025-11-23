@@ -20,15 +20,12 @@ class BukkitCloudPlayerManagerImpl :
     override fun createPlayer(
         uuid: UUID,
         name: String,
-        proxy: Boolean,
-        ip: Inet4Address,
-        serverName: String
+        proxyName: String?,
+        serverName: String?,
+        ip: Inet4Address
     ) = BukkitClientCloudPlayerImpl(uuid, name).also {
-        if (proxy) {
-            it.proxyServerName = serverName
-        } else {
-            it.serverName = serverName
-        }
+        it.proxyServerName = serverName
+        it.serverName = serverName
     }
 
     override fun getAudience(uuid: UUID): Audience? = Bukkit.getPlayer(uuid)

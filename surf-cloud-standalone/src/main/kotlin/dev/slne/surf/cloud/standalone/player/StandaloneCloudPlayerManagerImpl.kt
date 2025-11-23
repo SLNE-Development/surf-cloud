@@ -95,23 +95,23 @@ class StandaloneCloudPlayerManagerImpl : CloudPlayerManagerImpl<StandaloneCloudP
     override fun createPlayer(
         uuid: UUID,
         name: String,
-        proxy: Boolean,
-        ip: Inet4Address,
-        serverName: String
+        proxyName: String?,
+        serverName: String?,
+        ip: Inet4Address
     ): StandaloneCloudPlayerImpl {
         return StandaloneCloudPlayerImpl(uuid, name, ip).also {
-            val server = serverName.toServer()
-            if (server != null) {
-                if (proxy) {
-                    check(server is StandaloneProxyCloudServerImpl) { "Server with id $serverName is not a proxy server but specified as proxy" }
-                    it.proxyServer = server
-                } else {
-                    check(server is StandaloneCloudServerImpl) { "Server with id $serverName is not a standalone server but specified as standalone" }
-                    it.server = server
-                }
-            } else {
-                log.atWarning()
-                    .log("Could not find server with id $serverName for player $uuid")
+            if (proxyName != null) {
+                val server = proxyName.toServer() ?: log.atWarning()
+                    .log("Could not find proxy server with id $proxyName")
+                check(server is StandaloneProxyCloudServerImpl) { "Server with id $proxyName is not a proxy server but specified as proxy" }
+                it.proxyServer = server
+            }
+
+            if (serverName != null) {
+                val server = serverName.toServer() ?: log.atWarning()
+                    .log("Could not find server with id $serverName")
+                check(server is StandaloneCloudServerImpl) { "Server with id $serverName is not a standalone server but specified as standalone" }
+                it.server = server
             }
         }
     }
@@ -138,26 +138,12 @@ class StandaloneCloudPlayerManagerImpl : CloudPlayerManagerImpl<StandaloneCloudP
         }
     }
 
-    override fun removeProxyServer(player: StandaloneCloudPlayerImpl, serverName: String) {
-        val server = serverName.toServer()
-        check(server == null || server is StandaloneProxyCloudServerImpl) { "Server with id $serverName is not a proxy server but specified as proxy" }
-
-        if (server != null && player.proxyServer == server) {
-            player.proxyServer = null
-        } else {
-            logServerNotFound(serverName, player)
-        }
+    override fun removeProxyServer(player: StandaloneCloudPlayerImpl) {
+        player.proxyServer = null
     }
 
-    override fun removeServer(player: StandaloneCloudPlayerImpl, serverName: String) {
-        val server = serverName.toServer()
-        check(server == null || server is StandaloneCloudServerImpl) { "Server with id $serverName is not a standalone server but specified as standalone" }
-
-        if (server != null && player.server == server) {
-            player.server = null
-        } else {
-            logServerNotFound(serverName, player)
-        }
+    override fun removeServer(player: StandaloneCloudPlayerImpl) {
+        player.server = null
     }
 
     override fun getProxyServerName(player: StandaloneCloudPlayerImpl): String? =

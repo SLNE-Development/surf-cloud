@@ -8,6 +8,8 @@ import dev.slne.surf.cloud.api.common.server.CloudServerManager
 import dev.slne.surf.cloud.core.common.player.ppdc.PersistentPlayerDataContainerViewImpl
 import dev.slne.surf.cloud.core.common.player.ppdc.TrackingPlayerPersistentDataContainerImpl
 import dev.slne.surf.cloud.core.common.player.ppdc.network.PdcPatch
+import net.kyori.adventure.nbt.BinaryTagIO
+import java.io.ByteArrayOutputStream
 import java.time.ZonedDateTime
 import java.util.*
 import java.util.concurrent.locks.ReentrantReadWriteLock
@@ -48,6 +50,24 @@ abstract class CommonCloudPlayerImpl(uuid: UUID, override val name: String) :
     } else {
         ppdcReentrantLock.write {
             runWithTracking(ppdc, block)
+        }
+    }
+
+    fun estimatedPpdcSize(): Int {
+        return ppdcReentrantLock.read {
+            ByteArrayOutputStream().use { os ->
+                BinaryTagIO.writer().write(ppdc.tag, os)
+                os.size()
+            }
+        }
+    }
+
+    fun ppdcToByteArray(): ByteArray {
+        return ppdcReentrantLock.read {
+            ByteArrayOutputStream().use { os ->
+                BinaryTagIO.writer().write(ppdc.tag, os)
+                os.toByteArray()
+            }
         }
     }
 

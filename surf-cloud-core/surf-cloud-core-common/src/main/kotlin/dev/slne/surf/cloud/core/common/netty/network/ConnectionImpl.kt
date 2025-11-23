@@ -712,7 +712,6 @@ class ConnectionImpl(
             handleDisconnection()
         }
 
-
         this.averageSentPackets = lerp(
             0.75f, this.sentPackets.toFloat(),
             this.averageSentPackets

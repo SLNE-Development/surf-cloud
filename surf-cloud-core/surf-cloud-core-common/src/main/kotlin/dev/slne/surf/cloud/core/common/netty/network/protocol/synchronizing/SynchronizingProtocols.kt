@@ -26,6 +26,13 @@ object SynchronizingProtocols {
                 .addPacket(FinishSynchronizingPacket.STREAM_CODEC)
                 .addPacket(ClientboundSynchronizeFinishPacket.STREAM_CODEC)
                 .addPacket(ClientboundSetVelocitySecretPacket.STREAM_CODEC)
+                .addPacket(ClientboundSyncPlayerHydrationStartPacket.STREAM_CODEC)
+                .addPacket(ClientboundSyncPlayerHydrationChunkPacket.STREAM_CODEC)
+                .addPacket(ClientboundSyncPlayerHydrationEndPacket.STREAM_CODEC)
+                .addPacket(ClientboundSyncLargePlayerPersistentDataContainerStartPacket.STREAM_CODEC)
+                .addPacket(ClientboundSyncLargePlayerPersistentDataContainerEndPacket.STREAM_CODEC)
+                .addPacket(ClientboundSyncLargePlayerPersistentDataContainerChunkPacket.STREAM_CODEC)
+                .addPacket(ClientboundSynchronizePlayerMutes.STREAM_CODEC)
         }
 
     val CLIENTBOUND by lazy { CLIENTBOUND_TEMPLATE.bind(::SurfByteBuf) }

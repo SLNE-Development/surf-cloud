@@ -6,7 +6,6 @@ import dev.slne.surf.cloud.api.common.netty.packet.ResponseNettyPacket
 import dev.slne.surf.cloud.api.common.util.netty.UnifiedReadOnlyChannelHandler
 import dev.slne.surf.surfapi.core.api.util.logger
 import dev.slne.surf.surfapi.core.api.util.mutableObject2ObjectMapOf
-import dev.slne.surf.surfapi.core.api.util.synchronize
 import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.ChannelPromise
 import kotlinx.coroutines.CompletableDeferred
@@ -16,7 +15,7 @@ import java.util.*
 class RespondingPacketSendHandler : UnifiedReadOnlyChannelHandler<NettyPacket>() {
     private val log = logger()
     private val respondingPackets =
-        mutableObject2ObjectMapOf<UUID, CompletableDeferred<ResponseNettyPacket>>().synchronize()
+        mutableObject2ObjectMapOf<UUID, CompletableDeferred<ResponseNettyPacket>>()
 
     @Suppress("DEPRECATION")
     override fun handleRead(
@@ -49,7 +48,7 @@ class RespondingPacketSendHandler : UnifiedReadOnlyChannelHandler<NettyPacket>()
         }
     }
 
-    @Suppress("DEPRECATION")
+    @Suppress("UNCHECKED_CAST")
     override fun handleWrite(
         ctx: ChannelHandlerContext,
         msg: NettyPacket,

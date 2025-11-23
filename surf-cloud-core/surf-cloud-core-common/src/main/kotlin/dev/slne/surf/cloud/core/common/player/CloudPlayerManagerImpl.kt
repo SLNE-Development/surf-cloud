@@ -41,16 +41,16 @@ abstract class CloudPlayerManagerImpl<P : CommonCloudPlayerImpl> : CloudPlayerMa
     abstract fun createPlayer(
         uuid: UUID,
         name: String,
-        proxy: Boolean,
-        ip: Inet4Address,
-        serverName: String
+        proxyName: String?,
+        serverName: String?,
+        ip: Inet4Address
     ): P
 
     abstract fun updateProxyServer(player: P, serverName: String)
     abstract fun updateServer(player: P, serverName: String)
 
-    abstract fun removeProxyServer(player: P, serverName: String)
-    abstract fun removeServer(player: P, serverName: String)
+    abstract fun removeProxyServer(player: P)
+    abstract fun removeServer(player: P)
 
     abstract fun getProxyServerName(player: P): String?
     abstract fun getServerName(player: P): String?
@@ -61,6 +61,38 @@ abstract class CloudPlayerManagerImpl<P : CommonCloudPlayerImpl> : CloudPlayerMa
 
     protected inline fun forEachPlayer(action: (P) -> Unit) {
         playerCache.currentValues().forEach(action)
+    }
+
+    fun createExistingPlayer(
+        uuid: UUID,
+        name: String,
+        ip: Inet4Address,
+        serverName: String?,
+        proxyName: String?,
+        extraInit: P.() -> Unit = {}
+    ): P {
+        val existing = playerCache.getOrNull(uuid)
+        if (existing != null) {
+            if (proxyName == null) {
+                removeProxyServer(existing)
+            } else {
+                updateProxyServer(existing, proxyName)
+            }
+
+            if (serverName == null) {
+                removeServer(existing)
+            } else {
+                updateServer(existing, serverName)
+            }
+
+            return existing.apply { this.extraInit() }
+        }
+
+        val player = createPlayer(uuid, name, proxyName, serverName, ip)
+        player.extraInit()
+        playerCache.put(uuid, player)
+
+        return player
     }
 
     /**
@@ -98,7 +130,13 @@ abstract class CloudPlayerManagerImpl<P : CommonCloudPlayerImpl> : CloudPlayerMa
 
         return try {
             val player = playerCache.get(uuid) {
-                val newPlayer = createPlayer(uuid, name, proxy, ip, serverName)
+                val newPlayer = createPlayer(
+                    uuid,
+                    name,
+                    if (proxy) serverName else null,
+                    if (!proxy) serverName else null,
+                    ip
+                )
                 newPlayer.extraInit()
 
                 if (runPreJoinTasks) {
@@ -274,9 +312,9 @@ abstract class CloudPlayerManagerImpl<P : CommonCloudPlayerImpl> : CloudPlayerMa
             val oldProxy = getProxyServerName(player)
             val oldServer = getServerName(player)
             if (proxy) {
-                removeProxyServer(player, serverName)
+                removeProxyServer(player)
             } else {
-                removeServer(player, serverName)
+                removeServer(player)
             }
             onServerDisconnect(uuid, player, serverName)
 

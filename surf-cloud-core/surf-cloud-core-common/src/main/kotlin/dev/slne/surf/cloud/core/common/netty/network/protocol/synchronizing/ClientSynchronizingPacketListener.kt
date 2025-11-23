@@ -25,5 +25,15 @@ interface ClientSynchronizingPacketListener : ClientCommonPacketListener,
     fun handlePlayerCacheHydrateChunk(packet: ClientboundPlayerCacheHydrateChunkPacket)
     fun handlePlayerCacheHydrateEnd(packet: ClientboundPlayerCacheHydrateEndPacket)
 
+    fun handleSyncPlayerHydrationStart(packet: ClientboundSyncPlayerHydrationStartPacket)
+    fun handleSyncPlayerHydrationChunk(packet: ClientboundSyncPlayerHydrationChunkPacket)
+    fun handleSyncPlayerHydrationEnd(packet: ClientboundSyncPlayerHydrationEndPacket)
+
+    fun handleSyncLargerPlayerPersistentDataContainerStart(packet: ClientboundSyncLargePlayerPersistentDataContainerStartPacket)
+    fun handleSyncLargerPlayerPersistentDataContainerChunk(packet: ClientboundSyncLargePlayerPersistentDataContainerChunkPacket)
+    fun handleSyncLargerPlayerPersistentDataContainerEnd(packet: ClientboundSyncLargePlayerPersistentDataContainerEndPacket)
+
+    fun handleSynchronizePlayerMutes(packet: ClientboundSynchronizePlayerMutes)
+
     fun handlePacket(packet: NettyPacket)
 }

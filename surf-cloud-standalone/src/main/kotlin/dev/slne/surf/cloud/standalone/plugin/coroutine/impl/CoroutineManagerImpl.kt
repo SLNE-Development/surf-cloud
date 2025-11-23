@@ -1,16 +1,14 @@
 package dev.slne.surf.cloud.standalone.plugin.coroutine.impl
 
 import com.google.auto.service.AutoService
-import dev.slne.surf.surfapi.core.api.util.mutableObject2ObjectMapOf
-import dev.slne.surf.surfapi.core.api.util.synchronize
 import dev.slne.surf.cloud.api.server.plugin.StandalonePlugin
 import dev.slne.surf.cloud.api.server.plugin.coroutine.CoroutineManager
 import dev.slne.surf.cloud.api.server.plugin.coroutine.CoroutineSession
+import java.util.concurrent.ConcurrentHashMap
 
 @AutoService(CoroutineManager::class)
 class CoroutineManagerImpl : CoroutineManager {
-    private val items =
-        mutableObject2ObjectMapOf<StandalonePlugin, CoroutineSessionImpl>().synchronize()
+    private val items = ConcurrentHashMap<StandalonePlugin, CoroutineSessionImpl>()
 
     override fun getCoroutineSession(plugin: StandalonePlugin): CoroutineSession {
         val session = items[plugin]
@@ -20,9 +18,10 @@ class CoroutineManagerImpl : CoroutineManager {
     }
 
     override fun setupCoroutineSession(plugin: StandalonePlugin) {
-        check(plugin !in items) { "Coroutine session for plugin ${plugin.meta.name} is already initialized" }
-        items[plugin] = CoroutineSessionImpl(plugin)
-
+        items.compute(plugin) { _, value ->
+            check(value == null) { "Coroutine session for plugin ${plugin.meta.name} is already initialized" }
+            CoroutineSessionImpl(plugin)
+        }
     }
 
     override fun disable(plugin: StandalonePlugin) {

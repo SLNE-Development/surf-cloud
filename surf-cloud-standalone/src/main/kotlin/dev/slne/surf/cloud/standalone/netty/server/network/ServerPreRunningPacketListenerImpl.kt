@@ -1,14 +1,12 @@
 package dev.slne.surf.cloud.standalone.netty.server.network
 
-import dev.slne.surf.cloud.core.common.coroutines.PacketHandlerScope
-import dev.slne.surf.cloud.core.common.netty.network.ConnectionImpl
+import dev.slne.surf.cloud.core.common.netty.network.connection.ConnectionImpl
 import dev.slne.surf.cloud.core.common.netty.network.protocol.prerunning.*
 import dev.slne.surf.cloud.core.common.netty.network.protocol.synchronizing.SynchronizingProtocols
 import dev.slne.surf.cloud.core.common.util.bean
 import dev.slne.surf.cloud.standalone.netty.server.NettyServerImpl
 import dev.slne.surf.cloud.standalone.netty.server.ServerClientImpl
 import dev.slne.surf.cloud.standalone.plugin.PluginInitializerManager
-import kotlinx.coroutines.launch
 
 class ServerPreRunningPacketListenerImpl(
     server: NettyServerImpl,
@@ -47,16 +45,14 @@ class ServerPreRunningPacketListenerImpl(
     override fun handleReadyToRun(packet: ServerboundProceedToSynchronizingAcknowledgedPacket) {
         check(state == State.PRE_RUNNING_ACKNOWLEDGED) { "Cannot proceed to running state from $state" }
 
-        PacketHandlerScope.launch {
-            connection.setupOutboundProtocol(SynchronizingProtocols.CLIENTBOUND)
-            val listener = ServerSynchronizingPacketListenerImpl(server, connection, client, proxy)
-            connection.setupInboundProtocol(
-                SynchronizingProtocols.SERVERBOUND,
-                listener
-            )
-            client.playAddress = packet.playAddress
-            listener.startSynchronizing()
-        }
+        connection.setupOutboundProtocol(SynchronizingProtocols.CLIENTBOUND).syncUninterruptibly()
+        val listener = ServerSynchronizingPacketListenerImpl(server, connection, client, proxy)
+        connection.setupInboundProtocol(
+            SynchronizingProtocols.SERVERBOUND,
+            listener
+        ).syncUninterruptibly()
+        client.playAddress = packet.playAddress
+        listener.startSynchronizing()
     }
 
     override fun isAcceptingMessages(): Boolean {

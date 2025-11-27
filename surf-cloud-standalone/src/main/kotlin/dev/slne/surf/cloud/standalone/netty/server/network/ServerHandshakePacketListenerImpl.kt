@@ -1,9 +1,9 @@
 package dev.slne.surf.cloud.standalone.netty.server.network
 
 import dev.slne.surf.cloud.core.common.coroutines.PacketHandlerScope
-import dev.slne.surf.cloud.core.common.netty.network.ConnectionImpl
 import dev.slne.surf.cloud.core.common.netty.network.DisconnectReason
 import dev.slne.surf.cloud.core.common.netty.network.DisconnectionDetails
+import dev.slne.surf.cloud.core.common.netty.network.connection.ConnectionImpl
 import dev.slne.surf.cloud.core.common.netty.network.protocol.handshake.ClientIntent
 import dev.slne.surf.cloud.core.common.netty.network.protocol.handshake.PROTOCOL_VERSION
 import dev.slne.surf.cloud.core.common.netty.network.protocol.handshake.ServerHandshakePacketListener
@@ -34,8 +34,8 @@ class ServerHandshakePacketListenerImpl(
         }
     }
 
-    private suspend fun beginLogin(packet: ServerboundHandshakePacket) {
-        connection.setupOutboundProtocol(LoginProtocols.CLIENTBOUND)
+    private fun beginLogin(packet: ServerboundHandshakePacket) {
+        connection.setupOutboundProtocol(LoginProtocols.CLIENTBOUND).syncUninterruptibly()
 
         if (packet.protocolVersion != PROTOCOL_VERSION) {
             val reason =
@@ -49,18 +49,18 @@ class ServerHandshakePacketListenerImpl(
         connection.setupInboundProtocol(
             LoginProtocols.SERVERBOUND,
             ServerLoginPacketListenerImpl(server, connection)
-        )
+        ).syncUninterruptibly()
     }
 
-    private suspend fun initialize(unused: ServerboundHandshakePacket) {
-        connection.setupOutboundProtocol(InitializeProtocols.CLIENTBOUND)
+    private fun initialize(unused: ServerboundHandshakePacket) {
+        connection.setupOutboundProtocol(InitializeProtocols.CLIENTBOUND).syncUninterruptibly()
         connection.setupInboundProtocol(
             InitializeProtocols.SERVERBOUND,
             ServerInitializePacketListenerImpl(connection)
-        )
+        ).syncUninterruptibly()
     }
 
-    override suspend fun onDisconnect(details: DisconnectionDetails) = Unit
+    override fun onDisconnect(details: DisconnectionDetails) = Unit
     override fun isAcceptingMessages(): Boolean {
         return connection.connected
     }

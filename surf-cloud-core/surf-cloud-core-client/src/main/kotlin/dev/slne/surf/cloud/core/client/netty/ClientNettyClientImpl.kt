@@ -1,146 +1,97 @@
 package dev.slne.surf.cloud.core.client.netty
 
 import dev.slne.surf.cloud.api.common.config.properties.CloudProperties
-import dev.slne.surf.cloud.api.common.exceptions.ExitCodes
-import dev.slne.surf.cloud.api.common.exceptions.FatalSurfError
-import dev.slne.surf.cloud.api.common.netty.network.protocol.PacketFlow
+import dev.slne.surf.cloud.api.common.netty.network.ConnectionProtocol
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
 import dev.slne.surf.cloud.api.common.netty.packet.RespondingNettyPacket
 import dev.slne.surf.cloud.api.common.server.CloudServerConstants
-import dev.slne.surf.cloud.core.client.config.ClientConfigHolder
-import dev.slne.surf.cloud.core.client.netty.network.ClientHandshakePacketListenerImpl
-import dev.slne.surf.cloud.core.client.netty.network.ClientRunningPacketListenerImpl
 import dev.slne.surf.cloud.core.client.netty.network.PlatformSpecificPacketListenerExtension
 import dev.slne.surf.cloud.core.client.netty.network.StatusUpdate
+import dev.slne.surf.cloud.core.client.netty.state.*
 import dev.slne.surf.cloud.core.client.server.serverManagerImpl
 import dev.slne.surf.cloud.core.common.config.AbstractSurfCloudConfigHolder
-import dev.slne.surf.cloud.core.common.coroutines.ConnectionTickScope
 import dev.slne.surf.cloud.core.common.netty.CommonNettyClientImpl
-import dev.slne.surf.cloud.core.common.netty.network.ConnectionImpl
-import dev.slne.surf.cloud.core.common.netty.network.DisconnectReason
-import dev.slne.surf.cloud.core.common.netty.network.DisconnectionDetails
-import dev.slne.surf.cloud.core.common.netty.network.EncryptionManager
 import dev.slne.surf.cloud.core.common.netty.network.protocol.common.ServerboundBundlePacket
-import dev.slne.surf.cloud.core.common.netty.network.protocol.initialize.ClientInitializePacketListener
-import dev.slne.surf.cloud.core.common.netty.network.protocol.initialize.ServerboundInitializeRequestIdPacket
-import dev.slne.surf.cloud.core.common.netty.network.protocol.login.LoginProtocols
-import dev.slne.surf.cloud.core.common.netty.network.protocol.login.ServerboundLoginStartPacket
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ServerboundBroadcastPacket
-import dev.slne.surf.cloud.core.common.util.InetSocketAddress
-import dev.slne.surf.cloud.core.common.util.ServerAddress
+import dev.slne.surf.cloud.core.common.util.SyncSignal
 import dev.slne.surf.surfapi.core.api.util.logger
-import kotlinx.coroutines.*
+import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.withTimeout
 import java.net.InetSocketAddress
 import kotlin.time.Duration.Companion.minutes
-import kotlin.time.Duration.Companion.seconds
 
 class ClientNettyClientImpl(
     val proxy: Boolean,
     val platformExtension: PlatformSpecificPacketListenerExtension,
-    private val configHolder: AbstractSurfCloudConfigHolder<*>
+    private val configHolder: AbstractSurfCloudConfigHolder<*>,
+    private val manager: NettyCommonClientManager,
+    private val reconnectBackoff: ReconnectBackoff
 ) : CommonNettyClientImpl(
     CloudProperties.SERVER_CATEGORY,
     CloudProperties.SERVER_NAME
-) {
+), ConnectionStateChangeListener {
     private val log = logger()
 
-    private var _listener: ClientRunningPacketListenerImpl? = null
-    val listener get() = _listener ?: error("listener not yet set")
-    val connected get() = _listener?.connection?.connected ?: false
+    val connectionManager = createConnectionManager()
 
-    val preRunningCallback = CompletableDeferred<Unit>()
-    val synchronizeCallback = CompletableDeferred<Unit>()
-    lateinit var startSynchronizeTask: suspend () -> Unit
+    val preRunningFinishedSignal = SyncSignal()
+    var startSynchronizeTask: (suspend () -> Unit) = {}
+    val enteredSynchronizingStateSignal = SyncSignal()
+    val synchronizeFinishedSignal = SyncSignal()
 
     override val playAddress: InetSocketAddress
         get() = platformExtension.playAddress
 
-    private val statusUpdate: StatusUpdate = {
+    val statusUpdate: StatusUpdate = {
         log.atInfo().log(it)
     }
 
     override var velocitySecret = ByteArray(0)
 
+    private fun createConnectionManager(): ConnectionManager {
+        val config = configHolder.config.connectionConfig.nettyConfig
+        val manager = ConnectionManager(
+            address = InetSocketAddress(config.host, config.port),
+            useEpoll = config.useEpoll,
+            client = this,
+            configHolder = configHolder,
+            reconnectBackoff = reconnectBackoff
+        )
+
+        manager.addListener(this)
+
+        return manager
+    }
+
     /**
      * Bootstraps the client. Setup the connection protocol until the PreRunning state.
      */
     suspend fun bootstrap() {
-        val config = configHolder.config.connectionConfig.nettyConfig
-        connectToServer(ServerAddress(config.host, config.port))
-        preRunningCallback.await() // Wait until the connection is in the PreRunning state
-    }
+        val start = connectionManager.start(true)
+            ?: throw IllegalStateException("Failed to bootstrap the client.")
 
+        start.syncUninterruptibly()
+        preRunningFinishedSignal.awaitNext() // Wait until the connection is in the PreRunning state
+    }
 
     suspend fun stop() {
         velocitySecret.fill(0)
         doShutdown()
     }
 
-    suspend fun connectToServer(serverAddress: ServerAddress) {
-        fetchAndUpdateData(InetSocketAddress(serverAddress.host, serverAddress.port))
-
-        log.atInfo()
-            .log("Connecting to server at ${serverAddress.host}:${serverAddress.port}")
-
-        try {
-            val inetSocketAddress = InetSocketAddress(serverAddress)
-            val connection = ConnectionImpl(PacketFlow.CLIENTBOUND, EncryptionManager.instance)
-            ConnectionImpl.connect(
-                inetSocketAddress,
-                configHolder.config.connectionConfig.nettyConfig.useEpoll,
-                connection,
-                configHolder
-            )
-
-            ConnectionTickScope.launch {
-                while (connection.connected && isActive) {
-                    connection.tick()
-                    delay(1.seconds)
-                }
-
-                connection.handleDisconnection()
-            }
-
-            connection.initiateServerboundRunningConnection(
-                inetSocketAddress.hostName,
-                inetSocketAddress.port,
-                LoginProtocols.SERVERBOUND,
-                LoginProtocols.CLIENTBOUND,
-                ClientHandshakePacketListenerImpl(
-                    this,
-                    connection,
-                    platformExtension,
-                    statusUpdate,
-                ),
-                false
-            )
-            CloudProperties.javaClass
-            connection.send(
-                ServerboundLoginStartPacket(
-                    serverCategory,
-                    serverName,
-                    proxy,
-                    (configHolder as ClientConfigHolder).config.isLobby,
-                )
-            )
-        } catch (e: Exception) {
-            val cause = e.cause as? Exception ?: e
-
-            throw FatalSurfError {
-                simpleErrorMessage("Couldn't connect to server")
-                detailedErrorMessage("An error occurred while trying to connect to the server.")
-                cause(cause)
-                exitCode(ExitCodes.CLIENT_COULD_NOT_CONNECT_TO_SERVER)
-                additionalInformation("Server address: ${serverAddress.host}:${serverAddress.port}")
-                additionalInformation("Server category: $serverCategory")
-                possibleSolution("Check if the server is online and reachable.")
-                possibleSolution("Check if the server address is correct.")
-            }
-        }
-    }
-
+    // <editor-fold desc="fetchAndUpdateData">
+    /* // Currently not used — kept for reference for future use
     private suspend fun fetchAndUpdateData(address: InetSocketAddress) {
         if (false) {
+            suspend fun connectToServer(
+                address: InetSocketAddress,
+                useEpoll: Boolean,
+            ): ConnectionImpl {
+                val connection = ConnectionImpl(PacketFlow.CLIENTBOUND, EncryptionManager.instance)
+                ConnectionImpl.connect(address, useEpoll, connection, configHolder)
+                return connection
+            }
+
             val connection = connectToServer(address, false)
             log.atInfo()
                 .log("Updating data...")
@@ -188,26 +139,21 @@ class ClientNettyClientImpl(
             }
         }
     }
-
-    fun initListener(listener: ClientRunningPacketListenerImpl) {
-        _listener = listener
-    }
+     */
+    // </editor-fold>
 
     override fun broadcast(packets: List<NettyPacket>) {
         require(packets.none { it is RespondingNettyPacket<*> }) { "Cannot broadcast responding packets." }
+        require(packets.all { it.protocols.contains(ConnectionProtocol.RUNNING) }) { "Cannot broadcast packets that are not in the Running state." }
+
         val finalPackets = packets.toMutableList()
         finalPackets.add(0, ServerboundBroadcastPacket)
 
-        listener.connection.send(ServerboundBundlePacket(finalPackets))
-    }
-
-    private suspend fun connectToServer(
-        address: InetSocketAddress,
-        useEpoll: Boolean,
-    ): ConnectionImpl {
-        val connection = ConnectionImpl(PacketFlow.CLIENTBOUND, EncryptionManager.instance)
-        ConnectionImpl.connect(address, useEpoll, connection, configHolder)
-        return connection
+        connectionManager.sendOrQueue(
+            ServerboundBundlePacket(finalPackets),
+            ConnectionProtocol.RUNNING,
+            false
+        )
     }
 
     suspend fun doShutdown() {
@@ -221,7 +167,15 @@ class ClientNettyClientImpl(
                 .log("Failed to transfer all players from server ${server?.name} to the lobby. Proceeding with shutdown anyway.")
         }
 
-        listener.close()
-        connection.disconnect(DisconnectReason.CLIENT_SHUTDOWN)
+        connectionManager.shutdown()
+    }
+
+    override fun onConnectionStateChanged(event: ConnectionEvent) {
+        val to = event.to
+        if (to == StateMachine.State.DEGRADED || to == StateMachine.State.DISCONNECTED) {
+            manager.blockPlayerConnections()
+        } else if (to == StateMachine.State.CONNECTED) {
+            manager.unblockPlayerConnections()
+        }
     }
 }

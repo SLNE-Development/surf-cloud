@@ -7,7 +7,8 @@ import dev.slne.surf.cloud.api.common.netty.network.codec.streamCodecUnitSimple
 import dev.slne.surf.cloud.api.common.netty.network.protocol.PacketFlow
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
 import dev.slne.surf.cloud.api.common.netty.packet.PacketHandlerMode
-import dev.slne.surf.cloud.core.common.netty.network.InternalNettyPacket
+import dev.slne.surf.cloud.core.common.netty.network.AlwaysImmediate
+import dev.slne.surf.cloud.core.common.netty.network.CriticalInternalNettyPacket
 
 @SurfNettyPacket(
     DefaultIds.SERVERBOUND_PRE_RUNNING_ACKNOWLEDGED_PACKET,
@@ -15,8 +16,9 @@ import dev.slne.surf.cloud.core.common.netty.network.InternalNettyPacket
     ConnectionProtocol.PRE_RUNNING,
     handlerMode = PacketHandlerMode.NETTY
 )
+@AlwaysImmediate
 object ServerboundPreRunningAcknowledgedPacket : NettyPacket(),
-    InternalNettyPacket<ServerPreRunningPacketListener> {
+    CriticalInternalNettyPacket<ServerPreRunningPacketListener> {
     val STREAM_CODEC = streamCodecUnitSimple(ServerboundPreRunningAcknowledgedPacket)
 
     override fun handle(listener: ServerPreRunningPacketListener) {

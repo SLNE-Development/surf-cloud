@@ -7,7 +7,8 @@ import dev.slne.surf.cloud.api.common.netty.network.codec.StreamCodec
 import dev.slne.surf.cloud.api.common.netty.network.protocol.PacketFlow
 import dev.slne.surf.cloud.api.common.netty.network.protocol.long.LongResponsePacket
 import dev.slne.surf.cloud.api.common.netty.packet.PacketHandlerMode
-import dev.slne.surf.cloud.core.common.netty.network.InternalNettyPacket
+import dev.slne.surf.cloud.core.common.netty.network.AlwaysImmediate
+import dev.slne.surf.cloud.core.common.netty.network.CriticalInternalNettyPacket
 
 @SurfNettyPacket(
     "cloud:bidirectional:keep_alive",
@@ -17,8 +18,9 @@ import dev.slne.surf.cloud.core.common.netty.network.InternalNettyPacket
     ConnectionProtocol.SYNCHRONIZING,
     handlerMode = PacketHandlerMode.NETTY,
 )
+@AlwaysImmediate
 class KeepAlivePacket(val keepAliveId: Long) : LongResponsePacket(),
-    InternalNettyPacket<CommonPacketListener> {
+    CriticalInternalNettyPacket<CommonPacketListener> {
     companion object {
         val STREAM_CODEC = StreamCodec.composite(
             ByteBufCodecs.VAR_LONG_CODEC,

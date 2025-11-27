@@ -8,7 +8,7 @@ interface PacketListener {
     val flow: PacketFlow
     val protocol: ConnectionProtocol
 
-    suspend fun onDisconnect(details: DisconnectionDetails)
+    fun onDisconnect(details: DisconnectionDetails)
     fun createDisconnectionInfo(
         reason: DisconnectReason,
         additionalInfo: String? = null

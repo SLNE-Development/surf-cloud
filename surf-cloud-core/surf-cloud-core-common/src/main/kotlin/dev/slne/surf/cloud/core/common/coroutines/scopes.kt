@@ -223,3 +223,8 @@ object PlayerCacheLoadScope : BaseScope(
     dispatcher = Dispatchers.IO,
     name = "player-cache-load"
 )
+
+object KeepAliveScope : BaseScope(
+    dispatcher = Dispatchers.Default,
+    name = "keep-alive"
+)

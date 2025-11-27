@@ -2,6 +2,7 @@ package dev.slne.surf.cloud.velocity.netty
 
 import dev.slne.surf.cloud.core.client.netty.NettyCommonClientManager
 import dev.slne.surf.cloud.core.client.netty.network.PlatformSpecificPacketListenerExtension
+import dev.slne.surf.cloud.core.client.netty.state.ReconnectBackoff
 import dev.slne.surf.cloud.core.common.config.AbstractSurfCloudConfigHolder
 import dev.slne.surf.cloud.core.common.spring.CloudLifecycleAware
 import dev.slne.surf.cloud.velocity.netty.listener.NettyPlayerConnectionBlocker
@@ -14,8 +15,9 @@ import dev.slne.surf.cloud.velocity.proxy as velocityProxy
 @Order(CloudLifecycleAware.NETTY_MANAGER_PRIORITY)
 class VelocityNettyManager(
     platformExtension: PlatformSpecificPacketListenerExtension,
-    configHolder: AbstractSurfCloudConfigHolder<*>
-) : NettyCommonClientManager(true, platformExtension, configHolder) {
+    configHolder: AbstractSurfCloudConfigHolder<*>,
+    reconnectBackoff: ReconnectBackoff
+) : NettyCommonClientManager(true, platformExtension, configHolder, reconnectBackoff) {
     override fun blockPlayerConnections() {
         velocityProxy.eventManager.register(plugin, NettyPlayerConnectionBlocker)
     }

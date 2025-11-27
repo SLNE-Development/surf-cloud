@@ -11,7 +11,7 @@ import dev.slne.surf.cloud.core.client.server.serverManagerImpl
 import dev.slne.surf.cloud.core.client.sync.SyncRegistryImpl
 import dev.slne.surf.cloud.core.common.coroutines.PacketHandlerScope
 import dev.slne.surf.cloud.core.common.coroutines.SynchronizeTasksScope
-import dev.slne.surf.cloud.core.common.netty.network.ConnectionImpl
+import dev.slne.surf.cloud.core.common.netty.network.connection.ConnectionImpl
 import dev.slne.surf.cloud.core.common.netty.network.protocol.common.ClientboundSetVelocitySecretPacket
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.*
 import dev.slne.surf.cloud.core.common.netty.network.protocol.synchronizing.*
@@ -44,6 +44,7 @@ class ClientSynchronizingPacketListenerImpl(
     fun startSynchronizing() {
         statusUpdater.switchState(AbstractStatusUpdater.State.SYNCHRONIZING)
 
+        client.enteredSynchronizingStateSignal.fire()
         SynchronizeTasksScope.launch {
             CloudSynchronizeTaskManager.executeTasks(client)
 
@@ -55,15 +56,14 @@ class ClientSynchronizingPacketListenerImpl(
     override fun handleSynchronizeFinish(packet: ClientboundSynchronizeFinishPacket) {
         statusUpdater.switchState(AbstractStatusUpdater.State.SYNCHRONIZED)
 
-        PacketHandlerScope.launch {
-            val listener = ClientRunningPacketListenerImpl(connection, client, platformExtension)
-            connection.setupInboundProtocol(RunningProtocols.CLIENTBOUND, listener)
-            connection.send(ServerboundSynchronizeFinishAcknowledgedPacket)
-            connection.setupOutboundProtocol(RunningProtocols.SERVERBOUND)
-            client.initListener(listener)
-            statusUpdater.switchState(AbstractStatusUpdater.State.CONNECTED)
-            client.synchronizeCallback.complete(Unit)
-        }
+        val listener = ClientRunningPacketListenerImpl(connection, client, platformExtension)
+        client.connectionManager.currentPacketLister = listener
+        connection.setupInboundProtocol(RunningProtocols.CLIENTBOUND, listener)
+            .syncUninterruptibly()
+        connection.send(ServerboundSynchronizeFinishAcknowledgedPacket)
+        connection.setupOutboundProtocol(RunningProtocols.SERVERBOUND).syncUninterruptibly()
+        statusUpdater.switchState(AbstractStatusUpdater.State.CONNECTED)
+        client.synchronizeFinishedSignal.fire()
     }
 
     override fun handleSyncValueChange(packet: SyncValueChangePacket) {
@@ -194,7 +194,10 @@ class ClientSynchronizingPacketListenerImpl(
     override fun handleSyncLargerPlayerPersistentDataContainerStart(packet: ClientboundSyncLargePlayerPersistentDataContainerStartPacket) {
         if (currentLargePpdcUuid != null) {
             log.atWarning()
-                .log("Received start of large PPD container before end of previous one (%s)", currentLargePpdcUuid)
+                .log(
+                    "Received start of large PPD container before end of previous one (%s)",
+                    currentLargePpdcUuid
+                )
             return
         }
 

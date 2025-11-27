@@ -7,7 +7,8 @@ import dev.slne.surf.cloud.api.common.netty.network.codec.streamCodecUnitSimple
 import dev.slne.surf.cloud.api.common.netty.network.protocol.PacketFlow
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
 import dev.slne.surf.cloud.api.common.netty.packet.PacketHandlerMode
-import dev.slne.surf.cloud.core.common.netty.network.InternalNettyPacket
+import dev.slne.surf.cloud.core.common.netty.network.AlwaysImmediate
+import dev.slne.surf.cloud.core.common.netty.network.CriticalInternalNettyPacket
 
 /**
  * This packet is sent by the client to the server to acknowledge the login process.
@@ -19,7 +20,8 @@ import dev.slne.surf.cloud.core.common.netty.network.InternalNettyPacket
     ConnectionProtocol.LOGIN,
     handlerMode = PacketHandlerMode.DEFAULT
 )
-object ServerboundLoginAcknowledgedPacket : NettyPacket(), InternalNettyPacket<ServerLoginPacketListener> {
+@AlwaysImmediate
+object ServerboundLoginAcknowledgedPacket : NettyPacket(), CriticalInternalNettyPacket<ServerLoginPacketListener> {
     val STREAM_CODEC = streamCodecUnitSimple(this)
     override val terminal = true
 

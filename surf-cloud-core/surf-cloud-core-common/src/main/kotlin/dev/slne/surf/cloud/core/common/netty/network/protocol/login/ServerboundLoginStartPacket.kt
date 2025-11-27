@@ -9,7 +9,8 @@ import dev.slne.surf.cloud.api.common.netty.network.codec.composite
 import dev.slne.surf.cloud.api.common.netty.network.protocol.PacketFlow
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
 import dev.slne.surf.cloud.api.common.netty.packet.PacketHandlerMode
-import dev.slne.surf.cloud.core.common.netty.network.InternalNettyPacket
+import dev.slne.surf.cloud.core.common.netty.network.AlwaysImmediate
+import dev.slne.surf.cloud.core.common.netty.network.CriticalInternalNettyPacket
 
 /**
  * This packet is sent by the client to the server to start the login process.
@@ -20,12 +21,13 @@ import dev.slne.surf.cloud.core.common.netty.network.InternalNettyPacket
     ConnectionProtocol.LOGIN,
     handlerMode = PacketHandlerMode.NETTY
 )
+@AlwaysImmediate
 class ServerboundLoginStartPacket(
     val serverCategory: String,
     val serverName: String,
     val proxy: Boolean,
     val lobby: Boolean
-) : NettyPacket(), InternalNettyPacket<ServerLoginPacketListener> {
+) : NettyPacket(), CriticalInternalNettyPacket<ServerLoginPacketListener> {
 
     companion object {
         val STREAM_CODEC = StreamCodec.composite(

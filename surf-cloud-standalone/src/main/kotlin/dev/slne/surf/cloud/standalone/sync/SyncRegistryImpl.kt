@@ -3,7 +3,7 @@ package dev.slne.surf.cloud.standalone.sync
 import com.google.auto.service.AutoService
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
 import dev.slne.surf.cloud.api.common.sync.SyncRegistry
-import dev.slne.surf.cloud.core.common.netty.network.ConnectionImpl
+import dev.slne.surf.cloud.core.common.netty.network.connection.ConnectionImpl
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.SyncSetDeltaPacket
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.SyncValueChangePacket
 import dev.slne.surf.cloud.core.common.sync.BasicSyncValue

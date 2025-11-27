@@ -4,9 +4,9 @@ import dev.slne.surf.cloud.api.common.netty.network.protocol.respond
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
 import dev.slne.surf.cloud.core.common.coroutines.ConnectionManagementScope
 import dev.slne.surf.cloud.core.common.netty.network.CommonTickablePacketListener
-import dev.slne.surf.cloud.core.common.netty.network.ConnectionImpl
 import dev.slne.surf.cloud.core.common.netty.network.DisconnectReason
 import dev.slne.surf.cloud.core.common.netty.network.DisconnectionDetails
+import dev.slne.surf.cloud.core.common.netty.network.connection.ConnectionImpl
 import dev.slne.surf.cloud.core.common.netty.network.protocol.common.*
 import dev.slne.surf.cloud.core.common.netty.network.protocol.common.ServerCommonPacketListener
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ClientboundDisconnectPacket
@@ -54,7 +54,7 @@ abstract class ServerCommonPacketListenerImpl(
     var keepConnectionAlive = true
 
     @OverridingMethodsMustInvokeSuper
-    override suspend fun tick0() {
+    override fun tickSecond0() {
         if (keepConnectionAlive) {
             keepAlive.keepConnectionAlive()
         }
@@ -125,7 +125,7 @@ abstract class ServerCommonPacketListenerImpl(
      *
      * @param reason the reason for the disconnection.
      */
-    suspend fun disconnect(reason: DisconnectReason) {
+    fun disconnect(reason: DisconnectReason) {
         disconnect(DisconnectionDetails(reason))
     }
 
@@ -134,7 +134,7 @@ abstract class ServerCommonPacketListenerImpl(
      *
      * @param details the details of the disconnection.
      */
-    suspend fun disconnect(details: DisconnectionDetails) {
+    fun disconnect(details: DisconnectionDetails) {
         if (processedDisconnect) return
 
         ConnectionManagementScope.launch {
@@ -145,10 +145,10 @@ abstract class ServerCommonPacketListenerImpl(
         onDisconnect(details)
         connection.setReadOnly()
 
-        schedule { connection.handleDisconnection() }
+        schedule { connection.handleDisconnection(true) }
     }
 
-    override suspend fun onDisconnect(details: DisconnectionDetails) {
+    override fun onDisconnect(details: DisconnectionDetails) {
         if (processedDisconnect) return
         processedDisconnect = true
 

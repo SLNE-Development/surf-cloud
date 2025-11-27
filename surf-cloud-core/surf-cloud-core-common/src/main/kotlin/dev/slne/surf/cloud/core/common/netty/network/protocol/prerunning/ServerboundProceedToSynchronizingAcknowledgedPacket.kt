@@ -8,7 +8,8 @@ import dev.slne.surf.cloud.api.common.netty.network.codec.StreamCodec
 import dev.slne.surf.cloud.api.common.netty.network.protocol.PacketFlow
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
 import dev.slne.surf.cloud.api.common.netty.packet.PacketHandlerMode
-import dev.slne.surf.cloud.core.common.netty.network.InternalNettyPacket
+import dev.slne.surf.cloud.core.common.netty.network.AlwaysImmediate
+import dev.slne.surf.cloud.core.common.netty.network.CriticalInternalNettyPacket
 import java.net.InetSocketAddress
 
 @SurfNettyPacket(
@@ -17,9 +18,10 @@ import java.net.InetSocketAddress
     ConnectionProtocol.PRE_RUNNING,
     handlerMode = PacketHandlerMode.DEFAULT
 )
+@AlwaysImmediate
 class ServerboundProceedToSynchronizingAcknowledgedPacket(
     val playAddress: InetSocketAddress
-) : NettyPacket(), InternalNettyPacket<ServerPreRunningPacketListener> {
+) : NettyPacket(), CriticalInternalNettyPacket<ServerPreRunningPacketListener> {
     override val terminal = true
 
     companion object {

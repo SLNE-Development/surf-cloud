@@ -6,7 +6,7 @@ import dev.slne.surf.cloud.api.common.netty.packet.NettyPacketInfo
 import dev.slne.surf.cloud.api.common.player.CloudPlayerManager
 import dev.slne.surf.cloud.core.common.coroutines.PacketHandlerScope
 import dev.slne.surf.cloud.core.common.coroutines.SynchronizeTasksScope
-import dev.slne.surf.cloud.core.common.netty.network.ConnectionImpl
+import dev.slne.surf.cloud.core.common.netty.network.connection.ConnectionImpl
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.RunningProtocols
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ServerboundCreateOfflineCloudPlayerIfNotExistsPacket
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.SyncSetDeltaPacket
@@ -40,8 +40,8 @@ class ServerSynchronizingPacketListenerImpl(
     @Volatile
     private var clientFinishedSynchronizing = false
 
-    override suspend fun tick0() {
-        super.tick0()
+    override fun tickSecond0() {
+        super.tickSecond0()
         if (clientFinishedSynchronizing && state == State.WAIT_FOR_CLIENT) {
             finalize()
         }
@@ -76,14 +76,13 @@ class ServerSynchronizingPacketListenerImpl(
     override fun handleSynchronizeFinishAcknowledged(packet: ServerboundSynchronizeFinishAcknowledgedPacket) {
         check(state == State.FINALIZING) { "Unexpected synchronize finish acknowledgement packet" }
 
-        PacketHandlerScope.launch {
-            connection.setupOutboundProtocol(RunningProtocols.CLIENTBOUND)
-            val listener = ServerRunningPacketListenerImpl(server, client, connection)
-            connection.setupInboundProtocol(RunningProtocols.SERVERBOUND, listener)
-            client.initListener(listener)
-            server.registerClient(client, proxy)
-            state = State.SYNCHRONIZED
-        }
+        connection.setupOutboundProtocol(RunningProtocols.CLIENTBOUND).syncUninterruptibly()
+        val listener = ServerRunningPacketListenerImpl(server, client, connection)
+        connection.setupInboundProtocol(RunningProtocols.SERVERBOUND, listener)
+            .syncUninterruptibly()
+        client.initListener(listener)
+        server.registerClient(client, proxy)
+        state = State.SYNCHRONIZED
     }
 
     override fun handleSyncValueChange(packet: SyncValueChangePacket) {

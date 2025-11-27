@@ -2,17 +2,16 @@ package dev.slne.surf.cloud.core.client.netty.network
 
 import dev.slne.surf.cloud.api.common.netty.network.protocol.respond
 import dev.slne.surf.cloud.api.common.netty.packet.NettyPacket
+import dev.slne.surf.cloud.core.client.netty.ClientNettyClientImpl
 import dev.slne.surf.cloud.core.common.coroutines.ConnectionManagementScope
-import dev.slne.surf.cloud.core.common.netty.NettyManager
 import dev.slne.surf.cloud.core.common.netty.network.CommonTickablePacketListener
-import dev.slne.surf.cloud.core.common.netty.network.ConnectionImpl
 import dev.slne.surf.cloud.core.common.netty.network.DisconnectReason
 import dev.slne.surf.cloud.core.common.netty.network.DisconnectionDetails
+import dev.slne.surf.cloud.core.common.netty.network.connection.ConnectionImpl
 import dev.slne.surf.cloud.core.common.netty.network.protocol.common.*
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ClientboundDisconnectPacket
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ClientboundPingPacket
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ServerboundPongPacket
-import dev.slne.surf.cloud.core.common.util.bean
 import dev.slne.surf.surfapi.core.api.util.logger
 import kotlinx.coroutines.launch
 
@@ -20,6 +19,8 @@ abstract class ClientCommonPacketListenerImpl(
     val connection: ConnectionImpl,
 ) : CommonTickablePacketListener(), ClientCommonPacketListener {
     private val log = logger()
+
+    abstract override val client: ClientNettyClientImpl
 
     private val keepAlive = KeepAliveHandler(
         connection,
@@ -37,7 +38,7 @@ abstract class ClientCommonPacketListenerImpl(
     var processedDisconnect = false
         private set
 
-    override suspend fun tick0() {
+    override fun tickSecond0() {
         keepAlive.keepConnectionAlive()
     }
 
@@ -65,15 +66,15 @@ abstract class ClientCommonPacketListenerImpl(
         }
     }
 
-    override suspend fun onDisconnect(details: DisconnectionDetails) {
+    override fun onDisconnect(details: DisconnectionDetails) {
         if (processedDisconnect) return
         processedDisconnect = true
 
-        log.atInfo().log("Client disconnected with reason: ${details.buildMessage()}")
+        log.atInfo()
+            .log("Client disconnected with reason: ${details.buildMessage()}")
 
-        bean<NettyManager>().blockPlayerConnections()
-        if (details.reason.shouldRestart) {
-            restart()
+        if (details.reason.shouldReconnect) {
+            client.connectionManager.tryStartScheduleReconnect(false, details.createException())
         } else {
             shutdown()
         }
@@ -95,11 +96,11 @@ abstract class ClientCommonPacketListenerImpl(
         }
     }
 
-    private suspend fun disconnect(reason: DisconnectReason) {
+    private fun disconnect(reason: DisconnectReason) {
         disconnect(DisconnectionDetails(reason))
     }
 
-    private suspend fun disconnect(details: DisconnectionDetails) {
+    private fun disconnect(details: DisconnectionDetails) {
         if (processedDisconnect) return
 
         connection.disconnect(details)

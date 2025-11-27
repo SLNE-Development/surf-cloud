@@ -3,6 +3,7 @@ package dev.slne.surf.cloud.bukkit.netty
 import dev.slne.surf.cloud.bukkit.netty.listener.NettyPlayerConnectionBlocker
 import dev.slne.surf.cloud.core.client.netty.NettyCommonClientManager
 import dev.slne.surf.cloud.core.client.netty.network.PlatformSpecificPacketListenerExtension
+import dev.slne.surf.cloud.core.client.netty.state.ReconnectBackoff
 import dev.slne.surf.cloud.core.common.config.AbstractSurfCloudConfigHolder
 import dev.slne.surf.cloud.core.common.spring.CloudLifecycleAware
 import dev.slne.surf.surfapi.bukkit.api.event.register
@@ -14,8 +15,9 @@ import org.springframework.stereotype.Component
 @Order(CloudLifecycleAware.NETTY_MANAGER_PRIORITY)
 class BukkitNettyManager(
     platformExtension: PlatformSpecificPacketListenerExtension,
-    configHolder: AbstractSurfCloudConfigHolder<*>
-) : NettyCommonClientManager(false, platformExtension, configHolder) {
+    configHolder: AbstractSurfCloudConfigHolder<*>,
+    reconnectBackoff: ReconnectBackoff
+) : NettyCommonClientManager(false, platformExtension, configHolder, reconnectBackoff) {
 
     override fun blockPlayerConnections() {
         NettyPlayerConnectionBlocker.register()

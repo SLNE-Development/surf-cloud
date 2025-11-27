@@ -1,9 +1,9 @@
 package dev.slne.surf.cloud.core.common.netty.network.protocol.common
 
 import dev.slne.surf.cloud.api.common.netty.network.protocol.await
-import dev.slne.surf.cloud.core.common.netty.network.ConnectionImpl
+import dev.slne.surf.cloud.core.common.coroutines.KeepAliveScope
 import dev.slne.surf.cloud.core.common.netty.network.DisconnectReason
-import kotlinx.coroutines.coroutineScope
+import dev.slne.surf.cloud.core.common.netty.network.connection.ConnectionImpl
 import kotlinx.coroutines.launch
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
@@ -14,7 +14,7 @@ private val KEEP_ALIVE_LIMIT = KeepAliveTime(10.seconds)
 
 class KeepAliveHandler(
     private val connection: ConnectionImpl,
-    private val disconnect: (suspend (reason: DisconnectReason) -> Unit),
+    private val disconnect: (reason: DisconnectReason) -> Unit,
     private val isDisconnectProcessed: () -> Boolean,
     private val isClosed: (time: KeepAliveTime) -> Boolean,
     private val getClosedListenerTime: () -> Long
@@ -23,7 +23,7 @@ class KeepAliveHandler(
     private var keepAlivePending = false
     private var keepAliveChallenge = KeepAliveTime(0)
 
-    suspend fun keepConnectionAlive() {
+    fun keepConnectionAlive() {
         val currentTime = KeepAliveTime.now()
         val elapsedTime = currentTime - keepAliveTime
 
@@ -37,21 +37,20 @@ class KeepAliveHandler(
                 keepAlivePending = true
                 keepAliveTime = currentTime
                 keepAliveChallenge = currentTime
-                coroutineScope {
-                    launch {
-                        val keepAliveId = KeepAlivePacket(keepAliveChallenge.time).await(
-                            connection,
-                            KEEP_ALIVE_LIMIT.toDuration()
-                        )
 
-                        handleKeepAliveResponse(keepAliveId)
-                    }
+                KeepAliveScope.launch {
+                    val keepAliveId = KeepAlivePacket(keepAliveChallenge.time).await(
+                        connection,
+                        KEEP_ALIVE_LIMIT.toDuration()
+                    )
+
+                    handleKeepAliveResponse(keepAliveId)
                 }
             }
         }
     }
 
-    private suspend fun handleKeepAliveResponse(keepAliveId: Long?) {
+    private fun handleKeepAliveResponse(keepAliveId: Long?) {
         if (keepAlivePending && keepAliveId != null && keepAliveId == keepAliveChallenge.time) {
             val elapsedTime = KeepAliveTime.now() - keepAliveTime
 
@@ -62,7 +61,7 @@ class KeepAliveHandler(
         }
     }
 
-    private suspend fun checkIfClosed(time: KeepAliveTime): Boolean {
+    private fun checkIfClosed(time: KeepAliveTime): Boolean {
         if (isClosed(time)) {
             if (KEEP_ALIVE_TIME.isExpired(time - getClosedListenerTime())) {
                 disconnect(DisconnectReason.TIMEOUT)

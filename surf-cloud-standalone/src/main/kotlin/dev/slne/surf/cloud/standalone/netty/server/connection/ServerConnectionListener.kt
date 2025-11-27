@@ -8,7 +8,11 @@ import dev.slne.surf.cloud.api.common.util.netty.suspend
 import dev.slne.surf.cloud.api.common.util.threadFactory
 import dev.slne.surf.cloud.core.common.config.AbstractSurfCloudConfigHolder
 import dev.slne.surf.cloud.core.common.coroutines.ConnectionManagementScope
-import dev.slne.surf.cloud.core.common.netty.network.*
+import dev.slne.surf.cloud.core.common.netty.network.DisconnectReason
+import dev.slne.surf.cloud.core.common.netty.network.DisconnectionDetails
+import dev.slne.surf.cloud.core.common.netty.network.EncryptionManager
+import dev.slne.surf.cloud.core.common.netty.network.HandlerNames
+import dev.slne.surf.cloud.core.common.netty.network.connection.ConnectionImpl
 import dev.slne.surf.cloud.core.common.netty.network.protocol.common.ClientboundBundlePacket
 import dev.slne.surf.cloud.core.common.netty.network.protocol.running.ClientboundDisconnectPacket
 import dev.slne.surf.cloud.standalone.netty.server.NettyServerImpl
@@ -23,7 +27,6 @@ import io.netty.channel.epoll.EpollServerSocketChannel
 import io.netty.channel.nio.NioIoHandler
 import io.netty.channel.socket.nio.NioServerSocketChannel
 import io.netty.channel.unix.DomainSocketAddress
-import io.netty.handler.flush.FlushConsolidationHandler
 import io.netty.handler.timeout.ReadTimeoutHandler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -85,7 +88,6 @@ class ServerConnectionListener(
                         }
 
                         val pipeline = channel.pipeline()
-                            .addFirst(FlushConsolidationHandler())
                             .addLast(HandlerNames.TIMEOUT, ReadTimeoutHandler(30))
 
                         ConnectionImpl.configureSerialization(
@@ -95,8 +97,13 @@ class ServerConnectionListener(
                             configHolder
                         )
 
-                        val connection =
-                            ConnectionImpl(PacketFlow.SERVERBOUND, EncryptionManager.instance)
+                        val packetWire = DirectPacketWire()
+                        val connection = ConnectionImpl(
+                            PacketFlow.SERVERBOUND,
+                            EncryptionManager.instance,
+                            packetWire
+                        )
+                        packetWire.connectionImpl = connection
 
                         pending.add(connection)
                         connection.configurePacketHandler(channel, pipeline)
@@ -159,8 +166,8 @@ class ServerConnectionListener(
             }
         }
 
-        ConnectionImpl.NETWORK_EPOLL_WORKER_GROUP.shutdownGracefully().suspend()
-        ConnectionImpl.NETWORK_WORKER_GROUP.shutdownGracefully().suspend()
+        SERVER_EPOLL_EVENT_GROUP.shutdownGracefully().suspend()
+        SERVER_EVENT_GROUP.shutdownGracefully().suspend()
     }
 
     private fun addPending() {
@@ -181,7 +188,7 @@ class ServerConnectionListener(
 
             if (connection.connected) {
                 try {
-                    connection.tick()
+                    connection.tick(true)
                 } catch (e: Exception) {
                     log.atWarning()
                         .withCause(e)
@@ -202,7 +209,7 @@ class ServerConnectionListener(
                 }
 
                 connections.remove(connection)
-                connection.handleDisconnection()
+                connection.handleDisconnection(true)
             }
         }
     }

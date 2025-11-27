@@ -8,7 +8,7 @@ interface TickablePacketListener : PacketListener {
     /**
      * Called every second
      */
-    suspend fun tick()
+    fun tickSecond()
 }
 
 abstract class CommonTickablePacketListener : TickablePacketListener {
@@ -16,9 +16,9 @@ abstract class CommonTickablePacketListener : TickablePacketListener {
         private val log = logger()
     }
 
-    private val schedules = ConcurrentLinkedQueue<suspend () -> Unit>()
+    private val schedules = ConcurrentLinkedQueue<() -> Unit>()
 
-    override suspend fun tick() {
+    final override fun tickSecond() {
         while (true) {
             val task = schedules.poll() ?: break
 
@@ -31,12 +31,12 @@ abstract class CommonTickablePacketListener : TickablePacketListener {
             }
         }
 
-        tick0()
+        tickSecond0()
     }
 
-    protected abstract suspend fun tick0()
+    protected abstract fun tickSecond0()
 
-    fun schedule(function: suspend () -> Unit) {
+    fun schedule(function: () -> Unit) {
         schedules.add(function)
     }
 }

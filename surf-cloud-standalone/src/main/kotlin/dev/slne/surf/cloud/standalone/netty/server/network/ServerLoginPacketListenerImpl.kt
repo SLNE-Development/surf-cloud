@@ -1,16 +1,14 @@
 package dev.slne.surf.cloud.standalone.netty.server.network
 
-import dev.slne.surf.cloud.core.common.coroutines.PacketHandlerScope
 import dev.slne.surf.cloud.core.common.netty.network.CommonTickablePacketListener
-import dev.slne.surf.cloud.core.common.netty.network.ConnectionImpl
 import dev.slne.surf.cloud.core.common.netty.network.DisconnectReason
 import dev.slne.surf.cloud.core.common.netty.network.DisconnectionDetails
+import dev.slne.surf.cloud.core.common.netty.network.connection.ConnectionImpl
 import dev.slne.surf.cloud.core.common.netty.network.protocol.login.*
 import dev.slne.surf.cloud.core.common.netty.network.protocol.prerunning.PreRunningProtocols
 import dev.slne.surf.cloud.standalone.netty.server.NettyServerImpl
 import dev.slne.surf.cloud.standalone.netty.server.ServerClientImpl
 import dev.slne.surf.surfapi.core.api.util.logger
-import kotlinx.coroutines.launch
 
 private const val MAX_LOGIN_TIME = 30
 
@@ -28,7 +26,7 @@ class ServerLoginPacketListenerImpl(val server: NettyServerImpl, val connection:
 
     private var seconds = 0
 
-    override suspend fun tick0() {
+    override fun tickSecond0() {
         if (state == State.VERIFYING) {
             if (connection.connected) {
                 verifyLoginAndFinishConnectionSetup()
@@ -69,16 +67,15 @@ class ServerLoginPacketListenerImpl(val server: NettyServerImpl, val connection:
     override fun handleLoginAcknowledgement(packet: ServerboundLoginAcknowledgedPacket) {
         check(state == State.PROTOCOL_SWITCHING) { "Unexpected login acknowledgement packet" }
 
-        PacketHandlerScope.launch {
-            client!!.initConnection(connection)
-            connection.setupOutboundProtocol(PreRunningProtocols.CLIENTBOUND)
-            val listener = ServerPreRunningPacketListenerImpl(server, connection, client!!, proxy)
-            connection.setupInboundProtocol(PreRunningProtocols.SERVERBOUND, listener)
-            state = State.ACCEPTED
-        }
+        client!!.initConnection(connection)
+        connection.setupOutboundProtocol(PreRunningProtocols.CLIENTBOUND).syncUninterruptibly()
+        val listener = ServerPreRunningPacketListenerImpl(server, connection, client!!, proxy)
+        connection.setupInboundProtocol(PreRunningProtocols.SERVERBOUND, listener)
+            .syncUninterruptibly()
+        state = State.ACCEPTED
     }
 
-    override suspend fun onDisconnect(details: DisconnectionDetails) {
+    override fun onDisconnect(details: DisconnectionDetails) {
         log.atInfo().log("${client?.displayName} lost connection: ${details.buildMessage()}")
     }
 

@@ -8,11 +8,26 @@ import java.util.*
 
 /**
  * Represents a Netty packet that serves as a response to a [RespondingNettyPacket].
+ *
+ * Each response carries a [responseTo] field containing the unique session ID
+ * of the corresponding request. This ID is used on the sending side
+ * (see RespondingPacketSendHandler) to look up and complete the correct
+ * deferred response.
+ *
+ * Note:
+ * - If a response arrives for an unknown or already completed session ID,
+ *   it is typically logged as a warning and ignored.
+ * - This can legitimately happen if the connection is closed and reopened,
+ *   or if the requester has already timed out or canceled the request.
  */
 abstract class ResponseNettyPacket : NettyPacket() {
 
     /**
      * The unique ID of the packet to which this response corresponds.
+     *
+     * This is written by [RespondingNettyPacket.respond] and read by
+     * RespondingPacketSendHandler to match responses with their pending
+     * requests.
      */
     @InternalApi
     var responseTo: UUID? = null

@@ -1,7 +1,7 @@
 package dev.slne.surf.cloud.standalone.netty.server.network
 
-import dev.slne.surf.cloud.core.common.netty.network.ConnectionImpl
 import dev.slne.surf.cloud.core.common.netty.network.DisconnectionDetails
+import dev.slne.surf.cloud.core.common.netty.network.connection.ConnectionImpl
 import dev.slne.surf.cloud.core.common.netty.network.protocol.initialize.ClientboundInitializeIdResponsePacket
 import dev.slne.surf.cloud.core.common.netty.network.protocol.initialize.ServerInitializePacketListener
 import dev.slne.surf.cloud.core.common.netty.network.protocol.initialize.ServerboundInitializeRequestIdPacket
@@ -16,9 +16,7 @@ class ServerInitializePacketListenerImpl(val connection: ConnectionImpl) :
         connection.send(ClientboundInitializeIdResponsePacket(id))
     }
 
-    override suspend fun onDisconnect(details: DisconnectionDetails) {
-        // Do nothing
-    }
+    override fun onDisconnect(details: DisconnectionDetails) = Unit
 
     override fun isAcceptingMessages(): Boolean {
         return connection.connected

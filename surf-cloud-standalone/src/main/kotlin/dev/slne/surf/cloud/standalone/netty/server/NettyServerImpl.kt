@@ -1,7 +1,6 @@
 package dev.slne.surf.cloud.standalone.netty.server
 
 import com.github.benmanes.caffeine.cache.Caffeine
-import dev.slne.surf.surfapi.core.api.util.toObjectList
 import dev.slne.surf.cloud.core.common.config.AbstractSurfCloudConfigHolder
 import dev.slne.surf.cloud.core.common.netty.network.DisconnectReason
 import dev.slne.surf.cloud.core.common.netty.network.DisconnectionDetails
@@ -12,6 +11,7 @@ import dev.slne.surf.cloud.standalone.server.serverManagerImpl
 import dev.slne.surf.cloud.standalone.spark.provider.CloudTickHook
 import dev.slne.surf.cloud.standalone.spark.provider.CloudTickReporter
 import dev.slne.surf.surfapi.core.api.util.logger
+import dev.slne.surf.surfapi.core.api.util.toObjectList
 import io.netty.channel.epoll.Epoll
 import io.netty.channel.unix.DomainSocketAddress
 import kotlinx.coroutines.Dispatchers
@@ -132,10 +132,11 @@ class NettyServerImpl(private val configHolder: AbstractSurfCloudConfigHolder<*>
         schedules.add(function)
     }
 
-    suspend fun registerClient(client: ServerClientImpl, proxy: Boolean) {
+    fun registerClient(client: ServerClientImpl, proxy: Boolean) {
         if (clients.asMap().putIfAbsent(client.serverName, client) != null) {
             log.atSevere()
                 .log("Client with name ${client.serverName} already exists")
+
             client.connection.disconnect(
                 DisconnectionDetails(
                     DisconnectReason.CLIENT_NAME_ALREADY_EXISTS,
@@ -167,7 +168,7 @@ class NettyServerImpl(private val configHolder: AbstractSurfCloudConfigHolder<*>
         serverManagerImpl.registerServer(server)
     }
 
-    suspend fun unregisterClient(client: ServerClientImpl) {
+    fun unregisterClient(client: ServerClientImpl) {
         clients.invalidate(client.serverName)
         log.atInfo().log("Unregistered client ${client.displayName}")
         serverManagerImpl.unregisterServer(client.serverName)

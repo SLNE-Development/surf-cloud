@@ -22,12 +22,14 @@ data class DisconnectionDetails(val reason: DisconnectReason, val additionalInfo
             reason.message
         }
     }
+
+    fun createException() = IllegalStateException(buildMessage())
 }
 
 enum class DisconnectReason(
     val id: Int,
     val message: String,
-    val shouldRestart: Boolean = true
+    val shouldReconnect: Boolean = true
 ) {
     UNKNOWN(0, "Disconnected", true),
     TIMEOUT(1, "Timed out", true),
@@ -35,12 +37,11 @@ enum class DisconnectReason(
     END_OF_STREAM(3, "End of stream", true),
     SERVER_ID_FETCHED(4, "Server ID fetched", false),
     CLIENT_SHUTDOWN(5, "Client shutdown", false),
-    CLIENT_NAME_ALREADY_EXISTS(6, "Client name already exists", false),
+    CLIENT_NAME_ALREADY_EXISTS(6, "Client name already exists", true),
     SERVER_SHUTDOWN(7, "Server is shutting down", true),
     OUTDATED_SERVER(8, "Outdated server", false),
     OUTDATED_CLIENT(9, "Outdated client", false),
-    PROXY_ALREADY_CONNECTED(10, "Proxy already connected", false),
-    TOOK_TOO_LONG(11, "Took too long to log in", false);
+    TOOK_TOO_LONG(10, "Took too long to log in", true);
 
     companion object {
         val BY_ID = ByIdMap.continuous(

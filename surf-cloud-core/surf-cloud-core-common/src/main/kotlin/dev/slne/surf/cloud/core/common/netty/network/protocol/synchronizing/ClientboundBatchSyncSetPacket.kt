@@ -75,7 +75,7 @@ class ClientboundBatchSyncSetPacket : NettyPacket, InternalNettyPacket<ClientSyn
 
             // Write the actual length of the encoded value
             buf.setInt(lengthIndex, endIndex - startIndex)
-            
+
             // Write the change ID after the set data
             buf.writeLong(changeId)
         }

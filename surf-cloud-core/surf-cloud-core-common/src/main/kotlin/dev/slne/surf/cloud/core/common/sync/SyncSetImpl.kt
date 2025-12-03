@@ -29,6 +29,8 @@ class SyncSetImpl<T>(override val id: String, val valueCodec: StreamCodec<SurfBy
     private val listeners = CopyOnWriteArrayList<SyncSetListener<T>>()
     private val changeCounter = AtomicLong()
 
+    val currentChangeId: Long
+        get() = changeCounter.get()
 
     init {
         CommonSyncRegistryImpl.instance.register(this)

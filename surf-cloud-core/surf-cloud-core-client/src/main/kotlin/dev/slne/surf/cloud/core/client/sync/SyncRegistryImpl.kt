@@ -62,12 +62,12 @@ class SyncRegistryImpl : CommonSyncRegistryImpl() {
         lastChangeIds[packet.setId] = packet.changeId
     }
 
-    fun applyBatchSyncSets(bulk: List<Pair<String, Set<Any?>>>) {
-        bulk.forEach { (id, snapshot) ->
+    fun applyBatchSyncSets(bulk: List<Triple<String, Set<Any?>, Long>>) {
+        bulk.forEach { (id, snapshot, changeId) ->
             val set = getSet<Any?>(id)
             if (set != null) {
                 set.addAllInternal(snapshot)
-                lastChangeIds[id] = Long.MAX_VALUE // Reset change ID to max after bulk update
+                lastChangeIds[id] = changeId
             }
         }
     }

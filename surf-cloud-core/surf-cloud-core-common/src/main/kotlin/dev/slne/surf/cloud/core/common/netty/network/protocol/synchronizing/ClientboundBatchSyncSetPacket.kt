@@ -27,10 +27,10 @@ class ClientboundBatchSyncSetPacket : NettyPacket, InternalNettyPacket<ClientSyn
             packetCodec(ClientboundBatchSyncSetPacket::write, ::ClientboundBatchSyncSetPacket)
     }
 
-    val syncSets: List<Pair<String, Set<Any?>>>
+    val syncSets: List<Triple<String, Set<Any?>, Long>>
 
     constructor(syncValues: Map<String, SyncSetImpl<*>>) {
-        this.syncSets = syncValues.map { (key, value) -> key to value.toSet() }
+        this.syncSets = syncValues.map { (key, value) -> Triple(key, value.toSet(), value.currentChangeId) }
     }
 
     private constructor(buf: SurfByteBuf) {
@@ -43,10 +43,13 @@ class ClientboundBatchSyncSetPacket : NettyPacket, InternalNettyPacket<ClientSyn
             val syncSet = CommonSyncRegistryImpl.instance.getSet<Any?>(syncId)
             if (syncSet == null) {
                 buf.skipBytes(syncSize)
+                buf.readLong() // Skip the change ID as well
                 unknownSyncValues.add(syncId)
                 null
             } else {
-                syncId to syncSet.codec.decode(buf)
+                val set = syncSet.codec.decode(buf)
+                val changeId = buf.readLong()
+                Triple(syncId, set, changeId)
             }
         }.filterNotNull()
 
@@ -57,7 +60,7 @@ class ClientboundBatchSyncSetPacket : NettyPacket, InternalNettyPacket<ClientSyn
     }
 
     private fun write(buf: SurfByteBuf) {
-        buf.writeCollection(syncSets) { buf, (syncId, set) ->
+        buf.writeCollection(syncSets) { buf, (syncId, set, changeId) ->
             buf.writeUtf(syncId)
 
             // Reserve 4 bytes for length
@@ -72,6 +75,9 @@ class ClientboundBatchSyncSetPacket : NettyPacket, InternalNettyPacket<ClientSyn
 
             // Write the actual length of the encoded value
             buf.setInt(lengthIndex, endIndex - startIndex)
+
+            // Write the change ID after the set data
+            buf.writeLong(changeId)
         }
     }
 
